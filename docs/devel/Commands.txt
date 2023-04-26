@@ -1,0 +1,95 @@
+
+* How to execute command
+php marwa.php CMD
+
+* How to create command
+
+	$name : this is the name of the command
+	$description : this is description of command
+	$help : this is help for command
+
+Command name format:
+$name = "my:commnad"; // this is only command name set without arguments
+$name = "my:command {username}" ;// this is example of command with arguments required
+$name = "my:command {username?}" ; // command with optional arguments option
+$name = "my:command {username=admin}" ; // command with option with default value argument
+$name = "my:command {username*}" ;// list of array receive
+
+Every argument needs a title.You need to set $argTitle on the command Class same as argument name i.e
+$argTitle['username']="What is your username";
+
+print information on console :
+$this->info("Success");
+
+print error on console :
+$this->error("Failed");
+
+Print clickable link in the console :
+$this->link("Click Here","http://www.marwaphp.com");
+
+To hide command from the list :
+var $hidden = true;
+
+to Call another command :
+
+$this->call("my:command",['username'=>"admin","--queue"]);
+
+How to get argument :
+$this->argument("username");
+
+How to set option:
+$name = "my:command {username=admin} {--queue}" //without default value
+$name = "my:command {username=admin} {--queue=default}" //with default value
+
+How to get option:
+$this->option("option");
+
+how to print table:
+$this->table(['name', 'email'],
+			[
+				[
+					'emran',
+					"memran.dhk@gmail.com"
+				],
+				[
+					'test',
+					"memran.dhk@gmail.com"
+				],
+				[
+					'test1',
+					"memran.dhk@gmail.com"
+				],
+				[
+					'test2',
+					"memran.dhk@gmail.com"
+				]
+			],
+			"Email Databaes"
+			);
+
+How to ask question:
+$name=$this->ask("What is your name? ");
+
+How to confirm ?
+$result = $this->confirm("Do you want to continue? ");
+
+How to ask multiple choice ?
+$name = $this->choice('What is your name?', ['Mohammad', 'Emran']);
+
+How to ask secret question ?
+$name=$this->secret("What is the password? ");
+$this->info("Your Password is ".$name);
+
+
+How to create Progress bar:
+
+$bar=$this->getProgressbar(50);
+	$bar->start();
+	$i = 0;
+	while ($i++ < 50) {
+	  sleep(1);
+	    // advances the progress bar 1 unit
+	    $bar->advance();
+	}
+	// ensures that the progress bar is at 100%
+	$bar->finish();

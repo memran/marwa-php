@@ -1,0 +1,33 @@
+{
+  "name": "marwa/php",
+  "description": "MarwaPHP - Simple and Faster PHP Framework",
+  "keywords": [
+    "http",
+    "psr-3",
+    "psr-7",
+    "psr-11",
+    "psr-15",
+    "psr-16",
+    "framework",
+    "Swoole",
+    "Marwa",
+    "marwaphp",
+    "marwa framework"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Mohammad Emran",
+      "email": "memran.dhk@gmail.com"
+    }
+  ],
+  "require": {
+    "php": " >= 7.1",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  }
+}

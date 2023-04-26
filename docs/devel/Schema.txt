@@ -1,0 +1,106 @@
+How to create a migration script
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+<?php
+/**
+ * @author    Mohammad Emran <memran.dhk@gmail.com>
+ * @copyright 2018
+ *
+ * @see      https://www.github.com/memran
+ * @see      http://www.memran.me
+ */
+
+use Marwa\Application\Migrations\AbstractMigration;
+use Marwa\Application\Migrations\TableSchema;
+
+class UserTable extends AbstractMigration
+{
+
+	public function up() : void
+	{
+		 $this->table('users')
+		 ->id()
+		 ->strings('username')
+		 ->strings('password')
+		 ->integer('role_id')
+		 ->boolean('status')
+		 ->timestamps()
+		 ->create();
+
+		 $this->table('users')->foreign('role_id','role','id');
+
+	}
+
+	public function down() : void
+	{
+		$this->table('users')->drop();
+	}
+}
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	$this->table('users')->hasTable(); //it will return 0 or 1
+	$this->table('users')->drop(); //table will drop if exists
+	$this->table('users')->create(); // it will create new table
+
+	$this->table('testusers')
+		->addColumn("id","int",['limit'=>10,'signed'=>false,'autoincre'=>true,'primary'=>true])
+		->addColumn("id","int",['limit'=>5,])
+		->addColumn("created_at",'datetime')
+		->addColumn("updated_at","datetime")
+
+	//Rename the table
+	$this->table($from)->rename($to); //
+
+	//delete all data from table
+	$this->table($from)->empty();
+
+	$this->strings('username',100);
+	$this->integer('age', 10);
+	$this->id() //it will create id wit BIG UNSIGNED INT AUTO_INCREEMENT PRIMARY KEY
+	//create timestamps for created_at and updated at
+	$this->timestamps() // it will create auto two columns created_at and updated_at
+	$this->boolean('status'); / it will create tinyint with limit option 1
+
+	$this->table('users')->foreign('role_id','role','id',
+		[
+			'delete' => 'CASCADE', // possible values : RESTRICT | CASCADE | SET NULL | NO ACTION | SET DEFAULT
+			'update' => 'CASCADE',// possible values : RESTRICT | CASCADE | SET NULL | NO ACTION | SET DEFAULT
+			'constraint' => 'user_role_fk'
+		])
+
+	//delete foreign key
+	$this->table('users')->dropForeign('user_role_fk');
+
+
+	//add primary key
+	$this->table('users')->primary('id');
+	$this->table('users')->dropPrimary('id');
+
+	//add primary key with multiple columns
+	$this->table('users')->primary(['id','username']);
+	$this->table('users')->dropPrimary('id');
+
+	//create plain index
+	$this->table('users')->index('username');
+	$this->table('users')->dropIndex('user_role_fk');
+
+	//create unique index
+	$this->table('users')->unique('username');
+	$this->table('users')->dropUnique('user_role_unique');
+
+	//rename index
+	$this->table('users')->renameIndex('user_role_index','user1_role_index');
+
+	//set auto increment for table with custom start
+	$this->table(users)->autoIncrement(100); // it will start from 100 for autoicnrement
+
+
+	//add new colum to the table
+	$this->table('users')->newColumn("email","VARCHAR(100)");
+
+	//modify column data type
+	$this->table('users')->modifyColumn("email","VARCHAR(50)");
+	//drop column
+	$this->table('users')->dropColumn("email");
+
+	//rename column
+	$this->table('users')->renameColumn("email",'username');

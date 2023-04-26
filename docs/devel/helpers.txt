@@ -1,0 +1,27 @@
+
+Function Name :
+redirect(url,http code);
+
+// to set message on session
+setMessage('error','Access Denied');
+
+//to session variable
+session(key,value)
+
+//to log file
+logger('log message',variables in array );
+
+//to set cache
+cache(key,value)
+//to get cache
+cache(key)
+
+//to print and die
+dd("die")
+
+To get full marwa app
+app();
+
+//to display current time
+
+now();

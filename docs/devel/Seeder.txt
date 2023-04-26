@@ -1,0 +1,12 @@
+
+How to make seeder class:
+php marwa make:seeder UserSeeder
+
+//to run seeder class
+php marwa make:seeder --class UserSeeder
+
+//to run all seeder
+php marwa make:seeder
+
+//run db raw query in seeder
+DB::rawQuery('SELECT * FROM users WHERE id = ?',['1']);

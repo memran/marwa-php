@@ -1,0 +1,9 @@
+To read $_REQUEST variables :
+use Marwa\Application\Facades\Input:
+  $username = Input::post('usernameInput');
+  $password = Input::post('passwordInput');
+
+  $id = Input::get('id');
+ or use any type :
+
+ 	$any = Input::any($variable_name);

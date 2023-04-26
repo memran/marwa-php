@@ -1,0 +1,24 @@
+
+To create queue migration table :
+php marwa queue:table
+
+To migrate queue table
+php marwa migrate:up
+
+To generate queue handler :
+create a folder in the app name "Jobs".
+php marwa make:job EmailSend
+
+above command will generate a queue handler.
+
+
+Queue Priority list :
+0 NORMAL PRIORITY
+100 HIGH PRIORITY
+-100 LOW PRIORITY
+
+Send QUeue request from Controller:
+   $this->onQueue('Signup') // this is queue name
+           ->delay(5) //this delay in seconds
+           ->priority(100) //this is priority
+           ->dispatch('Notify',['username'=>'admin','email'=>'memran.dhk@gmail.com']);

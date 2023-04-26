@@ -1,0 +1,21 @@
+#!/usr/bin/env php
+<?php
+if (PHP_SAPI != 'cli')
+{
+	die("Script must be run on cli");
+}
+
+//directory separator
+defined('DS') or define('DS', DIRECTORY_SEPARATOR);
+
+//directory for web root
+defined('WEBROOT') or define('WEBROOT', dirname(__FILE__, 1));
+
+//loading autoload
+require_once WEBROOT. DS.'vendor/autoload.php';
+
+use Marwa\Application\Console\ConsoleApp;
+
+$application = new ConsoleApp(WEBROOT);
+
+$application->run();
