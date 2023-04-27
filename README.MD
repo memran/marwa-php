@@ -3,17 +3,16 @@ MarwaPHP is a PHP micro-framework built with worlds most popular third party lib
 
 ## Features:
 
-* It has an extension system based around the world best library. 
-* MarwaPHP is blazzing fast.
-* It uses the PSR-3,PSR-7,PSR-11, PSR-15,PSR-16.
+* MarwaPHP is blazzing fast and enterprise grade php framework.
+* It uses the world best php library. 
+* It uses the PSR-3,PSR-7,PSR-11, PSR-15,PSR-14, PSR-16.
 * It uses laminas/laminas-diactoros and  laminas/laminas-httphandlerrunner for abstracts requests and responses.
-* You can develop fast and lightweight APIs with a few lines of code.
+* You can develop fast and enterprise APIs with a few lines of code.
 * It has a blazing fast, powerful HTTP routing for designing SEO-friendly URLs and can handle many requests per second.
 * It’s a modern framework that follows up-to-date software development practices and secured cookies to improve system security.
-* It’s not restrictive and offers a lot of freedom while supporting many vital functionalities such as dependency injection for controlling external tools
-* It provides excellent performance and improved website performance and uses less cache thanks to its low weight
-* Folder structure and function name are inspired by laravel.
-
+* It’s not restrictive and it used league/container dependency injection for controlling external library
+* It provides excellent enterprise grade performance 
+* Framework Design, Folder structure and function name are similiar as laravel to make easy learning curve for developer
 
 ## Library used in MarwaPHP
 
