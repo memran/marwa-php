@@ -1,5 +1,4 @@
 <?php
-
 return [
 		'register' => new \App\Listeners\RegisterListener,
 		'onLogin' => new \App\Listeners\LoginListener,

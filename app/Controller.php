@@ -1,9 +1,7 @@
 <?php
-	
-	namespace App;
-	
-	use Marwa\Application\AppController;
-	
-	class Controller extends AppController {
-	
-	}
+namespace App;
+use Marwa\Application\AppController;
+
+class Controller extends AppController {
+
+}
