@@ -1,18 +1,18 @@
 ### What is MarwaPHP Microframework?
-MarwaPHP is a PHP micro-framework built with worlds best third party components. MarwaPHP can be used to make single-page web applications. Its extension system based around the league/container library , container makes it even easier to tie in third-party libraries. It uses the PSR-3,PSR-7,PSR-11, PSR-15,PSR-16. It uses League\Route, laminas/laminas-diactoros for HTTP request and laminas/laminas-httphandlerrunner for respond to HTTP requests.
+MarwaPHP is a PHP micro-framework built with worlds most popular third party library. MarwaPHP can be used to make faster web applications. Its extension system based  the league/container, container makes it even easier to tie in third-party libraries. It uses the PSR-3,PSR-7,PSR-11, PSR-15,PSR-16. It uses League\Route, laminas/laminas-diactoros for HTTP request and laminas/laminas-httphandlerrunner for respond to HTTP requests.
 
 ## Features:
 
 * It has an extension system based around the world best library. 
-* MarwaPHP is blazzing fast and highly secured.
-* Focusing on community based library and PHP FIG
+* MarwaPHP is blazzing fast.
+* It uses the PSR-3,PSR-7,PSR-11, PSR-15,PSR-16.
 * It uses laminas/laminas-diactoros and  laminas/laminas-httphandlerrunner for abstracts requests and responses.
-* MarwaPHP makes life easier, modern and developer friendly.
 * You can develop fast and lightweight APIs with a few lines of code.
-* It has a fast, powerful HTTP routing for designing SEO-friendly URLs and can handle many requests per second.
+* It has a blazing fast, powerful HTTP routing for designing SEO-friendly URLs and can handle many requests per second.
 * It’s a modern framework that follows up-to-date software development practices and secured cookies to improve system security.
 * It’s not restrictive and offers a lot of freedom while supporting many vital functionalities such as dependency injection for controlling external tools
 * It provides excellent performance and improved website performance and uses less cache thanks to its low weight
+* Folder structure and function name are inspired by laravel.
 
 
 ## Library used in MarwaPHP
@@ -61,5 +61,12 @@ MarwaPHP is a PHP micro-framework built with worlds best third party components.
 
 git clone https://github.com/memran/marwa-php.git
 
+## Documentation
 
+Coming Soon
 
+## Contribution
+Please see [CONTRIBUTING](https://github.com/memran/marwa-php/blob/master/CONTRIBUTING.MD) for details.
+
+## License
+The MIT License (MIT). Please see  [License File](https://github.com/memran/marwa-php/blob/master/LICENSE.MD) for more information.
