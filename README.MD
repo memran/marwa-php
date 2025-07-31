@@ -66,6 +66,10 @@ Or configure Apache/Nginx to point to `public/index.php`.
 
 ---
 
+## Beginner Tutorial
+- [Beginner Tutorial](docs/beginner_tutorial.md)
+
+---
 ## Documentation
 
 [📘 Full Documentation Index](./docs/index.md)
