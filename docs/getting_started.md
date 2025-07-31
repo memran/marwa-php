@@ -109,5 +109,3 @@ To deploy MarwaPHP to production:
    ```
 
 ---
-
-> ℹ️ For full documentation, refer to the [index page](index.md) or explore the `docs/` directory.
