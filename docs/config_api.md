@@ -1,12 +1,28 @@
-# ⚙️ Configuration API
+# ⚙️ Configuration API in MarwaPHP
 
-MarwaPHP uses a powerful and simple configuration system. All configuration files are placed in the `config/` directory. These files return associative arrays and can be accessed using the `Config` facade or the `app()` helper.
+MarwaPHP uses a flexible, PSR-compliant configuration system inspired by Laravel, but optimized for micro-framework performance. It supports loading configuration from PHP array files stored in the `config/` directory and from environment variables using the `.env` file.
 
 ---
 
-## 📂 Loading a Configuration File
+## 📁 Configuration Files
 
-You can load any config file using the `Config` facade:
+All configuration files reside in the `config/` directory and return associative arrays. You can organize your configuration modularly, like so:
+
+```text
+config/
+├── app.php
+├── database.php
+├── mail.php
+├── cache.php
+├── queue.php
+└── custom.php
+```
+
+---
+
+## 🧩 Loading Config Files
+
+You can load configuration files via:
 
 ```php
 use Marwa\Application\Facades\Config;
@@ -14,7 +30,7 @@ use Marwa\Application\Facades\Config;
 $config = Config::load('app.php');
 ```
 
-Alternatively, use the `app()` helper:
+Or use the service container approach:
 
 ```php
 $config = app('config')->file('app.php')->load();
@@ -22,58 +38,87 @@ $config = app('config')->file('app.php')->load();
 
 ---
 
-## 🔍 Accessing Configuration Values
+## 🔍 Accessing Config Values
 
-You can access specific keys using:
-
-```php
-$value = Config::get('app.name');
-```
-
-Or set values at runtime:
+You can get or set specific config values:
 
 ```php
-Config::set('app.debug', false);
+// Get a value
+$debug = Config::get('app.debug');
+
+// Set a value at runtime
+Config::set('app.locale', 'fr');
+
+// Check if config exists
+if (Config::has('database.default')) {
+    // Logic
+}
 ```
+
+Supports dot notation for nested keys.
 
 ---
 
-## 🛠 Creating Custom Configuration Files
+## 🛠 Custom Config Files
 
-You can create your own config files in the `config/` directory.
-
-For example, create `config/mailer.php`:
+You can create your own configuration files easily:
 
 ```php
+// config/payment.php
 return [
-    'smtp_host' => 'smtp.mailtrap.io',
-    'port'      => 2525,
-    'username'  => 'your-user',
-    'password'  => 'your-pass',
+    'provider' => 'stripe',
+    'api_key'  => env('STRIPE_API_KEY'),
 ];
 ```
 
-Access it using:
+Access in code:
 
 ```php
-$mailer = Config::load('mailer.php');
-echo $mailer['smtp_host'];
+$provider = Config::get('payment.provider');
 ```
 
 ---
 
-## 🔐 Using Environment Variables
+## 🔐 Environment Variables
 
-MarwaPHP reads `.env` variables using the `env()` helper:
+Use `env()` to access values from `.env`:
 
 ```php
-$db_user = env('DB_USER');
+$env = env('APP_ENV', 'production');
+$port = env('DB_PORT', 3306);
 ```
 
-This allows flexible, environment-based settings without hardcoding sensitive values.
+This allows sensitive or instance-specific values to remain outside version control.
 
 ---
 
-## 🚀 Caching Configuration (Optional)
+## 🧰 Useful Helpers
 
-To improve performance, you can preload and cache configuration values during the bootstrap phase by writing custom logic or CLI commands (coming soon).
+- `env('KEY', 'default')` – Get env value with fallback.
+- `config('app.name')` – Shortcut to retrieve a config value.
+- `app('config')` – Service container access to config manager.
+
+---
+
+## 📦 Caching Configuration (Planned Feature)
+
+In future releases, config caching will be available for performance:
+
+```bash
+php marwa config:cache
+php marwa clear:cache
+```
+
+This will compile all config into a single file to improve bootstrapping speed.
+
+---
+
+## 💡 Best Practices
+
+- Group related configs (e.g., mail, queue, database).
+- Use `env()` in config files, not inside controllers.
+- Avoid hardcoding secrets — use `.env`.
+
+---
+
+> 🧠 MarwaPHP configuration is optimized for clarity, flexibility, and environment portability.
