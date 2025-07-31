@@ -56,5 +56,3 @@ Welcome to the official developer documentation for **MarwaPHP** — a modern, l
 - [README](../README.md)
 
 ---
-
-> 📌 For GitHub Pages, host this `index.md` inside the `/docs/` folder and enable GitHub Pages from repo settings.
