@@ -22,7 +22,7 @@ Welcome to the official developer documentation for **MarwaPHP** — a modern, l
 7. [Configuration API](config_api.md)
 8. [Input Handling](input_api.md)
 9. [CLI Commands](commands_api.md)
-10. [Helpers](helpers_api.md)
+10. [Helpers](helpers.md)
 
 ---
 
