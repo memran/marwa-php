@@ -1,71 +1,143 @@
-# 📝 Input Handling in MarwaPHP
+# 📝 Input API in MarwaPHP
 
-MarwaPHP provides a clean and straightforward way to handle HTTP request input through the `Input` facade. It helps you easily retrieve GET, POST, PUT, or JSON payloads.
+The `Input` facade in MarwaPHP provides a convenient interface for accessing HTTP request data, whether it comes from query parameters, form submissions, JSON payloads, or headers.
 
 ---
 
 ## 📥 Retrieving Input Data
 
-Use the `Input::get()` method to retrieve values from the request:
+### `Input::get($key, $default = null)`
+
+Retrieve a value from the request input (GET, POST, or JSON body):
 
 ```php
-use Marwa\Application\Facades\Input;
-
 $name = Input::get('name');
-$email = Input::get('email', 'default@example.com'); // with default fallback
+$email = Input::get('email', 'default@example.com');
 ```
 
 ---
 
-## 🧪 Checking for Input Existence
+## 🧪 Checking for Input Keys
 
-You can verify if a key exists:
+### `Input::has($key)`
+
+Check whether a specific key exists:
 
 ```php
-if (Input::has('username')) {
-    // Do something
+if (Input::has('email')) {
+    // do something
 }
 ```
 
 ---
 
-## 📦 Retrieving All Input Data
+## 📦 Working with All Input
+
+### `Input::all()`
+
+Returns all input data as an array:
 
 ```php
-$all = Input::all();
+$data = Input::all();
 ```
 
-You can also get only specific fields:
+### `Input::only(array $keys)`
+
+Returns only selected fields:
 
 ```php
-$data = Input::only(['email', 'password']);
+$user = Input::only(['name', 'email']);
 ```
 
-Or exclude specific fields:
+### `Input::except(array $keys)`
+
+Returns input data excluding specified keys:
 
 ```php
-$data = Input::except(['_token']);
+$clean = Input::except(['password']);
 ```
 
 ---
 
-## 🔐 Handling JSON Requests
+## 🔐 JSON & Raw Payloads
 
-If you're receiving JSON, you can parse it like this:
+### `Input::json()`
+
+Get the request body parsed as JSON:
 
 ```php
-$jsonData = Input::json();
+$payload = Input::json();
+```
+
+### `Input::isJson()`
+
+Check if the request expects or sends JSON:
+
+```php
+if (Input::isJson()) {
+    // return JSON response
+}
 ```
 
 ---
 
-## 🔍 Additional Features
+## 🧠 HTTP Context Helpers
 
-- `Input::isJson()` — Check if the incoming request is JSON.
-- `Input::method()` — Returns the HTTP request method (GET, POST, etc.).
-- `Input::ip()` — Get the client's IP address.
-- `Input::url()` — Get the request URL.
+### `Input::method()`
+
+Returns the HTTP request method (`GET`, `POST`, etc.):
+
+```php
+$method = Input::method();
+```
+
+### `Input::ip()`
+
+Returns the client IP address:
+
+```php
+$ip = Input::ip();
+```
+
+### `Input::url()`
+
+Returns the full request URL:
+
+```php
+$url = Input::url();
+```
+
+### `Input::header($key)`
+
+Get a specific request header:
+
+```php
+$auth = Input::header('Authorization');
+```
 
 ---
 
-> 🔔 The Input facade is available globally within controllers, middleware, and services in MarwaPHP.
+## 🧾 File Uploads
+
+(If supported internally — inferred)
+
+### `Input::file($key)`
+
+Get uploaded file metadata or instance:
+
+```php
+$file = Input::file('avatar');
+```
+
+---
+
+## 💡 Best Practices
+
+- Use `Input::get()` to retrieve general values.
+- Use `Input::json()` for API endpoints accepting JSON.
+- Validate input data before processing.
+- Use middleware for CSRF protection, input sanitization, and authentication.
+
+---
+
+> 📘 The Input API in MarwaPHP is modeled after Laravel’s request handling, but tailored for a leaner, faster framework.
