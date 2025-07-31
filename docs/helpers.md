@@ -1,99 +1,142 @@
 # 🧰 Helpers in MarwaPHP
 
-MarwaPHP provides a collection of global helper functions to simplify common operations. These helpers can be used throughout controllers, services, routes, or anywhere in your application.
+MarwaPHP offers a rich set of global helper functions designed to streamline development. These are accessible throughout your controllers, routes, middleware, and services.
 
 ---
 
-## 🔧 Common Helpers
+## 📦 Environment & Config
 
-### `env()`
-
-Reads environment variables from the `.env` file.
+### `env(key, default = null)`
+Get a value from `.env`.
 
 ```php
-$debug = env('APP_DEBUG', false);
+$mode = env('APP_ENV', 'production');
+```
+
+### `config(key)`
+Access config values using dot notation.
+
+```php
+$timezone = config('app.timezone');
 ```
 
 ---
 
-### `config()`
+## 📄 Path Helpers
 
-Access configuration values directly.
+These resolve full paths to important directories:
+
+| Function            | Description                          |
+|---------------------|--------------------------------------|
+| `base_path($path)`  | Returns full path from base dir      |
+| `config_path($path)`| Path to config directory             |
+| `public_path($path)`| Path to public directory             |
+| `resource_path($p)` | Path to resources directory          |
+| `storage_path($p)`  | Path to storage                      |
 
 ```php
-$appName = config('app.name');
+$logs = storage_path('logs/laravel.log');
 ```
 
 ---
 
-### `view()`
-
-Render a Twig view.
-
-```php
-return view('home', ['title' => 'Welcome']);
-```
-
----
-
-### `asset()`
-
-Generate a public asset URL from the `public/` directory.
-
-```php
-<link rel="stylesheet" href="<?= asset('css/style.css') ?>">
-```
-
----
-
-### `app()`
-
-Access the service container or resolve a bound class.
-
-```php
-$logger = app('logger');
-```
-
----
-
-### `base_path()`, `config_path()`, `public_path()`, `resource_path()`, etc.
-
-Get the full system path for various directories.
-
-```php
-$path = base_path('storage/logs');
-```
-
----
-
-### `redirect()`
-
-Perform HTTP redirects.
-
-```php
-return redirect('/login');
-```
-
----
-
-### `abort()`
-
-Stop the request and return a given HTTP status.
-
-```php
-abort(403, 'Unauthorized action.');
-```
-
----
+## 🔐 Security & Session
 
 ### `csrf_token()`
-
-Retrieve the CSRF token string.
+Returns the current CSRF token.
 
 ```php
 <input type="hidden" name="_token" value="<?= csrf_token() ?>">
 ```
 
+### `session($key = null)`
+Access session data or flash variables.
+
+```php
+session()->put('user_id', 123);
+$userId = session('user_id');
+```
+
 ---
 
-> 🧠 These helper functions are designed for convenience and are globally available throughout your MarwaPHP application.
+## 🔄 Redirect & Response
+
+### `redirect($url)`
+Issue an HTTP redirect.
+
+```php
+return redirect('/dashboard');
+```
+
+### `abort($code, $message = '')`
+Immediately stop and return HTTP error.
+
+```php
+abort(404, 'Page not found');
+```
+
+---
+
+## 🎨 View & URL
+
+### `view($name, $data = [])`
+Render a Twig template.
+
+```php
+return view('welcome', ['user' => $user]);
+```
+
+### `asset($path)`
+Get the full URL of a public asset.
+
+```php
+<link rel="stylesheet" href="<?= asset('css/app.css') ?>">
+```
+
+---
+
+## 🔧 Utility Helpers
+
+### `app($abstract = null)`
+Access the container or resolve services.
+
+```php
+$logger = app('logger');
+```
+
+### `request()`
+Get the current HTTP request object.
+
+```php
+$request = request();
+$ip = request()->ip();
+```
+
+### `response($data, $status = 200)`
+Return a response with optional status.
+
+```php
+return response(['message' => 'OK'], 200);
+```
+
+---
+
+## 🧪 Additional Utilities
+
+### `collect(array)`
+Create a collection from an array.
+
+```php
+$users = collect(['Alice', 'Bob'])->map(fn($n) => strtoupper($n));
+```
+
+### `now()`
+Get current time as a Carbon object.
+
+```php
+$today = now()->toDateString();
+```
+
+---
+
+> 🧠 Most helpers follow Laravel’s conventions but are adapted for MarwaPHP's lightweight PSR architecture.
