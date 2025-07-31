@@ -19,33 +19,33 @@ Welcome to the official developer documentation for **MarwaPHP** — a modern, l
 
 ### 🗄 Core Framework
 
-7. [Configuration API](devel/Config.md)
-8. [Input Handling](devel/Input.txt)
-9. [CLI Commands](devel/Commands.txt)
-10. [Helpers](devel/helpers.txt)
+7. [Configuration API](config_api.md)
+8. [Input Handling](input_api.txt)
+9. [CLI Commands](commands_api.txt)
+10. [Helpers](helpers_api.txt)
 
 ---
 
 ### 🧩 Database & Migrations
 
-11. [Database Overview](../Database_Docs.txt)
-12. [Schema Builder](devel/Schema.txt)
-13. [Migrations](devel/Migration.txt)
-14. [Seeders](devel/Seeder.txt)
+11. [Database Overview](database.txt)
+12. [Schema Builder](schema.txt)
+13. [Migrations](migration.txt)
+14. [Seeders](seeder.txt)
 
 ---
 
 ### ⚙️ Queues & Events
 
-15. [Queues](devel/Queue.txt)
-16. [Task Scheduling](devel/TaskSchedule.txt)
-17. [Event System](devel/Events.txt)
+15. [Queues](queue.txt)
+16. [Task Scheduling](taskschedule.txt)
+17. [Event System](events.txt)
 
 ---
 
 ### 🎨 View & Routing
 
-18. [View Rendering](devel/View.txt)
+18. [View Rendering](view.txt)
 19. [Routing Overview (web/api)](../routes/web.php)
 20. [Controllers Example](../app/TestController.php)
 
