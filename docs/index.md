@@ -54,6 +54,8 @@ Welcome to the official developer documentation for **MarwaPHP** — a modern, l
 
 ### 🧾 Additional
 - [Step-By-Step Tutorial for MarwaPHP](beginner_tutorial.md)
-- [README](../README.md)
+- [Docker Setup Tutorial](docker_tutorial.md)
+- [JWT Authentication](jwt_authentication_tutorial.md)
+
 
 ---
