@@ -46,13 +46,14 @@ Welcome to the official developer documentation for **MarwaPHP** — a modern, l
 ### 🎨 View & Routing
 
 18. [View Rendering](view.md)
-19. [Routing Overview (web/api)](../routes/web.php)
-20. [Controllers Example](../app/TestController.php)
+19. [Routing Overview](routing.md)
+20. [Controllers Example](controller_example.md)
+21. [Model Example](model_example.md)
 
 ---
 
 ### 🧾 Additional
-
+- [Step-By-Step Tutorial for MarwaPH](beginner_tutorial.md)
 - [README](../README.md)
 
 ---
