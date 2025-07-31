@@ -1,69 +1,114 @@
 # 🧰 CLI Commands in MarwaPHP
 
-MarwaPHP includes a built-in command-line interface powered by Symfony Console. It helps you perform routine tasks such as migrations, serving the app, generating files, and more.
+MarwaPHP features a powerful built-in CLI tool powered by Symfony Console. It helps developers automate tasks such as running migrations, generating files, launching servers, and more.
 
 ---
 
 ## 🚀 Running the CLI
 
-All commands are executed via the `marwa` entry point.
+All commands are run through the `marwa` entry point script:
 
 ```bash
 php marwa
 ```
 
-This will display a list of all available commands.
+This will display a list of all available commands in your application.
 
 ---
 
-## 📋 Commonly Used Commands
+## 📋 Core Commands
 
 ### 🔧 Migrations
 
 ```bash
-php marwa migrate:init     # Initialize migration system (creates migrations table)
-php marwa migrate          # Run all pending migrations
-php marwa migrate:rollback # Rollback the last batch of migrations
-php marwa make:migration   # Create a new migration file
+php marwa migrate:init          # Initializes the migrations system
+php marwa migrate               # Runs all pending migrations
+php marwa migrate:rollback     # Rolls back the last batch of migrations
+php marwa make:migration User  # Creates a new migration file
 ```
 
 ### 🌱 Seeders
 
 ```bash
-php marwa db:seed              # Run all seeders
-php marwa db:seed --class=Foo  # Run specific seeder class
-php marwa make:seeder          # Create a new seeder class
+php marwa db:seed                   # Runs all registered seeders
+php marwa db:seed --class=UserSeed # Runs a specific seeder class
+php marwa make:seeder UserSeed     # Creates a new seeder class
 ```
 
-### 🧪 Testing
+### 📂 Schema
 
 ```bash
-php marwa test   # Run tests (if integrated with PHPUnit)
+php marwa schema:dump   # Exports current database schema
+php marwa schema:sync   # Syncs schema to latest model definitions
 ```
 
-### 🛠 Make Generators
+---
+
+## 🧪 Testing (if integrated)
 
 ```bash
-php marwa make:controller MyController
-php marwa make:model User
+php marwa test   # Runs all available tests
+```
+
+---
+
+## 🛠 Generators
+
+```bash
+php marwa make:controller BlogController
+php marwa make:model Post
 php marwa make:middleware AuthMiddleware
 php marwa make:event UserRegistered
+php marwa make:command CleanupLogs
 ```
 
-### 🌐 HTTP Server (Swoole)
+These help scaffold boilerplate code and follow PSR naming conventions.
+
+---
+
+## 🌐 Serve Application
 
 ```bash
 php marwa http:serve
 ```
 
-> ℹ️ Make sure Swoole is installed and enabled in your PHP environment.
+Launches the Swoole-powered HTTP server (must be installed via PECL). Great for real-time apps and high-throughput APIs.
 
 ---
 
-## ➕ Adding Custom Commands
+## 🔧 Cache Management (future release)
 
-You can create custom commands by extending the `Symfony\Component\Console\Command\Command` class and registering it inside your app.
+```bash
+php marwa config:cache     # Caches the configuration files
+php marwa route:cache      # Caches routes
+php marwa clear:cache      # Clears all cache (config, view, route)
+```
+
+> 📝 Some of these features may be stubbed for future development.
 
 ---
 
-> 📝 To explore all available CLI commands, simply run `php marwa` in your terminal.
+## ➕ Custom Commands
+
+You can register your own commands by extending `Symfony\Component\Console\Command\Command` and binding them in a ServiceProvider or `app.php` config.
+
+Example:
+
+```php
+namespace App\Console\Commands;
+
+use Symfony\Component\Console\Command\Command;
+
+class HelloCommand extends Command {
+    protected static \$defaultName = 'hello';
+
+    protected function execute(InputInterface \$input, OutputInterface \$output) {
+        $output->writeln("Hello from MarwaPHP CLI!");
+        return Command::SUCCESS;
+    }
+}
+```
+
+---
+
+> 🧠 The CLI in MarwaPHP is modular and extendable — designed to keep your dev workflow efficient.
