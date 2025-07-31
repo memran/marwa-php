@@ -1,80 +1,99 @@
-# MarwaPHP Framework
+# 🚀 MarwaPHP Framework
 
-MarwaPHP is a lightweight, Laravel-inspired PHP micro-framework built with modern PHP standards and a modular architecture. It provides fast HTTP routing, flexible configuration, powerful CLI tools, and support for events, queues, database migrations, and Twig templating. This project skeleton helps you start new MarwaPHP applications with ease.
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![PHP](https://img.shields.io/badge/php-8.2%2B-orange)
+![Build](https://img.shields.io/badge/build-passing-brightgreen)
 
----
-
-## Features
-
-- PSR-compliant routing, logging, HTTP messages
-- Fast routing via `league/route`
-- Configurable service container (PSR-11, League Container)
-- Command-line interface with Symfony Console
-- Event dispatcher and listeners (PSR-14)
-- Database migrations and seeders
-- Built-in queuing and task scheduler
-- View engine using Twig templates
-- Swoole-based HTTP server support for high performance APIs
-- Modular folder structure inspired by Laravel
+**MarwaPHP** is a fast, lightweight, and modular PHP framework built for modern web development. It simplifies API and application development with expressive routing, powerful CLI tools, and a clean MVC structure — all while staying minimal and extensible.
 
 ---
 
-## Requirements
+## 📦 Features
 
-- PHP 7.1 or newer
-- Composer
-- PHP extensions: `curl`, `mbstring`, `pdo`, `json`, `openssl`, `session`, `gd`
+- ✅ Lightweight MVC structure
+- 🔧 CLI tools for rapid scaffolding
+- 🛠 Schema Builder, Migrations, and Seeders
+- 🔐 JWT Authentication & Middleware
+- 🌐 Built-in CORS support
+- 📅 Task Scheduling & Queues
+- 🧰 Helper functions & Utilities
+- 🐳 Docker-ready for scalable deployment
 
 ---
 
-## Installation
+## 📁 Project Structure
+
+```
+marwa-php/
+├── app/                → Application Code (Controllers, Models, Views)
+├── config/             → Configuration files
+├── public/             → Web root (index.php)
+├── routes/             → Route definitions
+├── resources/          → Views & Assets
+├── database/           → Migrations, Seeders
+├── tests/              → Unit & Feature tests
+└── vendor/             → Composer packages
+```
+
+---
+
+## 🚀 Getting Started
 
 ```bash
-git clone https://github.com/memran/marwa-php.git my-app
-cd my-app
+# Clone the repo
+git clone https://github.com/memran/marwa-php.git
+
+# Enter project directory
+cd marwa-php
+
+# Install dependencies
 composer install
-cp .env.example .env
-php marwa migrate:init
-php marwa migrate
+
+# Run dev server
+php -S localhost:8000 -t public/
 ```
 
 ---
 
-## Directory Structure
-
-```
-app/            # Controllers, Models, Middlewares, Services
-config/         # Configuration files
-routes/         # web.php, api.php
-resources/      # Views (Twig templates)
-database/       # Migrations and seeders
-public/         # Entry point (index.php) and assets
-storage/        # Logs, cache, sessions
-```
-
----
-
-## Run the Server
-
-You can use the built-in Swoole server (if installed):
+## 🐳 Run with Docker
 
 ```bash
-php marwa http:serve
+# Development environment
+./launch.sh dev
+
+# Production environment
+./launch.sh prod
 ```
 
-Or configure Apache/Nginx to point to `public/index.php`.
+---
+
+## 📚 Documentation
+
+Explore full guides, tutorials, and API references:
+
+- [Getting Started](docs/getting_started.md)
+- [JWT Authentication](docs/jwt_authentication_tutorial.md)
+- [User Roles & Permissions](docs/user_roles_policy_tutorial.md)
+- [Docker Setup](docs/docker_tutorial.md)
 
 ---
 
-## Beginner Tutorial
-- [Beginner Tutorial](docs/beginner_tutorial.md)
+## 💻 Examples
+
+- 📦 Build a RESTful API in minutes
+- 🔐 Secure routes with policies
+- 🧠 Schedule background tasks
+- 📊 Queue jobs with Redis
+- 🧪 Run PHPUnit tests
 
 ---
-## Documentation
 
-[📘 Full Documentation Index](./docs/index.md)
+## 🤝 Contributing
+
+We welcome contributions! Open an issue, submit a PR, or improve documentation.
+
 ---
 
-## License
+## 📄 License
 
-MIT © Mohammad Emran
+MIT © [Mohammad Emran](https://github.com/memran)
