@@ -68,8 +68,7 @@ Or configure Apache/Nginx to point to `public/index.php`.
 
 ## Documentation
 
-Full documentation is available in the `docs/` folder and soon at [GitHub Pages or your project website].
-
+[📘 Full Documentation Index](./docs/index.md)
 ---
 
 ## License
