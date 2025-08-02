@@ -55,26 +55,21 @@ php -S localhost:8000 -t public/
 
 ---
 
-## 🐳 Run with Docker
-
-```bash
-# Development environment
-./launch.sh dev
-
-# Production environment
-./launch.sh prod
-```
-
----
-
 ## 📚 Documentation
 
-Explore full guides, tutorials, and API references:
+Visit the [MarwaPHP GitHub Wiki](https://github.com/memran/marwa-php/wiki) to get started and learn all features:
 
-- [Getting Started](docs/getting_started.md)
-- [JWT Authentication](docs/jwt_authentication_tutorial.md)
-- [User Roles & Permissions](docs/user_roles_policy_tutorial.md)
-- [Docker Setup](docs/docker_tutorial.md)
+- [Getting Started](https://github.com/memran/marwa-php/wiki/Getting-Started)
+- [Routing](https://github.com/memran/marwa-php/wiki/Routing)
+- [Controllers](https://github.com/memran/marwa-php/wiki/Controller)
+- [Models](https://github.com/memran/marwa-php/wiki/Model)
+- [Views (Twig)](https://github.com/memran/marwa-php/wiki/Twig)
+- [Authentication](https://github.com/memran/marwa-php/wiki/Authentication)
+- [Authorization (Roles & Policies)](https://github.com/memran/marwa-php/wiki/Authorization)
+- [Session Management](https://github.com/memran/marwa-php/wiki/Session)
+- [Queue System](https://github.com/memran/marwa-php/wiki/Queue)
+- [Task Scheduling](https://github.com/memran/marwa-php/wiki/TaskSchedule)
+- [Docker Setup](https://github.com/memran/marwa-php/wiki/Docker-Tutorial)
 
 ---
 
