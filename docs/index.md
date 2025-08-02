@@ -57,5 +57,6 @@ Welcome to the official developer documentation for **MarwaPHP** — a modern, l
 - [Docker Setup Tutorial](docker_tutorial.md)
 - [JWT Authentication](jwt_authentication_tutorial.md)
 - [CORS Tutorial](cors_tutorial.md)
+- [Session Management](session_management.md)
 
 ---
