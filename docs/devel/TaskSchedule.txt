@@ -1,9 +1,0 @@
-
-How to run task schedule :
-
-php marwa schedule:run
-
-create schedule migration table:
-
-php marwa schedule:table
-php marwa migrate:up
