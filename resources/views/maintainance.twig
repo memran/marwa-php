@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Site Under Maintenance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        html, body {
+            background-color: #f4f6f8;
+            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            padding: 2rem;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 0.3em;
+        }
+        p {
+            font-size: 1.2em;
+            color: #666;
+        }
+        .logo {
+            width: 100px;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% if logo_path is defined %}
+            <img src="{{ logo_path }}" alt="Logo" class="logo">
+        {% endif %}
+        <h1>We’ll be back soon!</h1>
+        <p>Sorry for the inconvenience. We're performing some maintenance at the moment.<br>
+        We’ll be back online shortly!</p>
+        <p>&mdash; The MarwaPHP Team</p>
+    </div>
+</body>
+</html>

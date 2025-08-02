@@ -1,6 +1,6 @@
 {
   "name": "marwa/php",
-  "description": "MarwaPHP - Simple and Faster PHP Framework",
+  "description": "MarwaPHP - Lightweight MVC PHP Framework",
   "keywords": [
     "http",
     "psr-3",
