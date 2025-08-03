@@ -1,9 +1,14 @@
 <?php
 
 	use Marwa\Application\Facades\Router;
-	use Marwa\Application\Input;
+	use Marwa\Application\{Input,Response};
 	use Marwa\Application\Middlewares\AuthMiddleware;
 	Router::get('/', 'App\TestController::index');
 	Router::get('/version', function(){
-		return 'Version: ' . config('app.version');
+		
+		return view('version', [
+			'title' => 'Version',
+			'version' => 1.0,
+			'date' => date('Y-m-d H:i:s')
+		]); ;
 	});

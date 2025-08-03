@@ -109,7 +109,7 @@ class MyController  extends Controller
 		// dd('done');
 		// session('name','emran');
 		// dd(session('name'));
-		//app('session')->destroy();
+		// app('session')->destroy();
 		// cache('name','Marwa');
 		// dd(cache('name'));
 		// return view('index',[
