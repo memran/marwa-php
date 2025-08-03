@@ -4,3 +4,7 @@
 composer.lock
 docs/
 vendor/
+/storage/*
+!/storage/.gitignore
+!/storage/logs/
+!/storage/sessions/

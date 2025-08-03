@@ -4,6 +4,12 @@ services:
     volumes:
       - ../:/var/www
       - ./php/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+    command: >
+      sh -c "
+        chown -R www-data:www-data /var/www/storage &&
+        chmod -R 775 /var/www/storage &&
+        php-fpm
+      "  
     depends_on:
       - mysql
     networks:
