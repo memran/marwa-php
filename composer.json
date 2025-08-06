@@ -1,5 +1,5 @@
 {
-  "name": "marwa/php",
+  "name": "memran/marwa-php",
   "description": "MarwaPHP - Lightweight MVC PHP Framework",
   "keywords": [
     "http",
@@ -9,7 +9,6 @@
     "psr-15",
     "psr-16",
     "framework",
-    "Swoole",
     "Marwa",
     "marwaphp",
     "marwa framework"
