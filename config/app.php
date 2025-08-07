@@ -103,16 +103,16 @@
 		 */
 		'providers' => [
 			"Marwa\Application\ServiceProvider\ViewServiceProvider",
-			"Marwa\Application\ServiceProvider\FileServiceProvider",
-			"Marwa\Application\ServiceProvider\EventServiceProvider",
-			"Marwa\Application\ServiceProvider\DatabaseServiceProvider",
-			"Marwa\Application\ServiceProvider\MailServiceProvider",
-			"Marwa\Application\ServiceProvider\CacheServiceProvider",
-			"Marwa\Application\ServiceProvider\RedisServiceProvider",
-			"Marwa\Application\ServiceProvider\MemcacheServiceProvider",
-			"Marwa\Application\ServiceProvider\AuthServiceProvider",
-			"Marwa\Application\ServiceProvider\NotifyServiceProvider",
-			"Marwa\Application\ServiceProvider\TranslatorServiceProvider",
+			//"Marwa\Application\ServiceProvider\FileServiceProvider",
+			//"Marwa\Application\ServiceProvider\EventServiceProvider",
+			//"Marwa\Application\ServiceProvider\DatabaseServiceProvider",
+			//"Marwa\Application\ServiceProvider\MailServiceProvider",
+			//"Marwa\Application\ServiceProvider\CacheServiceProvider",
+			//"Marwa\Application\ServiceProvider\RedisServiceProvider",
+			//"Marwa\Application\ServiceProvider\MemcacheServiceProvider",
+			//"Marwa\Application\ServiceProvider\AuthServiceProvider",
+			//"Marwa\Application\ServiceProvider\NotifyServiceProvider",
+			//"Marwa\Application\ServiceProvider\TranslatorServiceProvider",
 		],
 		//route middleware
 		'middlewares' => [
@@ -121,7 +121,7 @@
 			//new Marwa\Application\Middlewares\CsrfTokenMiddleware,
 			//new Marwa\Application\Middlewares\ClientIpMiddleware,
 			//new Marwa\Application\Middlewares\FirewallMiddleware,
-			new Marwa\Application\Middlewares\LocalizationMiddleware,
+			//new Marwa\Application\Middlewares\LocalizationMiddleware,
 			//new Marwa\Application\Middlewares\SubdomainMiddleware //experimental
 		]
 	];

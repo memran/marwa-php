@@ -1,0 +1,6 @@
+<?php return array (
+  'router' => 'O:19:"League\\Route\\Router":13:{s:9:"' . "\0" . '*' . "\0" . 'groups";a:0:{}s:14:"' . "\0" . '*' . "\0" . 'namedRoutes";a:0:{}s:18:"' . "\0" . '*' . "\0" . 'patternMatchers";a:5:{s:16:"/{(.+?):number}/";s:11:"{$1:[0-9]+}";s:14:"/{(.+?):word}/";s:14:"{$1:[a-zA-Z]+}";s:23:"/{(.+?):alphanum_dash}/";s:19:"{$1:[a-zA-Z0-9-_]+}";s:14:"/{(.+?):slug}/";s:15:"{$1:[a-z0-9-]+}";s:14:"/{(.+?):uuid}/";s:66:"{$1:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}+}";}s:17:"' . "\0" . '*' . "\0" . 'routeCollector";O:24:"FastRoute\\RouteCollector":3:{s:14:"' . "\0" . '*' . "\0" . 'routeParser";O:25:"FastRoute\\RouteParser\\Std":0:{}s:16:"' . "\0" . '*' . "\0" . 'dataGenerator";O:39:"FastRoute\\DataGenerator\\GroupCountBased":2:{s:15:"' . "\0" . '*' . "\0" . 'staticRoutes";a:0:{}s:27:"' . "\0" . '*' . "\0" . 'methodToRegexToRoutesMap";a:0:{}}s:21:"' . "\0" . '*' . "\0" . 'currentGroupPrefix";s:0:"";}s:9:"' . "\0" . '*' . "\0" . 'routes";a:0:{}s:17:"' . "\0" . '*' . "\0" . 'routesPrepared";b:0;s:13:"' . "\0" . '*' . "\0" . 'routesData";a:0:{}s:13:"' . "\0" . '*' . "\0" . 'middleware";a:0:{}s:7:"' . "\0" . '*' . "\0" . 'host";N;s:7:"' . "\0" . '*' . "\0" . 'name";N;s:7:"' . "\0" . '*' . "\0" . 'port";N;s:9:"' . "\0" . '*' . "\0" . 'scheme";N;s:11:"' . "\0" . '*' . "\0" . 'strategy";N;}',
+  'namedRoutes' => 
+  array (
+  ),
+);
