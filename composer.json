@@ -1,6 +1,7 @@
 {
   "name": "memran/marwa-php",
   "description": "MarwaPHP - Lightweight MVC PHP Framework",
+  "type": "project",
   "keywords": [
     "http",
     "psr-3",
@@ -24,6 +25,23 @@
     "php": " >= 8.2",
     "ext-json": "*",
     "memran/marwa-framework": "dev-main"
+  },
+  "scripts": {
+    "post-root-package-install": [
+      "@php scripts/post-create-project.php --root-install"
+    ],
+    "post-create-project-cmd": [
+      "@php scripts/post-create-project.php"
+    ]
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-main": "1.x-dev"
+    }
+  },
+  "config": {
+    "sort-packages": true,
+    "optimize-autoloader": true
   },
   "minimum-stability": "dev",
   "autoload": {
