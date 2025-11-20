@@ -1,0 +1,8 @@
+{# components/init.twig #}
+<script>
+// Auto-magic initialization
+document.querySelectorAll('[data-reactive]').forEach(el => {
+    const component = el.closest('[data-component]')?.dataset.component;
+    if (component && window[component]) new window[component](el);
+});
+</script>

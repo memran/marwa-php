@@ -21,9 +21,9 @@
     }
   ],
   "require": {
-    "php": " >= 7.1",
+    "php": " >= 8.2",
     "ext-json": "*",
-    "memran/marwa-framework":"dev-main"
+    "memran/marwa-framework": "dev-main"
   },
   "minimum-stability": "dev",
   "autoload": {

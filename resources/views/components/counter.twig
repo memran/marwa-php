@@ -1,0 +1,21 @@
+{# components/counter.twig #}
+{% extends "_reactive.twig" %}
+
+{% block content %}
+<div class="counter">
+    <h3>{{ title }}</h3>
+    <div>{{ count }}</div>
+    <button data-click="increment">+</button>
+    <button data-click="decrement">-</button>
+</div>
+{% endblock %}
+
+<script>
+class Counter extends Reactive {
+    increment() { this.setState({count: this.state.count + 1}) }
+    decrement() { this.setState({count: this.state.count - 1}) }
+    template() { return `{{ block('content')|escape('js') }}` }
+}
+</script>
+
+<style>.counter { padding: 20px; border: 2px solid blue; }</style>

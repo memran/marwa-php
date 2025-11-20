@@ -1,0 +1,49 @@
+{# components/_reactive.twig #}
+{% set state = _state|default({}) %}
+
+<div data-reactive data-state="{{ state|json_encode }}">
+    {{ block('content') }}
+</div>
+
+<script>
+class Reactive {
+    constructor(el) {
+        this.el = el;
+        this.state = JSON.parse(el.dataset.state);
+        this.render();
+        this.autoBind();
+    }
+    
+    setState(s) { 
+        this.state = {...this.state, ...s};
+        this.render();
+    }
+    
+    // Magic auto-bind
+    autoBind() {
+        this.el.querySelectorAll('[data-model]').forEach(input => {
+            input.value = this.state[input.dataset.model] || '';
+            input.oninput = (e) => this.setState({[e.target.dataset.model]: e.target.value});
+        });
+        
+        this.el.querySelectorAll('[data-click]').forEach(btn => {
+            btn.onclick = () => this[btn.dataset.click]();
+        });
+        
+        this.el.querySelectorAll('[data-toggle]').forEach(btn => {
+            btn.onclick = () => this.setState({[btn.dataset.toggle]: !this.state[btn.dataset.toggle]});
+        });
+    }
+    
+    // Auto API
+    async api(url) {
+        return await (await fetch(url)).json();
+    }
+    
+    render() {
+        this.el.innerHTML = this.template()
+            .replace(/\{\{(\w+)\}\}/g, (_, k) => this.state[k] ?? '');
+        this.autoBind();
+    }
+}
+</script>

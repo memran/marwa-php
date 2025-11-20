@@ -1,8 +1,9 @@
 #!/usr/bin/env php
 <?php
-if (PHP_SAPI != 'cli')
-{
-	die("Script must be run on cli");
+
+declare(strict_types=1);
+if (PHP_SAPI != 'cli') {
+    die("Script must be run on cli");
 }
 
 //directory separator
@@ -12,10 +13,16 @@ defined('DS') or define('DS', DIRECTORY_SEPARATOR);
 defined('WEBROOT') or define('WEBROOT', dirname(__FILE__, 1));
 
 //loading autoload
-require_once WEBROOT. DS.'vendor/autoload.php';
+require_once WEBROOT . DS . 'vendor/autoload.php';
 
-use Marwa\Application\Console\ConsoleApp;
 
-$application = new ConsoleApp(WEBROOT);
+use Marwa\Framework\Application;
+use Marwa\Framework\Console\ConsoleKernel;
 
-$application->run();
+
+$app = new Application(WEBROOT);
+$app->boot();
+
+/** @var ConsoleKernel $kernel */
+$kernel = $app->make(ConsoleKernel::class);
+exit($kernel->handle('Marwa Console', 'v0.1.0'));

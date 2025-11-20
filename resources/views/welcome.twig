@@ -1,18 +1,46 @@
-<!doctype html>
-<html lang = "en">
-<head>
-    <meta charset = "UTF-8">
-    <meta name = "viewport"
-          content = "width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv = "X-UA-Compatible" content = "ie=edge">
-    <title>Document</title>
-</head>
-<body>
-<h1> Hurray!!! </h1>
-Welcome to MarwaPHP!
+{% extends "layouts/base.twig" %}
 
-It will send from  Mailbuilder.
+{% block title %}Welcome — MarwaPHP{% endblock %}
 
-{{ backend }}
-</body>
-</html>
+{% block body %}
+<div class="flex flex-col justify-center items-center text-center min-h-screen px-4">
+  <!-- Logo -->
+  <div class="mb-6">
+    <svg class="w-16 h-16 text-brand" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M4 18V6h2l6 6 6-6h2v12h-2V9.6l-6 6-6-6V18H4z"/>
+    </svg>
+  </div>
+
+  <!-- Heading -->
+  <h1 class="text-4xl sm:text-5xl font-extrabold mb-4 animate-fadeInUp">
+    Welcome to <span class="text-brand">MarwaPHP</span>
+  </h1>
+
+  <!-- Animated Quote -->
+  <p class="typewriter text-lg sm:text-xl max-w-2xl animate-typing">
+    “The best way to predict the future is to create it.”
+  </p>
+
+  <!-- Motivation Paragraph -->
+  <p class="mt-6 text-slate-300 max-w-xl animate-fadeInUp" style="animation-delay: 2.5s;">
+    Build modern, fast, and elegant PHP applications with simplicity and joy.
+    MarwaPHP gives you the tools to turn your ideas into reality.
+  </p>
+
+  <!-- Buttons -->
+  <div class="mt-8 flex flex-col sm:flex-row gap-4 animate-fadeInUp" style="animation-delay: 3s;">
+    <a href="#docs"
+       class="relative inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white rounded-xl shadow-lg bg-gradient-to-r from-brand to-cyan-400 transition-all duration-300 hover:scale-105 hover:shadow-brand focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand overflow-hidden">
+      <span class="relative z-10">Get Started</span>
+      <span aria-hidden="true"
+            class="absolute inset-0 rounded-xl bg-gradient-to-r from-white/10 to-white/0 opacity-0 hover:opacity-100 transition duration-300"></span>
+    </a>
+
+    <a href="#quote"
+       class="relative inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-brand rounded-xl border border-brand transition-all duration-300 hover:scale-105 hover:bg-brand hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand">
+      See More Quotes
+    </a>
+  </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+    <title>{% block title %}My Themed App{% endblock %}</title>
+
+    {# Tailwind CDN for demo; prod: compile per-theme #}
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    {# Theme-specific compiled css (per theme). #}
+    <link rel="stylesheet" href="{{ theme_asset('css/app.css') }}"/>
+
+    <style>
+        /* Small utility if you want soft transitions between themes */
+        .theme-fade {
+            transition: all .2s ease;
+        }
+    </style>
+</head>
+<body class="min-h-full bg-gray-50 text-gray-900 theme-fade">
+    <header class="site-header border-b bg-white shadow-sm">
+        <div class="mx-auto max-w-7xl px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <img src="{{ theme_asset('images/logo-default.svg') }}"
+                     alt="Logo"
+                     class="h-8 w-8 rounded-full ring-1 ring-gray-300" />
+                <div>
+                    <div class="text-sm text-gray-500">Current Theme:</div>
+                    <div class="font-semibold text-gray-900">{{ _theme_name }}</div>
+                    <div class="text-[10px] text-gray-400">
+                        Chain: {{ _theme_chain|join(' → ') }}
+                    </div>
+                </div>
+            </div>
+
+            {# Theme switcher form.
+               Your controller should read POST['theme_name'] and call
+               $themeBuilder->useTheme($_POST['theme_name']) before rendering.
+            #}
+            <form method="post" action="/switch-theme" class="flex items-center gap-2">
+                <label class="text-sm text-gray-600 font-medium">Theme:</label>
+                <select name="theme_name"
+                        class="block rounded-md border border-gray-300 bg-white px-2 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="default" {% if _theme_name == 'default' %}selected{% endif %}>Default</option>
+                    <option value="dark" {% if _theme_name == 'dark' %}selected{% endif %}>Dark</option>
+                    <option value="tenantA" {% if _theme_name == 'tenantA' %}selected{% endif %}>Tenant A</option>
+                </select>
+                <button type="submit"
+                        class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    Switch
+                </button>
+            </form>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-4 py-10">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="mt-16 border-t py-6 text-center text-xs text-gray-500">
+        Powered by Marwa\View + ThemeBuilder
+    </footer>
+
+</body>
+</html>

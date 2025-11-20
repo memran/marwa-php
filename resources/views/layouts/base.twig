@@ -1,0 +1,51 @@
+<!doctype html>
+<html class="h-full bg-gray-100">
+  <head>
+    <meta charset="utf-8"/>
+    <title>{% block title %}Untitled{% endblock %}</title>
+    <meta name="csrf-token" content="{{ csrf }}">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { DEFAULT: '#2183b1ff', dark: '#22d3ee' }
+          },
+          keyframes: {
+            fadeInUp: {
+              '0%': { opacity: 0, transform: 'translateY(20px)' },
+              '100%': { opacity: 1, transform: 'translateY(0)' }
+            },
+            typing: {
+              '0%': { width: '0ch' },
+              '100%': { width: '40ch' }
+            },
+            blink: {
+              '0%, 100%': { borderColor: 'transparent' },
+              '50%': { borderColor: 'white' }
+            }
+          },
+          animation: {
+            fadeInUp: 'fadeInUp 1s ease-out forwards',
+            typing: 'typing 4s steps(40) 1s forwards, blink .75s step-end infinite'
+          }
+        }
+      }
+    }
+  </script>
+  </head>
+  <body class="min-h-screen text-slate-800">
+    {% block body %}{% endblock %}
+     {% block components %}{% endblock %}
+       {# Auto-initialize ALL components #}
+    <script>
+    document.querySelectorAll('[data-reactive]').forEach(el => {
+        const component = el.closest('[data-component]')?.dataset.component;
+        if (component && window[component]) new window[component](el);
+    });
+    </script>
+  </body>
+</html>

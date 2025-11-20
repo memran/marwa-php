@@ -1,20 +1,23 @@
 <?php
 
-//APP START TIME
-define('START_APP', microtime(true));
+declare(strict_types=1);
 
-//directory separator
-defined('DS') or define('DS', DIRECTORY_SEPARATOR);
+require __DIR__ . '/../vendor/autoload.php';
 
-//directory for web root
-defined('WEBROOT') or define('WEBROOT', dirname(__FILE__, 2));
+use Marwa\Framework\Adapters\HttpRequestFactory;
+use Marwa\Framework\Application;
+use Marwa\Framework\HttpKernel;
 
+// Bootstrap
+$app = new Application(dirname(__DIR__));
+$app->boot();
 
-//loading autoload
-require_once WEBROOT . DS . 'vendor/autoload.php';
+// Request + Kernel
+/** @var HttpFactoryInterface $http */
+$http = $app->make(HttpRequestFactory::class);
+$request = $http->request();
 
-//initialize application
-$app = new Marwa\Application\App(WEBROOT);
-
-//dispatch the response
-$app->run();
+// /** @var HttpKernel $kernel */
+$kernel = new HttpKernel($app);
+$response = $kernel->handle($request);
+$kernel->terminate($response);

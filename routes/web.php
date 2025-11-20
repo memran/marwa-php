@@ -1,29 +1,27 @@
 <?php
 
-	use Marwa\Application\Facades\Router;
-	use Marwa\Application\{Input,Response};
-	use Marwa\Application\Utils\Str;
-	use App\Middlewares\MarwaMiddleware;
-	//use Marwa\Application\Routes\Router;
-	Router::get('/', 'App\TestController::index');
-	Router::get('/version', function(){
-		$token = Str::password(10);
-		return Response::json(['Version' => app()->version(), 'Token' => $token]);
-	});
+use Carbon\Carbon;
+use Marwa\Framework\Facades\{Router, Config};
+use Marwa\Router\Response;
 
-	Router::get('/{id}', function ($request, array $args) {
-		dd($request->method());
-		dd($request->all());
-    	return Response::json('Welcome to Marwa Framework!'.Str::password(10));
-	});
+Router::get('/web', fn() => Response::json(['hello' => 'marwa']))->register();
+Router::get('/', function () {
+    // //$key = Config::get('app.key');
+    // $time = Carbon::now();
+    // $body = "<h1>Welcome to MarwaPHP</h1>.
+    //     <br> 
+    //     Current Time is Now: {$time}
+    //     <hr>
+    // ";
+    // return Response::html($body);
+    return view("welcome");
+})->name('hello')->register();
 
-	Router::group('api', function () {
-		Router::get('/api/{id}', function ($request, array $args) {
-			
-			return Response::json('Welcome to Marwa Framework!'.Str::password(10));
-		});
-	})->middleware(new MarwaMiddleware());
+Router::get('/test', function () {
+    dd("it works");
+    return Response::json(['msg' => 'Ok!!']);
+})->name('test')->register();
 
-	// Router::get('/version', function ($request) {
-    // 		dd('Welcome to Marwa Framework!');
-	// });
+Router::get('/home', function () {
+    return view('home/index', ['csrf' => bin2hex(random_bytes(16))]);
+})->name('home')->register();

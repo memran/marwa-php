@@ -20,15 +20,6 @@
 - 🐳 Docker-ready for scalable deployment
 
 ---
-# Why Another Framework?
-
-I've been developing PHP projects for over 20 years and have extensively worked with frameworks like CodeIgniter. While these frameworks enabled rapid development, I encountered recurring pain points — frequent breaking changes, bloated general-purpose features, and backward-incompatible updates that rendered many of my projects obsolete. Maintaining legacy code became increasingly difficult as frameworks evolved.
-
-Then came Laravel with a modern and elegant syntax, but it introduced its own challenges: too many built-in features, increased complexity, and unnecessary overhead for lightweight projects.
-
-That’s when I decided to build my own framework — MarwaPHP. It's thoughtfully designed to be lightweight, modular, and efficient, using only the best libraries in the PHP ecosystem. MarwaPHP delivers a Laravel-like developer experience without the bloat, making it ideal for scalable, maintainable, and production-ready applications.
-
----
 
 ## 📁 Project Structure
 
