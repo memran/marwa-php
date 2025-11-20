@@ -1,0 +1,35 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Marwa\Framework\Http\HttpKernel;
+use Marwa\Framework\Foundation\Application;
+use Symfony\Component\Yaml\Yaml;
+
+require __DIR__ . '/../vendor/autoload.php';
+
+// Load config
+$configFile = __DIR__ . '/../config/server.yml';
+$config = file_exists($configFile) ? Yaml::parseFile($configFile) : [];
+
+$host = $config['swoole']['host'] ?? '0.0.0.0';
+$port = (int)($config['swoole']['port'] ?? 9501);
+
+$server = new Swoole\Http\Server($host, $port);
+
+// Minimal example – you can wire PSR-7/PSR-15 bridge inside.
+$app = new Application(realpath(__DIR__ . '/..'));
+$kernel = new HttpKernel($app);
+
+$server->on('request', function (Swoole\Http\Request $req, Swoole\Http\Response $res) use ($kernel) {
+    // Convert to PSR-7, handle via HttpKernel, emit response
+    // Here you would plug your PSR-7/PSR-15 adapter built previously.
+    $res->status(200);
+    $res->header('Content-Type', 'text/plain; charset=utf-8');
+    $res->end("Hello from Marwa Swoole Server\n");
+});
+
+echo "Swoole HTTP server listening on http://{$host}:{$port}" . PHP_EOL;
+
+$server->start();

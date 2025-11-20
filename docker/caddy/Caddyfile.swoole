@@ -1,0 +1,28 @@
+:80 {
+    # Where your public files live
+    root * /var/www/html/public
+
+    encode gzip
+
+    # Serve existing static files directly (CSS, JS, images, etc.)
+    @static {
+        file
+        path_regexp static ^/(.*\.(?:css|js|png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|eot))$
+    }
+
+    handle @static {
+        file_server
+    }
+
+    # All other requests go to Swoole HTTP server
+    handle {
+        reverse_proxy swoole:9501
+    }
+
+    # Optional: basic security headers
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+}

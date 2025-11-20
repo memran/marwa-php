@@ -1,28 +1,25 @@
-FROM php:8.3-fpm-alpine
+FROM phpswoole/swoole:5.1-php8.3-alpine
 
+# Install extra extensions if needed
 RUN apk add --no-cache \
         git \
         unzip \
         libzip-dev \
         libpng-dev \
         icu-dev \
-        oniguruma-dev \
     && docker-php-ext-install \
         zip \
         intl \
         pdo \
         pdo_mysql \
-        opcache \
     && rm -rf /var/cache/apk/*
 
 WORKDIR /var/www/html
 
-# Optional: copy composer; for CI/build images it’s useful
+# Optional: copy composer, or rely on host for dev
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Tune PHP-FPM/opcache for production later via ini files
-# COPY docker/php-fpm/conf.d/*.ini /usr/local/etc/php/conf.d/
+EXPOSE 9501
 
-EXPOSE 9000
-
-CMD ["php-fpm"]
+# Start your Swoole HTTP server
+CMD ["php", "bin/swoole-server"]

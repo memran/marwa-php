@@ -1,0 +1,17 @@
+:80 {
+    root * /var/www/html/public
+
+    encode gzip
+
+    # PHP front controller handling (index.php)
+    php_fastcgi php-fpm:9000
+
+    # Static files
+    file_server
+
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+}

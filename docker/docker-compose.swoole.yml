@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: marwa-caddy-swoole
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      # - "443:443"   # enable when you configure HTTPS
+    volumes:
+      - ./:/var/www/html
+      - ./docker/caddy/Caddyfile.swoole:/etc/caddy/Caddyfile:ro
+      # optional: persisted Caddy data
+      # - ./docker/caddy/data:/data
+      # - ./docker/caddy/config:/config
+    working_dir: /var/www/html
+    depends_on:
+      - swoole
+
+  swoole:
+    build:
+      context: .
+      dockerfile: docker/swoole/Dockerfile
+    container_name: marwa-swoole
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+    expose:
+      - "9501"
