@@ -1,5 +1,6 @@
-FROM php:8.3-fpm-alpine
+FROM php:8.2-fpm-alpine
 
+# Install system deps and PHP extensions
 RUN apk add --no-cache \
         git \
         unzip \
@@ -7,6 +8,7 @@ RUN apk add --no-cache \
         libpng-dev \
         icu-dev \
         oniguruma-dev \
+        bash \
     && docker-php-ext-install \
         zip \
         intl \
@@ -17,10 +19,10 @@ RUN apk add --no-cache \
 
 WORKDIR /var/www/html
 
-# Optional: copy composer; for CI/build images it’s useful
+# Optional: install Composer inside container (useful for CI/build)
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Tune PHP-FPM/opcache for production later via ini files
+# You can add custom ini files here later, e.g.:
 # COPY docker/php-fpm/conf.d/*.ini /usr/local/etc/php/conf.d/
 
 EXPOSE 9000

@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   caddy:
     image: caddy:2-alpine
@@ -9,10 +7,10 @@ services:
       - "80:80"
       # - "443:443"
     volumes:
-      - ./:/var/www/html
-      - ./docker/caddy/Caddyfile.fpm:/etc/caddy/Caddyfile:ro
-      # - ./docker/caddy/data:/data
-      # - ./docker/caddy/config:/config
+      - ../:/var/www/html
+      - ./caddy/Caddyfile.fpm:/etc/caddy/Caddyfile:ro
+      # - ./caddy/data:/data
+      # - ./caddy/config:/config
     working_dir: /var/www/html
     depends_on:
       - php-fpm
@@ -20,14 +18,14 @@ services:
   php-fpm:
     build:
       context: .
-      dockerfile: docker/php-fpm/Dockerfile
+      dockerfile: php-fpm/Dockerfile
     container_name: marwa-php-fpm
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
-      - ./:/var/www/html
+      - ../:/var/www/html
     environment:
-      APP_ENV: local
+      APP_ENV: development
       APP_DEBUG: "true"
     expose:
       - "9000"

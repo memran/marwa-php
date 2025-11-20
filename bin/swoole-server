@@ -3,33 +3,112 @@
 
 declare(strict_types=1);
 
-use Marwa\Framework\Http\HttpKernel;
-use Marwa\Framework\Foundation\Application;
-use Symfony\Component\Yaml\Yaml;
+use Marwa\Framework\Http\Swoole\SwooleHttpServer;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Log\NullLogger;
+
+// PSR-7/17 factories (example: nyholm/psr7)
+use Nyholm\Psr7\Factory\Psr17Factory;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-// Load config
-$configFile = __DIR__ . '/../config/server.yml';
-$config = file_exists($configFile) ? Yaml::parseFile($configFile) : [];
+/**
+ * Simple middleware dispatcher implementing PSR-15.
+ */
+final class MiddlewareDispatcher implements RequestHandlerInterface
+{
+    /** @var MiddlewareInterface[] */
+    private array $stack;
 
-$host = $config['swoole']['host'] ?? '0.0.0.0';
-$port = (int)($config['swoole']['port'] ?? 9501);
+    private RequestHandlerInterface $finalHandler;
 
-$server = new Swoole\Http\Server($host, $port);
+    /**
+     * @param MiddlewareInterface[] $stack
+     */
+    public function __construct(array $stack, RequestHandlerInterface $finalHandler)
+    {
+        $this->stack = array_values($stack);
+        $this->finalHandler = $finalHandler;
+    }
 
-// Minimal example – you can wire PSR-7/PSR-15 bridge inside.
-$app = new Application(realpath(__DIR__ . '/..'));
-$kernel = new HttpKernel($app);
+    public function handle(ServerRequestInterface $request): ResponseInterface
+    {
+        if (empty($this->stack)) {
+            return $this->finalHandler->handle($request);
+        }
 
-$server->on('request', function (Swoole\Http\Request $req, Swoole\Http\Response $res) use ($kernel) {
-    // Convert to PSR-7, handle via HttpKernel, emit response
-    // Here you would plug your PSR-7/PSR-15 adapter built previously.
-    $res->status(200);
-    $res->header('Content-Type', 'text/plain; charset=utf-8');
-    $res->end("Hello from Marwa Swoole Server\n");
-});
+        /** @var MiddlewareInterface $middleware */
+        $middleware = array_shift($this->stack);
 
-echo "Swoole HTTP server listening on http://{$host}:{$port}" . PHP_EOL;
+        return $middleware->process($request, $this);
+    }
+}
 
-$server->start();
+/**
+ * Example final handler – here you plug your Marwa HttpKernel.
+ */
+final class AppRequestHandler implements RequestHandlerInterface
+{
+    public function __construct(
+        private ResponseFactoryInterface $responseFactory
+        // inject Application/HttpKernel/etc as needed
+    ) {}
+
+    public function handle(ServerRequestInterface $request): ResponseInterface
+    {
+        // TODO: delegate to Marwa HttpKernel
+        // $response = $this->kernel->handle($request);
+
+        $response = $this->responseFactory->createResponse(200)
+            ->withHeader('Content-Type', 'text/plain; charset=utf-8');
+
+        $body = $response->getBody();
+        $body->write("Hello from Marwa Swoole PSR-7/15 server\n");
+
+        return $response;
+    }
+}
+
+// Load config array
+$config = require __DIR__ . '/../config/server.php';
+
+// PSR-17 factories
+$psr17 = new Psr17Factory();
+
+// Final application handler (plug in your real kernel here)
+$appHandler = new AppRequestHandler($psr17);
+
+/**
+ * Example middlewares (logging, routing, etc).
+ * Implement your own Middlewares and add here.
+ *
+ * @var MiddlewareInterface[] $middlewares
+ */
+$middlewares = [
+    // new SomeMiddleware(...),
+    // new RoutingMiddleware(...),
+];
+
+// Compose PSR-15 stack
+$dispatcher = new MiddlewareDispatcher($middlewares, $appHandler);
+
+// Logger (use your memran/marwa-logger here if you want)
+$logger = new NullLogger();
+
+// Create Swoole HTTP server
+$server = new SwooleHttpServer(
+    $config,
+    $dispatcher,
+    $psr17, // ServerRequestFactoryInterface
+    $psr17, // StreamFactoryInterface
+    $psr17, // UriFactoryInterface
+    $psr17, // ResponseFactoryInterface for error responses
+    $logger
+);
+
+// Run the server
+$server->run();
