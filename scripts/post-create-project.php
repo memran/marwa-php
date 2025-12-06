@@ -10,10 +10,7 @@ declare(strict_types=1);
  *  - Ensure storage/logs is writable
  *  - Give short console instructions for Docker + Swoole
  */
-
-//namespace Marwa\;
-
-use RuntimeException;
+error_reporting(0);
 
 $cwd = getcwd(); // project root
 
