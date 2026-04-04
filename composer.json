@@ -70,7 +70,8 @@
     "sort-packages": true,
     "optimize-autoloader": true
   },
-  "minimum-stability": "dev",
+  "minimum-stability": "stable",
+  "prefer-stable": true,
   "autoload": {
     "psr-4": {
       "App\\": "app/"
