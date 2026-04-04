@@ -1,15 +1,15 @@
 services:
   php:
-    build: ./php
+    build: ./php-fpm
     volumes:
       - ../:/var/www
-      - ./php/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+      - ./php-fpm/custom.ini:/usr/local/etc/php/conf.d/custom.ini
     command: >
       sh -c "
         chown -R www-data:www-data /var/www/storage &&
         chmod -R 775 /var/www/storage &&
         php-fpm
-      "  
+      "
     depends_on:
       - mysql
     networks:
@@ -34,10 +34,10 @@ services:
   mysql:
     image: mysql:8
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-marwa}
+      MYSQL_USER: ${DB_USER:-root}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-12345}
     volumes:
       - db_data:/var/lib/mysql
     networks:
@@ -49,8 +49,6 @@ services:
     image: redis:alpine
     networks:
       - appnet
-    env_file:
-      - ../.env
 
 volumes:
   db_data:

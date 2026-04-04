@@ -1,94 +1,95 @@
-# 🚀 MarwaPHP Framework
+# MarwaPHP Framework
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![PHP](https://img.shields.io/badge/php-8.2%2B-orange)
-![Build](https://img.shields.io/badge/build-passing-brightgreen)
+![CI](https://github.com/memran/marwa-php/actions/workflows/ci.yml/badge.svg)
+![PHP](https://img.shields.io/badge/PHP-8.2%2B-8892BF.svg)
+![License](https://img.shields.io/badge/License-MIT-2ea44f.svg)
+![Tests](https://img.shields.io/badge/Tests-PHPUnit%20passing-success.svg)
+![Analysis](https://img.shields.io/badge/Static%20Analysis-PHPStan%20ready-blue.svg)
 
-**MarwaPHP** is a fast, lightweight, and modular PHP framework built for modern web development. It simplifies API and application development with expressive routing, powerful CLI tools, and a clean MVC structure — all while staying minimal and extensible.
+MarwaPHP is a polished PHP framework starter for teams that want a fast launch without sacrificing structure. It combines a clean MVC layout, Twig theming, PSR-friendly foundations, and a production-minded toolchain so you can move from idea to deployment with less friction.
 
----
+It is a strong fit for:
 
-## 📦 Features
+- product teams building APIs and web apps
+- developers who want a lightweight, theme-aware starter
+- projects that need modular architecture, fast routing, and simple deployment
 
-- ✅ Lightweight MVC structure
-- 🔧 CLI tools for rapid scaffolding
-- 🛠 Schema Builder, Migrations, and Seeders
-- 🔐 JWT Authentication & Middleware
-- 🌐 Built-in CORS support
-- 📅 Task Scheduling & Queues
-- 🧰 Helper functions & Utilities
-- 🐳 Docker-ready for scalable deployment
+## Why MarwaPHP
 
----
+- Launch-ready scaffold with a clean developer experience
+- Theme-aware rendering with reusable Twig layouts
+- Strong defaults for routing, error pages, and CSRF-safe forms
+- Composer scripts, PHPUnit, PHPStan, and CI already wired in
+- Docker support for both Nginx and Caddy local stacks
 
-## 📁 Project Structure
+## Features
 
-```
-marwa-php/
-├── app/                → Application Code (Controllers, Models, Views)
-├── config/             → Configuration files
-├── public/             → Web root (index.php)
-├── routes/             → Route definitions
-├── resources/          → Views & Assets
-├── database/           → Migrations, Seeders
-├── tests/              → Unit & Feature tests
-└── vendor/             → Composer packages
-```
+- Lightweight MVC application structure
+- Theme-aware Twig views with a polished default landing page
+- CSRF-protected theme switching form
+- PSR-7, PSR-11, PSR-15, and PSR-16 friendly building blocks
+- HTTP routing with middleware support
+- PHPUnit tests, PHPStan analysis, and PHP-CS-Fixer support
+- Nginx and Caddy Docker stacks for local development
+- Safe starter defaults for configuration and environment handling
 
----
+## Requirements
 
-## 🚀 Getting Started
+- PHP 8.2 or newer
+- Composer
+- Optional: Docker and Docker Compose
+
+## Quick Start
 
 ```bash
-# Clone the repo
-git clone https://github.com/memran/marwa-php.git
-
-# Enter project directory
-cd marwa-php
-
-# Install dependencies
-composer install
-
-# Run dev server
+composer create-project memran/marwa-php my-app
+cd my-app
+# .env is generated automatically by the post-create script.
 php -S localhost:8000 -t public/
 ```
 
----
+The document root is `public/`. Main application routes live in `routes/web.php`, and the active theme views live in `resources/views/themes/default/views/`.
 
-## 📚 Documentation
+## Configuration
 
-Visit the [MarwaPHP GitHub Wiki](https://github.com/memran/marwa-php/wiki) to get started and learn all features:
+The post-create script generates `.env` automatically from `.env.example`. Review it and adjust the values for your environment.
 
-- [Getting Started](https://github.com/memran/marwa-php/wiki/Getting-Started)
-- [Routing](https://github.com/memran/marwa-php/wiki/Routing)
-- [Controllers](https://github.com/memran/marwa-php/wiki/Controller)
-- [Models](https://github.com/memran/marwa-php/wiki/Model)
-- [Views (Twig)](https://github.com/memran/marwa-php/wiki/Twig)
-- [Authentication](https://github.com/memran/marwa-php/wiki/Authentication)
-- [Authorization (Roles & Policies)](https://github.com/memran/marwa-php/wiki/Authorization)
-- [Session Management](https://github.com/memran/marwa-php/wiki/Session)
-- [Queue System](https://github.com/memran/marwa-php/wiki/Queue)
-- [Task Scheduling](https://github.com/memran/marwa-php/wiki/TaskSchedule)
-- [Docker Setup](https://github.com/memran/marwa-php/wiki/Docker-Tutorial)
+- Core app: `APP_NAME`, `APP_TITLE`, `APP_URL`, `APP_ENV`, `APP_DEBUG`
+- Database: `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
+- Docker: `NGINX_PORT`, `MYSQL_ROOT_PASSWORD`
 
----
+When using the Docker stack, keep `DB_HOST=mysql` and `REDIS_SERVER=redis`. For a host-only PHP server, change them back to `127.0.0.1` and your local service names.
 
-## 💻 Examples
+Never commit secrets or machine-specific values.
 
-- 📦 Build a RESTful API in minutes
-- 🔐 Secure routes with policies
-- 🧠 Schedule background tasks
-- 📊 Queue jobs with Redis
-- 🧪 Run PHPUnit tests
+## Developer Commands
 
----
+- `composer test` runs the PHPUnit suite
+- `composer analyse` runs PHPStan
+- `composer lint` checks PHP syntax across the repository
+- `composer fix` runs PHP-CS-Fixer
+- `composer ci` runs the local validation chain used by CI
+- `docker compose -f docker/docker-compose.yml up -d` starts the Nginx stack
+- `docker compose -f docker/docker-compose.fpm.yml up -d` starts the Caddy stack
 
-## 🤝 Contributing
+## Project Layout
 
-We welcome contributions! Open an issue, submit a PR, or improve documentation.
+- `app/` controllers and small support services
+- `config/` framework and runtime configuration
+- `routes/` HTTP route definitions
+- `resources/views/themes/default/views/` Twig views for the active theme
+- `resources/views/themes/*/` theme manifests and overrides
+- `public/` document root and compiled assets
+- `database/` migrations and seeders
+- `tests/` unit and feature tests
 
----
+## Production Notes
 
-## 📄 License
+- Set `APP_ENV=production` and `APP_DEBUG=false`
+- Keep `.env` out of version control
+- Run the test and analysis scripts before each release
+- Use the Docker stack or your own PHP-FPM web server with `public/` as the document root
 
-MIT © [Mohammad Emran](https://github.com/memran)
+## Contributing
+
+Keep changes focused and easy to review. Add tests for behavior changes, and update this README whenever commands, dependencies, or runtime behavior change.

@@ -3,27 +3,21 @@
 declare(strict_types=1);
 
 /**
- * This script is executed by Composer after `create-project`.
- * Responsibilities:
- *  - Copy .env.example → .env (if not exists)
- *  - Generate APP_KEY and write into .env
- *  - Ensure storage/logs is writable
- *  - Give short console instructions for Docker + Swoole
+ * Post-create bootstrap for the scaffold.
  */
-error_reporting(0);
 
 $cwd = getcwd(); // project root
 
 if ($cwd === false) {
-      fwrite(STDERR, "Unable to determine current working directory.\n");
-      exit(1);
+    fwrite(STDERR, "Unable to determine current working directory.\n");
+    exit(1);
 }
 
 try {
-      main($cwd, $argv ?? []);
+    main($cwd, $argv ?? []);
 } catch (\Throwable $e) {
-      fwrite(STDERR, "[marwa-setup] Error: " . $e->getMessage() . PHP_EOL);
-      exit(1);
+    fwrite(STDERR, "[marwa-setup] Error: " . $e->getMessage() . PHP_EOL);
+    exit(1);
 }
 
 /**
@@ -32,17 +26,17 @@ try {
  */
 function main(string $projectRoot, array $argv): void
 {
-      $isRootInstall = in_array('--root-install', $argv, true);
+    $isRootInstall = in_array('--root-install', $argv, true);
 
-      echo PHP_EOL . ">>> Running Marwa project bootstrap..." . PHP_EOL;
+    echo PHP_EOL . ">>> Bootstrapping MarwaPHP..." . PHP_EOL;
 
-      ensureEnvFile($projectRoot);
-      ensureAppKey($projectRoot);
-      prepareStorage($projectRoot);
+    ensureEnvFile($projectRoot);
+    ensureAppKey($projectRoot);
+    prepareRuntimeDirectories($projectRoot);
 
-      if (!$isRootInstall) {
-            printSuccessMessage();
-      }
+    if (!$isRootInstall) {
+        printSuccessMessage();
+    }
 }
 
 /**
@@ -50,24 +44,24 @@ function main(string $projectRoot, array $argv): void
  */
 function ensureEnvFile(string $projectRoot): void
 {
-      $envPath = $projectRoot . DIRECTORY_SEPARATOR . '.env';
-      $examplePath = $projectRoot . DIRECTORY_SEPARATOR . '.env.example';
+    $envPath = $projectRoot . DIRECTORY_SEPARATOR . '.env';
+    $examplePath = $projectRoot . DIRECTORY_SEPARATOR . '.env.example';
 
-      if (file_exists($envPath)) {
-            echo " - .env already exists, skipping copy." . PHP_EOL;
-            return;
-      }
+    if (file_exists($envPath)) {
+        echo " - .env already exists, skipping copy." . PHP_EOL;
+        return;
+    }
 
-      if (!file_exists($examplePath)) {
-            echo " - No .env.example found, skipping env generation." . PHP_EOL;
-            return;
-      }
+    if (!file_exists($examplePath)) {
+        echo " - No .env.example found, skipping env generation." . PHP_EOL;
+        return;
+    }
 
-      if (!copy($examplePath, $envPath)) {
-            throw new RuntimeException('Failed to copy .env.example to .env');
-      }
+    if (!copy($examplePath, $envPath)) {
+        throw new RuntimeException('Failed to copy .env.example to .env');
+    }
 
-      echo " - Created .env from .env.example" . PHP_EOL;
+    echo " - Created .env from .env.example" . PHP_EOL;
 }
 
 /**
@@ -75,43 +69,42 @@ function ensureEnvFile(string $projectRoot): void
  */
 function ensureAppKey(string $projectRoot): void
 {
-      $envPath = $projectRoot . DIRECTORY_SEPARATOR . '.env';
-      if (!file_exists($envPath)) {
-            echo " - .env not found for APP_KEY generation, skipping." . PHP_EOL;
-            return;
-      }
+    $envPath = $projectRoot . DIRECTORY_SEPARATOR . '.env';
+    if (!file_exists($envPath)) {
+        echo " - .env not found for APP_KEY generation, skipping." . PHP_EOL;
+        return;
+    }
 
-      $envContent = file_get_contents($envPath);
-      if ($envContent === false) {
-            throw new RuntimeException('Unable to read .env file');
-      }
+    $envContent = file_get_contents($envPath);
+    if ($envContent === false) {
+        throw new RuntimeException('Unable to read .env file');
+    }
 
-      if (
-            str_contains($envContent, 'APP_KEY=')
-            && preg_match('/^APP_KEY=\S+/m', $envContent)
-      ) {
-            echo " - APP_KEY already set, skipping." . PHP_EOL;
-            return;
-      }
+    if (
+        str_contains($envContent, 'APP_KEY=')
+        && preg_match('/^APP_KEY=\S+/m', $envContent)
+    ) {
+        echo " - APP_KEY already set, skipping." . PHP_EOL;
+        return;
+    }
 
-      $key = generateAppKey();
+    $key = generateAppKey();
 
-      if (str_contains($envContent, 'APP_KEY=')) {
-            // Replace empty or placeholder APP_KEY line
-            $envContent = preg_replace(
-                  '/^APP_KEY=.*$/m',
-                  'APP_KEY=' . $key,
-                  $envContent
-            );
-      } else {
-            $envContent .= PHP_EOL . 'APP_KEY=' . $key . PHP_EOL;
-      }
+    if (str_contains($envContent, 'APP_KEY=')) {
+        $envContent = preg_replace(
+            '/^APP_KEY=.*$/m',
+            'APP_KEY=' . $key,
+            $envContent
+        ) ?? $envContent;
+    } else {
+        $envContent .= PHP_EOL . 'APP_KEY=' . $key . PHP_EOL;
+    }
 
-      if (file_put_contents($envPath, $envContent) === false) {
-            throw new RuntimeException('Unable to write APP_KEY to .env');
-      }
+    if (file_put_contents($envPath, $envContent) === false) {
+        throw new RuntimeException('Unable to write APP_KEY to .env');
+    }
 
-      echo " - Generated APP_KEY" . PHP_EOL;
+    echo " - Generated APP_KEY" . PHP_EOL;
 }
 
 /**
@@ -119,28 +112,29 @@ function ensureAppKey(string $projectRoot): void
  */
 function generateAppKey(): string
 {
-      // 32 bytes → 64 hex chars, enough for encryption/signing usages.
-      return bin2hex(random_bytes(32));
+    return bin2hex(random_bytes(32));
 }
 
 /**
- * Make sure storage dirs exist and are writable.
+ * Make sure runtime directories exist.
  */
-function prepareStorage(string $projectRoot): void
+function prepareRuntimeDirectories(string $projectRoot): void
 {
-      $dirs = [
-            $projectRoot . DIRECTORY_SEPARATOR . 'storage',
-            $projectRoot . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'logs',
-            $projectRoot . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'cache',
+    $dirs = [
+        $projectRoot . DIRECTORY_SEPARATOR . 'bootstrap' . DIRECTORY_SEPARATOR . 'cache',
+        $projectRoot . DIRECTORY_SEPARATOR . 'storage',
+        $projectRoot . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'cache',
+        $projectRoot . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'logs',
+        $projectRoot . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'sessions',
       ];
 
-      foreach ($dirs as $dir) {
-            if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
-                  throw new RuntimeException(sprintf('Directory "%s" was not created', $dir));
-            }
-      }
+    foreach ($dirs as $dir) {
+        if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $dir));
+        }
+    }
 
-      echo " - Ensured storage directories exist" . PHP_EOL;
+    echo " - Ensured runtime directories exist" . PHP_EOL;
 }
 
 /**
@@ -148,12 +142,11 @@ function prepareStorage(string $projectRoot): void
  */
 function printSuccessMessage(): void
 {
-      echo PHP_EOL;
-      echo "Marwa project is ready!" . PHP_EOL;
-      echo "Next steps:" . PHP_EOL;
-      echo "  1. Copy or adjust your .env if needed." . PHP_EOL;
-      echo "  2. Run: composer install" . PHP_EOL;
-      echo "  3. Start Docker stack: docker compose up -d" . PHP_EOL;
-      echo "  4. Swoole HTTP will listen on http://localhost:9501 (default)." . PHP_EOL;
-      echo PHP_EOL;
+    echo PHP_EOL;
+    echo "MarwaPHP is ready." . PHP_EOL;
+    echo "Next steps:" . PHP_EOL;
+    echo "  1. Review .env and set your application and database values." . PHP_EOL;
+    echo "  2. Start the Nginx stack: docker compose -f docker/docker-compose.yml up -d" . PHP_EOL;
+    echo "  3. Or start the Caddy stack: docker compose -f docker/docker-compose.fpm.yml up -d" . PHP_EOL;
+    echo PHP_EOL;
 }

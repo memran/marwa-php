@@ -1,0 +1,96 @@
+{% extends "layout.twig" %}
+
+{% block title %}MarwaPHP - A polished PHP starter that feels production-ready{% endblock %}
+
+{% block body %}
+<section class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+  <div class="space-y-8">
+    <div class="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-200">
+      <span class="h-2 w-2 rounded-full bg-cyan-300"></span>
+      Ready for first launch
+    </div>
+
+    <div class="space-y-5">
+      <h1 class="max-w-3xl text-4xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
+        Launch with a framework that feels fast, focused, and developer-first.
+      </h1>
+      <p class="max-w-2xl text-lg leading-8 text-slate-300">
+        MarwaPHP gives you a clean MVC foundation, theme-aware rendering, modern routing, and a scaffold that is ready to evolve into real product work without ceremony.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-3 sm:flex-row">
+      <a href="#features" class="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200">
+        Explore features
+      </a>
+      <a href="#start" class="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
+        Quick start
+      </a>
+    </div>
+  </div>
+
+  <div class="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-cyan-950/30 backdrop-blur">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm text-slate-400">Current theme</p>
+        <p class="text-2xl font-bold text-white">{{ _theme_name|headline }}</p>
+      </div>
+      <div class="rounded-2xl bg-emerald-400/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
+        {{ _theme_name|replace({'-': ' '})|title }} theme
+      </div>
+    </div>
+
+    <dl class="mt-6 grid gap-4 sm:grid-cols-2">
+      <div class="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
+        <dt class="text-sm text-slate-400">Routing</dt>
+        <dd class="mt-2 text-lg font-semibold text-white">Clean entry points</dd>
+      </div>
+      <div class="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
+        <dt class="text-sm text-slate-400">Views</dt>
+        <dd class="mt-2 text-lg font-semibold text-white">Twig + themes</dd>
+      </div>
+      <div class="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
+        <dt class="text-sm text-slate-400">Security</dt>
+        <dd class="mt-2 text-lg font-semibold text-white">CSRF-ready forms</dd>
+      </div>
+      <div class="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
+        <dt class="text-sm text-slate-400">Tooling</dt>
+        <dd class="mt-2 text-lg font-semibold text-white">Tests and analysis</dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<section id="features" class="mt-12 grid gap-6 md:grid-cols-3">
+  {% set cards = [
+    {'title': 'Simple architecture', 'copy': 'Controllers stay small, routes stay readable, and the default folder structure follows the framework instead of fighting it.'},
+    {'title': 'Theme-driven UI', 'copy': 'The starter demonstrates theme inheritance so developers can brand the app without rewriting the entire view layer.'},
+    {'title': 'Production-minded defaults', 'copy': 'Composer scripts, CI, linting, PHPStan, and PHPUnit are wired in so the repository is usable on day one.'}
+  ] %}
+
+  {% for card in cards %}
+    <article class="rounded-3xl border border-white/10 bg-white/5 p-6">
+      <h2 class="text-xl font-bold text-white">{{ card.title }}</h2>
+      <p class="mt-3 leading-7 text-slate-300">{{ card.copy }}</p>
+    </article>
+  {% endfor %}
+</section>
+
+<section id="start" class="mt-12 grid gap-6 lg:grid-cols-[1fr_1fr]">
+  <div class="rounded-3xl border border-white/10 bg-slate-900/70 p-6">
+    <h2 class="text-xl font-bold text-white">Quick start</h2>
+    <pre class="mt-4 overflow-x-auto rounded-2xl bg-slate-950/90 p-4 text-sm text-cyan-200"><code>composer install
+cp .env.example .env
+php -S localhost:8000 -t public/</code></pre>
+  </div>
+  <div class="rounded-3xl border border-white/10 bg-slate-900/70 p-6">
+    <h2 class="text-xl font-bold text-white">Project shape</h2>
+    <ul class="mt-4 space-y-3 text-sm leading-7 text-slate-300">
+      <li><span class="font-semibold text-white">app/</span> controllers and support code</li>
+      <li><span class="font-semibold text-white">routes/</span> HTTP route definitions</li>
+      <li><span class="font-semibold text-white">resources/views/themes/default/views/</span> Twig templates</li>
+      <li><span class="font-semibold text-white">public/</span> document root and compiled assets</li>
+    </ul>
+  </div>
+</section>
+{% endblock %}

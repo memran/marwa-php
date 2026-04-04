@@ -1,0 +1,15 @@
+parameters:
+    level: 6
+    paths:
+        - app
+        - config
+        - routes
+        - tests
+    bootstrapFiles:
+        - vendor/autoload.php
+    reportUnmatchedIgnoredErrors: true
+    ignoreErrors:
+        - identifier: staticMethod.notFound
+          path: routes/web.php
+        - identifier: staticMethod.notFound
+          path: routes/api.php

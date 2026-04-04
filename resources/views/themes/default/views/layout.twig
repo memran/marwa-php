@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" class="h-full scroll-smooth">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf|default('') }}">
+    <title>{% block title %}MarwaPHP{% endblock %}</title>
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
+    <div class="fixed inset-0 -z-10 overflow-hidden">
+      <div class="absolute inset-x-0 top-[-10rem] h-[28rem] bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.28),_transparent_60%)]"></div>
+      <div class="absolute right-[-8rem] top-[12rem] h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl"></div>
+      <div class="absolute left-[-10rem] bottom-[-8rem] h-80 w-80 rounded-full bg-emerald-500/10 blur-3xl"></div>
+    </div>
+
+    <header class="border-b border-white/10 bg-slate-950/70 backdrop-blur">
+      <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-5">
+        <div class="flex items-center gap-3">
+          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/10">
+            <span class="text-sm font-black tracking-[0.35em] text-cyan-300">M</span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-white">MarwaPHP</p>
+            <p class="text-xs text-slate-400">Theme-aware framework starter</p>
+          </div>
+        </div>
+
+        <form method="post" action="/switch-theme" class="flex items-center gap-3">
+          <input type="hidden" name="_token" value="{{ csrf|default('') }}">
+          <label for="theme_name" class="hidden text-sm text-slate-300 sm:block">Theme</label>
+          <select id="theme_name" name="theme_name" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none ring-0 transition focus:border-cyan-400">
+            {% for theme in _theme_available %}
+              <option value="{{ theme }}" {% if theme == _theme_name %}selected{% endif %}>{{ theme|replace({'-': ' '})|title }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300">
+            Apply
+          </button>
+        </form>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-6 py-10">
+      {% block body %}{% endblock %}
+    </main>
+  </body>
+</html>

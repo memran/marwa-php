@@ -1,9 +1,9 @@
 *.log
 .env
 .env.testing
-composer.lock
 docs/
 vendor/
+.phpunit.result.cache
 /storage/*
 !/storage/.gitignore
 !/storage/logs/
