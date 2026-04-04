@@ -138,14 +138,14 @@ function prepareRuntimeDirectories(string $projectRoot): void
 }
 
 /**
- * Print final message with Docker + Swoole hints.
+ * Print the final developer handoff message.
  */
 function printSuccessMessage(): void
 {
     echo PHP_EOL;
     echo "MarwaPHP is ready." . PHP_EOL;
     echo "Next steps:" . PHP_EOL;
-    echo "  1. Review .env and set your application and database values." . PHP_EOL;
+    echo "  1. Review .env and set your application values." . PHP_EOL;
     echo "  2. Start the Nginx stack: docker compose -f docker/docker-compose.yml up -d" . PHP_EOL;
     echo "  3. Or start the Caddy stack: docker compose -f docker/docker-compose.fpm.yml up -d" . PHP_EOL;
     echo PHP_EOL;

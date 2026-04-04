@@ -7,8 +7,8 @@
     "test": "tests"
   },
   "scripts": {
-    "dev": "npx @tailwindcss/cli -i ./resources/css/app.css -o ./public/assets/css/app.css --watch",
-    "build": "npx @tailwindcss/cli -i ./resources/css/app.css -o ./public/assets/css/app.css --minify"
+    "dev": "php -r \"copy('resources/css/app.css', 'public/assets/css/app.css');\"",
+    "build": "php -r \"copy('resources/css/app.css', 'public/assets/css/app.css');\""
   },
   "repository": {
     "type": "git",

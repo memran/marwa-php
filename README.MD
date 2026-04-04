@@ -55,10 +55,8 @@ The document root is `public/`. Main application routes live in `routes/web.php`
 The post-create script generates `.env` automatically from `.env.example`. Review it and adjust the values for your environment.
 
 - Core app: `APP_NAME`, `APP_TITLE`, `APP_URL`, `APP_ENV`, `APP_DEBUG`
-- Database: `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
-- Docker: `NGINX_PORT`, `MYSQL_ROOT_PASSWORD`
-
-When using the Docker stack, keep `DB_HOST=mysql` and `REDIS_SERVER=redis`. For a host-only PHP server, change them back to `127.0.0.1` and your local service names.
+- Docker: `NGINX_PORT`
+- Optional integrations: database and cache variables can be added later when needed
 
 Never commit secrets or machine-specific values.
 
@@ -69,8 +67,8 @@ Never commit secrets or machine-specific values.
 - `composer lint` checks PHP syntax across the repository
 - `composer fix` runs PHP-CS-Fixer
 - `composer ci` runs the local validation chain used by CI
-- `docker compose -f docker/docker-compose.yml up -d` starts the Nginx stack
-- `docker compose -f docker/docker-compose.fpm.yml up -d` starts the Caddy stack
+- `docker compose -f docker/docker-compose.yml up -d` starts the Nginx + PHP-FPM stack
+- `docker compose -f docker/docker-compose.fpm.yml up -d` starts the Caddy + PHP-FPM stack
 
 ## Project Layout
 
@@ -82,6 +80,7 @@ Never commit secrets or machine-specific values.
 - `public/` document root and compiled assets
 - `database/` migrations and seeders
 - `tests/` unit and feature tests
+- `docker/` Nginx, Caddy, and PHP-FPM development containers
 
 ## Production Notes
 
@@ -89,6 +88,7 @@ Never commit secrets or machine-specific values.
 - Keep `.env` out of version control
 - Run the test and analysis scripts before each release
 - Use the Docker stack or your own PHP-FPM web server with `public/` as the document root
+- Add database or cache services only when the application layer needs them
 
 ## Contributing
 

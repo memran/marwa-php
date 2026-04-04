@@ -16,9 +16,10 @@ return [
         Marwa\Framework\Providers\KernalServiceProvider::class,
     ],
     'middlewares' => [
-        Marwa\Framework\Middlewares\MaintenanceMiddleware::class,
         Marwa\Framework\Middlewares\RequestIdMiddleware::class,
         Marwa\Framework\Middlewares\SessionMiddleware::class,
+        Marwa\Framework\Middlewares\MaintenanceMiddleware::class,
+        Marwa\Framework\Middlewares\SecurityMiddleware::class,
         Marwa\Framework\Middlewares\RouterMiddleware::class,
     ],
     'maintenance' => env('MAINTENANCE', env('MAINTAINANCE', false)),
