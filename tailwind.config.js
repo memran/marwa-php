@@ -4,6 +4,7 @@ module.exports = {
     './app/**/*.php',
     './config/**/*.php',
     './modules/**/*.php',
+    './modules/**/*.twig',
     './resources/**/*.twig',
     './routes/**/*.php',
     './tests/**/*.php',

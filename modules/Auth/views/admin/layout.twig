@@ -1,21 +1,267 @@
-{% extends '@auth/layout.twig' %}
+<!doctype html>
+<html lang="en" class="h-full scroll-smooth">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf|default('') }}">
+    <title>{% block title %}{{ title|default('Dashboard') }} | MarwaPHP{% endblock %}</title>
+    <link rel="stylesheet" href="{{ theme_asset('css/app.css') }}">
+  </head>
+  {% set admin_theme = session('auth_admin_theme')|default('light') %}
+  <body class="admin-page admin-page--{{ admin_theme }}">
+    {% set active_nav = active_nav|default('dashboard') %}
+    {% set is_deep_page = active_nav != 'dashboard' %}
+    <div class="admin-shell">
+      <aside class="admin-sidebar">
+        <div class="admin-brand">
+          <div class="admin-brand__mark">M</div>
+          <div>
+            <p class="admin-brand__title">Marwa Auth</p>
+            <p class="admin-brand__sub">Light admin starter</p>
+          </div>
+        </div>
 
-{% block body %}
-  <div class="admin-shell">
-    <nav class="admin-nav">
-      <div>
-        <p class="eyebrow">Admin starter</p>
-        <h2>{{ title|default('Dashboard') }}</h2>
-      </div>
+        {% if user is defined and user %}
+          <div class="admin-user">
+            <div class="admin-user__avatar">{{ user.getAttribute('name')|default('U')|slice(0, 1)|upper }}</div>
+            <div class="admin-user__meta">
+              <p class="admin-user__name">{{ user.getAttribute('name') }}</p>
+              <p class="admin-user__email">{{ user.getAttribute('email') }}</p>
+            </div>
+          </div>
+        {% endif %}
 
-      <div class="actions">
-        <a href="/admin" class="button button--ghost">Dashboard</a>
-        <a href="/admin/users" class="button button--ghost">Users</a>
-        <a href="/admin/roles" class="button button--ghost">Roles</a>
-        <a href="/admin/profile" class="button button--ghost">Profile</a>
-      </div>
-    </nav>
+        <div class="admin-meta">
+          <div>
+            <p class="admin-meta__label">Module status</p>
+            <p class="admin-meta__value">Production-ready scaffold</p>
+          </div>
+          <p class="text-sm leading-7 text-slate-600">
+            Manage users, roles, password resets, and profile security from a clean admin surface.
+          </p>
+        </div>
 
-    {% block admin_body %}{% endblock %}
-  </div>
-{% endblock %}
+        <nav class="admin-nav" aria-label="Admin navigation">
+          <a href="/admin" class="{{ active_nav == 'dashboard' ? 'admin-nav__active' : '' }}">
+            <span class="admin-nav__link">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 4l8 7.5V20a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z" fill="currentColor"/></svg>
+              <span>Dashboard</span>
+            </span>
+            <span>01</span>
+          </a>
+          <a href="/admin/users" class="{{ active_nav == 'users' ? 'admin-nav__active' : '' }}">
+            <span class="admin-nav__link">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-7 9a7 7 0 0 1 14 0Z" fill="currentColor"/></svg>
+              <span>Users</span>
+            </span>
+            <span>02</span>
+          </a>
+          <a href="/admin/roles" class="{{ active_nav == 'roles' ? 'admin-nav__active' : '' }}">
+            <span class="admin-nav__link">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v3H4zm0 5h10v3H4zm0 5h16v3H4z" fill="currentColor"/></svg>
+              <span>Roles</span>
+            </span>
+            <span>03</span>
+          </a>
+          <a href="/admin/profile" class="{{ active_nav == 'profile' ? 'admin-nav__active' : '' }}">
+            <span class="admin-nav__link">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0-4.5-4.5A4.5 4.5 0 0 0 12 12Zm0 2c-4.4 0-8 2.7-8 6v1h16v-1c0-3.3-3.6-6-8-6Z" fill="currentColor"/></svg>
+              <span>Profile</span>
+            </span>
+            <span>04</span>
+          </a>
+          <a href="/admin/password/change" class="{{ active_nav == 'password' ? 'admin-nav__active' : '' }}">
+            <span class="admin-nav__link">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 9V7a5 5 0 0 0-10 0v2H5v12h14V9Zm-8 0V7a3 3 0 0 1 6 0v2Z" fill="currentColor"/></svg>
+              <span>Password</span>
+            </span>
+            <span>05</span>
+          </a>
+        </nav>
+
+        <div class="admin-meta">
+          <p class="admin-meta__label">Quick links</p>
+          <div class="actions">
+            <a href="/" class="button button--ghost">View site</a>
+            <form method="post" action="/admin/logout">
+              <input type="hidden" name="_token" value="{{ csrf|default('') }}">
+              <button type="submit" class="button button--primary">Logout</button>
+            </form>
+          </div>
+        </div>
+      </aside>
+
+      <main class="admin-main">
+        <header class="admin-mobile-header">
+          <div class="admin-mobile-header__brand">
+            {% if is_deep_page %}
+              <a href="/admin" class="admin-mobile-header__back" aria-label="Back to dashboard">Back</a>
+            {% endif %}
+            <div class="admin-brand__mark">M</div>
+            <div>
+              <p class="admin-brand__title">Marwa Auth</p>
+              <p class="admin-brand__sub">Light admin starter</p>
+              <p class="admin-mobile-header__title">{{ title|default('Dashboard') }}</p>
+              <p class="admin-mobile-header__crumb">Admin / {{ title|default('Dashboard') }}</p>
+            </div>
+          </div>
+
+          <div class="admin-mobile-header__actions">
+            <form method="post" action="/admin/theme" class="admin-mobile-header__theme">
+              <input type="hidden" name="_token" value="{{ csrf|default('') }}">
+              <button type="submit" class="button button--ghost">
+                {{ admin_theme == 'dark' ? 'Light' : 'Dark' }}
+              </button>
+            </form>
+
+            {% if user is defined and user %}
+              <div class="admin-user admin-user--topbar">
+                <div class="admin-user__avatar">{{ user.getAttribute('name')|default('U')|slice(0, 1)|upper }}</div>
+                <div class="admin-user__meta">
+                  <p class="admin-user__name">{{ user.getAttribute('name') }}</p>
+                  <p class="admin-user__email">{{ user.getAttribute('email') }}</p>
+                </div>
+              </div>
+            {% endif %}
+
+            <details class="admin-mobile-menu">
+              <summary class="button button--ghost">Menu</summary>
+              <div class="admin-mobile-menu__panel">
+                <nav class="admin-nav" aria-label="Admin navigation">
+                  <a href="/admin" class="{{ active_nav == 'dashboard' ? 'admin-nav__active' : '' }}">
+                    <span class="admin-nav__link">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 4l8 7.5V20a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z" fill="currentColor"/></svg>
+                      <span>Dashboard</span>
+                    </span>
+                    <span>01</span>
+                  </a>
+                  <a href="/admin/users" class="{{ active_nav == 'users' ? 'admin-nav__active' : '' }}">
+                    <span class="admin-nav__link">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-7 9a7 7 0 0 1 14 0Z" fill="currentColor"/></svg>
+                      <span>Users</span>
+                    </span>
+                    <span>02</span>
+                  </a>
+                  <a href="/admin/roles" class="{{ active_nav == 'roles' ? 'admin-nav__active' : '' }}">
+                    <span class="admin-nav__link">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v3H4zm0 5h10v3H4zm0 5h16v3H4z" fill="currentColor"/></svg>
+                      <span>Roles</span>
+                    </span>
+                    <span>03</span>
+                  </a>
+                  <a href="/admin/profile" class="{{ active_nav == 'profile' ? 'admin-nav__active' : '' }}">
+                    <span class="admin-nav__link">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0-4.5-4.5A4.5 4.5 0 0 0 12 12Zm0 2c-4.4 0-8 2.7-8 6v1h16v-1c0-3.3-3.6-6-8-6Z" fill="currentColor"/></svg>
+                      <span>Profile</span>
+                    </span>
+                    <span>04</span>
+                  </a>
+                  <a href="/admin/password/change" class="{{ active_nav == 'password' ? 'admin-nav__active' : '' }}">
+                    <span class="admin-nav__link">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 9V7a5 5 0 0 0-10 0v2H5v12h14V9Zm-8 0V7a3 3 0 0 1 6 0v2Z" fill="currentColor"/></svg>
+                      <span>Password</span>
+                    </span>
+                    <span>05</span>
+                  </a>
+                </nav>
+
+                <div class="admin-meta">
+                  <p class="admin-meta__label">Quick links</p>
+                  <div class="actions">
+                    <a href="/" class="button button--ghost">View site</a>
+                    <form method="post" action="/admin/logout">
+                      <input type="hidden" name="_token" value="{{ csrf|default('') }}">
+                      <button type="submit" class="button button--primary">Logout</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+        </header>
+
+        <header class="admin-topbar">
+          <div>
+            <p class="eyebrow">Administration</p>
+            <h1>{{ title|default('Dashboard') }}</h1>
+            <p>Light admin controls for the auth module and starter users.</p>
+          </div>
+
+          <div class="admin-actions">
+            <a href="/" class="button button--ghost">Public site</a>
+            <a href="/admin/profile" class="button button--ghost">My profile</a>
+            <form method="post" action="/admin/theme">
+              <input type="hidden" name="_token" value="{{ csrf|default('') }}">
+              <button type="submit" class="button button--ghost">
+                {{ admin_theme == 'dark' ? 'Light mode' : 'Dark mode' }}
+              </button>
+            </form>
+            {% if user is defined and user %}
+              <div class="admin-user admin-user--topbar">
+                <div class="admin-user__avatar">{{ user.getAttribute('name')|default('U')|slice(0, 1)|upper }}</div>
+                <div class="admin-user__meta">
+                  <p class="admin-user__name">{{ user.getAttribute('name') }}</p>
+                  <p class="admin-user__email">{{ user.getAttribute('email') }}</p>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </header>
+
+        {% set form_errors = session('errors')|default({}) %}
+
+        {% if form_errors is iterable and form_errors|length %}
+          <div class="notice notice--error">
+            <strong>Review the highlighted fields.</strong>
+            <ul>
+              {% for messages in form_errors %}
+                {% if messages is iterable %}
+                  {% for message in messages %}
+                    <li>{{ message }}</li>
+                  {% endfor %}
+                {% else %}
+                  <li>{{ messages }}</li>
+                {% endif %}
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
+        {% if session('auth_reset_link') %}
+          <div class="notice notice--success">
+            <strong>Reset link:</strong>
+            <a href="{{ session('auth_reset_link') }}">{{ session('auth_reset_link') }}</a>
+          </div>
+        {% endif %}
+
+        {% if session('auth_notice') %}
+          <div class="notice notice--success">
+            {{ session('auth_notice') }}
+          </div>
+        {% endif %}
+
+        <section class="admin-body">
+          {% block body %}{% endblock %}
+        </section>
+
+        <div class="admin-mobile-bar">
+          <a href="{{ is_deep_page ? '/admin' : '/' }}" class="admin-mobile-bar__action">
+            <span class="admin-mobile-bar__label">{{ is_deep_page ? 'Back' : 'Home' }}</span>
+            <span class="admin-mobile-bar__value">{{ is_deep_page ? 'Dashboard' : 'Site' }}</span>
+          </a>
+          <form method="post" action="/admin/theme" class="admin-mobile-bar__action">
+            <input type="hidden" name="_token" value="{{ csrf|default('') }}">
+            <button type="submit" class="admin-mobile-bar__button">
+              <span class="admin-mobile-bar__label">Theme</span>
+              <span class="admin-mobile-bar__value">{{ admin_theme == 'dark' ? 'Light' : 'Dark' }}</span>
+            </button>
+          </form>
+          <a href="/" class="admin-mobile-bar__action">
+            <span class="admin-mobile-bar__label">Site</span>
+            <span class="admin-mobile-bar__value">Open</span>
+          </a>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

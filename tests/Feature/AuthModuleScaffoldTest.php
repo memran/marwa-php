@@ -32,6 +32,7 @@ final class AuthModuleScaffoldTest extends TestCase
         self::assertStringContainsString('AUTH_ADMIN_ROLE', $auth);
         self::assertStringContainsString('App\\Modules\\Auth\\AuthServiceProvider', $manifest);
         self::assertStringContainsString("prefix' => 'auth", $routes);
+        self::assertStringContainsString("post('/theme'", $routes);
         self::assertStringContainsString("auth:seed", $command);
     }
 

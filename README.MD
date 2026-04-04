@@ -19,6 +19,8 @@ It is a strong fit for:
 The starter ships with an optional auth module under `modules/Auth/`. Enable it with `AUTH_MODULE_ENABLED=true` in `.env` and the framework will load the module, register its routes, and expose a complete auth starter:
 
 - login, register, logout, and profile pages
+- a professional light admin shell for dashboard, users, and roles
+- a mobile sticky action bar, deep-page back control, and admin-only light/dark switch
 - remember-me support with secure token storage
 - password reset and password change flows
 - role-based admin starter views

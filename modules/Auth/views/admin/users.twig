@@ -1,32 +1,50 @@
 {% extends '@auth/admin/layout.twig' %}
 
-{% block admin_body %}
+{% block body %}
   <section class="panel">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>User</th>
-          <th>Email</th>
-          <th>Status</th>
-          <th>Roles</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for user in users %}
+    <div class="admin-toolbar">
+      <div>
+        <p class="eyebrow">Directory</p>
+        <h2 class="mt-2 text-2xl font-bold text-slate-950">Users</h2>
+        <p class="mt-2 text-sm leading-7 text-slate-600">A clean overview of the starter accounts and their roles.</p>
+      </div>
+    </div>
+
+    <div class="mt-6 overflow-hidden rounded-[1.25rem] border border-slate-200">
+      <table class="table">
+        <thead>
           <tr>
-            <td>{{ user.getAttribute('name') }}</td>
-            <td>{{ user.getAttribute('email') }}</td>
-            <td>{{ user.getAttribute('status') ? 'Active' : 'Inactive' }}</td>
-            <td>
-              {% for role in user.getRelation('roles')|default([]) %}
-                <span class="chip">{{ role.getAttribute('name') }}</span>
-              {% else %}
-                <span class="muted">None</span>
-              {% endfor %}
-            </td>
+            <th>User</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Roles</th>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {% for user in users %}
+            <tr>
+              <td class="font-semibold text-slate-950">{{ user.getAttribute('name') }}</td>
+              <td>{{ user.getAttribute('email') }}</td>
+              <td>
+                <span class="chip">{{ user.getAttribute('status') ? 'Active' : 'Inactive' }}</span>
+              </td>
+              <td>
+                <div class="chip-list">
+                  {% for role in user.getRelation('roles')|default([]) %}
+                    <span class="chip">{{ role.getAttribute('name') }}</span>
+                  {% else %}
+                    <span class="muted">None</span>
+                  {% endfor %}
+                </div>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="4" class="px-4 py-8 text-center text-slate-500">No users have been seeded yet.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </section>
 {% endblock %}

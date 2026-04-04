@@ -1,6 +1,24 @@
 {% extends '@auth/admin/layout.twig' %}
 
-{% block admin_body %}
+{% block body %}
+  <section class="panel">
+    <div class="admin-toolbar">
+      <div>
+        <p class="eyebrow">Overview</p>
+        <h2 class="mt-2 text-2xl font-bold text-slate-950">Your auth module is live</h2>
+        <p class="mt-2 max-w-2xl text-sm leading-7 text-slate-600">
+          The starter ships with access control, seeded roles, and ready-to-extend admin screens. Use this as the base
+          for your own product administration area.
+        </p>
+      </div>
+
+      <div class="actions">
+        <a href="/admin/users" class="button button--ghost">Manage users</a>
+        <a href="/admin/roles" class="button button--ghost">Review roles</a>
+      </div>
+    </div>
+  </section>
+
   <section class="stats-grid">
     <article class="stat-card">
       <span>Users</span>
@@ -17,5 +35,23 @@
       <strong>{{ user.getAttribute('name') }}</strong>
       <p>{{ user.getAttribute('email') }}</p>
     </article>
+  </section>
+
+  <section class="panel">
+    <h2 class="text-xl font-bold text-slate-950">Recommended next steps</h2>
+    <div class="mt-5 grid gap-4 md:grid-cols-3">
+      <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <p class="text-sm font-semibold text-slate-950">Add users</p>
+        <p class="mt-2 text-sm leading-7 text-slate-600">Invite internal staff and assign the default starter role.</p>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <p class="text-sm font-semibold text-slate-950">Define policies</p>
+        <p class="mt-2 text-sm leading-7 text-slate-600">Use the bundled policies as the base for your domain rules.</p>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <p class="text-sm font-semibold text-slate-950">Brand the UI</p>
+        <p class="mt-2 text-sm leading-7 text-slate-600">Adjust the Tailwind theme to match your product colors.</p>
+      </div>
+    </div>
   </section>
 {% endblock %}

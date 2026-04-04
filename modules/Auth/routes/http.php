@@ -84,4 +84,9 @@ Router::group(['prefix' => 'admin', 'name' => 'admin.'], static function ($route
         ->middleware(AuthenticateMiddleware::class)
         ->name('logout')
         ->register();
+
+    $router->post('/theme', [AdminController::class, 'toggleTheme'])
+        ->middleware(AuthenticateMiddleware::class)
+        ->name('theme.toggle')
+        ->register();
 });

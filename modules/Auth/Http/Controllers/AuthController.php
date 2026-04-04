@@ -161,6 +161,7 @@ final class AuthController extends Controller
 
         return $this->view('@auth/profile', [
             'title' => 'Your profile',
+            'active_nav' => 'profile',
             'user' => $user,
             'roles' => $user->relationLoaded('roles') && is_array($user->getRelation('roles'))
                 ? $user->getRelation('roles')
@@ -171,8 +172,12 @@ final class AuthController extends Controller
 
     public function showChangePasswordForm(): ResponseInterface
     {
+        $user = $this->auth->user();
+
         return $this->view('@auth/change-password', [
             'title' => 'Change password',
+            'active_nav' => 'password',
+            'user' => $user instanceof User ? $user : null,
             'csrf' => Security::csrfToken(),
         ]);
     }
