@@ -1,0 +1,21 @@
+{% extends '@auth/admin/layout.twig' %}
+
+{% block admin_body %}
+  <section class="stats-grid">
+    <article class="stat-card">
+      <span>Users</span>
+      <strong>{{ users_count }}</strong>
+      <p>Starter accounts available in the module.</p>
+    </article>
+    <article class="stat-card">
+      <span>Roles</span>
+      <strong>{{ roles_count }}</strong>
+      <p>Role-based access is included and ready.</p>
+    </article>
+    <article class="stat-card">
+      <span>Current user</span>
+      <strong>{{ user.getAttribute('name') }}</strong>
+      <p>{{ user.getAttribute('email') }}</p>
+    </article>
+  </section>
+{% endblock %}

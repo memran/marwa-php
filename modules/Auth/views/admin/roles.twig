@@ -1,0 +1,13 @@
+{% extends '@auth/admin/layout.twig' %}
+
+{% block admin_body %}
+  <section class="stats-grid">
+    {% for role in roles %}
+      <article class="stat-card">
+        <span>{{ role.getAttribute('slug') }}</span>
+        <strong>{{ role.getAttribute('name') }}</strong>
+        <p>{{ role.getAttribute('description')|default('Starter role') }}</p>
+      </article>
+    {% endfor %}
+  </section>
+{% endblock %}

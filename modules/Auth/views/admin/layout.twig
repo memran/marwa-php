@@ -1,0 +1,21 @@
+{% extends '@auth/layout.twig' %}
+
+{% block body %}
+  <div class="admin-shell">
+    <nav class="admin-nav">
+      <div>
+        <p class="eyebrow">Admin starter</p>
+        <h2>{{ title|default('Dashboard') }}</h2>
+      </div>
+
+      <div class="actions">
+        <a href="/admin" class="button button--ghost">Dashboard</a>
+        <a href="/admin/users" class="button button--ghost">Users</a>
+        <a href="/admin/roles" class="button button--ghost">Roles</a>
+        <a href="/admin/profile" class="button button--ghost">Profile</a>
+      </div>
+    </nav>
+
+    {% block admin_body %}{% endblock %}
+  </div>
+{% endblock %}

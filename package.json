@@ -7,19 +7,30 @@
     "test": "tests"
   },
   "scripts": {
-    "dev": "php -r \"copy('resources/css/app.css', 'public/assets/css/app.css');\"",
-    "build": "php -r \"copy('resources/css/app.css', 'public/assets/css/app.css');\""
+    "css:dev": "tailwindcss -c tailwind.config.js -i ./resources/css/app.css -o ./public/assets/css/app.css --watch",
+    "css:build": "tailwindcss -c tailwind.config.js -i ./resources/css/app.css -o ./public/assets/css/app.css --minify",
+    "dev": "npm run css:dev",
+    "build": "npm run css:build"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/memran/marwa-php.git"
   },
-  "keywords": [],
+  "keywords": [
+    "tailwindcss",
+    "php",
+    "starter"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/memran/marwa-php/issues"
   },
-  "homepage": "https://github.com/memran/marwa-php#readme"
+  "homepage": "https://github.com/memran/marwa-php#readme",
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17"
+  }
 }

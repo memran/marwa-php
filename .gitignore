@@ -3,6 +3,8 @@
 .env.testing
 docs/
 vendor/
+.idea/
+node_modules/
 .phpunit.result.cache
 /storage/*
 !/storage/.gitignore

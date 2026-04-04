@@ -1,0 +1,35 @@
+{% extends '@auth/layout.twig' %}
+
+{% block title %}Sign in{% endblock %}
+
+{% block body %}
+  <div class="card-heading">
+    <p class="eyebrow">Welcome back</p>
+    <h2>Sign in to the starter dashboard</h2>
+    <p>Use the seeded admin account or your own registered account.</p>
+  </div>
+
+  <form method="post" action="/auth/login" class="stack">
+    <input type="hidden" name="_token" value="{{ csrf|default('') }}">
+
+    <label class="field">
+      <span>Email</span>
+      <input type="email" name="email" value="{{ old('email')|default('') }}" autocomplete="email" required>
+    </label>
+
+    <label class="field">
+      <span>Password</span>
+      <input type="password" name="password" autocomplete="current-password" required>
+    </label>
+
+    <label class="checkbox">
+      <input type="checkbox" name="remember" value="1">
+      <span>Remember me</span>
+    </label>
+
+    <div class="actions">
+      <button type="submit" class="button button--primary">Sign in</button>
+      <a href="/auth/register" class="button button--ghost">Create account</a>
+    </div>
+  </form>
+{% endblock %}

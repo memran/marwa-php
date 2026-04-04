@@ -29,3 +29,12 @@ services:
       APP_DEBUG: "true"
     expose:
       - "9000"
+
+  assets:
+    image: node:20-alpine
+    working_dir: /workspace
+    volumes:
+      - ../:/workspace
+    command: sh -c "npm ci --no-audit --no-fund && npm run dev"
+    profiles:
+      - assets

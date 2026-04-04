@@ -33,6 +33,7 @@ function main(string $projectRoot, array $argv): void
     ensureEnvFile($projectRoot);
     ensureAppKey($projectRoot);
     prepareRuntimeDirectories($projectRoot);
+    buildFrontendAssets($projectRoot);
 
     if (!$isRootInstall) {
         printSuccessMessage();
@@ -138,6 +139,93 @@ function prepareRuntimeDirectories(string $projectRoot): void
 }
 
 /**
+ * Install and build the Tailwind assets when Node.js is available.
+ */
+function buildFrontendAssets(string $projectRoot): void
+{
+    $packageJson = $projectRoot . DIRECTORY_SEPARATOR . 'package.json';
+    $packageLock = $projectRoot . DIRECTORY_SEPARATOR . 'package-lock.json';
+
+    if (!file_exists($packageJson)) {
+        echo " - package.json not found, skipping frontend build." . PHP_EOL;
+        return;
+    }
+
+    if (!commandExists('npm')) {
+        echo " - npm is not available, skipping frontend build." . PHP_EOL;
+        return;
+    }
+
+    if (file_exists($packageLock)) {
+        echo " - Installing frontend dependencies with npm ci..." . PHP_EOL;
+        $installResult = runCommand(['npm', 'ci', '--no-audit', '--no-fund'], $projectRoot);
+
+        if ($installResult['exitCode'] !== 0) {
+            echo " - npm ci failed, skipping Tailwind build." . PHP_EOL;
+            return;
+        }
+    } else {
+        echo " - package-lock.json missing, skipping npm ci." . PHP_EOL;
+    }
+
+    echo " - Building Tailwind assets..." . PHP_EOL;
+    runCommand(['npm', 'run', 'build'], $projectRoot);
+}
+
+/**
+ * Determine whether a command is available on the current PATH.
+ */
+function commandExists(string $command): bool
+{
+    $workingDirectory = getcwd() ?: '.';
+    $escapedCommand = implode(' ', array_map('escapeshellarg', ['command', '-v', $command]));
+    $output = [];
+    $exitCode = 0;
+
+    exec(
+        'cd ' . escapeshellarg($workingDirectory) . ' && ' . $escapedCommand . ' 2>/dev/null',
+        $output,
+        $exitCode
+    );
+
+    return $exitCode === 0 && trim(implode(PHP_EOL, $output)) !== '';
+}
+
+/**
+ * Execute a command and return the exit code plus combined output.
+ *
+ * @param array<int, string> $command
+ * @return array{exitCode: int, output: string}
+ */
+function runCommand(array $command, string $workingDirectory, bool $quiet = false): array
+{
+    $escapedCommand = implode(' ', array_map('escapeshellarg', $command));
+    $output = [];
+    $exitCode = 0;
+
+    exec(
+        'cd ' . escapeshellarg($workingDirectory) . ' && ' . $escapedCommand . ' 2>&1',
+        $output,
+        $exitCode
+    );
+
+    $combinedOutput = implode(PHP_EOL, $output);
+
+    if (!$quiet && $combinedOutput !== '') {
+        echo $combinedOutput . PHP_EOL;
+    }
+
+    if (!$quiet && $exitCode !== 0) {
+        echo sprintf(" - Command failed with exit code %d, continuing bootstrap.\n", $exitCode);
+    }
+
+    return [
+        'exitCode' => $exitCode,
+        'output' => $combinedOutput,
+    ];
+}
+
+/**
  * Print the final developer handoff message.
  */
 function printSuccessMessage(): void
@@ -146,7 +234,10 @@ function printSuccessMessage(): void
     echo "MarwaPHP is ready." . PHP_EOL;
     echo "Next steps:" . PHP_EOL;
     echo "  1. Review .env and set your application values." . PHP_EOL;
-    echo "  2. Start the Nginx stack: docker compose -f docker/docker-compose.yml up -d" . PHP_EOL;
-    echo "  3. Or start the Caddy stack: docker compose -f docker/docker-compose.fpm.yml up -d" . PHP_EOL;
+    echo "  2. Enable the auth starter with AUTH_MODULE_ENABLED=true if you want the module scaffold." . PHP_EOL;
+    echo "  3. Seed the starter admin account: php marwa auth:seed" . PHP_EOL;
+    echo "  4. Start the Nginx stack: docker compose -f docker/docker-compose.yml up -d" . PHP_EOL;
+    echo "  5. Or start the Caddy stack: docker compose -f docker/docker-compose.fpm.yml up -d" . PHP_EOL;
+    echo "  6. If you skipped Node.js during setup, run npm ci && npm run build for Tailwind assets." . PHP_EOL;
     echo PHP_EOL;
 }

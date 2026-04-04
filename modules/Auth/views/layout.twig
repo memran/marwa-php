@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en" class="h-full scroll-smooth">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf|default('') }}">
+    <title>{% block title %}{{ title|default('Auth') }} | MarwaPHP{% endblock %}</title>
+    <link rel="stylesheet" href="{{ theme_asset('css/app.css') }}">
+  </head>
+  <body class="auth-page">
+    <main class="auth-shell">
+      <section class="auth-hero">
+        <span class="auth-hero__eyebrow">Marwa Auth Module</span>
+        <h1>Secure sign-in, starter admin access, and remember-me support.</h1>
+        <p>
+          Enable the module from the environment, seed the starter roles, and ship a professional authentication
+          experience without wiring every piece by hand.
+        </p>
+
+        <div class="auth-hero__list">
+          <div>Sessions and remember me</div>
+          <div>Role-based admin starter</div>
+          <div>Password reset and change</div>
+        </div>
+      </section>
+
+      <section class="auth-card">
+        {% set form_errors = session('errors')|default({}) %}
+
+        {% if form_errors is iterable and form_errors|length %}
+          <div class="notice notice--error">
+            <strong>Review the highlighted fields.</strong>
+            <ul>
+              {% for messages in form_errors %}
+                {% if messages is iterable %}
+                  {% for message in messages %}
+                    <li>{{ message }}</li>
+                  {% endfor %}
+                {% else %}
+                  <li>{{ messages }}</li>
+                {% endif %}
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
+        {% if session('auth_reset_link') %}
+          <div class="notice notice--success">
+            <strong>Reset link:</strong>
+            <a href="{{ session('auth_reset_link') }}">{{ session('auth_reset_link') }}</a>
+          </div>
+        {% endif %}
+
+        {% if session('auth_notice') %}
+          <div class="notice notice--success">
+            {{ session('auth_notice') }}
+          </div>
+        {% endif %}
+
+        {% block body %}{% endblock %}
+      </section>
+    </main>
+  </body>
+</html>

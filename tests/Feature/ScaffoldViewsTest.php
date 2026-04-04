@@ -42,10 +42,35 @@ final class ScaffoldViewsTest extends TestCase
     public function testCompiledStylesheetContainsTheStarterLayoutRules(): void
     {
         $css = file_get_contents(dirname(__DIR__, 2) . '/public/assets/css/app.css');
+        $source = file_get_contents(dirname(__DIR__, 2) . '/resources/css/app.css');
 
         self::assertIsString($css);
-        self::assertStringContainsString('main > section:first-of-type', $css);
-        self::assertStringContainsString('--bg:', $css);
-        self::assertStringContainsString('#start pre', $css);
+        self::assertIsString($source);
+        self::assertStringContainsString('tailwindcss v3.4.17', $css);
+        self::assertStringContainsString('.auth-page', $css);
+        self::assertStringContainsString('.auth-card', $css);
+        self::assertStringContainsString('bg-slate-950', $css);
+        self::assertStringContainsString('@tailwind utilities;', $source);
+        self::assertStringContainsString('@layer components', $source);
+    }
+
+    public function testTailwindToolingIsConfiguredForDevelopmentAndBootstrap(): void
+    {
+        $packageJson = file_get_contents(dirname(__DIR__, 2) . '/package.json');
+        $bootstrap = file_get_contents(dirname(__DIR__, 2) . '/scripts/post-create-project.php');
+        $dockerCompose = file_get_contents(dirname(__DIR__, 2) . '/docker/docker-compose.yml');
+        $dockerComposeFpm = file_get_contents(dirname(__DIR__, 2) . '/docker/docker-compose.fpm.yml');
+
+        self::assertIsString($packageJson);
+        self::assertIsString($bootstrap);
+        self::assertIsString($dockerCompose);
+        self::assertIsString($dockerComposeFpm);
+        self::assertStringContainsString('"css:dev": "tailwindcss -c tailwind.config.js -i ./resources/css/app.css -o ./public/assets/css/app.css --watch"', $packageJson);
+        self::assertStringContainsString('"css:build": "tailwindcss -c tailwind.config.js -i ./resources/css/app.css -o ./public/assets/css/app.css --minify"', $packageJson);
+        self::assertStringContainsString('npm ci', $bootstrap);
+        self::assertStringContainsString('npm run build', $bootstrap);
+        self::assertStringContainsString('profiles:', $dockerCompose);
+        self::assertStringContainsString('assets', $dockerCompose);
+        self::assertStringContainsString('npm run dev', $dockerComposeFpm);
     }
 }

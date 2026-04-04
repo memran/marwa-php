@@ -1,0 +1,30 @@
+{% extends '@auth/admin/layout.twig' %}
+
+{% block title %}Your profile{% endblock %}
+
+{% block body %}
+  <section class="panel">
+    <p class="eyebrow">Profile</p>
+    <h2>{{ user.getAttribute('name') }}</h2>
+    <p class="muted">{{ user.getAttribute('email') }}</p>
+  </section>
+
+  <section class="panel">
+    <p class="eyebrow">Roles</p>
+    <div class="chip-list">
+      {% for role in roles %}
+        <span class="chip">{{ role.getAttribute('name') }}</span>
+      {% else %}
+        <span class="muted">No roles assigned yet.</span>
+      {% endfor %}
+    </div>
+  </section>
+
+  <div class="actions">
+    <a href="/admin/password/change" class="button button--primary">Change password</a>
+    <form method="post" action="/admin/logout">
+      <input type="hidden" name="_token" value="{{ csrf|default('') }}">
+      <button type="submit" class="button button--ghost">Logout</button>
+    </form>
+  </div>
+{% endblock %}
