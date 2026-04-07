@@ -63,7 +63,7 @@ The document root is `public/`. Main application routes live in `routes/web.php`
 The post-create script generates `.env` automatically from `.env.example`. Review it and adjust the values for your environment.
 
 - Core app: `APP_NAME`, `APP_TITLE`, `APP_URL`, `APP_ENV`, `APP_DEBUG`
-- Themes: `FRONTEND_THEME`, `ADMIN_THEME`
+- Themes: `FRONTEND_THEME`, `ADMIN_THEME` (defaults to `default` and `admin`)
 - Modules: `MODULES_ENABLED`
 - Cache: `APP_CONFIG_CACHE`, `APP_ROUTE_CACHE`, `APP_MODULE_CACHE` (default to `storage/cache/`)
 - Docker: `NGINX_PORT`

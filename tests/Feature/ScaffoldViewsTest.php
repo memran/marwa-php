@@ -21,9 +21,11 @@ final class ScaffoldViewsTest extends TestCase
         self::assertStringContainsString('Quick start', $template);
         self::assertStringContainsString('composer install', $template);
         self::assertStringContainsString("'assets_url' => '/assets'", $manifest);
-        self::assertStringContainsString('switch-theme', $layout);
+        self::assertStringContainsString('method="get" action="/"', $layout);
+        self::assertStringContainsString('name="theme"', $layout);
+        self::assertStringContainsString('name="preview"', $layout);
         self::assertStringContainsString('theme_asset(', $layout);
-        self::assertStringContainsString('csrf', $layout);
+        self::assertStringContainsString('Reset theme', $layout);
     }
 
     public function testErrorPagesUseTheSharedThemeLayout(): void

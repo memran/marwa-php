@@ -92,4 +92,18 @@ final class ViewConfigTest extends TestCase
         self::assertSame('dark', $config['adminTheme']);
         self::assertSame('default', $config['defaultTheme']);
     }
+
+    public function testAdminThemeDefaultsToTheAdminThemeWhenUnset(): void
+    {
+        putenv('ADMIN_THEME');
+        unset($_ENV['ADMIN_THEME'], $_SERVER['ADMIN_THEME']);
+
+        $_ENV['APP_ENV'] = 'production';
+        $_SERVER['APP_ENV'] = 'production';
+        putenv('APP_ENV=production');
+
+        $config = require dirname(__DIR__, 3) . '/config/view.php';
+
+        self::assertSame('admin', $config['adminTheme']);
+    }
 }

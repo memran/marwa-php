@@ -11,12 +11,6 @@ final class ThemeSwitcherTest extends TestCase
 {
     protected function tearDown(): void
     {
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_unset();
-            session_destroy();
-        }
-
-        $_SESSION = [];
         putenv('FRONTEND_THEME');
         putenv('ADMIN_THEME');
         unset($_ENV['FRONTEND_THEME'], $_SERVER['FRONTEND_THEME']);
@@ -29,23 +23,28 @@ final class ThemeSwitcherTest extends TestCase
         $switcher = new ThemeSwitcher();
 
         self::assertSame('default', $switcher->resolve('unknown'));
-        self::assertSame(['default', 'dark'], $switcher->availableThemes());
+        self::assertSame(['default', 'dark', 'admin'], $switcher->availableThemes());
     }
 
-    public function testPersistStoresAValidatedThemeNameInTheSession(): void
+    public function testThemeForRequestUsesTheFallbackWhenPreviewIsMissing(): void
     {
         $switcher = new ThemeSwitcher();
-        $switcher->persist('dark');
 
-        self::assertSame('dark', $_SESSION['theme_name']);
+        self::assertSame('default', $switcher->themeForRequest('default', 'dark', null));
     }
 
-    public function testPersistFallsBackToDefaultWhenThemeIsInvalid(): void
+    public function testThemeForRequestUsesThePreviewThemeWhenRequested(): void
     {
         $switcher = new ThemeSwitcher();
-        $switcher->persist('tenantA');
 
-        self::assertSame('default', $_SESSION['theme_name']);
+        self::assertSame('dark', $switcher->themeForRequest('default', 'dark', '1'));
+    }
+
+    public function testThemeForRequestFallsBackWhenPreviewThemeIsInvalid(): void
+    {
+        $switcher = new ThemeSwitcher();
+
+        self::assertSame('default', $switcher->themeForRequest('default', 'tenantA', '1'));
     }
 
     public function testConfiguredFrontendThemeBecomesTheDefaultTheme(): void
@@ -56,7 +55,19 @@ final class ThemeSwitcherTest extends TestCase
 
         $switcher = new ThemeSwitcher();
 
-        self::assertSame('dark', $switcher->current());
+        self::assertSame('dark', $switcher->frontendTheme());
         self::assertContains('dark', $switcher->availableThemes());
+        self::assertContains('admin', $switcher->availableThemes());
+    }
+
+    public function testConfiguredAdminThemeCanBeResolved(): void
+    {
+        $_ENV['ADMIN_THEME'] = 'admin';
+        $_SERVER['ADMIN_THEME'] = 'admin';
+        putenv('ADMIN_THEME=admin');
+
+        $switcher = new ThemeSwitcher();
+
+        self::assertSame('admin', $switcher->adminTheme());
     }
 }

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en" class="h-full scroll-smooth">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf|default('') }}">
+    <title>{% block title %}{{ title|default('MarwaPHP Admin') }}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ theme_asset('css/app.css') }}">
+  </head>
+  <body id="top" class="admin-page">
+    <div class="admin-shell">
+      <aside class="admin-sidebar">
+        <div class="admin-brand">
+          <div class="admin-brand__mark">A</div>
+          <div>
+            <p class="admin-brand__title">Admin Theme</p>
+            <p class="admin-brand__sub">Shared admin starter</p>
+          </div>
+        </div>
+
+        <nav class="admin-nav">
+          {% block sidebar %}
+            <div class="admin-meta">
+              <span class="admin-meta__label">Theme</span>
+              <span class="admin-meta__value">{{ _theme_name|replace({'-': ' '})|title }}</span>
+              <p>The admin theme is designed for dashboards, settings, and module pages.</p>
+            </div>
+
+            <div class="admin-meta">
+              <span class="admin-meta__label">Scope</span>
+              <span class="admin-meta__value">Admin area</span>
+              <p>Use this theme when you want the app's backend surfaces to feel distinct from the public site.</p>
+            </div>
+          {% endblock %}
+        </nav>
+      </aside>
+
+      <main class="admin-main">
+        <header class="admin-mobile-header">
+          <div class="admin-mobile-header__brand">
+            <div class="admin-mobile-header__back">Admin</div>
+            <div>
+              <div class="admin-mobile-header__title">{% block eyebrow %}Admin theme{% endblock %}</div>
+              <div class="admin-mobile-header__crumb">{{ title|default('Dashboard') }}</div>
+            </div>
+          </div>
+
+          <div class="admin-mobile-header__actions">
+            {% block mobile_actions %}
+              <span class="chip">{{ _theme_name|replace({'-': ' '})|title }}</span>
+            {% endblock %}
+          </div>
+        </header>
+
+        <section class="admin-topbar">
+          <div>
+            <p>{% block subtitle %}Backend shell{% endblock %}</p>
+            <h1>{% block topbar_title %}{{ title|default('Admin dashboard') }}{% endblock %}</h1>
+          </div>
+
+          <div class="admin-actions">
+            {% block topbar_actions %}
+              <span class="chip">Theme: {{ _theme_name|replace({'-': ' '})|title }}</span>
+              <form method="get" action="/admin" class="flex items-center gap-2">
+                <input type="hidden" name="preview" value="1">
+                <label for="theme_name" class="sr-only">Theme</label>
+                <select id="theme_name" name="theme" class="form-select rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none ring-0 transition focus:border-cyan-400">
+                  {% for theme in _theme_available %}
+                    <option value="{{ theme }}" {% if theme == _theme_name %}selected{% endif %}>{{ theme|replace({'-': ' '})|title }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="chip">Preview</button>
+              </form>
+
+              <a href="/admin" class="chip">Reset preview</a>
+            {% endblock %}
+          </div>
+        </section>
+
+        <div class="admin-body">
+          {% block body_before %}{% endblock %}
+          {% block body %}{% endblock %}
+        </div>
+      </main>
+    </div>
+
+    <div class="admin-mobile-bar">
+      <span class="admin-mobile-bar__button">
+        <span class="admin-mobile-bar__label">Theme</span>
+        <span class="admin-mobile-bar__value">{{ _theme_name|replace({'-': ' '})|title }}</span>
+      </span>
+      <a href="/admin" class="admin-mobile-bar__action">
+        <span class="admin-mobile-bar__label">Top</span>
+        <span class="admin-mobile-bar__value">Reset</span>
+      </a>
+    </div>
+  </body>
+</html>

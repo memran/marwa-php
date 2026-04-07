@@ -13,39 +13,44 @@ final class ThemeSwitcher
      */
     private array $themes = ['default', 'dark'];
 
-    public function current(): string
-    {
-        $this->ensureSession();
-
-        $theme = $_SESSION['theme_name'] ?? null;
-
-        return $this->resolve(is_string($theme) ? $theme : $this->defaultTheme());
-    }
-
     public function resolve(?string $themeName): string
     {
         if ($themeName === null) {
-            return $this->defaultTheme();
+            return $this->frontendTheme();
         }
 
-        return in_array($themeName, $this->availableThemes(), true) ? $themeName : $this->defaultTheme();
+        return in_array($themeName, $this->availableThemes(), true) ? $themeName : $this->frontendTheme();
     }
 
-    public function persist(string $themeName): void
+    public function themeForRequest(string $fallbackTheme, ?string $themeName = null, mixed $preview = null): string
     {
-        $this->ensureSession();
-        $_SESSION['theme_name'] = $this->resolve($themeName);
+        $fallbackTheme = $this->resolve($fallbackTheme);
+        $previewEnabled = $this->isPreviewRequested($preview);
+        $themeName = $themeName !== null ? trim($themeName) : null;
+
+        if (!$previewEnabled) {
+            return $fallbackTheme;
+        }
+
+        return $this->resolve($themeName ?? $fallbackTheme);
     }
 
-    public function applyToView(?string $themeName = null): void
+    public function applyToView(string $fallbackTheme, ?string $themeName = null, mixed $preview = null): string
     {
         $builder = app(ViewAdapter::class)->getView()->getThemeBuilder();
+        $theme = $this->themeForRequest($fallbackTheme, $themeName, $preview);
 
         if ($builder === null) {
-            return;
+            return $theme;
         }
 
-        $builder->useTheme($this->resolve($themeName ?? $this->current()));
+        if ($this->isPreviewRequested($preview) && $theme !== $fallbackTheme) {
+            $builder->previewTheme($theme);
+        } else {
+            $builder->useTheme($theme);
+        }
+
+        return $theme;
     }
 
     /**
@@ -54,26 +59,13 @@ final class ThemeSwitcher
     public function availableThemes(): array
     {
         $themes = $this->themes;
-        $themes[] = $this->defaultTheme();
+        $themes[] = $this->frontendTheme();
         $themes[] = $this->adminTheme();
 
         return array_values(array_unique(array_filter($themes, static fn (string $theme): bool => $theme !== '')));
     }
 
-    private function ensureSession(): void
-    {
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            return;
-        }
-
-        if (headers_sent()) {
-            return;
-        }
-
-        session_start();
-    }
-
-    private function defaultTheme(): string
+    public function frontendTheme(): string
     {
         try {
             $theme = config('view.frontendTheme', null);
@@ -89,7 +81,7 @@ final class ThemeSwitcher
         return is_string($theme) && trim($theme) !== '' ? trim($theme) : 'default';
     }
 
-    private function adminTheme(): string
+    public function adminTheme(): string
     {
         try {
             $theme = config('view.adminTheme', null);
@@ -100,8 +92,31 @@ final class ThemeSwitcher
             // No application container during isolated unit tests.
         }
 
-        $theme = env('ADMIN_THEME', $this->defaultTheme());
+        $theme = env('ADMIN_THEME', 'admin');
 
-        return is_string($theme) && trim($theme) !== '' ? trim($theme) : $this->defaultTheme();
+        return is_string($theme) && trim($theme) !== '' ? trim($theme) : 'admin';
+    }
+
+    private function isPreviewRequested(mixed $preview): bool
+    {
+        if (is_bool($preview)) {
+            return $preview;
+        }
+
+        if (is_int($preview) || is_float($preview)) {
+            return (bool) $preview;
+        }
+
+        if (!is_string($preview)) {
+            return false;
+        }
+
+        $preview = trim($preview);
+
+        if ($preview === '') {
+            return false;
+        }
+
+        return !in_array(strtolower($preview), ['0', 'false', 'off', 'no'], true);
     }
 }
