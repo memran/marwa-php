@@ -17,6 +17,10 @@ final class ThemeSwitcherTest extends TestCase
         }
 
         $_SESSION = [];
+        putenv('FRONTEND_THEME');
+        putenv('ADMIN_THEME');
+        unset($_ENV['FRONTEND_THEME'], $_SERVER['FRONTEND_THEME']);
+        unset($_ENV['ADMIN_THEME'], $_SERVER['ADMIN_THEME']);
         parent::tearDown();
     }
 
@@ -42,5 +46,17 @@ final class ThemeSwitcherTest extends TestCase
         $switcher->persist('tenantA');
 
         self::assertSame('default', $_SESSION['theme_name']);
+    }
+
+    public function testConfiguredFrontendThemeBecomesTheDefaultTheme(): void
+    {
+        $_ENV['FRONTEND_THEME'] = 'dark';
+        $_SERVER['FRONTEND_THEME'] = 'dark';
+        putenv('FRONTEND_THEME=dark');
+
+        $switcher = new ThemeSwitcher();
+
+        self::assertSame('dark', $switcher->current());
+        self::assertContains('dark', $switcher->availableThemes());
     }
 }

@@ -19,8 +19,12 @@ final class ViewConfigTest extends TestCase
         unset($GLOBALS['marwa_app']);
         putenv('APP_ENV');
         putenv('APP_DEBUG');
+        putenv('FRONTEND_THEME');
+        putenv('ADMIN_THEME');
         unset($_ENV['APP_ENV'], $_SERVER['APP_ENV']);
         unset($_ENV['APP_DEBUG'], $_SERVER['APP_DEBUG']);
+        unset($_ENV['FRONTEND_THEME'], $_SERVER['FRONTEND_THEME']);
+        unset($_ENV['ADMIN_THEME'], $_SERVER['ADMIN_THEME']);
 
         parent::tearDown();
     }
@@ -66,5 +70,26 @@ final class ViewConfigTest extends TestCase
 
         self::assertIsString($config['cachePath']);
         self::assertFalse($config['debug']);
+    }
+
+    public function testViewThemeDefaultsExposeFrontendAndAdminThemes(): void
+    {
+        $_ENV['APP_ENV'] = 'production';
+        $_SERVER['APP_ENV'] = 'production';
+        putenv('APP_ENV=production');
+
+        $_ENV['FRONTEND_THEME'] = 'default';
+        $_SERVER['FRONTEND_THEME'] = 'default';
+        putenv('FRONTEND_THEME=default');
+
+        $_ENV['ADMIN_THEME'] = 'dark';
+        $_SERVER['ADMIN_THEME'] = 'dark';
+        putenv('ADMIN_THEME=dark');
+
+        $config = require dirname(__DIR__, 3) . '/config/view.php';
+
+        self::assertSame('default', $config['frontendTheme']);
+        self::assertSame('dark', $config['adminTheme']);
+        self::assertSame('default', $config['defaultTheme']);
     }
 }

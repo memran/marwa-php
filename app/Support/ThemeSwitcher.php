@@ -17,18 +17,18 @@ final class ThemeSwitcher
     {
         $this->ensureSession();
 
-        $theme = $_SESSION['theme_name'] ?? 'default';
+        $theme = $_SESSION['theme_name'] ?? null;
 
-        return $this->resolve(is_string($theme) ? $theme : 'default');
+        return $this->resolve(is_string($theme) ? $theme : $this->defaultTheme());
     }
 
     public function resolve(?string $themeName): string
     {
         if ($themeName === null) {
-            return 'default';
+            return $this->defaultTheme();
         }
 
-        return in_array($themeName, $this->themes, true) ? $themeName : 'default';
+        return in_array($themeName, $this->availableThemes(), true) ? $themeName : $this->defaultTheme();
     }
 
     public function persist(string $themeName): void
@@ -53,7 +53,11 @@ final class ThemeSwitcher
      */
     public function availableThemes(): array
     {
-        return $this->themes;
+        $themes = $this->themes;
+        $themes[] = $this->defaultTheme();
+        $themes[] = $this->adminTheme();
+
+        return array_values(array_unique(array_filter($themes, static fn (string $theme): bool => $theme !== '')));
     }
 
     private function ensureSession(): void
@@ -67,5 +71,37 @@ final class ThemeSwitcher
         }
 
         session_start();
+    }
+
+    private function defaultTheme(): string
+    {
+        try {
+            $theme = config('view.frontendTheme', null);
+            if (is_string($theme) && trim($theme) !== '') {
+                return trim($theme);
+            }
+        } catch (\RuntimeException) {
+            // No application container during isolated unit tests.
+        }
+
+        $theme = env('FRONTEND_THEME', 'default');
+
+        return is_string($theme) && trim($theme) !== '' ? trim($theme) : 'default';
+    }
+
+    private function adminTheme(): string
+    {
+        try {
+            $theme = config('view.adminTheme', null);
+            if (is_string($theme) && trim($theme) !== '') {
+                return trim($theme);
+            }
+        } catch (\RuntimeException) {
+            // No application container during isolated unit tests.
+        }
+
+        $theme = env('ADMIN_THEME', $this->defaultTheme());
+
+        return is_string($theme) && trim($theme) !== '' ? trim($theme) : $this->defaultTheme();
     }
 }

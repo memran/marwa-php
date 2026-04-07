@@ -11,7 +11,9 @@ final class ServerConfigTest extends TestCase
     protected function tearDown(): void
     {
         putenv('APP_ENV');
-        unset($_ENV['APP_ENV'], $_SERVER['APP_ENV']);
+        putenv('FRONTEND_THEME');
+        putenv('ADMIN_THEME');
+        unset($_ENV['APP_ENV'], $_SERVER['APP_ENV'], $_ENV['FRONTEND_THEME'], $_SERVER['FRONTEND_THEME'], $_ENV['ADMIN_THEME'], $_SERVER['ADMIN_THEME']);
 
         parent::tearDown();
     }
