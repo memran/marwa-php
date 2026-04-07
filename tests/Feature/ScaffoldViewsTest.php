@@ -47,8 +47,6 @@ final class ScaffoldViewsTest extends TestCase
         self::assertIsString($css);
         self::assertIsString($source);
         self::assertStringContainsString('tailwindcss v3.4.17', $css);
-        self::assertStringContainsString('.auth-page', $css);
-        self::assertStringContainsString('.auth-card', $css);
         self::assertStringContainsString('.admin-page', $css);
         self::assertStringContainsString('.admin-sidebar', $css);
         self::assertStringContainsString('.admin-mobile-header', $css);
@@ -85,28 +83,16 @@ final class ScaffoldViewsTest extends TestCase
         self::assertStringContainsString('npm run dev', $dockerComposeFpm);
     }
 
-    public function testAuthModuleUsesTheLightAdminShell(): void
+    public function testSharedAdminThemeLayoutProvidesTheAdminShell(): void
     {
-        $authLayout = file_get_contents(dirname(__DIR__, 2) . '/modules/Auth/views/layout.twig');
-        $adminLayout = file_get_contents(dirname(__DIR__, 2) . '/modules/Auth/views/admin/layout.twig');
-        $changePassword = file_get_contents(dirname(__DIR__, 2) . '/modules/Auth/views/change-password.twig');
-        $profile = file_get_contents(dirname(__DIR__, 2) . '/modules/Auth/views/profile.twig');
+        $layout = file_get_contents(dirname(__DIR__, 2) . '/resources/views/themes/default/views/admin/layout.twig');
 
-        self::assertIsString($authLayout);
-        self::assertIsString($adminLayout);
-        self::assertIsString($changePassword);
-        self::assertIsString($profile);
-        self::assertStringContainsString('light, polished auth experience', $authLayout);
-        self::assertStringContainsString('admin-shell', $adminLayout);
-        self::assertStringContainsString('admin-sidebar', $adminLayout);
-        self::assertStringContainsString('admin-mobile-header', $adminLayout);
-        self::assertStringContainsString('Admin /', $adminLayout);
-        self::assertStringContainsString('admin-mobile-bar', $adminLayout);
-        self::assertStringContainsString('admin-mobile-menu', $adminLayout);
-        self::assertStringContainsString('admin-user', $adminLayout);
-        self::assertStringContainsString('active_nav', $adminLayout);
-        self::assertStringContainsString('action="/admin/theme"', $adminLayout);
-        self::assertStringContainsString("extends '@auth/admin/layout.twig'", $changePassword);
-        self::assertStringContainsString('Remembered access', $profile);
+        self::assertIsString($layout);
+        self::assertStringContainsString('admin-shell', $layout);
+        self::assertStringContainsString('admin-sidebar', $layout);
+        self::assertStringContainsString('admin-topbar', $layout);
+        self::assertStringContainsString('theme_asset(\'css/app.css\')', $layout);
+        self::assertStringContainsString('Active theme', $layout);
     }
+
 }

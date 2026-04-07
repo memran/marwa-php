@@ -17,7 +17,7 @@ final class HomeController extends Controller
     {
         app(ThemeSwitcher::class)->applyToView();
 
-        return $this->render('welcome', [
+        return $this->view('welcome', [
             'csrf' => Security::csrfToken(),
         ]);
     }

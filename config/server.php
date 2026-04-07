@@ -6,6 +6,7 @@ $workerNum = function_exists('swoole_cpu_num') ? max(1, swoole_cpu_num() * 2) : 
 $swooleMode = defined('SWOOLE_PROCESS') ? SWOOLE_PROCESS : 3;
 $swooleSocket = defined('SWOOLE_SOCK_TCP') ? SWOOLE_SOCK_TCP : 1;
 $logLevel = defined('SWOOLE_LOG_WARNING') ? SWOOLE_LOG_WARNING : 3;
+$isDevelopment = in_array((string) env('APP_ENV', 'production'), ['local', 'development'], true);
 
 return [
       'swoole' => [
@@ -29,6 +30,6 @@ return [
             ],
       ],
       'app' => [
-            'debug' => env('APP_DEBUG', false),
+            'debug' => $isDevelopment,
       ],
 ];

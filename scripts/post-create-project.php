@@ -234,10 +234,8 @@ function printSuccessMessage(): void
     echo "MarwaPHP is ready." . PHP_EOL;
     echo "Next steps:" . PHP_EOL;
     echo "  1. Review .env and set your application values." . PHP_EOL;
-    echo "  2. Enable the auth starter with AUTH_MODULE_ENABLED=true if you want the module scaffold." . PHP_EOL;
-    echo "  3. Seed the starter admin account: php marwa auth:seed" . PHP_EOL;
-    echo "  4. Start the Nginx stack: docker compose -f docker/docker-compose.yml up -d" . PHP_EOL;
-    echo "  5. Or start the Caddy stack: docker compose -f docker/docker-compose.fpm.yml up -d" . PHP_EOL;
-    echo "  6. If you skipped Node.js during setup, run npm ci && npm run build for Tailwind assets." . PHP_EOL;
+    echo "  2. Start the Nginx stack: docker compose -f docker/docker-compose.yml up -d" . PHP_EOL;
+    echo "  3. Or start the Caddy stack: docker compose -f docker/docker-compose.fpm.yml up -d" . PHP_EOL;
+    echo "  4. If you skipped Node.js during setup, run npm ci && npm run build for Tailwind assets." . PHP_EOL;
     echo PHP_EOL;
 }

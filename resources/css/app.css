@@ -55,48 +55,17 @@
 }
 
 @layer components {
-  .auth-page {
-    @apply min-h-screen bg-radial-hero;
-  }
-
-  .auth-shell {
-    @apply mx-auto grid min-h-screen w-[min(1180px,calc(100%-2rem))] gap-8 py-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:items-center;
-  }
-
-  .auth-hero {
-    @apply grid max-w-xl gap-5;
-  }
-
-  .auth-hero h1 {
-    @apply m-0 text-5xl font-black leading-[0.96] tracking-tight text-white sm:text-6xl;
-  }
-
-  .auth-hero p {
-    @apply m-0 text-lg leading-8 text-slate-300;
-  }
-
-  .auth-hero__eyebrow,
   .eyebrow {
     @apply inline-flex w-fit text-xs font-extrabold uppercase tracking-[0.2em] text-cyan-300;
   }
 
-  .auth-hero__list {
-    @apply flex flex-wrap gap-3;
-  }
-
-  .auth-hero__list div,
   .chip {
     @apply inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-sm font-semibold text-cyan-100;
   }
 
-  .auth-card,
   .panel,
   .stat-card {
     @apply border border-white/10 bg-white/5 shadow-glow backdrop-blur-xl;
-  }
-
-  .auth-card {
-    @apply rounded-[2rem] p-8;
   }
 
   .card-heading {
@@ -219,16 +188,10 @@
 }
 
 @layer base {
-  body.auth-page {
-    @apply min-h-screen bg-slate-50 text-slate-900;
-  }
-
   body.admin-page {
     @apply min-h-screen bg-slate-100 text-slate-900;
   }
 
-  body.auth-page::before,
-  body.auth-page::after,
   body.admin-page::before,
   body.admin-page::after {
     content: "";
@@ -238,22 +201,6 @@
     border-radius: 9999px;
     filter: blur(72px);
     pointer-events: none;
-  }
-
-  body.auth-page::before {
-    width: 24rem;
-    height: 24rem;
-    right: -10rem;
-    top: 6rem;
-    background: rgba(56, 189, 248, 0.16);
-  }
-
-  body.auth-page::after {
-    width: 20rem;
-    height: 20rem;
-    left: -8rem;
-    bottom: -6rem;
-    background: rgba(16, 185, 129, 0.12);
   }
 
   body.admin-page::before {
@@ -274,44 +221,17 @@
 }
 
 @layer components {
-  .auth-shell {
-    @apply mx-auto grid min-h-screen w-[min(1240px,calc(100%-2rem))] gap-8 py-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)] lg:items-center;
-  }
-
-  .auth-hero {
-    @apply grid gap-6 rounded-[2rem] border border-slate-200 bg-white/80 p-8 shadow-[0_30px_80px_rgba(15,23,42,0.08)] backdrop-blur;
-  }
-
-  .auth-hero h1 {
-    @apply m-0 max-w-2xl text-4xl font-black leading-[0.95] tracking-tight text-slate-950 sm:text-5xl;
-  }
-
-  .auth-hero p {
-    @apply m-0 max-w-2xl text-lg leading-8 text-slate-600;
-  }
-
-  .auth-hero__eyebrow,
   .eyebrow {
     @apply inline-flex w-fit items-center rounded-full border border-sky-200 bg-sky-50 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-sky-700;
   }
 
-  .auth-hero__list {
-    @apply grid gap-3 sm:grid-cols-2;
-  }
-
-  .auth-hero__list div,
   .chip {
     @apply inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm;
   }
 
-  .auth-card,
   .panel,
   .stat-card {
     @apply border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur;
-  }
-
-  .auth-card {
-    @apply rounded-[2rem] p-8;
   }
 
   .card-heading {
