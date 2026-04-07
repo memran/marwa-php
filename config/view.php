@@ -10,7 +10,7 @@ return [
     'viewsPath' => resources_path() . DIRECTORY_SEPARATOR . 'views',
     'cachePath' => $isDevelopment
         ? null
-        : storage_path('cache') . DIRECTORY_SEPARATOR . 'views',
+        : cache_path('views'),
     'debug' => $isDevelopment,
     'frontendTheme' => $frontendTheme,
     'adminTheme' => $adminTheme,

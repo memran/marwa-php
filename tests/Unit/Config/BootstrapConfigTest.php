@@ -30,11 +30,18 @@ final class BootstrapConfigTest extends TestCase
 
     public function testBootstrapCacheDefaultsUseTheStorageFolder(): void
     {
+        putenv('APP_CONFIG_CACHE');
+        putenv('APP_ROUTE_CACHE');
+        putenv('APP_MODULE_CACHE');
+        unset($_ENV['APP_CONFIG_CACHE'], $_SERVER['APP_CONFIG_CACHE']);
+        unset($_ENV['APP_ROUTE_CACHE'], $_SERVER['APP_ROUTE_CACHE']);
+        unset($_ENV['APP_MODULE_CACHE'], $_SERVER['APP_MODULE_CACHE']);
+
         $config = BootstrapConfig::defaults($GLOBALS['marwa_app']);
 
-        self::assertSame('storage/cache/config.php', $config['configCache']);
-        self::assertSame('storage/cache/routes.php', $config['routeCache']);
-        self::assertSame('storage/cache/modules.php', $config['moduleCache']);
+        self::assertSame(cache_path('config.php'), $config['configCache']);
+        self::assertSame(cache_path('routes.php'), $config['routeCache']);
+        self::assertSame(cache_path('modules.php'), $config['moduleCache']);
     }
 
     public function testBootstrapCachePathsCanBeOverriddenViaEnv(): void
