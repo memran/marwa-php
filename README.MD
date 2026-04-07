@@ -5,6 +5,8 @@
 ![License](https://img.shields.io/badge/License-MIT-2ea44f.svg)
 ![Tests](https://img.shields.io/badge/Tests-PHPUnit%20passing-success.svg)
 ![Analysis](https://img.shields.io/badge/Static%20Analysis-PHPStan%20ready-blue.svg)
+![Downloads](https://img.shields.io/packagist/dm/memran/marwa-php)
+![Total Downloads](https://img.shields.io/packagist/dt/memran/marwa-php)
 
 MarwaPHP is a polished PHP framework starter for teams that want a fast launch without sacrificing structure. It combines a clean MVC layout, Twig theming, PSR-friendly foundations, and a production-minded toolchain so you can move from idea to deployment with less friction.
 
