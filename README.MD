@@ -65,6 +65,7 @@ The post-create script generates `.env` automatically from `.env.example`. Revie
 - Core app: `APP_NAME`, `APP_TITLE`, `APP_URL`, `APP_ENV`, `APP_DEBUG`
 - Themes: `FRONTEND_THEME`, `ADMIN_THEME`
 - Modules: `MODULES_ENABLED`
+- Cache: `APP_CONFIG_CACHE`, `APP_ROUTE_CACHE`, `APP_MODULE_CACHE` (default to `storage/cache/`)
 - Docker: `NGINX_PORT`
 - Optional integrations: database and cache variables can be added later when needed
 

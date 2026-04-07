@@ -17,6 +17,15 @@ use Marwa\Framework\Application;
 use Marwa\Framework\Console\ConsoleKernel;
 
 $app = new Application(WEBROOT);
+$_ENV['APP_CONFIG_CACHE'] = $app->basePath('storage/cache/config.php');
+$_SERVER['APP_CONFIG_CACHE'] = $_ENV['APP_CONFIG_CACHE'];
+putenv('APP_CONFIG_CACHE=' . $_ENV['APP_CONFIG_CACHE']);
+$_ENV['APP_ROUTE_CACHE'] = $app->basePath('storage/cache/routes.php');
+$_SERVER['APP_ROUTE_CACHE'] = $_ENV['APP_ROUTE_CACHE'];
+putenv('APP_ROUTE_CACHE=' . $_ENV['APP_ROUTE_CACHE']);
+$_ENV['APP_MODULE_CACHE'] = $app->basePath('storage/cache/modules.php');
+$_SERVER['APP_MODULE_CACHE'] = $_ENV['APP_MODULE_CACHE'];
+putenv('APP_MODULE_CACHE=' . $_ENV['APP_MODULE_CACHE']);
 $app->boot();
 
 /** @var ConsoleKernel $kernel */

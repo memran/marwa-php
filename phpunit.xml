@@ -19,5 +19,8 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing" force="true" />
+        <env name="APP_CONFIG_CACHE" value="storage/cache/config.php" force="true" />
+        <env name="APP_ROUTE_CACHE" value="storage/cache/routes.php" force="true" />
+        <env name="APP_MODULE_CACHE" value="storage/cache/modules.php" force="true" />
     </php>
 </phpunit>
