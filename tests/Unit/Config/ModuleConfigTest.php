@@ -33,7 +33,7 @@ final class ModuleConfigTest extends TestCase
             $config = require dirname(__DIR__, 3) . '/config/module.php';
 
             self::assertTrue($config['forceRefresh']);
-            self::assertSame('storage/cache/modules.php', $config['cache']);
+            self::assertSame(cache_path('modules.php'), $config['cache']);
         }
 
         $_ENV['APP_ENV'] = 'production';
@@ -43,6 +43,6 @@ final class ModuleConfigTest extends TestCase
         $config = require dirname(__DIR__, 3) . '/config/module.php';
 
         self::assertFalse($config['forceRefresh']);
-        self::assertSame('storage/cache/modules.php', $config['cache']);
+        self::assertSame(cache_path('modules.php'), $config['cache']);
     }
 }
