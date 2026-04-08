@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support;
 
+use function debug;
 use PHPUnit\Framework\TestCase;
 
 final class DebugHelperTest extends TestCase
