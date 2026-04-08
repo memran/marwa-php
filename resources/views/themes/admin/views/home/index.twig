@@ -1,50 +1,180 @@
 {% extends 'admin/layout.twig' %}
 
-{% block title %}Admin dashboard{% endblock %}
+{% block title %}Admin starter dashboard{% endblock %}
 
 {% block body %}
-  <section class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-    <article class="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-slate-950/20">
-      <div class="flex items-center justify-between gap-4">
-        <div>
-          <p class="text-sm uppercase tracking-[0.2em] text-slate-400">Generated theme</p>
-          <h2 class="mt-2 text-3xl font-black text-white">Admin workspace</h2>
-        </div>
-        <span class="chip">Active</span>
+  <section class="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+    <article class="rounded-[2rem] border border-white/10 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-cyan-950/40 p-8 shadow-2xl shadow-black/25">
+      <div class="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-cyan-200">
+        <span class="h-2 w-2 rounded-full bg-cyan-300"></span>
+        Starter complete theme
       </div>
 
-      <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
-        This starter admin theme is designed to be extended by modules, dashboards, and internal tools without touching the public site theme.
+      <h3 class="mt-5 max-w-3xl text-4xl font-black tracking-tight text-white">
+        A complete admin starter for modules, settings, dashboards, and operational views.
+      </h3>
+
+      <p class="mt-4 max-w-3xl text-base leading-8 text-slate-300">
+        The admin theme is now a full starter shell: it has its own asset bundle, a branded sidebar, theme preview controls, dashboard sections, and content blocks that modules can extend.
       </p>
 
-      <div class="mt-6 grid gap-4 sm:grid-cols-2">
-        <div class="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
-          <p class="text-sm text-slate-400">Navigation</p>
-          <p class="mt-2 text-lg font-semibold text-white">Sidebar + topbar</p>
-        </div>
-        <div class="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
-          <p class="text-sm text-slate-400">Assets</p>
-          <p class="mt-2 text-lg font-semibold text-white">Shared compiled CSS</p>
-        </div>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="/admin?preview=1&theme={{ _theme_name }}" class="button button--primary">Preview active theme</a>
+        <a href="/" class="button button--ghost">Open frontend</a>
+      </div>
+
+      <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {% set stats = [
+          {'label': 'Modules', 'value': '12', 'detail': 'Ready to register'},
+          {'label': 'Themes', 'value': _theme_catalog|length, 'detail': 'Available in catalog'},
+          {'label': 'Cache', 'value': 'Storage', 'detail': 'Bootstrap-aware'},
+          {'label': 'Mode', 'value': _theme_previewing|default(false) ? 'Preview' : 'Live', 'detail': 'Request scoped'},
+        ] %}
+
+        {% for stat in stats %}
+          <div class="stat-card rounded-3xl p-5">
+            <span>{{ stat.label }}</span>
+            <strong>{{ stat.value }}</strong>
+            <p class="mt-3 text-sm leading-6">{{ stat.detail }}</p>
+          </div>
+        {% endfor %}
       </div>
     </article>
 
-    <aside class="rounded-3xl border border-white/10 bg-slate-900/70 p-6">
-      <p class="text-sm uppercase tracking-[0.2em] text-slate-400">Theme details</p>
-      <dl class="mt-4 space-y-4">
-        <div>
-          <dt class="text-sm text-slate-400">Name</dt>
-          <dd class="text-lg font-semibold text-white">{{ _theme_name|replace({'-': ' '})|title }}</dd>
+    <aside class="space-y-6">
+      <section class="panel rounded-[2rem] p-6">
+        <div class="card-heading">
+          <p class="eyebrow">Theme info</p>
+          <h2>Active theme metadata</h2>
         </div>
-        <div>
-          <dt class="text-sm text-slate-400">Purpose</dt>
-          <dd class="text-lg font-semibold text-white">Backend interface</dd>
+        <dl class="space-y-4">
+          <div class="flex items-start justify-between gap-4">
+            <dt class="text-sm text-slate-400">Label</dt>
+            <dd class="text-right font-semibold text-white">{{ _theme_meta.label }}</dd>
+          </div>
+          <div class="flex items-start justify-between gap-4">
+            <dt class="text-sm text-slate-400">Description</dt>
+            <dd class="max-w-xs text-right text-sm text-slate-300">{{ _theme_meta.description }}</dd>
+          </div>
+          <div class="flex items-start justify-between gap-4">
+            <dt class="text-sm text-slate-400">Version</dt>
+            <dd class="text-right font-semibold text-white">{{ _theme_meta.version|default('1.0.0') }}</dd>
+          </div>
+          <div class="flex items-start justify-between gap-4">
+            <dt class="text-sm text-slate-400">Author</dt>
+            <dd class="text-right font-semibold text-white">{{ _theme_meta.author|default('MarwaPHP') }}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="panel rounded-[2rem] p-6">
+        <div class="card-heading">
+          <p class="eyebrow">Quick actions</p>
+          <h2>Starter entry points</h2>
         </div>
-        <div>
-          <dt class="text-sm text-slate-400">Parent</dt>
-          <dd class="text-lg font-semibold text-white">default</dd>
+        <div class="space-y-3">
+          <a href="#modules" class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+            <span>Module dashboard</span>
+            <span class="text-xs uppercase tracking-[0.18em] text-slate-400">Open</span>
+          </a>
+          <a href="#themes" class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+            <span>Theme catalog</span>
+            <span class="text-xs uppercase tracking-[0.18em] text-slate-400">Open</span>
+          </a>
+          <a href="#settings" class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+            <span>Configuration</span>
+            <span class="text-xs uppercase tracking-[0.18em] text-slate-400">Open</span>
+          </a>
         </div>
-      </dl>
+      </section>
     </aside>
+  </section>
+
+  <section id="modules" class="panel rounded-[2rem] p-6">
+    <div class="card-heading">
+      <p class="eyebrow">Dashboard surfaces</p>
+      <h2>Built for modules and internal tools</h2>
+      <p>These sections are meant to be replaced or extended by modules without changing the public theme.</p>
+    </div>
+
+    <div class="grid gap-4 lg:grid-cols-3">
+      <article class="stat-card rounded-3xl p-5">
+        <span>Modules</span>
+        <strong>Discovery-ready</strong>
+        <p class="mt-3 text-sm leading-6">Use manifest-driven modules with their own providers, routes, views, and migrations.</p>
+      </article>
+      <article class="stat-card rounded-3xl p-5">
+        <span>Themes</span>
+        <strong>Preview enabled</strong>
+        <p class="mt-3 text-sm leading-6">Switch or preview themes via request-scoped query parameters, not session state.</p>
+      </article>
+      <article class="stat-card rounded-3xl p-5">
+        <span>Cache</span>
+        <strong>Storage-backed</strong>
+        <p class="mt-3 text-sm leading-6">Bootstrap caches and compiled assets are kept under `storage/` for predictable deployment.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="themes" class="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+    <article class="panel rounded-[2rem] p-6">
+      <div class="card-heading">
+        <p class="eyebrow">Theme catalog</p>
+        <h2>Available themes</h2>
+      </div>
+
+      <div class="space-y-3">
+        {% for theme in _theme_catalog %}
+          <div class="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+            <div>
+              <p class="font-semibold text-white">{{ theme.metadata.label }}</p>
+              <p class="text-sm text-slate-400">{{ theme.name }}{% if theme.metadata.description %} · {{ theme.metadata.description }}{% endif %}</p>
+            </div>
+            <span class="chip">{% if theme.name == _theme_name %}Active{% else %}Ready{% endif %}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="panel rounded-[2rem] p-6">
+      <div class="card-heading">
+        <p class="eyebrow">System status</p>
+        <h2>Starter theme checklist</h2>
+      </div>
+
+      <div class="overflow-hidden rounded-3xl border border-white/10">
+        <table class="table w-full">
+          <thead class="bg-white/5">
+            <tr>
+              <th>Area</th>
+              <th>Status</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Layout</td>
+              <td><span class="chip">Complete</span></td>
+              <td class="text-slate-300">Sidebar, topbar, footer, and content blocks</td>
+            </tr>
+            <tr>
+              <td>Assets</td>
+              <td><span class="chip">Complete</span></td>
+              <td class="text-slate-300">Dedicated admin assets path and logo</td>
+            </tr>
+            <tr>
+              <td>Preview</td>
+              <td><span class="chip">Ready</span></td>
+              <td class="text-slate-300">Theme switching works through `preview=1` and `theme=`</td>
+            </tr>
+            <tr>
+              <td>Modules</td>
+              <td><span class="chip">Ready</span></td>
+              <td class="text-slate-300">Extend `admin/layout.twig` from module views</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
   </section>
 {% endblock %}

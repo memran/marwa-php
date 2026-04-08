@@ -17,6 +17,8 @@ final class AdminThemeScaffoldTest extends TestCase
         $frontendController = file_get_contents($basePath . '/app/Controllers/FrontendController.php');
         $backendController = file_get_contents($basePath . '/app/Controllers/BackendController.php');
         $manifest = file_get_contents($basePath . '/resources/views/themes/admin/manifest.php');
+        $themeCss = file_get_contents($basePath . '/resources/views/themes/admin/assets/css/app.css');
+        $themeLogo = file_get_contents($basePath . '/resources/views/themes/admin/assets/images/logo-admin.svg');
         $layout = file_get_contents($basePath . '/resources/views/themes/admin/views/layout.twig');
         $adminLayout = file_get_contents($basePath . '/resources/views/themes/admin/views/admin/layout.twig');
         $dashboard = file_get_contents($basePath . '/resources/views/themes/admin/views/home/index.twig');
@@ -26,6 +28,8 @@ final class AdminThemeScaffoldTest extends TestCase
         self::assertIsString($frontendController);
         self::assertIsString($backendController);
         self::assertIsString($manifest);
+        self::assertIsString($themeCss);
+        self::assertIsString($themeLogo);
         self::assertIsString($layout);
         self::assertIsString($adminLayout);
         self::assertIsString($dashboard);
@@ -39,12 +43,18 @@ final class AdminThemeScaffoldTest extends TestCase
         self::assertStringContainsString('renderBackend(', $controller);
         self::assertStringContainsString("'name' => 'admin'", $manifest);
         self::assertStringContainsString("'parent' => 'default'", $manifest);
-        self::assertStringContainsString('Admin Theme', $layout);
+        self::assertStringContainsString("'assets_url' => '/themes/admin/assets'", $manifest);
+        self::assertStringContainsString('Admin Starter', $layout);
+        self::assertStringContainsString('@import url(\'/assets/css/app.css\')', $themeCss);
+        self::assertStringContainsString('Marwa Admin', $themeLogo);
+        self::assertStringContainsString('Theme preview', $layout);
         self::assertStringContainsString('admin-shell', $adminLayout);
-        self::assertStringContainsString('method="get" action="/admin"', $adminLayout);
-        self::assertStringContainsString('name="theme"', $adminLayout);
-        self::assertStringContainsString('name="preview"', $adminLayout);
-        self::assertStringContainsString('Admin workspace', $dashboard);
+        self::assertStringContainsString('Backend workspace', $adminLayout);
+        self::assertStringContainsString('method="get" action="/admin"', $layout);
+        self::assertStringContainsString('name="theme"', $layout);
+        self::assertStringContainsString('name="preview"', $layout);
+        self::assertStringContainsString('Starter complete theme', $dashboard);
+        self::assertStringContainsString('theme_asset(\'images/logo-admin.svg\')', $layout);
         self::assertStringContainsString("{% extends 'admin/layout.twig' %}", $dashboard);
     }
 }
