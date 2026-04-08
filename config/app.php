@@ -7,7 +7,7 @@ return [
     'title' => env('APP_TITLE', env('APP_NAME', 'MarwaPHP')),
     'base_path' => env('APP_URL', 'http://localhost/'),
     'debug' => env('APP_DEBUG', false),
-    'debugbar' => debug(),
+    'debugbar' => env('APP_DEBUG', false),
     'collectors' => [],
     'key' => env('APP_KEY', generate_key()),
     'defaultLocale' => 'en',
