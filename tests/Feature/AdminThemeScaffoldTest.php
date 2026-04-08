@@ -57,6 +57,10 @@ final class AdminThemeScaffoldTest extends TestCase
         self::assertStringContainsString('Theme preview', $layout);
         self::assertStringContainsString('admin-shell', $adminLayout);
         self::assertStringContainsString('Backend workspace', $adminLayout);
+        self::assertStringContainsString('_admin_menu', $backendController);
+        self::assertStringContainsString('/admin#modules', $adminLayout);
+        self::assertStringContainsString('/admin#themes', $adminLayout);
+        self::assertStringContainsString('/admin#settings', $adminLayout);
         self::assertStringContainsString('method="get" action="/admin"', $layout);
         self::assertStringContainsString('name="theme"', $layout);
         self::assertStringContainsString('name="preview"', $layout);

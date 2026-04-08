@@ -13,6 +13,19 @@ use Psr\Http\Message\ResponseInterface;
 abstract class BackendController extends Controller
 {
     /**
+     * @return array<int, array{label: string, hint: string, url: string, active: bool}>
+     */
+    protected function adminMenu(): array
+    {
+        return [
+            ['label' => 'Overview', 'hint' => 'Dashboard', 'url' => '/admin', 'active' => true],
+            ['label' => 'Modules', 'hint' => 'Packages', 'url' => '/admin#modules', 'active' => false],
+            ['label' => 'Themes', 'hint' => 'Preview', 'url' => '/admin#themes', 'active' => false],
+            ['label' => 'Settings', 'hint' => 'Config', 'url' => '/admin#settings', 'active' => false],
+        ];
+    }
+
+    /**
      * @param array<string, mixed> $data
      */
     protected function renderBackend(string $template, array $data = []): ResponseInterface
@@ -25,6 +38,7 @@ abstract class BackendController extends Controller
         );
 
         app(ViewAdapter::class)->getView()->share('_admin_theme', $theme);
+        app(ViewAdapter::class)->getView()->share('_admin_menu', $this->adminMenu());
 
         return $this->view($template, $data);
     }
