@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{% block title %}Frontend{% endblock %}</title>
+</head>
+<body class="theme theme--{{ _theme_name }}">
+    <main class="theme-shell theme-shell--frontend">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

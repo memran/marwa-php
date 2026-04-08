@@ -4,15 +4,15 @@ This directory contains the base framework configuration files used by the app.
 
 ## Files
 
-- `app.php` - application identity, providers, middleware, and debug defaults
+- `app.php` - application identity, providers, middleware, debug defaults, and debugbar collectors
 - `bootstrap.php` - config, route, and module cache paths; module cache normalization stays here
 - `cache.php` - cache backend defaults and storage options
 - `console.php` - console app name, version, and command discovery, including `app/Commands`
 - `database.php` - database connections and migration/seed paths
-- `error.php` - error handler defaults and renderer settings
+- `error.php` - error handler defaults, logger/debug reporter toggles, and renderer settings
 - `event.php` - event listeners and subscribers
 - `http.php` - HTTP client defaults
-- `logger.php` - log storage, filters, and channel defaults
+- `logger.php` - log storage, filters, channel defaults, and log level/prefix defaults
 - `mail.php` - mail transport and sender defaults
 - `module.php` - module enablement, discovery, and manifest cache
 - `notification.php` - notification channels and defaults
