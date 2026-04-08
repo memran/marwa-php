@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support;
 
-use function debug;
 use PHPUnit\Framework\TestCase;
 
 final class DebugHelperTest extends TestCase
@@ -23,12 +22,12 @@ final class DebugHelperTest extends TestCase
         $_SERVER['APP_DEBUG'] = '1';
         putenv('APP_DEBUG=1');
 
-        self::assertTrue(debug());
+        self::assertTrue(\debug());
 
         $_ENV['APP_DEBUG'] = '0';
         $_SERVER['APP_DEBUG'] = '0';
         putenv('APP_DEBUG=0');
 
-        self::assertFalse(debug());
+        self::assertFalse(\debug());
     }
 }
