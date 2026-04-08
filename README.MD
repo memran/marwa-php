@@ -10,6 +10,8 @@
 
 MarwaPHP is a polished PHP framework starter for teams that want a fast launch without sacrificing structure. It combines a clean MVC layout, Twig theming, PSR-friendly foundations, and a production-minded toolchain so you can move from idea to deployment with less friction.
 
+See the repo architecture guide in [ARCHITECTURE.md](ARCHITECTURE.md) for the framework-first split between core, modules, themes, and app code.
+
 It is a strong fit for:
 
 - product teams building APIs and web apps
@@ -110,3 +112,5 @@ Never commit secrets or machine-specific values.
 ## Contributing
 
 Keep changes focused and easy to review. Add tests for behavior changes, and update this README whenever commands, dependencies, or runtime behavior change.
+
+For the framework-first architecture rules and contribution checklist, see [ARCHITECTURE.md](ARCHITECTURE.md) and [CONTRIBUTING.MD](CONTRIBUTING.MD).
