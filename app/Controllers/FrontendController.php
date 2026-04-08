@@ -11,6 +11,9 @@ use Psr\Http\Message\ResponseInterface;
 
 abstract class FrontendController extends Controller
 {
+    /**
+     * @param array<string, mixed> $data
+     */
     protected function renderFrontend(string $template, array $data = []): ResponseInterface
     {
         $themeSwitcher = app(ThemeSwitcher::class);
