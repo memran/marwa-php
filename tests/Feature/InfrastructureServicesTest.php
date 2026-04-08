@@ -160,6 +160,7 @@ final class InfrastructureServicesTest extends TestCase
         $root = sys_get_temp_dir() . '/marwa-infra-' . bin2hex(random_bytes(6));
         $this->temporaryRoots[] = $root;
 
+        unset($GLOBALS['marwa_app']);
         $this->makeDirectory($root);
         $this->makeDirectory($root . '/config');
         $this->makeDirectory($root . '/routes');
