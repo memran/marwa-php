@@ -19,7 +19,7 @@
       </p>
 
       <div class="mt-8 flex flex-wrap gap-3">
-        <a href="/admin?preview=1&theme={{ _theme_name }}" class="button button--primary">Preview active theme</a>
+        <a href="/admin?preview=1&theme={{ _admin_theme }}" class="button button--primary">Preview active theme</a>
         <a href="/" class="button button--ghost">Open frontend</a>
       </div>
 
@@ -130,7 +130,7 @@
               <p class="font-semibold text-white">{{ theme.metadata.label }}</p>
               <p class="text-sm text-slate-400">{{ theme.name }}{% if theme.metadata.description %} · {{ theme.metadata.description }}{% endif %}</p>
             </div>
-            <span class="chip">{% if theme.name == _theme_name %}Active{% else %}Ready{% endif %}</span>
+            <span class="chip">{% if theme.name == _admin_theme %}Active{% else %}Ready{% endif %}</span>
           </div>
         {% endfor %}
       </div>

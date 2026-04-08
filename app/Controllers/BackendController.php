@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Controller;
 use App\Support\ThemeSwitcher;
+use Marwa\Framework\Adapters\ViewAdapter;
 use Marwa\Router\Http\Input;
 use Psr\Http\Message\ResponseInterface;
 
@@ -17,12 +18,13 @@ abstract class BackendController extends Controller
     protected function renderBackend(string $template, array $data = []): ResponseInterface
     {
         $themeSwitcher = app(ThemeSwitcher::class);
-
-        $themeSwitcher->applyToView(
+        $theme = $themeSwitcher->applyToView(
             $themeSwitcher->adminTheme(),
             $this->themePreviewName(),
             $this->previewFlag()
         );
+
+        app(ViewAdapter::class)->getView()->share('_admin_theme', $theme);
 
         return $this->view($template, $data);
     }

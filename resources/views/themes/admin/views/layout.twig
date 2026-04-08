@@ -24,7 +24,7 @@
               {% endblock %}
             </p>
             <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
-              <span class="chip">Theme: {{ _theme_name|replace({'-': ' '})|title }}</span>
+              <span class="chip">Theme: {{ _admin_theme|replace({'-': ' '})|title }}</span>
               <span class="chip">{% if _theme_previewing|default(false) %}Preview{% else %}Live{% endif %}</span>
               <span class="chip">Chain: {{ _theme_chain|join(' -> ') }}</span>
             </div>
@@ -50,7 +50,7 @@
               <label for="theme_name" class="sr-only">Theme</label>
               <select id="theme_name" name="theme" class="form-select w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none ring-0 transition focus:border-cyan-400">
                 {% for theme in _theme_catalog %}
-                  <option value="{{ theme.name }}" {% if theme.name == _theme_name %}selected{% endif %}>
+                  <option value="{{ theme.name }}" {% if theme.name == _admin_theme %}selected{% endif %}>
                     {{ theme.metadata.label }}{% if theme.name != theme.metadata.label %} ({{ theme.name }}){% endif %}
                   </option>
                 {% endfor %}
@@ -72,7 +72,7 @@
     <footer class="border-t border-white/10 bg-slate-950/60 py-6">
       <div class="mx-auto flex max-w-7xl flex-col gap-2 px-4 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
         <p>Powered by Marwa\Framework + Marwa\View</p>
-        <p>{% if _theme_previewing|default(false) %}Previewing {{ _theme_preview }}{% else %}Rendered with {{ _theme_name }}{% endif %}</p>
+        <p>{% if _theme_previewing|default(false) %}Previewing {{ _theme_preview }}{% else %}Rendered with {{ _admin_theme }}{% endif %}</p>
       </div>
     </footer>
   </body>

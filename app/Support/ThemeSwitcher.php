@@ -65,6 +65,20 @@ final class ThemeSwitcher
         return array_values(array_unique(array_filter($themes, static fn (string $theme): bool => $theme !== '')));
     }
 
+    /**
+     * @return list<string>
+     */
+    public function frontendThemes(): array
+    {
+        $adminTheme = $this->adminTheme();
+        $themes = array_filter(
+            $this->availableThemes(),
+            static fn (string $theme): bool => $theme !== $adminTheme
+        );
+
+        return array_values($themes);
+    }
+
     public function frontendTheme(): string
     {
         try {

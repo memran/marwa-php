@@ -26,6 +26,10 @@ final class ScaffoldViewsTest extends TestCase
         self::assertStringContainsString('name="preview"', $layout);
         self::assertStringContainsString('theme_asset(', $layout);
         self::assertStringContainsString('Reset theme', $layout);
+        self::assertStringContainsString('_frontend_theme', $layout);
+        self::assertStringContainsString('_frontend_themes', $layout);
+        self::assertStringNotContainsString('_theme_available', $layout);
+        self::assertStringContainsString('_frontend_theme', $template);
     }
 
     public function testErrorPagesUseTheSharedThemeLayout(): void

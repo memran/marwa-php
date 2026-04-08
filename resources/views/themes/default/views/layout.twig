@@ -30,8 +30,8 @@
           <label for="theme_name" class="hidden text-sm text-slate-300 sm:block">Theme</label>
           <input type="hidden" name="preview" value="1">
           <select id="theme_name" name="theme" class="form-select rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none ring-0 transition focus:border-cyan-400">
-            {% for theme in _theme_available %}
-              <option value="{{ theme }}" {% if theme == _theme_name %}selected{% endif %}>{{ theme|replace({'-': ' '})|title }}</option>
+            {% for theme in _frontend_themes %}
+              <option value="{{ theme }}" {% if theme == _frontend_theme %}selected{% endif %}>{{ theme|replace({'-': ' '})|title }}</option>
             {% endfor %}
           </select>
           <button type="submit" class="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300">

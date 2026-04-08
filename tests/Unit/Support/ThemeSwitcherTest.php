@@ -24,6 +24,7 @@ final class ThemeSwitcherTest extends TestCase
 
         self::assertSame('default', $switcher->resolve('unknown'));
         self::assertSame(['default', 'dark', 'admin'], $switcher->availableThemes());
+        self::assertSame(['default', 'dark'], $switcher->frontendThemes());
     }
 
     public function testThemeForRequestUsesTheFallbackWhenPreviewIsMissing(): void
@@ -58,6 +59,7 @@ final class ThemeSwitcherTest extends TestCase
         self::assertSame('dark', $switcher->frontendTheme());
         self::assertContains('dark', $switcher->availableThemes());
         self::assertContains('admin', $switcher->availableThemes());
+        self::assertSame(['default', 'dark'], $switcher->frontendThemes());
     }
 
     public function testConfiguredAdminThemeCanBeResolved(): void
