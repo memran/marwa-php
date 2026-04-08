@@ -9,9 +9,8 @@
   "scripts": {
     "css:dev": "tailwindcss -c tailwind.config.js -i ./resources/css/app.css -o ./public/assets/css/app.css --watch",
     "css:build": "tailwindcss -c tailwind.config.js -i ./resources/css/app.css -o ./public/assets/css/app.css --minify",
-    "themes:sync": "php scripts/sync-theme-assets.php",
-    "dev": "npm run themes:sync && npm run css:dev",
-    "build": "npm run css:build && npm run themes:sync"
+    "dev": "npm run css:dev",
+    "build": "npm run css:build"
   },
   "repository": {
     "type": "git",

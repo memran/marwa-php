@@ -2,17 +2,13 @@
 
 declare(strict_types=1);
 
-$isDevelopment = in_array((string) env('APP_ENV', 'production'), ['local', 'development'], true);
-$frontendTheme = (string) env('FRONTEND_THEME', 'default');
-$adminTheme = (string) env('ADMIN_THEME', 'admin');
-
 return [
     'viewsPath' => resources_path() . DIRECTORY_SEPARATOR . 'views',
-    'cachePath' => $isDevelopment
+    'cachePath' => in_array((string) env('APP_ENV', 'production'), ['local', 'development'], true)
         ? null
         : cache_path('views'),
-    'debug' => $isDevelopment,
-    'frontendTheme' => $frontendTheme,
-    'adminTheme' => $adminTheme,
-    'defaultTheme' => $frontendTheme,
+    'debug' => in_array((string) env('APP_ENV', 'production'), ['local', 'development'], true),
+    'frontendTheme' => env('FRONTEND_THEME', 'default'),
+    'adminTheme' => env('ADMIN_THEME', 'admin'),
+    'defaultTheme' => env('FRONTEND_THEME', 'default'),
 ];

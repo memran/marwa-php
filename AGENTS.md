@@ -16,17 +16,16 @@
 ## Project Structure
 - `app/` contains app-level controllers and support code under the `App\\` namespace.
 - `config/` holds runtime configuration for app, view, server, module, logger, and event behavior.
+- [config/README.md](config/README.md) lists the base framework config files and what they control.
 - `routes/` defines HTTP routes for the application entry points.
 - `modules/` contains optional feature modules and their manifests, routes, controllers, views, models, migrations, and seeders.
-- `resources/views/themes/` contains active themes and theme-specific view overrides.
+- `resources/views/` contains Twig views and shared partials.
 - `public/` is the web root and exposes compiled assets.
 - `database/` contains migrations and seeders.
 - `tests/` contains unit and feature tests for behavior coverage.
 
 ## Theme and Module Rules
 - Theme selection comes from configuration, not from session state.
-- The frontend theme and admin theme are configured separately through `.env` and `config/view.php`.
-- Theme preview behavior should be request-scoped and query-string based when needed.
 - Modules should remain self-contained with their own manifest, routes, controllers, views, migrations, and seeders when applicable.
 - When a module needs behavior that is missing from the framework, raise the framework-level change instead of hardcoding module-specific glue.
 
@@ -44,7 +43,7 @@
 ## Coding Style & Naming Conventions
 - Follow PSR-4 autoloading for classes in `app/`.
 - Use `StudlyCaps` for class names and `camelCase` for methods and variables.
-- Keep Twig templates lowercase and grouped by feature, for example `resources/views/themes/default/views/home/index.twig`.
+- Keep Twig templates lowercase and grouped by feature, for example `resources/views/home/index.twig`.
 - Use 4-space indentation in PHP and Twig unless the surrounding file already uses a different convention.
 - Keep changes consistent with nearby code; there is no project-wide formatter beyond the existing tooling.
 

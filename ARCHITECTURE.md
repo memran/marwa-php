@@ -2,7 +2,7 @@
 
 This repository is the app-level implementation of `marwa-framework`.
 
-The main rule is simple: keep the app thin and use the framework's own design, helpers, and extension points first. If a behavior is repeated across modules, themes, or controllers, it likely belongs in the framework or one of its companion packages.
+The main rule is simple: keep the app thin and use the framework's own design, helpers, and extension points first. If a behavior is repeated across modules or controllers, it likely belongs in the framework or one of its companion packages.
 
 ## Layer Map
 
@@ -31,13 +31,9 @@ Owns module discovery and module lifecycle integration.
 - module route and view registration contracts
 
 ### `marwa-view`
-Owns rendering and theme behavior.
+Owns rendering behavior.
 
 - Twig rendering
-- theme registry and inheritance
-- theme manifests and metadata
-- theme asset resolution
-- runtime preview mode
 - namespaced view roots for modules
 
 ### This app repo
@@ -48,7 +44,7 @@ Owns application composition only.
 - app controllers
 - app-specific views and overrides
 - environment defaults for this product
-- module/theme wiring for this product
+- module wiring for this product
 
 ## Current Boot Flow
 
@@ -57,7 +53,7 @@ Owns application composition only.
 3. `AppBootstrapper` loads config and providers.
 4. `ModuleBootstrapper` loads module manifests, providers, views, and routes.
 5. `HttpKernel` runs the middleware pipeline and router dispatch.
-6. `ViewAdapter` resolves the active theme and renders Twig templates.
+6. `ViewAdapter` resolves Twig templates and renders the response.
 
 The CLI entrypoint follows the same application bootstrap pattern through `marwa`.
 
@@ -66,10 +62,8 @@ The CLI entrypoint follows the same application bootstrap pattern through `marwa
 - Prefer `env()` and framework helpers such as `base_path()`, `storage_path()`, `cache_path()`, `resources_path()`, and `module_path()`.
 - Keep controller code thin and extend `Marwa\Framework\Controllers\Controller`.
 - Keep app routes declarative and avoid bootstrapping framework behavior inside route files.
-- Keep theme and module behavior manifest-driven.
 - Keep caches under `storage/`.
 - Make configuration the source of truth for app defaults.
-- Use request-scoped theme preview, not session state, when previewing themes.
 
 ## App Responsibilities
 
@@ -82,11 +76,6 @@ The CLI entrypoint follows the same application bootstrap pattern through `marwa
 - Keep route declarations in `routes/web.php` and `routes/api.php`.
 - Module routes should live in module route files and be loaded through module manifests.
 
-### Themes
-- Default frontend and admin themes come from `.env` and `config/view.php`.
-- Theme preview should be query-string based and request-scoped.
-- Active theme behavior should be handled by the view/theme layer, not by session persistence.
-
 ### Modules
 - Each module should keep its own manifest, provider, routes, views, migrations, and seeders when needed.
 - Modules should register through the framework module bootstrap, not through ad hoc app wiring.
@@ -96,7 +85,6 @@ The CLI entrypoint follows the same application bootstrap pattern through `marwa
 If the app keeps needing the same workaround more than once, the framework probably needs a new capability.
 
 - a first-class frontend/backend controller abstraction
-- a framework-owned theme context or preview helper
 - a framework-owned debug collector registry
 - unified cache-path normalization in framework config
 - clearer documentation for boot order and extension points

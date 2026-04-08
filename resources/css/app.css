@@ -141,32 +141,8 @@
     @apply border border-emerald-400/20 bg-emerald-400/10 text-emerald-100;
   }
 
-  .admin-shell {
-    @apply grid gap-5;
-  }
-
-  .admin-nav {
-    @apply flex flex-wrap items-end justify-between gap-4;
-  }
-
   .panel {
     @apply rounded-[1.5rem] p-6;
-  }
-
-  .stats-grid {
-    @apply grid gap-4 lg:grid-cols-3;
-  }
-
-  .stat-card {
-    @apply rounded-[1.5rem] p-5;
-  }
-
-  .stat-card span {
-    @apply mb-4 inline-flex w-fit rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[0.72rem] font-extrabold uppercase tracking-[0.18em] text-cyan-200;
-  }
-
-  .stat-card strong {
-    @apply block text-2xl font-bold leading-tight text-white;
   }
 
   .table {
@@ -185,38 +161,70 @@
   .chip-list {
     @apply flex flex-wrap gap-2;
   }
+
 }
 
-@layer base {
-  body.admin-page {
-    @apply min-h-screen bg-slate-100 text-slate-900;
+@layer utilities {
+  @keyframes float-slow {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+
+    50% {
+      transform: translate3d(0, -14px, 0) scale(1.03);
+    }
   }
 
-  body.admin-page::before,
-  body.admin-page::after {
-    content: "";
-    position: fixed;
-    inset: auto;
-    z-index: -1;
-    border-radius: 9999px;
-    filter: blur(72px);
-    pointer-events: none;
+  @keyframes float-slower {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+
+    50% {
+      transform: translate3d(0, 18px, 0) scale(1.04);
+    }
   }
 
-  body.admin-page::before {
-    width: 30rem;
-    height: 30rem;
-    right: -12rem;
-    top: 8rem;
-    background: rgba(37, 99, 235, 0.12);
+  @keyframes fade-up {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 20px, 0);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
   }
 
-  body.admin-page::after {
-    width: 24rem;
-    height: 24rem;
-    left: -10rem;
-    bottom: -8rem;
-    background: rgba(14, 165, 233, 0.1);
+  @keyframes slide-in {
+    0% {
+      opacity: 0;
+      transform: translate3d(24px, 0, 0);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  .animate-float-slow {
+    animation: float-slow 9s ease-in-out infinite;
+  }
+
+  .animate-float-slower {
+    animation: float-slower 12s ease-in-out infinite;
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.9s ease-out both;
+  }
+
+  .animate-slide-in {
+    animation: slide-in 0.9s ease-out both;
   }
 }
 
@@ -495,26 +503,6 @@
     @apply grid gap-6;
   }
 
-  .admin-toolbar {
-    @apply flex flex-wrap items-center justify-between gap-4;
-  }
-
-  .stats-grid {
-    @apply grid gap-4 md:grid-cols-2 xl:grid-cols-3;
-  }
-
-  .stat-card {
-    @apply rounded-[1.5rem] p-6;
-  }
-
-  .stat-card span {
-    @apply inline-flex w-fit rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-[0.72rem] font-extrabold uppercase tracking-[0.18em] text-sky-700;
-  }
-
-  .stat-card strong {
-    @apply mt-4 block text-3xl font-black leading-tight text-slate-950;
-  }
-
   .table {
     @apply w-full border-collapse text-sm;
   }
@@ -531,114 +519,5 @@
   .chip-list {
     @apply flex flex-wrap gap-2;
   }
-}
 
-@layer components {
-  .admin-page--dark {
-    color-scheme: dark;
-    color: rgb(226 232 240 / 1);
-    background-color: rgb(2 6 23 / 1);
-  }
-
-  .admin-page--dark::before {
-    background: rgba(59, 130, 246, 0.11);
-  }
-
-  .admin-page--dark::after {
-    background: rgba(16, 185, 129, 0.08);
-  }
-
-  .admin-page--dark .admin-sidebar,
-  .admin-page--dark .admin-topbar,
-  .admin-page--dark .admin-mobile-header,
-  .admin-page--dark .admin-mobile-menu__panel,
-  .admin-page--dark .admin-user,
-  .admin-page--dark .admin-user--topbar,
-  .admin-page--dark .admin-meta,
-  .admin-page--dark .panel,
-  .admin-page--dark .stat-card,
-  .admin-page--dark .admin-mobile-bar__action,
-  .admin-page--dark .admin-mobile-bar__button {
-    border-color: rgba(148, 163, 184, 0.16);
-    background-color: rgba(15, 23, 42, 0.92);
-    box-shadow: 0 24px 70px rgba(2, 6, 23, 0.35);
-  }
-
-  .admin-page--dark .admin-brand__title,
-  .admin-page--dark .admin-meta__value,
-  .admin-page--dark .admin-topbar h1,
-  .admin-page--dark .admin-mobile-header__crumb,
-  .admin-page--dark .admin-mobile-bar__value,
-  .admin-page--dark .stat-card strong {
-    color: rgb(248 250 252 / 1);
-  }
-
-  .admin-page--dark .admin-brand__sub,
-  .admin-page--dark .admin-user__email,
-  .admin-page--dark .admin-topbar p,
-  .admin-page--dark .admin-mobile-header__title,
-  .admin-page--dark .admin-mobile-bar__label,
-  .admin-page--dark .admin-meta p,
-  .admin-page--dark .card-heading p,
-  .admin-page--dark .stat-card p,
-  .admin-page--dark .panel p,
-  .admin-page--dark .muted,
-  .admin-page--dark .table th {
-    color: rgb(203 213 225 / 1);
-  }
-
-  .admin-page--dark .admin-brand__mark,
-  .admin-page--dark .admin-user__avatar {
-    background-color: rgb(248 250 252 / 1);
-    color: rgb(2 6 23 / 1);
-  }
-
-  .admin-page--dark .admin-nav a,
-  .admin-page--dark .admin-nav__active {
-    border-color: rgba(148, 163, 184, 0.16);
-    background-color: rgba(30, 41, 59, 0.6);
-    color: rgb(248 250 252 / 1);
-  }
-
-  .admin-page--dark .admin-nav a:hover {
-    border-color: rgba(148, 163, 184, 0.28);
-    background-color: rgba(30, 41, 59, 0.8);
-    color: rgb(248 250 252 / 1);
-  }
-
-  .admin-page--dark .admin-nav__link svg {
-    color: rgb(148 163 184 / 1);
-  }
-
-  .admin-page--dark .button--ghost {
-    border-color: rgba(148, 163, 184, 0.16);
-    background-color: rgba(30, 41, 59, 0.7);
-    color: rgb(226 232 240 / 1);
-  }
-
-  .admin-page--dark .button--ghost:hover,
-  .admin-page--dark .admin-mobile-bar__action:hover,
-  .admin-page--dark .admin-mobile-bar__button:hover {
-    background-color: rgba(51, 65, 85, 0.75);
-  }
-
-  .admin-page--dark .admin-mobile-header__back {
-    border-color: rgba(148, 163, 184, 0.16);
-    background-color: rgba(30, 41, 59, 0.72);
-    color: rgb(226 232 240 / 1);
-  }
-
-  .admin-page--dark .button--primary {
-    background-color: rgb(248 250 252 / 1);
-    color: rgb(2 6 23 / 1);
-  }
-
-  .admin-page--dark .admin-mobile-bar {
-    background: transparent;
-  }
-
-  .admin-page--dark .table td,
-  .admin-page--dark .table th {
-    border-color: rgba(51, 65, 85, 0.65);
-  }
 }

@@ -8,14 +8,14 @@
 ![Downloads](https://img.shields.io/packagist/dm/memran/marwa-php)
 ![Total Downloads](https://img.shields.io/packagist/dt/memran/marwa-php)
 
-MarwaPHP is a polished PHP framework starter for teams that want a fast launch without sacrificing structure. It combines a clean MVC layout, Twig theming, PSR-friendly foundations, and a production-minded toolchain so you can move from idea to deployment with less friction.
+MarwaPHP is a polished PHP framework starter for teams that want a fast launch without sacrificing structure. It combines a clean MVC layout, Twig views, PSR-friendly foundations, and a production-minded toolchain so you can move from idea to deployment with less friction.
 
-See the repo architecture guide in [ARCHITECTURE.md](ARCHITECTURE.md) for the framework-first split between core, modules, themes, and app code.
+See the repo architecture guide in [ARCHITECTURE.md](ARCHITECTURE.md) for the framework-first split between core, modules, and app code.
 
 It is a strong fit for:
 
 - product teams building APIs and web apps
-- developers who want a lightweight, theme-aware starter
+- developers who want a lightweight starter
 - projects that need modular architecture, fast routing, and simple deployment
 
 The UI is built with Tailwind CSS. Use `npm run dev` while developing and `npm run build` before shipping assets.
@@ -24,7 +24,7 @@ On fresh installs, the post-create bootstrap will try to run `npm ci` and `npm r
 ## Why MarwaPHP
 
 - Launch-ready scaffold with a clean developer experience
-- Theme-aware rendering with reusable Twig layouts
+- Twig rendering with reusable layouts
 - Strong defaults for routing, error pages, and CSRF-safe forms
 - Composer scripts, PHPUnit, PHPStan, and CI already wired in
 - Docker support for both Nginx and Caddy local stacks
@@ -32,8 +32,7 @@ On fresh installs, the post-create bootstrap will try to run `npm ci` and `npm r
 ## Features
 
 - Lightweight MVC application structure
-- Theme-aware Twig views with a polished default landing page
-- CSRF-protected theme switching form
+- Twig views with a polished default landing page
 - PSR-7, PSR-11, PSR-15, and PSR-16 friendly building blocks
 - HTTP routing with middleware support
 - Module scaffolding support for custom app modules
@@ -58,19 +57,16 @@ cd my-app
 php -S localhost:8000 -t public/
 ```
 
-The document root is `public/`. Main application routes live in `routes/web.php`, and the active theme views live in `resources/views/themes/default/views/`.
+The document root is `public/`. Main application routes live in `routes/web.php`.
 
 ## Configuration
 
 The post-create script generates `.env` automatically from `.env.example`. Review it and adjust the values for your environment.
 
-- Core app: `APP_NAME`, `APP_TITLE`, `APP_URL`, `APP_ENV`, `APP_DEBUG`
-- Themes: `FRONTEND_THEME`, `ADMIN_THEME` (defaults to `default` and `admin`)
-- Modules: `MODULES_ENABLED`
-- Cache: `APP_CONFIG_CACHE`, `APP_ROUTE_CACHE`, `APP_MODULE_CACHE` (default to `storage/cache/`)
-- Theme assets: published under `public/themes/<theme>/assets/` and synced by `npm run build`
-- Docker: `NGINX_PORT`
+- The sample env file already includes the framework defaults for app name, URL, environment, debug mode, timezone, and module loading.
+- Runtime cache paths and other framework defaults are managed by the config files under `config/`.
 - Optional integrations: database and cache variables can be added later when needed
+- See [config/README.md](config/README.md) for a quick index of the base framework config files.
 
 Never commit secrets or machine-specific values.
 
@@ -95,8 +91,7 @@ Never commit secrets or machine-specific values.
 - `config/` framework and runtime configuration
 - `routes/` HTTP route definitions
 - `modules/` optional application modules
-- `resources/views/themes/default/views/` Twig views for the active theme
-- `resources/views/themes/*/` theme manifests and overrides
+- `resources/views/` Twig views and shared partials
 - `public/` document root and compiled assets
 - `database/` migrations and seeders
 - `tests/` unit and feature tests
@@ -104,7 +99,6 @@ Never commit secrets or machine-specific values.
 
 ## Production Notes
 
-- Set `APP_ENV=production` and `APP_DEBUG=false`
 - Keep `.env` out of version control
 - Run the test and analysis scripts before each release
 - Use the Docker stack or your own PHP-FPM web server with `public/` as the document root

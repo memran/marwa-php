@@ -8,6 +8,7 @@ This repository is the app implementation of `marwa-framework`, so please follow
 
 - Check whether the change belongs in `marwa-framework`, `marwa-module`, or `marwa-view` instead of this repo.
 - Keep app changes thin and configuration-driven.
+- Update the relevant base config file under `config/` when changing framework defaults like app, cache, logger, mail, database, event, security, session, queue, schedule, or storage behavior.
 - Add tests for behavior changes.
 - Update docs when commands, config, themes, or module conventions change.
 
@@ -34,4 +35,3 @@ Use `composer ci` when you want the full local validation chain.
 - Explain the problem and the approach.
 - List manual verification steps.
 - Include request/response examples or screenshots when output changes.
-

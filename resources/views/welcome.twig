@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MarwaPHP Framework</title>
+  <meta name="description" content="A framework-first PHP starter built on Marwa.">
+  <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100">
+  <div class="relative isolate overflow-hidden">
+    <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_36%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.12),_transparent_32%),linear-gradient(180deg,#020617_0%,#0f172a_48%,#020617_100%)]"></div>
+    <div class="absolute left-[-8rem] top-10 -z-10 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl animate-float-slow"></div>
+    <div class="absolute right-[-10rem] top-32 -z-10 h-96 w-96 rounded-full bg-emerald-400/10 blur-3xl animate-float-slower"></div>
+
+    <main class="mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-6 py-16 lg:px-10">
+      <section class="grid items-center gap-12 lg:grid-cols-[1.2fr_0.8fr]">
+        <div>
+          {% include '@Shared/welcome/hero.twig' %}
+          {% include '@Shared/welcome/pillars.twig' %}
+          {% include '@Shared/welcome/boot-flow.twig' %}
+        </div>
+
+        <aside class="animate-slide-in">
+          <div class="mb-5">
+          {% include '@Shared/welcome/runtime-snapshot.twig' %}
+          </div>
+          <div class="mt-5">
+            {% include '@Shared/welcome/architecture-strip.twig' %}
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

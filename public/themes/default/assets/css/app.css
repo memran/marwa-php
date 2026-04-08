@@ -1,5 +1,0 @@
-/* default theme overrides */
-.site-header {
-  /* light bg fallback if Tailwind fails for some reason */
-  background-color: #ffffff;
-}
