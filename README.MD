@@ -1,111 +1,236 @@
-# MarwaPHP Framework
+# MarwaPHP Starter
 
-![CI](https://github.com/memran/marwa-php/actions/workflows/ci.yml/badge.svg)
-![PHP](https://img.shields.io/badge/PHP-8.2%2B-8892BF.svg)
-![License](https://img.shields.io/badge/License-MIT-2ea44f.svg)
-![Tests](https://img.shields.io/badge/Tests-PHPUnit%20passing-success.svg)
-![Analysis](https://img.shields.io/badge/Static%20Analysis-PHPStan%20ready-blue.svg)
-![Downloads](https://img.shields.io/packagist/dm/memran/marwa-php)
-![Total Downloads](https://img.shields.io/packagist/dt/memran/marwa-php)
+MarwaPHP Starter is a `composer create-project` application built on top of `memran/marwa-framework`.
+It is a thin, production-ready starting point for building real Marwa apps without inheriting framework internals into the app layer.
 
-MarwaPHP is a polished PHP framework starter for teams that want a fast launch without sacrificing structure. It combines a clean MVC layout, Twig views, PSR-friendly foundations, and a production-minded toolchain so you can move from idea to deployment with less friction.
+## Who Should Use It
 
-See the repo architecture guide in [ARCHITECTURE.md](ARCHITECTURE.md) for the framework-first split between core, modules, and app code.
+- developers starting a new Marwa application
+- teams that want a clean starter with theme support and route examples
+- anyone who wants framework-native defaults without a lot of scaffolding noise
 
-It is a strong fit for:
+## Install
 
-- product teams building APIs and web apps
-- developers who want a lightweight starter
-- projects that need modular architecture, fast routing, and simple deployment
+```bash
+composer create-project memran/marwa-php my-app
+cd my-app
+php -S localhost:8000 -t public/
+```
 
-The UI is built with Tailwind CSS. Use `npm run dev` while developing and `npm run build` before shipping assets.
-On fresh installs, the post-create bootstrap will try to run `npm ci` and `npm run build` automatically when Node.js is available.
-
-## Why MarwaPHP
-
-- Launch-ready scaffold with a clean developer experience
-- Twig rendering with reusable layouts
-- Strong defaults for routing, error pages, and CSRF-safe forms
-- Composer scripts, PHPUnit, PHPStan, and CI already wired in
-- Docker support for both Nginx and Caddy local stacks
-
-## Features
-
-- Lightweight MVC application structure
-- Twig views with a polished default landing page
-- PSR-7, PSR-11, PSR-15, and PSR-16 friendly building blocks
-- HTTP routing with middleware support
-- Module scaffolding support for custom app modules
-- PHPUnit tests, PHPStan analysis, and PHP-CS-Fixer support
-- Nginx and Caddy Docker stacks for local development
-- Safe starter defaults for configuration and environment handling
+The post-create script generates `.env` from `.env.example` and builds assets when Node.js is available.
 
 ## Requirements
 
 - PHP 8.2 or newer
 - Composer
-- Node.js 20+ for Tailwind development and asset builds
+- Node.js 20+ for Tailwind development and production builds
 - Optional: Docker and Docker Compose
 
 ## Quick Start
 
 ```bash
-composer create-project memran/marwa-php my-app
-cd my-app
-# .env is generated automatically by the post-create script.
-# If Node.js is installed, Tailwind assets are built automatically.
+composer install
+cp .env.example .env
 php -S localhost:8000 -t public/
 ```
 
-The document root is `public/`. Main application routes live in `routes/web.php`.
+For local frontend assets:
+
+```bash
+npm install
+npm run dev
+```
+
+## Project Structure
+
+- `app/Http/Controllers/` thin application controllers
+- `app/Http/Middleware/` starter-specific middleware, such as admin theme switching
+- `config/` starter overrides for app identity, console discovery, and theme names
+- `routes/` HTTP route definitions
+- `resources/views/themes/default/` frontend theme layout and views
+- `resources/views/themes/admin/` admin theme layout and views
+- `resources/views/components/` shared Twig partials used by the frontend theme
+- `modules/` optional feature modules
+- `tests/` app-specific PHPUnit coverage
+
+## How This Starter Uses Marwa
+
+Marwa Framework owns the HTTP kernel, container, config loading, router, view engine, middleware pipeline, console kernel, cache handling, and helper functions.
+
+This starter only adds:
+
+- route definitions in `routes/web.php` and `routes/api.php`
+- thin controllers that call the framework controller `view()` helper
+- one app middleware that selects the admin theme for the admin route group
+- theme views and shared Twig partials
+- starter-focused tests that exercise real application behavior
 
 ## Configuration
 
-The post-create script generates `.env` automatically from `.env.example`. Review it and adjust the values for your environment.
+The starter keeps configuration narrow:
 
-- The sample env file already includes the framework defaults for app name, URL, environment, debug mode, timezone, and module loading.
-- Runtime cache paths and other framework defaults are managed by the config files under `config/`.
-- Optional integrations: database and cache variables can be added later when needed
-- See [config/README.md](config/README.md) for a quick index of the base framework config files.
+- `config/app.php` sets the application name, key, providers, middleware stack, and debugbar collectors
+- `config/console.php` discovers app commands from `app/Commands`
+- `config/view.php` defines the frontend and admin theme names
+- the rest of the runtime defaults come from Marwa Framework
 
-Never commit secrets or machine-specific values.
+Common environment values:
 
-## Developer Commands
+- `APP_NAME`
+- `APP_KEY`
+- `APP_DEBUG`
+- `FRONTEND_THEME`
+- `ADMIN_THEME`
 
+See [config/README.md](config/README.md) for the current config map.
+
+## Routing, Controllers, and Views
+
+`routes/web.php`:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use App\Http\Controllers\Backend\DashboardController;
+use App\Http\Controllers\HomeController;
+use App\Http\Middleware\AdminThemeMiddleware;
+use Marwa\Framework\Facades\Router;
+
+Router::get('/', [HomeController::class, 'index'])->name('home')->register();
+
+Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class]], static function ($routes): void {
+    $routes->get('/', [DashboardController::class, 'index'])->name('admin.dashboard')->register();
+});
+```
+
+`app/Http/Controllers/HomeController.php`:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers;
+
+use Marwa\Framework\Controllers\Controller;
+use Psr\Http\Message\ResponseInterface;
+
+final class HomeController extends Controller
+{
+    public function index(): ResponseInterface
+    {
+        return $this->view('home/index');
+    }
+}
+```
+
+`app/Http/Middleware/AdminThemeMiddleware.php`:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Middleware;
+
+use Marwa\Framework\Views\View;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+final class AdminThemeMiddleware implements MiddlewareInterface
+{
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        $view = app(View::class);
+        $previousTheme = $view->theme();
+        $view->theme(trim((string) config('view.adminTheme', 'admin')) ?: 'admin');
+
+        try {
+            return $handler->handle($request);
+        } finally {
+            $view->theme($previousTheme);
+        }
+    }
+}
+```
+
+Frontend theme view example:
+
+```twig
+{% extends "layout.twig" %}
+
+{% block content %}
+<section>Frontend theme: {{ _theme_name }}</section>
+{% endblock %}
+```
+
+## Running the App
+
+- `php -S localhost:8000 -t public/` runs the HTTP app locally
 - `composer test` runs the PHPUnit suite
 - `composer analyse` runs PHPStan
-- `composer lint` checks PHP syntax across the repository
-- `composer fix` runs PHP-CS-Fixer
-- `composer ci` runs the local validation chain used by CI
-- `npm run dev` watches and rebuilds the Tailwind stylesheet
-- `npm run build` generates the production Tailwind stylesheet
-- `docker compose -f docker/docker-compose.yml --profile assets up -d assets` runs the Tailwind watcher inside Docker
-- `docker compose -f docker/docker-compose.fpm.yml --profile assets up -d assets` runs the Tailwind watcher with the Caddy stack
-- `docker compose -f docker/docker-compose.yml up -d` starts the Nginx + PHP-FPM stack
-- `docker compose -f docker/docker-compose.fpm.yml up -d` starts the Caddy + PHP-FPM stack
-- `npm ci --no-audit --no-fund` installs the Tailwind toolchain from the committed lockfile
+- `composer lint` checks PHP syntax
+- `composer ci` runs the local validation chain
+- `npm run build` compiles production CSS into `public/assets/css/app.css`
 
-## Project Layout
+## Testing
 
-- `app/` controllers and small support services
-- `config/` framework and runtime configuration
-- `routes/` HTTP route definitions
-- `modules/` optional application modules
-- `resources/views/` Twig views and shared partials
-- `public/` document root and compiled assets
-- `database/` migrations and seeders
-- `tests/` unit and feature tests
-- `docker/` Nginx, Caddy, PHP-FPM, and optional Tailwind asset containers
+Tests in this repository should cover starter-specific behavior only.
 
-## Production Notes
+Good coverage examples:
 
-- Keep `.env` out of version control
-- Run the test and analysis scripts before each release
-- Use the Docker stack or your own PHP-FPM web server with `public/` as the document root
-- Add database or cache services only when the application layer needs them
+- route behavior in `routes/web.php` and `routes/api.php`
+- app middleware behavior
+- app-specific config integration
+- starter module wiring
 
-## Contributing
+Do not add tests for framework internals that already belong to `memran/marwa-framework`.
 
-Keep changes focused and easy to review. Add tests for behavior changes, and update this README whenever commands, dependencies, or runtime behavior change.
+## App Code vs Framework
 
-For the framework-first architecture rules and contribution checklist, see [ARCHITECTURE.md](ARCHITECTURE.md) and [CONTRIBUTING.MD](CONTRIBUTING.MD).
+Put code in the app when it is:
+
+- specific to this starter
+- specific to a project built from this starter
+- configuration or presentation specific
+
+Put code in the framework when it is:
+
+- reusable across Marwa applications
+- core routing, middleware, view, console, config, cache, or helper behavior
+
+## Customization
+
+Most custom work should happen in one of these places:
+
+1. `routes/` for HTTP entry points
+2. `app/Http/Controllers/` for request handling
+3. `app/Http/Middleware/` for cross-cutting request behavior
+4. `resources/views/themes/` for theme-specific rendering
+5. `config/` for starter-specific defaults
+
+If you find yourself repeating the same workaround in more than one file, that is a strong signal the framework should grow the capability instead.
+
+## Deployment
+
+- set the web server document root to `public/`
+- build production assets with `npm run build`
+- run `composer ci` before release
+- keep `.env` out of version control
+- use framework cache commands when you need to warm or clear config and route caches
+
+## Contribution Notes
+
+- keep changes focused and small
+- update README and tests when app behavior changes
+- avoid adding code that only mirrors framework features
+- prefer framework-native APIs over new app-level abstractions
+
+## Framework Suggestions
+
+- `app_path()` helper is missing from the framework helper set. The starter currently has to refer to `base_path('app/...')` when it wants an app directory path.
+- A dedicated `view:clear` command would remove the need for starter-side view cache cleanup if that behavior is ever needed.
