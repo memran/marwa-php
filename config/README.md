@@ -1,30 +1,28 @@
 # Config
 
-This directory contains the base framework configuration files used by the app.
+This directory contains the app-specific overrides that sit on top of Marwa Framework defaults.
 
 ## Files
 
-- `app.php` - application identity, providers, middleware, debug defaults, and debugbar collectors
-- `bootstrap.php` - config, route, and module cache paths; module cache normalization stays here
+- `app.php` - application identity, providers, middleware, and debugbar collectors
 - `cache.php` - cache backend defaults and storage options
-- `console.php` - console app name, version, and command discovery, including `app/Commands`
+- `console.php` - app command discovery from `app/Commands`
 - `database.php` - database connections and migration/seed paths
 - `error.php` - error handler defaults, logger/debug reporter toggles, and renderer settings
 - `event.php` - event listeners and subscribers
 - `http.php` - HTTP client defaults
 - `logger.php` - log storage, filters, channel defaults, and log level/prefix defaults
 - `mail.php` - mail transport and sender defaults
-- `module.php` - module enablement, discovery, and manifest cache
 - `notification.php` - notification channels and defaults
 - `queue.php` - queue path and retry settings
 - `schedule.php` - scheduler driver and lock paths
 - `security.php` - CSRF, throttle, and risk-report settings
 - `session.php` - session storage, lifetime, and cookie defaults
 - `storage.php` - storage disk defaults
-- `view.php` - view paths, debug/cache behavior, and theme defaults
+- `view.php` - starter theme names used by the frontend and admin areas
 
 ## Rule Of Thumb
 
-- Put framework defaults here first.
-- Keep app code thin and override only when the app truly needs a different value.
-- If the same setting keeps showing up in controllers or views, it probably belongs in `config/` or the framework itself.
+- Keep overrides here only when the starter needs a different value from the framework default.
+- If a setting is already handled by Marwa defaults, do not re-declare it here.
+- If the same value keeps showing up in controllers or views, it probably belongs in `config/` or the framework itself.

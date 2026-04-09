@@ -7,5 +7,5 @@ use Marwa\Router\Response;
 
 Router::get('/health', static fn (): \Psr\Http\Message\ResponseInterface => Response::json([
     'status' => 'ok',
-    'app' => env('APP_NAME', 'MarwaPHP'),
+    'app' => config('app.name', 'MarwaPHP'),
 ]))->name('health')->register();

@@ -1,9 +1,22 @@
 {% extends "layout.twig" %}
 
-{% block title %}Frontend Home{% endblock %}
+{% block title %}MarwaPHP Framework{% endblock %}
 
 {% block content %}
-<section data-theme="{{ _theme_name }}">
-    Frontend theme: {{ _theme_name }}
+<section class="grid items-center gap-12 lg:grid-cols-[1.2fr_0.8fr]">
+  <div>
+    {% include '@Shared/welcome/hero.twig' %}
+    {% include '@Shared/welcome/pillars.twig' %}
+    {% include '@Shared/welcome/boot-flow.twig' %}
+  </div>
+
+  <aside class="animate-slide-in">
+    <div class="mb-5">
+      {% include '@Shared/welcome/runtime-snapshot.twig' %}
+    </div>
+    <div class="mt-5">
+      {% include '@Shared/welcome/architecture-strip.twig' %}
+    </div>
+  </aside>
 </section>
 {% endblock %}
