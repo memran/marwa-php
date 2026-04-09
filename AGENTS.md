@@ -25,6 +25,7 @@
 - `config/` contains only starter overrides; avoid restating framework defaults.
 - `routes/` defines the HTTP entry points.
 - `resources/views/` contains Twig layouts, theme views, and shared partials.
+- Starter maintenance and 404 pages live under `resources/views/themes/default/views/` so the framework can resolve them through `config/app.php`.
 - `modules/` stays optional and self-contained.
 - `tests/` contains only app-specific PHPUnit coverage.
 
@@ -43,6 +44,7 @@
 - Keep templates and controllers small and explicit.
 - Avoid dead code, placeholder abstractions, and duplicated configuration.
 - If a starter file is only compensating for a framework shortcoming, keep the workaround minimal and document the limitation.
+- Keep the starter error-page templates aligned with `config/app.php` and the active theme tree.
 
 ## Definition Of Done
 - The starter is still thin after the change.

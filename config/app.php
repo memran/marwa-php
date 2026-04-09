@@ -13,10 +13,16 @@ use Marwa\DebugBar\Collectors\RequestCollector;
 use Marwa\DebugBar\Collectors\SessionCollector;
 use Marwa\DebugBar\Collectors\TimelineCollector;
 use Marwa\DebugBar\Collectors\VarDumperCollector;
+use Marwa\Framework\Middlewares\DebugbarMiddleware;
+use Marwa\Framework\Middlewares\MaintenanceMiddleware;
+use Marwa\Framework\Middlewares\RequestIdMiddleware;
+use Marwa\Framework\Middlewares\RouterMiddleware;
+use Marwa\Framework\Middlewares\SecurityMiddleware;
+use Marwa\Framework\Middlewares\SessionMiddleware;
 
 return [
     'name' => env('APP_NAME', 'MarwaPHP'),
-    'debugbar' => env('APP_DEBUG', false),
+    'debugbar' => (bool) env('DEBUGBAR_ENABLED', false),
     'collectors' => [
         RequestCollector::class,
         DbQueryCollector::class,
@@ -34,11 +40,19 @@ return [
     'providers' => [
         Marwa\Framework\Providers\KernalServiceProvider::class,
     ],
+    'maintenance' => [
+        'template' => 'maintenance.twig',
+        'message' => 'Service temporarily unavailable for maintenance',
+    ],
+    'error404' => [
+        'template' => 'errors/404.twig',
+    ],
     'middlewares' => [
-        Marwa\Framework\Middlewares\RequestIdMiddleware::class,
-        Marwa\Framework\Middlewares\SessionMiddleware::class,
-        Marwa\Framework\Middlewares\MaintenanceMiddleware::class,
-        Marwa\Framework\Middlewares\SecurityMiddleware::class,
-        Marwa\Framework\Middlewares\RouterMiddleware::class,
+        RequestIdMiddleware::class,
+        SessionMiddleware::class,
+        MaintenanceMiddleware::class,
+        SecurityMiddleware::class,
+        RouterMiddleware::class,
+        DebugbarMiddleware::class,
     ],
 ];

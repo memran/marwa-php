@@ -45,10 +45,12 @@ npm run dev
 
 - `app/Http/Controllers/` thin application controllers
 - `app/Http/Middleware/` starter-specific middleware, such as admin theme switching
-- `config/` starter overrides for app identity, console discovery, and theme names
+- `config/` starter overrides for app identity, middleware, theme names, and error pages
 - `routes/` HTTP route definitions
 - `resources/views/themes/default/` frontend theme layout and views
 - `resources/views/themes/admin/` admin theme layout and views
+- `resources/views/themes/default/views/maintenance.twig` default maintenance page
+- `resources/views/themes/default/views/errors/404.twig` default 404 page
 - `resources/views/components/` shared Twig partials used by the frontend theme
 - `modules/` optional feature modules
 - `tests/` app-specific PHPUnit coverage
@@ -71,7 +73,7 @@ The starter keeps configuration narrow:
 
 - `config/app.php` sets the application name, key, providers, middleware stack, and debugbar collectors
 - `config/console.php` discovers app commands from `app/Commands`
-- `config/view.php` defines the frontend and admin theme names
+- `config/view.php` defines the frontend and admin theme names plus view cache defaults
 - the rest of the runtime defaults come from Marwa Framework
 
 Common environment values:
@@ -168,6 +170,16 @@ Frontend theme view example:
 {% endblock %}
 ```
 
+Maintenance and 404 templates are kept in the default theme tree:
+
+- `resources/views/themes/default/views/maintenance.twig`
+- `resources/views/themes/default/views/errors/404.twig`
+
+The framework uses those templates when the matching `config/app.php` entries are set:
+
+- `app.maintenance.template`
+- `app.error404.template`
+
 ## Running the App
 
 - `php -S localhost:8000 -t public/` runs the HTTP app locally
@@ -211,7 +223,8 @@ Most custom work should happen in one of these places:
 2. `app/Http/Controllers/` for request handling
 3. `app/Http/Middleware/` for cross-cutting request behavior
 4. `resources/views/themes/` for theme-specific rendering
-5. `config/` for starter-specific defaults
+5. `resources/views/themes/default/views/maintenance.twig` and `resources/views/themes/default/views/errors/404.twig` for the starter error pages
+6. `config/` for starter-specific defaults
 
 If you find yourself repeating the same workaround in more than one file, that is a strong signal the framework should grow the capability instead.
 

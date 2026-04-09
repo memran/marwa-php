@@ -21,8 +21,10 @@ final class StarterThemeRoutingTest extends TestCase
         $this->makeDirectory($this->basePath);
         $this->makeDirectory($this->basePath . '/config');
         $this->makeDirectory($this->basePath . '/routes');
+        $this->makeDirectory($this->basePath . '/resources/views/errors');
         $this->makeDirectory($this->basePath . '/resources/views/components');
         $this->makeDirectory($this->basePath . '/resources/views/themes/default/views/home');
+        $this->makeDirectory($this->basePath . '/resources/views/themes/default/views/errors');
         $this->makeDirectory($this->basePath . '/resources/views/themes/admin/views/dashboard');
 
         file_put_contents(
@@ -59,6 +61,13 @@ declare(strict_types=1);
 
 return [
     'name' => env('APP_NAME', 'MarwaPHP'),
+    'maintenance' => [
+        'template' => 'maintenance.twig',
+        'message' => 'Service temporarily unavailable for maintenance',
+    ],
+    'error404' => [
+        'template' => 'errors/404.twig',
+    ],
 ];
 PHP
         );
@@ -164,11 +173,60 @@ TWIG
 {% endblock %}
 TWIG
         );
+
+        file_put_contents(
+            $this->basePath . '/resources/views/themes/default/views/maintenance.twig',
+            <<<'TWIG'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Maintenance</title>
+</head>
+<body>
+    <h1>Maintenance mode</h1>
+    <p>{{ message }}</p>
+    <p>{{ estimated_recovery }}</p>
+</body>
+</html>
+TWIG
+        );
+
+        file_put_contents(
+            $this->basePath . '/resources/views/themes/default/views/errors/404.twig',
+            <<<'TWIG'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>404 Not Found</title>
+</head>
+<body>
+    <h1>404</h1>
+    <p>The requested route {{ path }} was not found.</p>
+    <p>{{ method }}</p>
+</body>
+</html>
+TWIG
+        );
     }
 
     protected function tearDown(): void
     {
         unset($GLOBALS['marwa_app']);
+        foreach ([
+            'APP_ENV',
+            'APP_NAME',
+            'APP_KEY',
+            'FRONTEND_THEME',
+            'ADMIN_THEME',
+            'MAINTENANCE',
+            'MAINTENANCE_TIME',
+            'TIMEZONE',
+        ] as $key) {
+            unset($_ENV[$key], $_SERVER[$key]);
+            putenv($key);
+        }
         @restore_error_handler();
         @restore_exception_handler();
         $this->removeDirectory($this->basePath);
@@ -195,6 +253,39 @@ TWIG
         self::assertStringContainsString('Admin theme: admin', (string) $admin->getBody());
         self::assertStringContainsString('Frontend theme: default', (string) $frontendAgain->getBody());
         self::assertStringContainsString('Marwa Starter', (string) $health->getBody());
+    }
+
+    public function testMaintenanceTemplateIsUsed(): void
+    {
+        file_put_contents(
+            $this->basePath . '/.env',
+            "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=admin\nMAINTENANCE=1\nMAINTENANCE_TIME=120\nTIMEZONE=UTC\n"
+        );
+
+        $app = new Application($this->basePath);
+        $app->make(AppBootstrapper::class)->bootstrap();
+        $kernel = $app->make(HttpKernel::class);
+
+        $maintenance = $kernel->handle(new ServerRequest(uri: '/', method: 'GET'));
+        $notFound = $kernel->handle(new ServerRequest(uri: '/missing-page', method: 'GET'));
+
+        self::assertSame(503, $maintenance->getStatusCode());
+        self::assertStringContainsString('Maintenance mode', (string) $maintenance->getBody());
+        self::assertStringContainsString('Service temporarily unavailable for maintenance', (string) $maintenance->getBody());
+    }
+
+    public function testNotFoundTemplateIsUsed(): void
+    {
+        $app = new Application($this->basePath);
+        $app->make(AppBootstrapper::class)->bootstrap();
+        $kernel = $app->make(HttpKernel::class);
+
+        $notFound = $kernel->handle(new ServerRequest(uri: '/missing-page', method: 'GET'));
+
+        self::assertSame(404, $notFound->getStatusCode());
+        self::assertStringContainsString('The requested route /missing-page was not found.', (string) $notFound->getBody());
+        self::assertStringContainsString('/missing-page', (string) $notFound->getBody());
+        self::assertStringContainsString('GET', (string) $notFound->getBody());
     }
 
     private function makeDirectory(string $path): void
