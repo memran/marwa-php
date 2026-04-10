@@ -3,11 +3,28 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <title>{% block title %}Admin{% endblock %}</title>
+  <meta name="description" content="Executive-grade admin theme for MarwaPHP.">
+  <link rel="stylesheet" href="/themes/admin/assets/css/app.css">
 </head>
-<body class="theme theme--{{ _theme_name }}">
-  <main class="theme-shell theme-shell--admin">
-    {% block content %}{% endblock %}
-  </main>
+<body class="theme theme--admin">
+  <div class="admin-shell">
+    <aside class="admin-sidebar" aria-label="Sidebar navigation">
+      <div class="admin-sidebar__inner">
+        {% include 'partials/sidebar.twig' %}
+      </div>
+    </aside>
+
+    <div class="admin-content">
+      <header class="admin-topbar">
+        {% include 'partials/topbar.twig' %}
+      </header>
+
+      <main class="admin-main">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
 </body>
 </html>

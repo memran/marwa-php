@@ -23,10 +23,14 @@
 - `app/Http/Controllers/` contains thin app controllers.
 - `app/Http/Middleware/` contains app-specific middleware, such as theme switching.
 - `config/` contains only starter overrides; avoid restating framework defaults.
+- `config/database.php` enables SQLite by default so the Auth and Users modules are usable on a fresh starter install.
+- The Docker Compose files also include a MariaDB service for local container-based development, with the app container pointed at that database host.
+- Docker stack credentials are copied from `docker/docker.env.example` into an ignored `docker/docker.env` runtime file mounted into the app container.
 - `routes/` defines the HTTP entry points.
 - `resources/views/` contains Twig layouts, theme views, and shared partials.
 - Starter maintenance and 404 pages live under `resources/views/themes/default/views/` so the framework can resolve them through `config/app.php`.
 - `modules/` stays optional and self-contained.
+- Module migrations are bootstrapped from a single app listener, and the starter seeds an admin account from `database/seeders/AdminUserSeeder.php` when the users table is empty.
 - `tests/` contains only app-specific PHPUnit coverage.
 
 ## Testing Scope

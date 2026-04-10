@@ -1,0 +1,93 @@
+{% extends "layout.twig" %}
+
+{% block title %}{{ title }} | MarwaPHP Admin{% endblock %}
+
+{% block content %}
+  <section class="admin-page-header">
+    <div class="admin-page-header__copy">
+      <span class="admin-eyebrow">Identity management</span>
+      <h1 class="admin-page-title">{{ title }}</h1>
+      <p class="admin-page-lead">Keep the form compact and readable for long working sessions.</p>
+    </div>
+
+    <div class="admin-table-tools">
+      <a class="admin-btn admin-btn--ghost" href="/admin/users">Back to users</a>
+    </div>
+  </section>
+
+  <section class="admin-form-card">
+    {% if errors is defined and errors is not empty %}
+      <div class="admin-alert admin-alert--danger">
+        <p class="admin-alert__title">Please review the form</p>
+        <p class="admin-alert__body">One or more fields contain validation errors.</p>
+      </div>
+    {% endif %}
+
+    <form class="admin-stack" method="post" action="{{ action }}">
+      {% include "components/form-field.twig" with {
+        id: 'name',
+        label: 'Full name',
+        value: form.name|default(''),
+        placeholder: 'Jane Doe',
+        error: errors.name|default([])|first
+      } only %}
+
+      {% include "components/form-field.twig" with {
+        id: 'email',
+        label: 'Email address',
+        type: 'email',
+        autocomplete: 'email',
+        value: form.email|default(''),
+        placeholder: 'jane@company.com',
+        error: errors.email|default([])|first
+      } only %}
+
+      <div class="admin-field">
+        <label class="admin-field__label" for="role">Role</label>
+        <select class="admin-field__control" id="role" name="role">
+          {% for value, label in roles %}
+            <option value="{{ value }}" {% if form.role|default('staff') == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.role is defined %}
+          <p class="admin-field__message admin-field__message--error">{{ errors.role|first }}</p>
+        {% else %}
+          <p class="admin-field__hint">Controls the access level shown in the user table.</p>
+        {% endif %}
+      </div>
+
+      <div class="admin-field">
+        <label class="admin-field__label" for="is_active">Status</label>
+        <label class="admin-checkbox">
+          <input type="checkbox" id="is_active" name="is_active" value="1" {% if form.is_active|default(true) %}checked{% endif %}>
+          <span>Active account</span>
+        </label>
+        <p class="admin-field__hint">Inactive users cannot sign in.</p>
+      </div>
+
+      {% include "components/form-field.twig" with {
+        id: 'password',
+        label: mode == 'create' ? 'Password' : 'Password (optional)',
+        type: 'password',
+        autocomplete: 'new-password',
+        placeholder: 'Minimum 8 characters',
+        error: errors.password|default([])|first,
+        hint: mode == 'create' ? 'Required for new accounts.' : 'Leave blank to keep the current password.'
+      } only %}
+
+      {% include "components/form-field.twig" with {
+        id: 'password_confirmation',
+        name: 'password_confirmation',
+        label: 'Confirm password',
+        type: 'password',
+        autocomplete: 'new-password',
+        placeholder: 'Repeat the password'
+      } only %}
+
+      <div class="admin-table-tools">
+        <button class="admin-btn admin-btn--primary" type="submit">{{ submit_label }}</button>
+        <a class="admin-btn admin-btn--secondary" href="/admin/users">Cancel</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

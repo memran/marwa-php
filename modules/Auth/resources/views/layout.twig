@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{% block title %}Admin Access{% endblock %}</title>
+  <meta name="description" content="MarwaPHP admin authentication screens.">
+  <link rel="stylesheet" href="/themes/admin/assets/css/app.css">
+</head>
+<body class="theme theme--admin theme--auth">
+  <div class="admin-auth-shell">
+    <aside class="admin-auth-aside">
+      <div class="admin-auth-aside__copy">
+        <span class="admin-eyebrow admin-auth-aside__eyebrow">Operations console</span>
+        <h1 class="admin-auth-aside__title">Controlled access for internal teams.</h1>
+        <p class="admin-auth-aside__body">
+          Authentication and recovery follow the same restrained visual language used across the admin workspace.
+        </p>
+      </div>
+
+      <div class="admin-auth-aside__stats">
+        <div class="admin-auth-aside__stat">
+          <span class="admin-auth-aside__stat-label">Security</span>
+          <span class="admin-auth-aside__stat-value">Session</span>
+        </div>
+        <div class="admin-auth-aside__stat">
+          <span class="admin-auth-aside__stat-label">Recovery</span>
+          <span class="admin-auth-aside__stat-value">Token</span>
+        </div>
+        <div class="admin-auth-aside__stat">
+          <span class="admin-auth-aside__stat-label">Access</span>
+          <span class="admin-auth-aside__stat-value">Admin only</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="admin-auth-main">
+      <section class="admin-auth-panel">
+        {% block content %}{% endblock %}
+      </section>
+    </main>
+  </div>
+</body>
+</html>

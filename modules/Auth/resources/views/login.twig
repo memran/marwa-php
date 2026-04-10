@@ -1,0 +1,56 @@
+{% extends "@auth/layout.twig" %}
+
+{% block title %}Sign in | MarwaPHP Admin{% endblock %}
+
+{% block content %}
+  <div class="admin-auth-panel__header">
+    <span class="admin-eyebrow">Secure login</span>
+    <h2 class="admin-auth-panel__title">Sign in to continue.</h2>
+    <p class="admin-auth-panel__body">Access the admin console with a lightweight session-backed login.</p>
+  </div>
+
+  {% if notice is defined and notice %}
+    <div class="admin-alert admin-alert--success">
+      <p class="admin-alert__title">Session update</p>
+      <p class="admin-alert__body">{{ notice }}</p>
+    </div>
+  {% endif %}
+
+  {% if errors is defined and errors.email is defined %}
+    <div class="admin-alert admin-alert--danger">
+      <p class="admin-alert__title">Unable to sign in</p>
+      <p class="admin-alert__body">{{ errors.email|first }}</p>
+    </div>
+  {% endif %}
+
+  <form class="admin-auth-form" method="post" action="/admin/login">
+    {% include "components/form-field.twig" with {
+      id: 'email',
+      label: 'Email address',
+      type: 'email',
+      autocomplete: 'email',
+      placeholder: 'admin@marwa.test',
+      value: old.email|default(''),
+      error: errors.email|default([])|first
+    } only %}
+
+    {% include "components/form-field.twig" with {
+      id: 'password',
+      label: 'Password',
+      type: 'password',
+      autocomplete: 'current-password',
+      placeholder: 'Enter your password',
+      error: errors.password|default([])|first
+    } only %}
+
+    <div class="admin-auth-form__footer">
+      <label class="admin-checkbox">
+        <input type="checkbox" name="remember" value="1" {% if old.remember|default(false) %}checked{% endif %}>
+        <span>Remember me</span>
+      </label>
+      <a class="admin-link" href="/admin/forgot-password">Forgot password?</a>
+    </div>
+
+    <button class="admin-btn admin-btn--primary admin-btn--full" type="submit">Sign in</button>
+  </form>
+{% endblock %}

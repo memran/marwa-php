@@ -22,13 +22,30 @@ services:
     container_name: marwa-php-fpm
     restart: unless-stopped
     working_dir: /var/www/html
+    env_file:
+      - ./docker.env
     volumes:
       - ../:/var/www/html
-    environment:
-      APP_ENV: development
-      APP_DEBUG: "true"
+      - ./docker.env:/var/www/html/.env:ro
     expose:
       - "9000"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  mariadb:
+    image: mariadb:11.4
+    container_name: marwa-mariadb
+    restart: unless-stopped
+    env_file:
+      - ./docker.env
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'mariadb-admin ping -h 127.0.0.1 -u \"$$DB_USER\" -p\"$$DB_PASSWORD\" --silent'"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   assets:
     image: node:20-alpine
@@ -38,3 +55,6 @@ services:
     command: sh -c "npm ci --no-audit --no-fund && npm run dev"
     profiles:
       - assets
+
+volumes:
+  mariadb-data:

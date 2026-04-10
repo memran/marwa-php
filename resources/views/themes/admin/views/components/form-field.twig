@@ -1,0 +1,38 @@
+{% set field_state = state|default('default') %}
+
+<div class="admin-field admin-field--{{ field_state }}">
+  <label class="admin-field__label" for="{{ id }}">{{ label }}</label>
+  {% if hint is defined and hint %}
+    <p class="admin-field__hint">{{ hint }}</p>
+  {% endif %}
+
+  {% if type|default('text') == 'textarea' %}
+    <textarea
+      class="admin-field__control"
+      id="{{ id }}"
+      name="{{ name|default(id) }}"
+      rows="{{ rows|default(4) }}"
+      {% if placeholder is defined and placeholder %}placeholder="{{ placeholder }}"{% endif %}
+      {% if disabled|default(false) %}disabled{% endif %}
+    >{{ value|default('') }}</textarea>
+  {% else %}
+    <input
+      class="admin-field__control"
+      id="{{ id }}"
+      name="{{ name|default(id) }}"
+      type="{{ type|default('text') }}"
+      value="{{ value|default('') }}"
+      {% if placeholder is defined and placeholder %}placeholder="{{ placeholder }}"{% endif %}
+      {% if autocomplete is defined and autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
+      {% if disabled|default(false) %}disabled{% endif %}
+    >
+  {% endif %}
+
+  {% if error is defined and error %}
+    <p class="admin-field__message admin-field__message--error">{{ error }}</p>
+  {% endif %}
+
+  {% if success is defined and success %}
+    <p class="admin-field__message admin-field__message--success">{{ success }}</p>
+  {% endif %}
+</div>

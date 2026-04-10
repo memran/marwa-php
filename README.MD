@@ -26,6 +26,27 @@ The post-create script generates `.env` from `.env.example` and builds assets wh
 - Node.js 20+ for Tailwind development and production builds
 - Optional: Docker and Docker Compose
 
+## Docker Compose
+
+The repository includes two Docker Compose variants:
+
+- `docker/docker-compose.yml` for PHP-FPM + Nginx + MariaDB
+- `docker/docker-compose.fpm.yml` for PHP-FPM + Caddy + MariaDB
+
+Both compose files boot a MariaDB service that creates the `marwa` database and `marwa` user automatically on first start. The app container is prewired for the Docker host name `mariadb` and uses `docker/docker.env` as its container-local `.env`.
+
+Create that file from [docker/docker.env.example](/Users/memran/projects/php-projects/marwa-php/docker/docker.env.example) before starting the stack. The example file contains placeholder credentials only.
+
+```bash
+cp docker/docker.env.example docker/docker.env
+```
+
+Run the default stack with:
+
+```bash
+docker compose -f docker/docker-compose.yml up --build
+```
+
 ## Quick Start
 
 ```bash
@@ -48,11 +69,12 @@ npm run dev
 - `config/` starter overrides for app identity, middleware, theme names, and error pages
 - `routes/` HTTP route definitions
 - `resources/views/themes/default/` frontend theme layout and views
-- `resources/views/themes/admin/` admin theme layout and views
+- `resources/views/themes/admin/` admin theme layout and views with an automatic light/dark palette
 - `resources/views/themes/default/views/maintenance.twig` default maintenance page
 - `resources/views/themes/default/views/errors/404.twig` default 404 page
 - `resources/views/components/` shared Twig partials used by the frontend theme
-- `modules/` optional feature modules
+- `modules/` optional feature modules, including thin MVP shells for Auth, Users, Activity, Notifications, Settings, and DashboardStatus
+- `database/seeders/` starter seeders, including the first admin account used by the auth module
 - `tests/` app-specific PHPUnit coverage
 
 ## How This Starter Uses Marwa
@@ -65,6 +87,7 @@ This starter only adds:
 - thin controllers that call the framework controller `view()` helper
 - one app middleware that selects the admin theme for the admin route group
 - theme views and shared Twig partials
+- bundled module shells that demonstrate Marwa's module discovery and route loading
 - starter-focused tests that exercise real application behavior
 
 ## Configuration
@@ -72,6 +95,8 @@ This starter only adds:
 The starter keeps configuration narrow:
 
 - `config/app.php` sets the application name, key, providers, middleware stack, and debugbar collectors
+- `config/database.php` enables SQLite by default so the Auth and Users modules work on a fresh starter install
+- `config/event.php` wires the module migration bootstrap listener
 - `config/console.php` discovers app commands from `app/Commands`
 - `config/view.php` defines the frontend and admin theme names plus view cache defaults
 - the rest of the runtime defaults come from Marwa Framework
@@ -81,6 +106,11 @@ Common environment values:
 - `APP_NAME`
 - `APP_KEY`
 - `APP_DEBUG`
+- `DB_ENABLED`
+- `DB_CONNECTION`
+- `DB_DATABASE`
+- `ADMIN_BOOTSTRAP_EMAIL`
+- `ADMIN_BOOTSTRAP_PASSWORD`
 - `FRONTEND_THEME`
 - `ADMIN_THEME`
 
@@ -147,9 +177,12 @@ final class AdminThemeMiddleware implements MiddlewareInterface
 {
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+        /** @var View $view */
         $view = app(View::class);
         $previousTheme = $view->theme();
-        $view->theme(trim((string) config('view.adminTheme', 'admin')) ?: 'admin');
+        $adminTheme = trim((string) config('view.adminTheme', 'admin')) ?: 'admin';
+
+        $view->theme($adminTheme);
 
         try {
             return $handler->handle($request);
@@ -165,8 +198,10 @@ Frontend theme view example:
 ```twig
 {% extends "layout.twig" %}
 
+{% block title %}Home{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
 {% block content %}
-<section>Frontend theme: {{ _theme_name }}</section>
+<section>Starter content for the frontend theme.</section>
 {% endblock %}
 ```
 
@@ -199,6 +234,23 @@ Good coverage examples:
 - app middleware behavior
 - app-specific config integration
 - starter module wiring
+- module-backed auth and user flows
+
+## Admin Modules
+
+The starter now ships with DB-backed `Auth` and `Users` modules.
+
+- `Auth` owns login, logout, forgot-password, and reset-password flows.
+- `Users` owns the admin user table and CRUD screens.
+- Module migrations run automatically when the app boots modules.
+- The starter seeds a default admin account on first boot when the users table is empty.
+
+Default bootstrap credentials:
+
+- email: `admin@marwa.test`
+- password: `ExampleAdminPassword123!`
+
+Override them with `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_BOOTSTRAP_PASSWORD` in `.env`.
 
 Do not add tests for framework internals that already belong to `memran/marwa-framework`.
 
@@ -225,6 +277,8 @@ Most custom work should happen in one of these places:
 4. `resources/views/themes/` for theme-specific rendering
 5. `resources/views/themes/default/views/maintenance.twig` and `resources/views/themes/default/views/errors/404.twig` for the starter error pages
 6. `config/` for starter-specific defaults
+7. `modules/` for bundled feature-module shells and examples
+8. `public/themes/admin/assets/css/app.css` for the admin theme token system and light/dark styling
 
 If you find yourself repeating the same workaround in more than one file, that is a strong signal the framework should grow the capability instead.
 

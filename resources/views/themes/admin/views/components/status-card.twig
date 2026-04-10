@@ -1,0 +1,11 @@
+<article class="admin-kpi">
+  <div class="admin-kpi__top">
+    <p class="admin-kpi__label">{{ label }}</p>
+    <span class="admin-trend admin-trend--{{ tone|default('neutral') }}">{{ status }}</span>
+  </div>
+
+  <p class="admin-kpi__value">{{ value }}</p>
+  <div class="admin-kpi__meta">
+    <span>{{ meta }}</span>
+  </div>
+</article>
