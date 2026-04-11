@@ -11,7 +11,7 @@ This directory contains the app-specific overrides that sit on top of Marwa Fram
 - `error.php` - error handler defaults, logger/debug reporter toggles, and renderer settings
 - `event.php` - event listeners and subscribers
 - `http.php` - HTTP client defaults
-- `logger.php` - log storage, filters, channel defaults, and log level/prefix defaults
+- `logger.php` - framework logger defaults, log storage, filters, and channel/level/prefix settings
 - `mail.php` - mail transport and sender defaults
 - `notification.php` - notification channels and defaults
 - `queue.php` - queue path and retry settings

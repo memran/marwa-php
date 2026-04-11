@@ -3,19 +3,12 @@
 declare(strict_types=1);
 
 return [
-    'enable' => env('LOG_ENABLE', env('APP_ENV', 'production') !== 'production'),
-    'filter' => [
-        'password',
-        'token',
-        'authorization',
-        'cookie',
-        'secret',
-    ],
+    'enable' => (bool) env('APP_DEBUG', false),
+    'filter' => [],
     'storage' => [
         'driver' => env('LOG_CHANNEL', 'file'),
         'path' => storage_path('logs'),
-        'prefix' => env('LOG_PREFIX', 'marwa-php'),
-        'max_bytes' => '10MB',
+        'prefix' => env('LOG_PREFIX', 'marwa'),
         'level' => env('LOG_LEVEL', 'debug'),
     ],
 ];

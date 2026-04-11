@@ -72,20 +72,11 @@ final class AuthController extends Controller
         ]);
 
         $email = trim((string) ($validated['email'] ?? ''));
-        $link = $this->auth->createPasswordResetLink($email);
-
-        if ($link === null) {
-            $this->withErrors([
-                'email' => 'No active admin account was found for that email address.',
-            ])->withInput([
-                'email' => $email,
-            ]);
-
-            return $this->redirect('/admin/forgot-password');
-        }
-
-        $this->flash('auth.notice', 'Recovery link generated.');
-        $this->flash('auth.recovery_link', $link['url']);
+        $this->withErrors([
+            'email' => 'Password reset is unavailable in static auth mode.',
+        ])->withInput([
+            'email' => $email,
+        ]);
 
         return $this->redirect('/admin/forgot-password');
     }
@@ -117,7 +108,7 @@ final class AuthController extends Controller
 
         if (!$this->auth->resetPassword($token, $password)) {
             $this->withErrors([
-                'token' => 'The reset link is invalid or expired.',
+                'token' => 'Password reset is unavailable in static auth mode.',
             ])->withInput([
                 'token' => $token,
             ]);
@@ -133,6 +124,7 @@ final class AuthController extends Controller
     public function logout(): ResponseInterface
     {
         $this->auth->logout();
+        $this->flash('auth.notice', 'Signed out successfully.');
 
         return $this->redirect('/admin/login');
     }

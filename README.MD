@@ -53,6 +53,15 @@ The app runtime reads the standard `DB_*` values:
 
 The MariaDB container still uses `MARIADB_*` values for its first-boot initialization.
 
+Admin login uses the bootstrap credentials from `.env`:
+
+- `ADMIN_BOOTSTRAP_EMAIL`
+- `ADMIN_BOOTSTRAP_PASSWORD`
+
+That login is session-backed and does not query the users table.
+The starter admin seeder now lives in `modules/Users/database/seeders/AdminUserSeeder.php` and is bootstrapped with the Users module when the table is empty.
+To run module-local seeders manually, use `php marwa module:seed`.
+
 Create that file from [docker/docker.env.example](docker/docker.env.example) before starting the stack. The example file contains placeholder credentials only.
 
 ```bash
@@ -93,4 +102,5 @@ npm run dev
 - `composer analyse` runs PHPStan
 - `composer lint` checks PHP syntax
 - `composer ci` runs the local validation chain
+- `php marwa db:check` checks the active database connection and prints the result
 - `npm run build` compiles production CSS into `public/assets/css/app.css`

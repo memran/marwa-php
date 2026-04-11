@@ -59,15 +59,15 @@ final class RunModuleMigrations extends AbstractEventListener
             (new MigrationRepository($manager->getPdo(), $migrationPath))->migrate();
         }
 
-        $this->seedStarterAdmin();
+        $this->seedStarterAdmin($registry);
         app()->set('module.migrations.bootstrapped', true);
     }
 
-    private function seedStarterAdmin(): void
+    private function seedStarterAdmin(ModuleRegistryInterface $registry): void
     {
-        $seederFile = base_path('database/seeders/AdminUserSeeder.php');
+        $seederFile = $this->resolveStarterAdminSeederFile($registry);
 
-        if (!is_file($seederFile)) {
+        if ($seederFile === null) {
             return;
         }
 
@@ -80,5 +80,23 @@ final class RunModuleMigrations extends AbstractEventListener
         /** @var AdminUserSeeder $seeder */
         $seeder = new AdminUserSeeder();
         $seeder->run();
+    }
+
+    private function resolveStarterAdminSeederFile(ModuleRegistryInterface $registry): ?string
+    {
+        $usersModule = $registry->get('users');
+        if ($usersModule !== null) {
+            $moduleSeederPath = $usersModule->path('database/seeders');
+            if (is_string($moduleSeederPath)) {
+                $moduleSeederFile = $moduleSeederPath . DIRECTORY_SEPARATOR . 'AdminUserSeeder.php';
+                if (is_file($moduleSeederFile)) {
+                    return $moduleSeederFile;
+                }
+            }
+        }
+
+        $legacySeederFile = base_path('database/seeders/AdminUserSeeder.php');
+
+        return is_file($legacySeederFile) ? $legacySeederFile : null;
     }
 }

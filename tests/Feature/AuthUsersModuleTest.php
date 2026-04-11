@@ -8,6 +8,7 @@ use App\Modules\Users\Models\User;
 use App\Modules\Auth\Support\AuthManager;
 use Marwa\Framework\Application;
 use Marwa\Framework\Bootstrappers\AppBootstrapper;
+use Marwa\Framework\Bootstrappers\ModuleBootstrapper;
 use Marwa\Framework\HttpKernel;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -263,8 +264,12 @@ TWIG
         $app->make(AppBootstrapper::class)->bootstrap();
         (new AuthManager())->logout();
         $kernel = $app->make(HttpKernel::class);
+        /** @var ModuleBootstrapper $moduleBootstrapper */
+        $moduleBootstrapper = $app->make(ModuleBootstrapper::class);
 
         self::assertGreaterThan(0, User::query()->count());
+        self::assertContains($this->basePath . '/modules/Users/database/migrations', $moduleBootstrapper->migrationPaths());
+        self::assertContains($this->basePath . '/modules/Users/database/seeders', $moduleBootstrapper->seederPaths());
 
         $guestDashboard = $kernel->handle($this->request('GET', '/admin'));
         self::assertSame(302, $guestDashboard->getStatusCode());

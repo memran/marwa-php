@@ -36,7 +36,6 @@ return [
         CacheCollector::class,
         KpiCollector::class,
     ],
-    'key' => env('APP_KEY', generate_key()),
     'providers' => [
         Marwa\Framework\Providers\KernalServiceProvider::class,
     ],

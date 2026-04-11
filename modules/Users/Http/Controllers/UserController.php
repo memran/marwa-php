@@ -22,7 +22,7 @@ final class UserController extends Controller
 
         $query = trim((string) $this->request('q', ''));
         $page = max(1, (int) $this->request('page', 1));
-        $builder = User::newQuery()->orderBy('created_at', 'desc');
+        $builder = User::newQuery()->getBaseBuilder()->orderBy('created_at', 'desc');
 
         if ($query !== '') {
             $needle = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $query) . '%';
@@ -30,10 +30,13 @@ final class UserController extends Controller
         }
 
         $total = (clone $builder)->count();
-        $rows = $builder
+        $rows = array_map(
+            static fn (array|object $row): User => User::newInstance(is_array($row) ? $row : (array) $row, true),
+            $builder
             ->offset(max(0, ($page - 1) * 10))
             ->limit(10)
-            ->get();
+            ->get()
+        );
 
         $pagination = [
             'data' => $rows,
@@ -148,6 +151,17 @@ final class UserController extends Controller
         }
 
         $currentUser = $this->auth->user();
+
+        if ($currentUser instanceof User) {
+            $currentEmail = strtolower(trim((string) $currentUser->getAttribute('email')));
+            $targetEmail = strtolower(trim((string) $user->getAttribute('email')));
+
+            if ($currentEmail !== '' && $currentEmail === $targetEmail) {
+                $this->flash('users.notice', 'You cannot delete the active session user.');
+
+                return $this->redirect('/admin/users');
+            }
+        }
 
         if ($currentUser instanceof User && $currentUser->getKey() === $user->getKey()) {
             $this->flash('users.notice', 'You cannot delete the active session user.');
