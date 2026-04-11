@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use Marwa\Framework\Application;
 use PHPUnit\Framework\TestCase;
 
 final class StarterConfigTest extends TestCase
@@ -17,5 +18,126 @@ final class StarterConfigTest extends TestCase
         self::assertIsBool($config['debugbar']);
         self::assertSame('maintenance.twig', $config['maintenance']['template']);
         self::assertSame('errors/404.twig', $config['error404']['template']);
+    }
+
+    public function testDatabaseConfigUsesStarterDbEnvironmentVariablesAndFrameworkSqliteDefaults(): void
+    {
+        $basePath = sys_get_temp_dir() . '/marwa-config-' . bin2hex(random_bytes(6));
+        mkdir($basePath, 0777, true);
+        $app = new Application($basePath);
+
+        foreach ([
+            'APP_DEBUG',
+            'DB_CONNECTION',
+            'DB_NAME',
+            'DB_DATABASE',
+            'DB_HOST',
+            'DB_PORT',
+            'DB_USERNAME',
+            'DB_USER',
+            'DB_PASSWORD',
+            'DB_CHARSET',
+        ] as $key) {
+            unset($_ENV[$key], $_SERVER[$key]);
+            putenv($key);
+        }
+
+        putenv('APP_DEBUG=0');
+        putenv('DB_CONNECTION=mysql');
+        putenv('DB_HOST=mariadb');
+        putenv('DB_PORT=3306');
+        putenv('DB_NAME=marwa');
+        putenv('DB_USER=marwa');
+        putenv('DB_PASSWORD=secret');
+        putenv('DB_CHARSET=utf8mb4');
+        $_ENV['APP_DEBUG'] = '0';
+        $_ENV['DB_CONNECTION'] = 'mysql';
+        $_ENV['DB_HOST'] = 'mariadb';
+        $_ENV['DB_PORT'] = '3306';
+        $_ENV['DB_NAME'] = 'marwa';
+        $_ENV['DB_USER'] = 'marwa';
+        $_ENV['DB_PASSWORD'] = 'secret';
+        $_ENV['DB_CHARSET'] = 'utf8mb4';
+        $_SERVER['APP_DEBUG'] = '0';
+        $_SERVER['DB_CONNECTION'] = 'mysql';
+        $_SERVER['DB_HOST'] = 'mariadb';
+        $_SERVER['DB_PORT'] = '3306';
+        $_SERVER['DB_NAME'] = 'marwa';
+        $_SERVER['DB_USER'] = 'marwa';
+        $_SERVER['DB_PASSWORD'] = 'secret';
+        $_SERVER['DB_CHARSET'] = 'utf8mb4';
+
+        try {
+            $config = require __DIR__ . '/../../config/database.php';
+
+            self::assertSame('mysql', $config['default']);
+            self::assertFalse($config['debug']);
+            self::assertFalse($config['useDebugPanel']);
+            self::assertSame($app->basePath('database/database.sqlite'), $config['connections']['sqlite']['database']);
+            self::assertFalse($config['connections']['sqlite']['debug']);
+            self::assertSame('mariadb', $config['connections']['mysql']['host']);
+            self::assertSame(3306, $config['connections']['mysql']['port']);
+            self::assertSame('marwa', $config['connections']['mysql']['database']);
+            self::assertSame('marwa', $config['connections']['mysql']['username']);
+            self::assertSame('secret', $config['connections']['mysql']['password']);
+            self::assertSame('utf8mb4', $config['connections']['mysql']['charset']);
+            self::assertFalse($config['connections']['mysql']['debug']);
+        } finally {
+            unset($GLOBALS['marwa_app']);
+            foreach ([
+                'APP_DEBUG',
+                'DB_CONNECTION',
+                'DB_HOST',
+                'DB_PORT',
+                'DB_NAME',
+                'DB_USER',
+                'DB_PASSWORD',
+                'DB_CHARSET',
+            ] as $key) {
+                unset($_ENV[$key], $_SERVER[$key]);
+                putenv($key);
+            }
+            @rmdir($basePath);
+        }
+    }
+
+    public function testViewConfigMatchesFrameworkDefaultsAndStarterAdminTheme(): void
+    {
+        $basePath = sys_get_temp_dir() . '/marwa-config-' . bin2hex(random_bytes(6));
+        mkdir($basePath, 0777, true);
+        $app = new Application($basePath);
+        $GLOBALS['marwa_app'] = $app;
+
+        try {
+            $config = require __DIR__ . '/../../config/view.php';
+
+            self::assertIsArray($config);
+            self::assertSame($app->basePath('resources/views'), $config['viewsPath']);
+            self::assertSame($app->basePath('storage/cache/views'), $config['cachePath']);
+            self::assertIsBool($config['debug']);
+            self::assertSame('.twig', $config['extension']);
+            self::assertIsArray($config['cache']);
+            self::assertArrayHasKey('enabled', $config['cache']);
+            self::assertIsBool($config['cache']['enabled']);
+            self::assertSame($app->basePath('resources/views/themes'), $config['themePath']);
+            self::assertSame('default', $config['activeTheme']);
+            self::assertSame('default', $config['fallbackTheme']);
+            self::assertSame('admin', $config['adminTheme']);
+            self::assertSame([
+                \Marwa\View\Extension\DateExtension::class,
+                \Marwa\View\Extension\HtmlExtension::class,
+                \Marwa\View\Extension\ImageExtension::class,
+                \Marwa\View\Extension\JsonExtension::class,
+                \Marwa\View\Extension\ListExtension::class,
+                \Marwa\View\Extension\MoneyExtension::class,
+                \Marwa\View\Extension\NumberExtension::class,
+                \Marwa\View\Extension\StatusExtension::class,
+                \Marwa\View\Extension\StringPresentationExtension::class,
+                \Marwa\View\Extension\TextExtension::class,
+            ], $config['extensions']);
+        } finally {
+            unset($GLOBALS['marwa_app']);
+            @rmdir($basePath);
+        }
     }
 }

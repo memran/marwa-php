@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use Laminas\Diactoros\ServerRequest;
 use App\Modules\Auth\Support\AuthManager;
+use Laminas\Diactoros\ServerRequest;
 use Marwa\Framework\Application;
 use Marwa\Framework\Bootstrappers\AppBootstrapper;
+use Marwa\Framework\Bootstrappers\ModuleBootstrapper;
 use Marwa\Framework\HttpKernel;
+use Marwa\Framework\Supports\Config;
 use Marwa\Module\ModuleRepository;
 use PHPUnit\Framework\TestCase;
 
@@ -33,18 +35,18 @@ final class StarterThemeRoutingTest extends TestCase
 
         file_put_contents(
             $this->basePath . '/.env',
-            "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=admin\nTIMEZONE=UTC\nAPP_CONFIG_CACHE={$this->basePath}/bootstrap/cache/config.php\nAPP_ROUTE_CACHE={$this->basePath}/bootstrap/cache/routes.php\nAPP_MODULE_CACHE={$this->basePath}/bootstrap/cache/modules.php\n"
+            "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=admin\nTIMEZONE=UTC\nAPP_CONFIG_CACHE={$this->basePath}/bootstrap/cache/config.php\nAPP_ROUTE_CACHE={$this->basePath}/bootstrap/cache/routes.php\nAPP_MODULE_CACHE={$this->basePath}/storage/cache/modules.php\n"
         );
 
         putenv('APP_CONFIG_CACHE=' . $this->basePath . '/bootstrap/cache/config.php');
         putenv('APP_ROUTE_CACHE=' . $this->basePath . '/bootstrap/cache/routes.php');
-        putenv('APP_MODULE_CACHE=' . $this->basePath . '/bootstrap/cache/modules.php');
+        putenv('APP_MODULE_CACHE=' . $this->basePath . '/storage/cache/modules.php');
         $_ENV['APP_CONFIG_CACHE'] = $this->basePath . '/bootstrap/cache/config.php';
         $_ENV['APP_ROUTE_CACHE'] = $this->basePath . '/bootstrap/cache/routes.php';
-        $_ENV['APP_MODULE_CACHE'] = $this->basePath . '/bootstrap/cache/modules.php';
+        $_ENV['APP_MODULE_CACHE'] = $this->basePath . '/storage/cache/modules.php';
         $_SERVER['APP_CONFIG_CACHE'] = $this->basePath . '/bootstrap/cache/config.php';
         $_SERVER['APP_ROUTE_CACHE'] = $this->basePath . '/bootstrap/cache/routes.php';
-        $_SERVER['APP_MODULE_CACHE'] = $this->basePath . '/bootstrap/cache/modules.php';
+        $_SERVER['APP_MODULE_CACHE'] = $this->basePath . '/storage/cache/modules.php';
 
         file_put_contents(
             $this->basePath . '/routes/web.php',
@@ -238,6 +240,26 @@ TWIG
         self::assertStringContainsString('Generate a short-lived reset link for the matching admin account.', (string) $forgot->getBody());
         self::assertStringContainsString('Frontend theme: default', (string) $frontendAgain->getBody());
         self::assertStringContainsString('Marwa Starter', (string) $health->getBody());
+    }
+
+    public function testModuleRoutesAreLoadedOnlyOncePerAppInstance(): void
+    {
+        $app = new Application($this->basePath);
+        $app->make(AppBootstrapper::class)->bootstrap();
+
+        $bootstrapper = new ModuleBootstrapper(
+            $app,
+            $app->container(),
+            $app->make(Config::class)
+        );
+
+        $bootstrapper->bootstrap();
+
+        $kernel = $app->make(HttpKernel::class);
+        $activity = $kernel->handle(new ServerRequest(uri: '/activity', method: 'GET'));
+
+        self::assertSame(200, $activity->getStatusCode());
+        self::assertStringContainsString('Activity Module', (string) $activity->getBody());
     }
 
     public function testMvpModulesAreDiscoveredAndRouted(): void

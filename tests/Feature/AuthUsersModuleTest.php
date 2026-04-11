@@ -41,18 +41,18 @@ final class AuthUsersModuleTest extends TestCase
 
         file_put_contents(
             $this->basePath . '/.env',
-            "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=admin\nTIMEZONE=UTC\nDB_ENABLED=1\nDB_CONNECTION=sqlite\nDB_DATABASE={$this->basePath}/database/database.sqlite\nAPP_CONFIG_CACHE={$this->basePath}/bootstrap/cache/config.php\nAPP_ROUTE_CACHE={$this->basePath}/bootstrap/cache/routes.php\nAPP_MODULE_CACHE={$this->basePath}/bootstrap/cache/modules.php\nADMIN_BOOTSTRAP_EMAIL=admin@marwa.test\nADMIN_BOOTSTRAP_PASSWORD=ExampleAdminPassword123!\n"
+            "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=admin\nTIMEZONE=UTC\nDB_ENABLED=1\nDB_CONNECTION=sqlite\nDB_DATABASE={$this->basePath}/database/database.sqlite\nAPP_CONFIG_CACHE={$this->basePath}/bootstrap/cache/config.php\nAPP_ROUTE_CACHE={$this->basePath}/bootstrap/cache/routes.php\nAPP_MODULE_CACHE={$this->basePath}/storage/cache/modules.php\nADMIN_BOOTSTRAP_EMAIL=admin@marwa.test\nADMIN_BOOTSTRAP_PASSWORD=ExampleAdminPassword123!\n"
         );
 
         putenv('APP_CONFIG_CACHE=' . $this->basePath . '/bootstrap/cache/config.php');
         putenv('APP_ROUTE_CACHE=' . $this->basePath . '/bootstrap/cache/routes.php');
-        putenv('APP_MODULE_CACHE=' . $this->basePath . '/bootstrap/cache/modules.php');
+        putenv('APP_MODULE_CACHE=' . $this->basePath . '/storage/cache/modules.php');
         $_ENV['APP_CONFIG_CACHE'] = $this->basePath . '/bootstrap/cache/config.php';
         $_ENV['APP_ROUTE_CACHE'] = $this->basePath . '/bootstrap/cache/routes.php';
-        $_ENV['APP_MODULE_CACHE'] = $this->basePath . '/bootstrap/cache/modules.php';
+        $_ENV['APP_MODULE_CACHE'] = $this->basePath . '/storage/cache/modules.php';
         $_SERVER['APP_CONFIG_CACHE'] = $this->basePath . '/bootstrap/cache/config.php';
         $_SERVER['APP_ROUTE_CACHE'] = $this->basePath . '/bootstrap/cache/routes.php';
-        $_SERVER['APP_MODULE_CACHE'] = $this->basePath . '/bootstrap/cache/modules.php';
+        $_SERVER['APP_MODULE_CACHE'] = $this->basePath . '/storage/cache/modules.php';
 
         file_put_contents(
             $this->basePath . '/routes/web.php',

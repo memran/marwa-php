@@ -1,5 +1,12 @@
 # MarwaPHP Starter
 
+[![Composer](https://img.shields.io/packagist/v/memran/marwa-php?label=composer)](https://packagist.org/packages/memran/marwa-php)
+[![Downloads](https://img.shields.io/packagist/dt/memran/marwa-php?label=downloads)](https://packagist.org/packages/memran/marwa-php)
+[![PHP](https://img.shields.io/packagist/dependency-v/memran/marwa-php/php?label=php)](https://packagist.org/packages/memran/marwa-php)
+[![PHPUnit](https://img.shields.io/github/actions/workflow/status/memran/marwa-php/ci.yml?branch=main&label=phpunit)](https://github.com/memran/marwa-php/actions/workflows/ci.yml)
+[![PHPStan](https://img.shields.io/github/actions/workflow/status/memran/marwa-php/ci.yml?branch=main&label=phpstan)](https://github.com/memran/marwa-php/actions/workflows/ci.yml)
+[![GitHub Pages](https://img.shields.io/github/actions/workflow/status/memran/marwa-php/pages.yml?branch=main&label=pages)](https://github.com/memran/marwa-php/actions/workflows/pages.yml)
+
 MarwaPHP Starter is a `composer create-project` application built on top of `memran/marwa-framework`.
 It is a thin, production-ready starting point for building real Marwa apps without inheriting framework internals into the app layer.
 
@@ -35,6 +42,17 @@ The repository includes two Docker Compose variants:
 
 Both compose files boot a MariaDB service that creates the `marwa` database and `marwa` user automatically on first start. The app container is prewired for the Docker host name `mariadb` and uses `docker/docker.env` as its container-local `.env`.
 
+The app runtime reads the standard `DB_*` values:
+
+- `DB_CONNECTION=mysql`
+- `DB_HOST=mariadb`
+- `DB_PORT=3306`
+- `DB_NAME=marwa`
+- `DB_USER=marwa`
+- `DB_PASSWORD=super-secret`
+
+The MariaDB container still uses `MARIADB_*` values for its first-boot initialization.
+
 Create that file from [docker/docker.env.example](docker/docker.env.example) before starting the stack. The example file contains placeholder credentials only.
 
 ```bash
@@ -45,6 +63,12 @@ Run the default stack with:
 
 ```bash
 docker compose -f docker/docker-compose.yml up --build
+```
+
+If you change the MariaDB credentials after the first boot, reset the database volume so the container can initialize with the new values:
+
+```bash
+docker compose -f docker/docker-compose.yml down -v
 ```
 
 ## Quick Start
@@ -61,21 +85,6 @@ For local frontend assets:
 npm install
 npm run dev
 ```
-
-## Documentation
-
-Use the docs tree for the full starter guide:
-
-- [docs/index.md](docs/index.md) for the table of contents
-- [docs/getting-started.md](docs/getting-started.md) for install and first run
-- [docs/project-structure.md](docs/project-structure.md) for where app code belongs
-- [docs/architecture.md](docs/architecture.md) for the app/framework boundary
-- [docs/configuration.md](docs/configuration.md) for starter config and env values
-- [docs/routing-controllers-views.md](docs/routing-controllers-views.md) for routes and theme rendering
-- [docs/modules.md](docs/modules.md) for the bundled Auth and Users modules
-- [docs/testing.md](docs/testing.md) for test scope and commands
-- [docs/deployment.md](docs/deployment.md) for runtime and release notes
-- [docs/contributing.md](docs/contributing.md) for contribution rules
 
 ## Running the App
 
