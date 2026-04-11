@@ -31,6 +31,7 @@ final class AuthUsersModuleTest extends TestCase
         $this->makeDirectory($this->basePath . '/resources/views/themes/default/views/errors');
         $this->makeDirectory($this->basePath . '/resources/views/themes/admin');
         $this->makeDirectory($this->basePath . '/modules');
+        $this->makeDirectory($this->basePath . '/bootstrap/cache');
 
         $this->copyDirectory(__DIR__ . '/../../config', $this->basePath . '/config');
         $this->copyDirectory(__DIR__ . '/../../database', $this->basePath . '/database');
@@ -40,8 +41,18 @@ final class AuthUsersModuleTest extends TestCase
 
         file_put_contents(
             $this->basePath . '/.env',
-            "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=admin\nTIMEZONE=UTC\nDB_ENABLED=1\nDB_CONNECTION=sqlite\nDB_DATABASE={$this->basePath}/database/database.sqlite\nADMIN_BOOTSTRAP_EMAIL=admin@marwa.test\nADMIN_BOOTSTRAP_PASSWORD=ExampleAdminPassword123!\n"
+            "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=admin\nTIMEZONE=UTC\nDB_ENABLED=1\nDB_CONNECTION=sqlite\nDB_DATABASE={$this->basePath}/database/database.sqlite\nAPP_CONFIG_CACHE={$this->basePath}/bootstrap/cache/config.php\nAPP_ROUTE_CACHE={$this->basePath}/bootstrap/cache/routes.php\nAPP_MODULE_CACHE={$this->basePath}/bootstrap/cache/modules.php\nADMIN_BOOTSTRAP_EMAIL=admin@marwa.test\nADMIN_BOOTSTRAP_PASSWORD=ExampleAdminPassword123!\n"
         );
+
+        putenv('APP_CONFIG_CACHE=' . $this->basePath . '/bootstrap/cache/config.php');
+        putenv('APP_ROUTE_CACHE=' . $this->basePath . '/bootstrap/cache/routes.php');
+        putenv('APP_MODULE_CACHE=' . $this->basePath . '/bootstrap/cache/modules.php');
+        $_ENV['APP_CONFIG_CACHE'] = $this->basePath . '/bootstrap/cache/config.php';
+        $_ENV['APP_ROUTE_CACHE'] = $this->basePath . '/bootstrap/cache/routes.php';
+        $_ENV['APP_MODULE_CACHE'] = $this->basePath . '/bootstrap/cache/modules.php';
+        $_SERVER['APP_CONFIG_CACHE'] = $this->basePath . '/bootstrap/cache/config.php';
+        $_SERVER['APP_ROUTE_CACHE'] = $this->basePath . '/bootstrap/cache/routes.php';
+        $_SERVER['APP_MODULE_CACHE'] = $this->basePath . '/bootstrap/cache/modules.php';
 
         file_put_contents(
             $this->basePath . '/routes/web.php',
@@ -52,11 +63,9 @@ declare(strict_types=1);
 
 use App\Http\Controllers\HomeController;
 use App\Http\Middleware\AdminThemeMiddleware;
-use App\Modules\Auth\Http\Controllers\AuthController;
 use App\Modules\Auth\Http\Middleware\RequireAdminAuthentication;
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\DashboardStatus\DashboardStatusCards;
-use App\Modules\Users\Http\Controllers\UserController;
 use Marwa\Framework\Facades\Router;
 
 Router::get('/', [HomeController::class, 'index'])->name('home')->register();
@@ -67,25 +76,6 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
             'status_cards' => app(DashboardStatusCards::class)->cards(),
         ]);
     })->name('admin.dashboard')->register();
-});
-
-Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class]], static function ($routes): void {
-    $routes->get('/login', [AuthController::class, 'login'])->name('admin.login')->register();
-    $routes->post('/login', [AuthController::class, 'authenticate'])->name('admin.login.submit')->register();
-    $routes->get('/forgot-password', [AuthController::class, 'forgotPassword'])->name('admin.forgot-password')->register();
-    $routes->post('/forgot-password', [AuthController::class, 'sendForgotPasswordLink'])->name('admin.forgot-password.submit')->register();
-    $routes->get('/reset-password/{token}', [AuthController::class, 'resetPassword'])->name('admin.reset-password')->register();
-    $routes->post('/reset-password/{token}', [AuthController::class, 'updatePassword'])->name('admin.reset-password.submit')->register();
-    $routes->get('/logout', [AuthController::class, 'logout'])->name('admin.logout')->register();
-});
-
-Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class]], static function ($routes): void {
-    $routes->get('/users', [UserController::class, 'index'])->name('admin.users.index')->register();
-    $routes->get('/users/create', [UserController::class, 'create'])->name('admin.users.create')->register();
-    $routes->post('/users', [UserController::class, 'store'])->name('admin.users.store')->register();
-    $routes->get('/users/{id}/edit', [UserController::class, 'edit'])->name('admin.users.edit')->register();
-    $routes->post('/users/{id}', [UserController::class, 'update'])->name('admin.users.update')->register();
-    $routes->post('/users/{id}/delete', [UserController::class, 'destroy'])->name('admin.users.destroy')->register();
 });
 PHP
         );
@@ -250,6 +240,9 @@ TWIG
             'DB_ENABLED',
             'DB_CONNECTION',
             'DB_DATABASE',
+            'APP_CONFIG_CACHE',
+            'APP_ROUTE_CACHE',
+            'APP_MODULE_CACHE',
             'ADMIN_BOOTSTRAP_EMAIL',
             'ADMIN_BOOTSTRAP_PASSWORD',
         ] as $key) {

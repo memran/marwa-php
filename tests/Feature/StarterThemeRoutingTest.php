@@ -29,11 +29,22 @@ final class StarterThemeRoutingTest extends TestCase
         $this->makeDirectory($this->basePath . '/resources/views/themes/default/views/errors');
         $this->makeDirectory($this->basePath . '/resources/views/themes/admin');
         $this->makeDirectory($this->basePath . '/modules');
+        $this->makeDirectory($this->basePath . '/bootstrap/cache');
 
         file_put_contents(
             $this->basePath . '/.env',
-            "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=admin\nTIMEZONE=UTC\n"
+            "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=admin\nTIMEZONE=UTC\nAPP_CONFIG_CACHE={$this->basePath}/bootstrap/cache/config.php\nAPP_ROUTE_CACHE={$this->basePath}/bootstrap/cache/routes.php\nAPP_MODULE_CACHE={$this->basePath}/bootstrap/cache/modules.php\n"
         );
+
+        putenv('APP_CONFIG_CACHE=' . $this->basePath . '/bootstrap/cache/config.php');
+        putenv('APP_ROUTE_CACHE=' . $this->basePath . '/bootstrap/cache/routes.php');
+        putenv('APP_MODULE_CACHE=' . $this->basePath . '/bootstrap/cache/modules.php');
+        $_ENV['APP_CONFIG_CACHE'] = $this->basePath . '/bootstrap/cache/config.php';
+        $_ENV['APP_ROUTE_CACHE'] = $this->basePath . '/bootstrap/cache/routes.php';
+        $_ENV['APP_MODULE_CACHE'] = $this->basePath . '/bootstrap/cache/modules.php';
+        $_SERVER['APP_CONFIG_CACHE'] = $this->basePath . '/bootstrap/cache/config.php';
+        $_SERVER['APP_ROUTE_CACHE'] = $this->basePath . '/bootstrap/cache/routes.php';
+        $_SERVER['APP_MODULE_CACHE'] = $this->basePath . '/bootstrap/cache/modules.php';
 
         file_put_contents(
             $this->basePath . '/routes/web.php',
@@ -45,7 +56,6 @@ declare(strict_types=1);
 use App\Http\Controllers\Backend\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Middleware\AdminThemeMiddleware;
-use App\Modules\Auth\Http\Controllers\AuthController;
 use App\Modules\Auth\Http\Middleware\RequireAdminAuthentication;
 use Marwa\Router\Response;
 use Marwa\Framework\Facades\Router;
@@ -54,16 +64,6 @@ Router::get('/', [HomeController::class, 'index'])->name('home')->register();
 
 Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class]], static function ($routes): void {
     $routes->get('/', static fn (): \Psr\Http\Message\ResponseInterface => Response::html('Admin dashboard'))->name('admin.dashboard')->register();
-});
-
-Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class]], static function ($routes): void {
-    $routes->get('/login', [AuthController::class, 'login'])->name('admin.login')->register();
-    $routes->post('/login', [AuthController::class, 'authenticate'])->name('admin.login.submit')->register();
-    $routes->get('/forgot-password', [AuthController::class, 'forgotPassword'])->name('admin.forgot-password')->register();
-    $routes->post('/forgot-password', [AuthController::class, 'sendForgotPasswordLink'])->name('admin.forgot-password.submit')->register();
-    $routes->get('/reset-password/{token}', [AuthController::class, 'resetPassword'])->name('admin.reset-password')->register();
-    $routes->post('/reset-password/{token}', [AuthController::class, 'updatePassword'])->name('admin.reset-password.submit')->register();
-    $routes->get('/logout', [AuthController::class, 'logout'])->name('admin.logout')->register();
 });
 PHP
         );
@@ -183,6 +183,9 @@ TWIG
             'MAINTENANCE',
             'MAINTENANCE_TIME',
             'TIMEZONE',
+            'APP_CONFIG_CACHE',
+            'APP_ROUTE_CACHE',
+            'APP_MODULE_CACHE',
         ] as $key) {
             unset($_ENV[$key], $_SERVER[$key]);
             putenv($key);
