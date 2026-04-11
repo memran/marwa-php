@@ -3,7 +3,6 @@
 .env.testing
 docker/docker.env
 bootstrap/cache/*
-docs/
 vendor/
 .idea/
 node_modules/

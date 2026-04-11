@@ -340,6 +340,9 @@ TWIG
         self::assertSame('/admin/login', $logout->getHeaderLine('Location'));
     }
 
+    /**
+     * @param array<string, mixed> $body
+     */
     private function request(string $method, string $uri, array $body = []): \Psr\Http\Message\ServerRequestInterface
     {
         return RequestFactory::fromArrays(
