@@ -26,7 +26,7 @@ final class User extends Model
      * @var array<string, string>
      */
     protected static array $casts = [
-        'is_active' => 'bool',
+        'is_active' => 'int',
     ];
 
     protected static bool $softDeletes = true;

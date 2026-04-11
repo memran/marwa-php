@@ -62,27 +62,49 @@
           <input type="checkbox" id="is_active" name="is_active" value="1" {% if form.is_active|default(true) %}checked{% endif %}>
           <span>Active account</span>
         </label>
-        <p class="admin-field__hint">Inactive users cannot sign in.</p>
+        {% if errors.is_active is defined %}
+          <p class="admin-field__message admin-field__message--error">{{ errors.is_active|first }}</p>
+        {% else %}
+          <p class="admin-field__hint">Inactive users cannot sign in.</p>
+        {% endif %}
       </div>
 
-      {% include "components/form-field.twig" with {
-        id: 'password',
-        label: mode == 'create' ? 'Password' : 'Password (optional)',
-        type: 'password',
-        autocomplete: 'new-password',
-        placeholder: 'Minimum 8 characters',
-        error: errors.password|default([])|first,
-        hint: mode == 'create' ? 'Required for new accounts.' : 'Leave blank to keep the current password.'
-      } only %}
+      <div class="admin-field admin-field--password">
+        <label class="admin-field__label" for="password">{{ mode == 'create' ? 'Password' : 'Password (optional)' }}</label>
+        <input
+          class="admin-field__control"
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="new-password"
+          placeholder="Minimum 8 characters"
+        >
+        <div class="admin-password-tools">
+          <button class="admin-btn admin-btn--secondary admin-password-tools__button" type="button" id="generate_password">Generate password</button>
+          <button class="admin-btn admin-btn--ghost admin-password-tools__button" type="button" id="copy_password">Copy password</button>
+          <label class="admin-checkbox admin-password-tools__toggle">
+            <input type="checkbox" id="show_password">
+            <span>Show password</span>
+          </label>
+        </div>
+        {% if errors.password is defined %}
+          <p class="admin-field__message admin-field__message--error">{{ errors.password|first }}</p>
+        {% else %}
+          <p class="admin-field__hint">{{ mode == 'create' ? 'Required for new accounts. Use Generate password for a 12-character random string.' : 'Leave blank to keep the current password. Use Generate password for a 12-character random string.' }}</p>
+        {% endif %}
+      </div>
 
-      {% include "components/form-field.twig" with {
-        id: 'password_confirmation',
-        name: 'password_confirmation',
-        label: 'Confirm password',
-        type: 'password',
-        autocomplete: 'new-password',
-        placeholder: 'Repeat the password'
-      } only %}
+      <div class="admin-field">
+        <label class="admin-field__label" for="password_confirmation">Confirm password</label>
+        <input
+          class="admin-field__control"
+          id="password_confirmation"
+          name="password_confirmation"
+          type="password"
+          autocomplete="new-password"
+          placeholder="Repeat the password"
+        >
+      </div>
 
       <div class="admin-table-tools">
         <button class="admin-btn admin-btn--primary" type="submit">{{ submit_label }}</button>
@@ -90,4 +112,64 @@
       </div>
     </form>
   </section>
+
+  <script>
+    (() => {
+      const password = document.getElementById('password');
+      const confirmation = document.getElementById('password_confirmation');
+      const generate = document.getElementById('generate_password');
+      const copy = document.getElementById('copy_password');
+      const toggle = document.getElementById('show_password');
+
+      if (!password || !confirmation || !generate || !copy || !toggle) {
+        return;
+      }
+
+      const setType = (type) => {
+        password.type = type;
+        confirmation.type = type;
+      };
+
+      const setClipboard = async (value) => {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+          await navigator.clipboard.writeText(value);
+          return;
+        }
+
+        password.focus();
+        password.select();
+        document.execCommand('copy');
+      };
+
+      toggle.addEventListener('change', () => {
+        setType(toggle.checked ? 'text' : 'password');
+      });
+
+      generate.addEventListener('click', () => {
+        const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*';
+        const bytes = new Uint8Array(12);
+        window.crypto.getRandomValues(bytes);
+        const value = Array.from(bytes, (byte) => charset.charAt(byte % charset.length)).join('');
+
+        password.value = value;
+        confirmation.value = value;
+        toggle.checked = true;
+        setType('text');
+        password.focus();
+        password.select();
+      });
+
+      copy.addEventListener('click', async () => {
+        if (password.value === '') {
+          return;
+        }
+
+        await setClipboard(password.value);
+        copy.textContent = 'Copied';
+        window.setTimeout(() => {
+          copy.textContent = 'Copy password';
+        }, 1200);
+      });
+    })();
+  </script>
 {% endblock %}

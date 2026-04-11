@@ -20,6 +20,7 @@ final class AdminThemeMiddleware implements MiddlewareInterface
         $adminTheme = trim((string) config('view.adminTheme', 'admin')) ?: 'admin';
 
         $view->theme($adminTheme);
+        $view->share('_current_path', $request->getUri()->getPath());
 
         try {
             return $handler->handle($request);

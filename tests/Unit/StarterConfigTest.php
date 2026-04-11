@@ -125,6 +125,7 @@ final class StarterConfigTest extends TestCase
             self::assertSame('default', $config['fallbackTheme']);
             self::assertSame('admin', $config['adminTheme']);
             self::assertSame([
+                \Marwa\View\Extension\AlpineExtension::class,
                 \Marwa\View\Extension\DateExtension::class,
                 \Marwa\View\Extension\HtmlExtension::class,
                 \Marwa\View\Extension\ImageExtension::class,

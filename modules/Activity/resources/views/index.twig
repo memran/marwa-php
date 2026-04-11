@@ -1,2 +1,61 @@
-<h1>Activity Module</h1>
-<p>Activity module scaffolding is ready.</p>
+{% extends "layout.twig" %}
+
+{% block title %}Activity | MarwaPHP Admin{% endblock %}
+
+{% block content %}
+  <section class="admin-page-header">
+    <div class="admin-page-header__copy">
+      <span class="admin-eyebrow">Audit trail</span>
+      <h1 class="admin-page-title">Activity Module</h1>
+      <p class="admin-page-lead">Track sign-ins, user management, and other important admin actions.</p>
+    </div>
+
+    <div class="admin-table-tools">
+      <a class="admin-btn admin-btn--ghost" href="/admin">Back to dashboard</a>
+    </div>
+  </section>
+
+  <section class="admin-table-shell">
+    <div class="admin-table-shell__header">
+      <div>
+        <h2 class="admin-section-title">Recent activity</h2>
+        <p class="admin-section-subtitle">Newest actions appear at the top.</p>
+      </div>
+    </div>
+
+    {% if activities is empty %}
+      <div class="admin-alert admin-alert--info">
+        <p class="admin-alert__title">No activity yet</p>
+        <p class="admin-alert__body">Admin actions will appear here once the module records them.</p>
+      </div>
+    {% else %}
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Action</th>
+            <th>Description</th>
+            <th>Details</th>
+            <th>Actor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for activity in activities %}
+            <tr>
+              <td>{{ activity.getAttribute('created_at')|default('Now') }}</td>
+              <td><span class="admin-badge admin-badge--neutral">{{ activity.getAttribute('action') }}</span></td>
+              <td>{{ activity.getAttribute('description') }}</td>
+              <td>{{ activity.readableDetails() }}</td>
+              <td>
+                <div class="admin-row-meta">
+                  <span class="admin-row-meta__title">{{ activity.getAttribute('actor_name')|default('System') }}</span>
+                  <span class="admin-row-meta__subtitle">{{ activity.getAttribute('actor_email')|default('No actor') }}</span>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </section>
+{% endblock %}

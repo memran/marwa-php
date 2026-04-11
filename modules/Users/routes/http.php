@@ -13,5 +13,6 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
     $routes->post('/users', [UserController::class, 'store'])->name('admin.users.store')->register();
     $routes->get('/users/{id}/edit', [UserController::class, 'edit'])->name('admin.users.edit')->register();
     $routes->post('/users/{id}', [UserController::class, 'update'])->name('admin.users.update')->register();
+    $routes->post('/users/{id}/restore', [UserController::class, 'restore'])->name('admin.users.restore')->register();
     $routes->post('/users/{id}/delete', [UserController::class, 'destroy'])->name('admin.users.destroy')->register();
 });

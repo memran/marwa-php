@@ -60,6 +60,11 @@ Admin login uses the bootstrap credentials from `.env`:
 
 That login is session-backed and does not query the users table.
 The starter admin seeder now lives in `modules/Users/database/seeders/AdminUserSeeder.php` and is bootstrapped with the Users module when the table is empty.
+The admin theme uses the framework Alpine bridge for its mobile sidebar toggle and Lucide-style inline SVG icons in the sidebar and user status badges.
+The admin sidebar includes Users and Activity sections that link to the module CRUD screens and activity feed under `/admin/users` and `/admin/activity`.
+Soft-deleted users stay visible in the Users module with a `Trashed` badge and a restore action.
+User creation now rejects duplicate emails, and delete actions ask for a browser confirmation before submitting.
+The Activity module records admin login, logout, and user CRUD events, then shows them in the dashboard feed and on the activity page.
 To run module-local seeders manually, use `php marwa module:seed`.
 
 Create that file from [docker/docker.env.example](docker/docker.env.example) before starting the stack. The example file contains placeholder credentials only.

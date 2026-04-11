@@ -28,4 +28,42 @@
       {% endfor %}
     </div>
   </section>
+
+  <section class="admin-table-shell" id="recent-activity" aria-labelledby="recent-activity-title">
+    <div class="admin-table-shell__header">
+      <div>
+        <h2 id="recent-activity-title" class="admin-section-title">Recent activity</h2>
+        <p class="admin-section-subtitle">Live feed from the Activity module.</p>
+      </div>
+      <a class="admin-btn admin-btn--ghost" href="/admin/activity">View all</a>
+    </div>
+
+    {% if activities is empty %}
+      <div class="admin-alert admin-alert--info">
+        <p class="admin-alert__title">No activity yet</p>
+        <p class="admin-alert__body">Sign in, manage users, or restore a record to populate the feed.</p>
+      </div>
+    {% else %}
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Description</th>
+            <th>Details</th>
+            <th>Actor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for activity in activities %}
+            <tr>
+              <td><span class="admin-badge admin-badge--neutral">{{ activity.getAttribute('action') }}</span></td>
+              <td>{{ activity.getAttribute('description') }}</td>
+              <td>{{ activity.readableDetails() }}</td>
+              <td>{{ activity.getAttribute('actor_email')|default('System') }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </section>
 {% endblock %}

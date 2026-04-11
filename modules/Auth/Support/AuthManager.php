@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Support;
 
+use App\Modules\Activity\Support\ActivityRecorder;
 use App\Modules\Users\Models\User;
 
 final class AuthManager
@@ -54,11 +55,31 @@ final class AuthManager
         session()->set(self::SESSION_USER_NAME, self::DEFAULT_ADMIN_NAME);
         session()->set(self::SESSION_USER_EMAIL, $this->configuredEmail());
 
+        (new ActivityRecorder())->recordAuthAction(
+            'auth.login',
+            'Signed in to the admin console.',
+            $this->user(),
+            [
+                'summary' => 'Signed in to the admin console.',
+                'state' => [
+                    'Email' => $email,
+                ],
+            ]
+        );
+
         return true;
     }
 
     public function logout(): void
     {
+        $actor = $this->user();
+
+        (new ActivityRecorder())->recordAuthAction(
+            'auth.logout',
+            'Signed out of the admin console.',
+            $actor
+        );
+
         $session = session();
         $session->start();
         $session->forget(self::SESSION_AUTHENTICATED);

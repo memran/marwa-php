@@ -64,19 +64,47 @@
               <td>{{ user.getAttribute('email') }}</td>
               <td><span class="admin-badge admin-badge--neutral">{{ user.getAttribute('role') }}</span></td>
               <td>
-                {% if user.getAttribute('is_active') %}
+                {% if user.getAttribute('deleted_at') %}
+                  <span class="admin-badge admin-badge--danger">
+                    {% include 'components/icon.twig' with { name: 'trash-2', class: 'admin-badge__icon' } only %}
+                    <span>Trashed</span>
+                  </span>
+                {% elseif user.getAttribute('is_active') %}
                   <span class="admin-badge admin-badge--success">Active</span>
                 {% else %}
                   <span class="admin-badge admin-badge--warning">Disabled</span>
+                {% endif %}
+                {% if protected_admin_id is defined and protected_admin_id is not null and user.getKey() == protected_admin_id %}
+                  <div class="admin-badge-row">
+                    <span class="admin-badge admin-badge--warning">
+                      {% include 'components/icon.twig' with { name: 'shield', class: 'admin-badge__icon' } only %}
+                      <span>Protected</span>
+                    </span>
+                  </div>
                 {% endif %}
               </td>
               <td>{{ user.getAttribute('last_login_at')|default('Never') }}</td>
               <td>
                 <div class="admin-table-tools">
-                  <a class="admin-btn admin-btn--secondary" href="/admin/users/{{ user.getKey() }}/edit">Edit</a>
-                  <form method="post" action="/admin/users/{{ user.getKey() }}/delete">
-                    <button class="admin-btn admin-btn--danger" type="submit">Delete</button>
-                  </form>
+                  {% if user.getAttribute('deleted_at') %}
+                    <form method="post" action="/admin/users/{{ user.getKey() }}/restore">
+                      <button class="admin-btn admin-btn--secondary" type="submit">
+                        {% include 'components/icon.twig' with { name: 'rotate-ccw', class: 'admin-badge__icon' } only %}
+                        <span>Restore</span>
+                      </button>
+                    </form>
+                  {% else %}
+                    <a class="admin-btn admin-btn--secondary" href="/admin/users/{{ user.getKey() }}/edit">Edit</a>
+                  {% endif %}
+                  {% if user.getAttribute('deleted_at') %}
+                    <button class="admin-btn admin-btn--danger" type="button" disabled title="Restored users can be edited or deleted after restore.">Delete</button>
+                  {% elseif protected_admin_id is defined and protected_admin_id is not null and user.getKey() == protected_admin_id %}
+                    <button class="admin-btn admin-btn--danger" type="button" disabled title="The last admin user cannot be deleted.">Delete</button>
+                  {% else %}
+                    <form method="post" action="/admin/users/{{ user.getKey() }}/delete">
+                      <button class="admin-btn admin-btn--danger" type="submit" onclick="return confirm('Delete this user?');">Delete</button>
+                    </form>
+                  {% endif %}
                 </div>
               </td>
             </tr>

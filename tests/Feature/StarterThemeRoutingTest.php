@@ -12,6 +12,7 @@ use Marwa\Framework\Bootstrappers\ModuleBootstrapper;
 use Marwa\Framework\HttpKernel;
 use Marwa\Framework\Supports\Runtime;
 use Marwa\Framework\Supports\Config;
+use Marwa\Router\Http\Input;
 use Marwa\Module\ModuleRepository;
 use PHPUnit\Framework\TestCase;
 
@@ -22,6 +23,8 @@ final class StarterThemeRoutingTest extends TestCase
     protected function setUp(): void
     {
         Runtime::setConsoleOverride(false);
+        unset($GLOBALS['marwa_app']);
+        Input::reset();
         $this->basePath = sys_get_temp_dir() . '/marwa-starter-' . bin2hex(random_bytes(6));
 
         $this->makeDirectory($this->basePath);

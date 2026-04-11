@@ -10,6 +10,7 @@ use Marwa\Framework\Application;
 use Marwa\Framework\Bootstrappers\AppBootstrapper;
 use Marwa\Framework\HttpKernel;
 use Marwa\Framework\Supports\Runtime;
+use Marwa\Router\Http\Input;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Marwa\Router\Http\RequestFactory;
@@ -21,6 +22,8 @@ final class AuthUsersModuleTest extends TestCase
     protected function setUp(): void
     {
         Runtime::setConsoleOverride(false);
+        unset($GLOBALS['marwa_app']);
+        Input::reset();
         $this->basePath = sys_get_temp_dir() . '/marwa-auth-users-' . bin2hex(random_bytes(6));
 
         $this->makeDirectory($this->basePath);
@@ -295,14 +298,40 @@ TWIG
         $dashboard = $kernel->handle($this->request('GET', '/admin'));
         self::assertSame(200, $dashboard->getStatusCode());
         self::assertStringContainsString('Server and application status', (string) $dashboard->getBody());
+        self::assertStringContainsString('/admin/users', (string) $dashboard->getBody());
+        self::assertStringContainsString('Users', (string) $dashboard->getBody());
+
+        $bootstrapAdmin = User::findBy('email', 'admin@marwa.test');
+        self::assertInstanceOf(User::class, $bootstrapAdmin);
+
+        $blockedSelfDisable = $kernel->handle($this->request('POST', '/admin/users/' . $bootstrapAdmin->getKey(), [
+            'name' => 'Administrator',
+            'email' => 'admin@marwa.test',
+            'role' => 'admin',
+            'password' => '',
+            'password_confirmation' => '',
+        ]));
+        self::assertSame(302, $blockedSelfDisable->getStatusCode());
+        self::assertStringEndsWith('/admin/users/' . $bootstrapAdmin->getKey() . '/edit', $blockedSelfDisable->getHeaderLine('Location'));
+
+        $blockedSelfDisableForm = $kernel->handle($this->request('GET', '/admin/users/' . $bootstrapAdmin->getKey() . '/edit'));
+        self::assertSame(200, $blockedSelfDisableForm->getStatusCode());
+        self::assertStringContainsString('The last admin user cannot disable themselves.', (string) $blockedSelfDisableForm->getBody());
+        self::assertStringContainsString('admin-field__message--error', (string) $blockedSelfDisableForm->getBody());
+        self::assertSame(1, (int) User::findBy('email', 'admin@marwa.test')->getAttribute('is_active'));
 
         $usersPage = $kernel->handle($this->request('GET', '/admin/users'));
         self::assertSame(200, $usersPage->getStatusCode());
         self::assertStringContainsString('admin@marwa.test', (string) $usersPage->getBody());
+        self::assertStringContainsString('admin-nav__link--active', (string) $usersPage->getBody());
+        self::assertStringContainsString('href="/admin/users"', (string) $usersPage->getBody());
 
         $createPage = $kernel->handle($this->request('GET', '/admin/users/create'));
         self::assertSame(200, $createPage->getStatusCode());
         self::assertStringContainsString('Create user', (string) $createPage->getBody());
+        self::assertStringContainsString('Generate password', (string) $createPage->getBody());
+        self::assertStringContainsString('Copy password', (string) $createPage->getBody());
+        self::assertStringContainsString('Show password', (string) $createPage->getBody());
 
         $create = $kernel->handle($this->request('POST', '/admin/users', [
             'name' => 'Operations Lead',
@@ -314,6 +343,22 @@ TWIG
         ]));
         self::assertSame(302, $create->getStatusCode());
         self::assertStringEndsWith('/admin/users', $create->getHeaderLine('Location'));
+
+        $duplicateCreate = $kernel->handle($this->request('POST', '/admin/users', [
+            'name' => 'Operations Lead Copy',
+            'email' => 'ops@example.test',
+            'role' => 'staff',
+            'is_active' => '1',
+            'password' => 'Secret123!',
+            'password_confirmation' => 'Secret123!',
+        ]));
+        self::assertSame(302, $duplicateCreate->getStatusCode());
+        self::assertStringEndsWith('/admin/users/create', $duplicateCreate->getHeaderLine('Location'));
+
+        $duplicateForm = $kernel->handle($this->request('GET', '/admin/users/create'));
+        self::assertSame(200, $duplicateForm->getStatusCode());
+        self::assertStringContainsString('Duplicate user: this email already belongs to another user.', (string) $duplicateForm->getBody());
+        self::assertStringContainsString('admin-field__message--error', (string) $duplicateForm->getBody());
 
         $created = User::findBy('email', 'ops@example.test');
 
@@ -333,10 +378,115 @@ TWIG
         ])->saveOrFail();
 
         self::assertSame('Operations Director', User::findBy('email', 'ops@example.test')->getAttribute('name'));
-        self::assertFalse((bool) User::findBy('email', 'ops@example.test')->getAttribute('is_active'));
+        self::assertSame(0, (int) User::findBy('email', 'ops@example.test')->getAttribute('is_active'));
 
-        $created->deleteOrFail();
+        $persisted = User::findBy('email', 'ops@example.test');
+        self::assertInstanceOf(User::class, $persisted);
+        self::assertNotNull($persisted->getKey());
+
+        $duplicateUpdate = $kernel->handle($this->request('POST', '/admin/users/' . $persisted->getKey(), [
+            'name' => 'Operations Manager',
+            'email' => 'admin@marwa.test',
+            'role' => 'staff',
+            'password' => '',
+            'password_confirmation' => '',
+        ]));
+        self::assertSame(302, $duplicateUpdate->getStatusCode());
+        self::assertStringEndsWith('/admin/users/' . $persisted->getKey() . '/edit', $duplicateUpdate->getHeaderLine('Location'));
+
+        $duplicateEditForm = $kernel->handle($this->request('GET', '/admin/users/' . $persisted->getKey() . '/edit'));
+        self::assertSame(200, $duplicateEditForm->getStatusCode());
+        self::assertStringContainsString('Duplicate user: this email already belongs to another user.', (string) $duplicateEditForm->getBody());
+        self::assertStringContainsString('admin-field__message--error', (string) $duplicateEditForm->getBody());
+
+        $editPage = $kernel->handle($this->request('GET', '/admin/users/' . $persisted->getKey() . '/edit'));
+        self::assertSame(200, $editPage->getStatusCode());
+        self::assertStringContainsString('Edit user', (string) $editPage->getBody());
+        self::assertStringContainsString('Operations Director', (string) $editPage->getBody());
+        self::assertStringContainsString('Generate password', (string) $editPage->getBody());
+        self::assertStringContainsString('Copy password', (string) $editPage->getBody());
+        self::assertStringContainsString('Show password', (string) $editPage->getBody());
+
+        $update = $kernel->handle($this->request('POST', '/admin/users/' . $persisted->getKey(), [
+            'name' => 'Operations Manager',
+            'email' => 'ops@example.test',
+            'role' => 'staff',
+            'password' => '',
+            'password_confirmation' => '',
+        ]));
+        self::assertSame(302, $update->getStatusCode());
+        self::assertStringContainsString('/admin/users', $update->getHeaderLine('Location'));
+
+        $updated = User::findBy('email', 'ops@example.test');
+        self::assertSame('Operations Manager', $updated->getAttribute('name'));
+        self::assertSame('staff', $updated->getAttribute('role'));
+        self::assertSame(0, (int) $updated->getAttribute('is_active'));
+
+        $delete = $kernel->handle($this->request('POST', '/admin/users/' . $created->getKey() . '/delete'));
+        self::assertSame(302, $delete->getStatusCode());
+        self::assertStringContainsString('/admin/users', $delete->getHeaderLine('Location'));
         self::assertNull(User::findBy('email', 'ops@example.test'));
+
+        $usersPageAfterDelete = $kernel->handle($this->request('GET', '/admin/users'));
+        self::assertSame(200, $usersPageAfterDelete->getStatusCode());
+        self::assertStringContainsString('ops@example.test', (string) $usersPageAfterDelete->getBody());
+        self::assertStringContainsString('Trashed', (string) $usersPageAfterDelete->getBody());
+        self::assertStringContainsString('Restore', (string) $usersPageAfterDelete->getBody());
+
+        $restore = $kernel->handle($this->request('POST', '/admin/users/' . $created->getKey() . '/restore'));
+        self::assertSame(302, $restore->getStatusCode());
+        self::assertStringContainsString('/admin/users', $restore->getHeaderLine('Location'));
+
+        $restored = User::withTrashed()->find($created->getKey());
+        self::assertInstanceOf(User::class, $restored);
+        self::assertNull($restored->getAttribute('deleted_at'));
+
+        $activityPage = $kernel->handle($this->request('GET', '/admin/activity'));
+        self::assertSame(200, $activityPage->getStatusCode());
+        self::assertStringContainsString('Activity Module', (string) $activityPage->getBody());
+        self::assertStringContainsString('Recent activity', (string) $activityPage->getBody());
+        self::assertStringContainsString('auth.login', (string) $activityPage->getBody());
+        self::assertStringContainsString('Signed in to the admin console.', (string) $activityPage->getBody());
+        self::assertStringContainsString('user.created', (string) $activityPage->getBody());
+        self::assertStringContainsString('Created user account.', (string) $activityPage->getBody());
+        self::assertStringContainsString('user.updated', (string) $activityPage->getBody());
+        self::assertStringContainsString('Changed fields: Name, Role.', (string) $activityPage->getBody());
+        self::assertStringContainsString('user.deleted', (string) $activityPage->getBody());
+        self::assertStringContainsString('Soft deleted user account.', (string) $activityPage->getBody());
+        self::assertStringContainsString('user.restored', (string) $activityPage->getBody());
+        self::assertStringContainsString('Restored user account.', (string) $activityPage->getBody());
+        self::assertStringContainsString('Name: from Operations Director to Operations Manager', (string) $activityPage->getBody());
+        self::assertStringContainsString('Role: from manager to staff', (string) $activityPage->getBody());
+
+        $bootstrapAdmin = User::findBy('email', 'admin@marwa.test');
+
+        if ($bootstrapAdmin instanceof User) {
+            $bootstrapAdmin->forceDelete();
+        }
+
+        $soleAdmin = User::create([
+            'name' => 'Standalone Admin',
+            'email' => 'sole-admin@example.test',
+            'role' => 'admin',
+            'is_active' => true,
+            'password' => password_hash('Secret123!', PASSWORD_DEFAULT),
+        ]);
+
+        $adminIndex = $kernel->handle($this->request('GET', '/admin/users'));
+        self::assertSame(200, $adminIndex->getStatusCode());
+        self::assertStringContainsString('admin-nav__icon', (string) $adminIndex->getBody());
+        self::assertStringContainsString('admin-badge__icon', (string) $adminIndex->getBody());
+        self::assertStringContainsString('disabled', (string) $adminIndex->getBody());
+        self::assertStringContainsString('Protected', (string) $adminIndex->getBody());
+
+        $blockedDelete = $kernel->handle($this->request('POST', '/admin/users/' . $soleAdmin->getKey() . '/delete'));
+        self::assertSame(302, $blockedDelete->getStatusCode());
+        self::assertStringContainsString('/admin/users', $blockedDelete->getHeaderLine('Location'));
+        self::assertNotNull(User::find($soleAdmin->getKey()));
+
+        $adminIndexAfterBlockedDelete = $kernel->handle($this->request('GET', '/admin/users'));
+        self::assertSame(200, $adminIndexAfterBlockedDelete->getStatusCode());
+        self::assertStringContainsString('The last admin user cannot be deleted.', (string) $adminIndexAfterBlockedDelete->getBody());
 
         $logout = $kernel->handle($this->request('GET', '/admin/logout'));
         self::assertSame(302, $logout->getStatusCode());
