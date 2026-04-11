@@ -194,4 +194,38 @@ final class StarterConfigTest extends TestCase
             @rmdir($basePath);
         }
     }
+
+    public function testModuleConfigUsesStarterModuleCachePath(): void
+    {
+        $basePath = sys_get_temp_dir() . '/marwa-config-' . bin2hex(random_bytes(6));
+        mkdir($basePath, 0777, true);
+        $app = new Application($basePath);
+        $GLOBALS['marwa_app'] = $app;
+
+        foreach ([
+            'MODULES_ENABLED',
+            'APP_MODULE_CACHE',
+        ] as $key) {
+            unset($_ENV[$key], $_SERVER[$key]);
+            putenv($key);
+        }
+
+        try {
+            $config = require __DIR__ . '/../../config/module.php';
+
+            self::assertIsArray($config);
+            self::assertTrue($config['enabled']);
+            self::assertSame($app->basePath('storage/cache/modules.php'), $config['cache']);
+        } finally {
+            unset($GLOBALS['marwa_app']);
+            foreach ([
+                'MODULES_ENABLED',
+                'APP_MODULE_CACHE',
+            ] as $key) {
+                unset($_ENV[$key], $_SERVER[$key]);
+                putenv($key);
+            }
+            @rmdir($basePath);
+        }
+    }
 }

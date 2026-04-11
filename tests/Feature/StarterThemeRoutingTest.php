@@ -10,6 +10,7 @@ use Marwa\Framework\Application;
 use Marwa\Framework\Bootstrappers\AppBootstrapper;
 use Marwa\Framework\Bootstrappers\ModuleBootstrapper;
 use Marwa\Framework\HttpKernel;
+use Marwa\Framework\Supports\Runtime;
 use Marwa\Framework\Supports\Config;
 use Marwa\Module\ModuleRepository;
 use PHPUnit\Framework\TestCase;
@@ -20,6 +21,7 @@ final class StarterThemeRoutingTest extends TestCase
 
     protected function setUp(): void
     {
+        Runtime::setConsoleOverride(false);
         $this->basePath = sys_get_temp_dir() . '/marwa-starter-' . bin2hex(random_bytes(6));
 
         $this->makeDirectory($this->basePath);
@@ -174,6 +176,7 @@ TWIG
 
     protected function tearDown(): void
     {
+        Runtime::setConsoleOverride(null);
         unset($GLOBALS['marwa_app']);
 
         foreach ([
@@ -246,14 +249,6 @@ TWIG
     {
         $app = new Application($this->basePath);
         $app->make(AppBootstrapper::class)->bootstrap();
-
-        $bootstrapper = new ModuleBootstrapper(
-            $app,
-            $app->container(),
-            $app->make(Config::class)
-        );
-
-        $bootstrapper->bootstrap();
 
         $kernel = $app->make(HttpKernel::class);
         $activity = $kernel->handle(new ServerRequest(uri: '/activity', method: 'GET'));

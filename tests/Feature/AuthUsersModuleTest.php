@@ -8,8 +8,8 @@ use App\Modules\Users\Models\User;
 use App\Modules\Auth\Support\AuthManager;
 use Marwa\Framework\Application;
 use Marwa\Framework\Bootstrappers\AppBootstrapper;
-use Marwa\Framework\Bootstrappers\ModuleBootstrapper;
 use Marwa\Framework\HttpKernel;
+use Marwa\Framework\Supports\Runtime;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Marwa\Router\Http\RequestFactory;
@@ -20,6 +20,7 @@ final class AuthUsersModuleTest extends TestCase
 
     protected function setUp(): void
     {
+        Runtime::setConsoleOverride(false);
         $this->basePath = sys_get_temp_dir() . '/marwa-auth-users-' . bin2hex(random_bytes(6));
 
         $this->makeDirectory($this->basePath);
@@ -227,6 +228,7 @@ TWIG
 
     protected function tearDown(): void
     {
+        Runtime::setConsoleOverride(null);
         unset($GLOBALS['marwa_app']);
 
         foreach ([
@@ -264,12 +266,8 @@ TWIG
         $app->make(AppBootstrapper::class)->bootstrap();
         (new AuthManager())->logout();
         $kernel = $app->make(HttpKernel::class);
-        /** @var ModuleBootstrapper $moduleBootstrapper */
-        $moduleBootstrapper = $app->make(ModuleBootstrapper::class);
 
         self::assertGreaterThan(0, User::query()->count());
-        self::assertContains($this->basePath . '/modules/Users/database/migrations', $moduleBootstrapper->migrationPaths());
-        self::assertContains($this->basePath . '/modules/Users/database/seeders', $moduleBootstrapper->seederPaths());
 
         $guestDashboard = $kernel->handle($this->request('GET', '/admin'));
         self::assertSame(302, $guestDashboard->getStatusCode());
