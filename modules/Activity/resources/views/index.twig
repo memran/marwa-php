@@ -6,7 +6,7 @@
   <section class="admin-page-header">
     <div class="admin-page-header__copy">
       <span class="admin-eyebrow">Audit trail</span>
-      <h1 class="admin-page-title">Activity Module</h1>
+      <h1 class="admin-page-title">Activity</h1>
       <p class="admin-page-lead">Track sign-ins, user management, and other important admin actions.</p>
     </div>
 
@@ -21,9 +21,16 @@
         <h2 class="admin-section-title">Recent activity</h2>
         <p class="admin-section-subtitle">Newest actions appear at the top.</p>
       </div>
+
+      {% include 'components/search-bar.twig' with {
+        action: '/admin/activity',
+        value: query|default(''),
+        placeholder: 'Search activity',
+        aria_label: 'Search activity'
+      } only %}
     </div>
 
-    {% if activities is empty %}
+    {% if activities.data is empty %}
       <div class="admin-alert admin-alert--info">
         <p class="admin-alert__title">No activity yet</p>
         <p class="admin-alert__body">Admin actions will appear here once the module records them.</p>
@@ -40,7 +47,7 @@
           </tr>
         </thead>
         <tbody>
-          {% for activity in activities %}
+          {% for activity in activities.data %}
             <tr>
               <td>{{ activity.getAttribute('created_at')|default('Now') }}</td>
               <td><span class="admin-badge admin-badge--neutral">{{ activity.getAttribute('action') }}</span></td>
@@ -57,5 +64,7 @@
         </tbody>
       </table>
     {% endif %}
+
+    {% include 'components/pagination.twig' with { pagination: pagination } only %}
   </section>
 {% endblock %}

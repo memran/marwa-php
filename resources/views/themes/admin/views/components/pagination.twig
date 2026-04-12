@@ -1,0 +1,10 @@
+<div class="admin-table-shell__footer">
+  <div class="admin-section-subtitle">{{ pagination.summary }}</div>
+  <div class="admin-pagination">
+    {% for link in pagination.links %}
+      <a class="admin-pagination__button {% if link.active %}admin-pagination__button--active{% endif %}" href="{{ link.url }}">
+        {{ link.page }}
+      </a>
+    {% endfor %}
+  </div>
+</div>

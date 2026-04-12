@@ -29,10 +29,12 @@
         <p class="admin-section-subtitle">Search, edit, or deactivate access.</p>
       </div>
 
-      <form class="admin-search" method="get" action="/admin/users">
-        <span class="admin-search__icon">⌕</span>
-        <input class="admin-search__input" type="search" name="q" value="{{ query|default('') }}" placeholder="Search users">
-      </form>
+      {% include 'components/search-bar.twig' with {
+        action: '/admin/users',
+        value: query|default(''),
+        placeholder: 'Search users',
+        aria_label: 'Search users'
+      } only %}
     </div>
 
     {% if users.data is empty %}
@@ -57,7 +59,7 @@
             <tr>
               <td>
                 <div class="admin-row-meta">
-                  <span class="admin-row-meta__title">{{ user.getAttribute('name') }}</span>
+                  <a class="admin-row-meta__title" href="/admin/users/{{ user.getKey() }}">{{ user.getAttribute('name') }}</a>
                   <span class="admin-row-meta__subtitle">ID {{ user.getKey() }}</span>
                 </div>
               </td>
@@ -94,6 +96,7 @@
                       </button>
                     </form>
                   {% else %}
+                    <a class="admin-btn admin-btn--ghost" href="/admin/users/{{ user.getKey() }}">Profile</a>
                     <a class="admin-btn admin-btn--secondary" href="/admin/users/{{ user.getKey() }}/edit">Edit</a>
                   {% endif %}
                   {% if user.getAttribute('deleted_at') %}
@@ -113,17 +116,6 @@
       </table>
     {% endif %}
 
-    <div class="admin-table-shell__footer">
-      <div class="admin-section-subtitle">
-        Showing {{ users.data|length }} of {{ users.total }} users
-      </div>
-      <div class="admin-pagination">
-        {% for page in 1..users.last_page %}
-          <a class="admin-pagination__button {% if page == users.current_page %}admin-pagination__button--active{% endif %}" href="/admin/users?page={{ page }}{% if query|default('') %}&q={{ query|url_encode }}{% endif %}">
-            {{ page }}
-          </a>
-        {% endfor %}
-      </div>
-    </div>
+    {% include 'components/pagination.twig' with { pagination: pagination } only %}
   </section>
 {% endblock %}

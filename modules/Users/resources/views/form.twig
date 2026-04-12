@@ -56,10 +56,12 @@
         {% endif %}
       </div>
 
+      {% set is_active_checked = form.is_active is defined ? form.is_active : true %}
+
       <div class="admin-field">
         <label class="admin-field__label" for="is_active">Status</label>
         <label class="admin-checkbox">
-          <input type="checkbox" id="is_active" name="is_active" value="1" {% if form.is_active|default(true) %}checked{% endif %}>
+          <input type="checkbox" id="is_active" name="is_active" value="1" {% if is_active_checked %}checked{% endif %}>
           <span>Active account</span>
         </label>
         {% if errors.is_active is defined %}

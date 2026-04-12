@@ -55,10 +55,12 @@ final class AuthManager
         session()->set(self::SESSION_USER_NAME, self::DEFAULT_ADMIN_NAME);
         session()->set(self::SESSION_USER_EMAIL, $this->configuredEmail());
 
-        (new ActivityRecorder())->recordAuthAction(
+        (new ActivityRecorder())->recordActorAction(
             'auth.login',
             'Signed in to the admin console.',
             $this->user(),
+            'auth',
+            null,
             [
                 'summary' => 'Signed in to the admin console.',
                 'state' => [
@@ -74,10 +76,11 @@ final class AuthManager
     {
         $actor = $this->user();
 
-        (new ActivityRecorder())->recordAuthAction(
+        (new ActivityRecorder())->recordActorAction(
             'auth.logout',
             'Signed out of the admin console.',
-            $actor
+            $actor,
+            'auth'
         );
 
         $session = session();

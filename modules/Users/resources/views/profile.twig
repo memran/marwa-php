@@ -1,0 +1,81 @@
+{% extends "layout.twig" %}
+
+{% block title %}{{ user.getAttribute('name')|default('User profile') }} | MarwaPHP Admin{% endblock %}
+
+{% block content %}
+  <section class="admin-page-header">
+    <div class="admin-page-header__copy">
+      <span class="admin-eyebrow">Identity management</span>
+      <h1 class="admin-page-title">{{ user.getAttribute('name')|default('Unknown user') }}</h1>
+      <p class="admin-page-lead">Read-only profile details for this user account.</p>
+    </div>
+
+    <div class="admin-table-tools">
+      <a class="admin-btn admin-btn--ghost" href="/admin/users">Back to users</a>
+      {% if not user.getAttribute('deleted_at') %}
+        <a class="admin-btn admin-btn--secondary" href="/admin/users/{{ user.getKey() }}/edit">Edit user</a>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="admin-table-shell">
+    <div class="admin-table-shell__header">
+      <div>
+        <h2 class="admin-section-title">Account snapshot</h2>
+        <p class="admin-section-subtitle">Current identity, access, and lifecycle details.</p>
+      </div>
+    </div>
+
+    <table class="admin-table">
+      <tbody>
+        <tr>
+          <td>Full Name</td>
+          <td>{{ user.getAttribute('name')|default('Unknown') }}</td>
+        </tr>
+        <tr>
+          <td>Email Address</td>
+          <td>{{ user.getAttribute('email')|default('Unknown') }}</td>
+        </tr>
+        <tr>
+          <td>Role</td>
+          <td><span class="admin-badge admin-badge--neutral">{{ user.getAttribute('role')|default('unknown') }}</span></td>
+        </tr>
+        <tr>
+          <td>Account Status</td>
+          <td>
+            {% if user.getAttribute('deleted_at') %}
+              <span class="admin-badge admin-badge--danger">
+                {% include 'components/icon.twig' with { name: 'trash-2', class: 'admin-badge__icon' } only %}
+                <span>Trashed</span>
+              </span>
+            {% elseif user.getAttribute('is_active') %}
+              <span class="admin-badge admin-badge--success">Active</span>
+            {% else %}
+              <span class="admin-badge admin-badge--warning">Disabled</span>
+            {% endif %}
+            {% if protected_admin_id is defined and protected_admin_id is not null and user.getKey() == protected_admin_id %}
+              <div class="admin-badge-row">
+                <span class="admin-badge admin-badge--warning">
+                  {% include 'components/icon.twig' with { name: 'shield', class: 'admin-badge__icon' } only %}
+                  <span>Protected</span>
+                </span>
+              </div>
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <td>Last Sign-In</td>
+          <td>{{ user.getAttribute('last_login_at')|default('Never') }}</td>
+        </tr>
+        <tr>
+          <td>Deleted At</td>
+          <td>{{ user.getAttribute('deleted_at')|default('Not deleted') }}</td>
+        </tr>
+        <tr>
+          <td>User ID</td>
+          <td>{{ user.getKey() }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+{% endblock %}

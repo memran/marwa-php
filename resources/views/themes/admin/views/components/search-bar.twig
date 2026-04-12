@@ -1,0 +1,11 @@
+<form class="admin-search" method="{{ method|default('get') }}" action="{{ action }}">
+  <span class="admin-search__icon">⌕</span>
+  <input
+    class="admin-search__input"
+    type="search"
+    name="{{ name|default('q') }}"
+    value="{{ value|default('') }}"
+    placeholder="{{ placeholder|default('Search') }}"
+    {% if aria_label is defined and aria_label %}aria-label="{{ aria_label }}"{% endif %}
+  >
+</form>

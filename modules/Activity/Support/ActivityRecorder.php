@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Modules\Activity\Support;
 
 use App\Modules\Activity\Models\Activity;
+use App\Support\AdminSearch;
 use App\Modules\Users\Models\User;
-use Marwa\DB\Connection\ConnectionManager;
 
 final class ActivityRecorder
 {
+    public function __construct(
+        private readonly AdminSearch $search,
+    ) {}
+
     public function record(string $action, string $description, array $context = []): void
     {
-        if (!app()->has(ConnectionManager::class)) {
-            return;
-        }
-
         $payload = [
             'action' => trim($action),
             'description' => trim($description),
@@ -27,7 +27,7 @@ final class ActivityRecorder
         ];
 
         try {
-            $this->persist($payload);
+            Activity::create($payload);
         } catch (\Throwable) {
             return;
         }
@@ -36,48 +36,102 @@ final class ActivityRecorder
     /**
      * @return list<Activity>
      */
-    public function recent(int $limit = 10): array
+    public function recent(string|int $query = '', int $limit = 10): array
     {
-        if (!app()->has(ConnectionManager::class)) {
-            return [];
+        if (is_int($query)) {
+            $limit = $query;
+            $query = '';
         }
 
+        $limit = max(0, $limit);
+        $query = trim($query);
+
         try {
-            $rows = Activity::newQuery()->getBaseBuilder()
-                ->orderBy('created_at', 'desc')
-                ->get();
+            $builder = Activity::newQuery()->getBaseBuilder()
+                ->orderBy('created_at', 'desc');
+            $this->search->applyLikeFilters($builder, $query, [
+                'action',
+                'description',
+                'actor_name',
+                'actor_email',
+                'subject_type',
+                'details',
+            ]);
+            $rows = $builder->limit($limit)->get();
         } catch (\Throwable) {
             return [];
         }
 
-        $activities = array_map(
+        return array_map(
             static fn (array|object $row): Activity => Activity::newInstance(is_array($row) ? $row : (array) $row, true),
             $rows
         );
-
-        return array_slice($activities, 0, max(0, $limit));
     }
 
-    public function recordUserAction(string $action, string $description, ?User $actor, User $subject, array $details = []): void
+    /**
+     * @return array{data:list<Activity>,total:int,per_page:int,current_page:int,last_page:int}
+     */
+    public function paginated(string $query = '', int $page = 1, int $perPage = 20): array
     {
-        $this->record($action, $description, [
-            'actor_name' => $actor instanceof User ? $actor->getAttribute('name') : null,
-            'actor_email' => $actor instanceof User ? $actor->getAttribute('email') : null,
-            'subject_type' => User::class,
-            'subject_id' => $subject->getKey(),
-            'details' => $details,
-        ]);
+        $page = max(1, $page);
+        $perPage = max(1, $perPage);
+        $query = trim($query);
+
+        try {
+            $builder = Activity::newQuery()->getBaseBuilder()
+                ->orderBy('created_at', 'desc');
+            $this->search->applyLikeFilters($builder, $query, [
+                'action',
+                'description',
+                'actor_name',
+                'actor_email',
+                'subject_type',
+                'details',
+            ]);
+            $pageData = $builder->paginate($perPage, $page);
+        } catch (\Throwable) {
+            return [
+                'data' => [],
+                'total' => 0,
+                'per_page' => $perPage,
+                'current_page' => $page,
+                'last_page' => 1,
+            ];
+        }
+
+        $pageData['data'] = array_map(
+            static fn (array|object $row): Activity => Activity::newInstance(is_array($row) ? $row : (array) $row, true),
+            $pageData['data']
+        );
+
+        return $pageData;
     }
 
-    public function recordAuthAction(string $action, string $description, ?User $actor = null, array $details = []): void
+    public function recordActorAction(
+        string $action,
+        string $description,
+        ?User $actor = null,
+        ?string $subjectType = null,
+        ?int $subjectId = null,
+        array $details = []
+    ): void
     {
         $this->record($action, $description, [
+            'subject_type' => $subjectType,
+            'subject_id' => $subjectId,
+            'details' => $details,
+        ] + $this->actorContext($actor));
+    }
+
+    /**
+     * @return array{actor_name: mixed, actor_email: mixed}
+     */
+    private function actorContext(?User $actor): array
+    {
+        return [
             'actor_name' => $actor instanceof User ? $actor->getAttribute('name') : null,
             'actor_email' => $actor instanceof User ? $actor->getAttribute('email') : null,
-            'subject_type' => 'auth',
-            'subject_id' => null,
-            'details' => $details,
-        ]);
+        ];
     }
 
     private function stringValue(mixed $value): ?string
@@ -103,10 +157,5 @@ final class ActivityRecorder
         }
 
         return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: null;
-    }
-
-    private function persist(array $payload): void
-    {
-        Activity::create($payload);
     }
 }

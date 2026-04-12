@@ -1297,6 +1297,7 @@ body.theme--admin.theme--dark .admin-table tbody td {
   border-bottom-color: rgba(38, 50, 65, 0.8);
 }
 
+
 body.theme--admin.theme--dark .admin-table tbody tr:hover {
   background: rgba(255, 255, 255, 0.02);
 }

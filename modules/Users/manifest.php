@@ -10,15 +10,11 @@ return [
         App\Modules\Users\UsersServiceProvider::class,
     ],
     'paths' => [
-        'views' => 'resources/views',
         'commands' => 'Console/Commands',
         'database/migrations' => 'database/migrations',
         'database/seeders' => 'database/seeders',
     ],
     'routes' => [
         'http' => 'routes/http.php',
-    ],
-    'migrations' => [
-        'database/migrations/2026_04_10_000001_create_users_table.php',
     ],
 ];

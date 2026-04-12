@@ -248,13 +248,13 @@ TWIG
         self::assertStringContainsString('Marwa Starter', (string) $health->getBody());
     }
 
-    public function testModuleRoutesAreLoadedOnlyOncePerAppInstance(): void
+    public function testActivityModuleRouteLoadsAtTheAdminPath(): void
     {
         $app = new Application($this->basePath);
         $app->make(AppBootstrapper::class)->bootstrap();
 
         $kernel = $app->make(HttpKernel::class);
-        $activity = $kernel->handle(new ServerRequest(uri: '/activity', method: 'GET'));
+        $activity = $kernel->handle(new ServerRequest(uri: '/admin/activity', method: 'GET'));
 
         self::assertSame(200, $activity->getStatusCode());
         self::assertStringContainsString('Activity Module', (string) $activity->getBody());

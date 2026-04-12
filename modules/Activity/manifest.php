@@ -10,14 +10,10 @@ return [
         App\Modules\Activity\ActivityServiceProvider::class,
     ],
     'paths' => [
-        'views' => 'resources/views',
         'commands' => 'Console/Commands',
         'database/migrations' => 'database/migrations',
     ],
     'routes' => [
         'http' => 'routes/http.php',
-    ],
-    'migrations' => [
-        'database/migrations/2026_04_11_000001_create_activities_table.php',
     ],
 ];
