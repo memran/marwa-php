@@ -74,7 +74,10 @@ final class StarterConfigTest extends TestCase
             self::assertSame('mysql', $config['default']);
             self::assertFalse($config['debug']);
             self::assertFalse($config['useDebugPanel']);
-            self::assertSame($app->basePath('database/database.sqlite'), $config['connections']['sqlite']['database']);
+            self::assertSame(
+                self::normalizePath($app->basePath('database/database.sqlite')),
+                self::normalizePath($config['connections']['sqlite']['database'])
+            );
             self::assertFalse($config['connections']['sqlite']['debug']);
             self::assertSame('mariadb', $config['connections']['mysql']['host']);
             self::assertSame(3306, $config['connections']['mysql']['port']);
@@ -113,14 +116,23 @@ final class StarterConfigTest extends TestCase
             $config = require __DIR__ . '/../../config/view.php';
 
             self::assertIsArray($config);
-            self::assertSame($app->basePath('resources/views'), $config['viewsPath']);
-            self::assertSame($app->basePath('storage/cache/views'), $config['cachePath']);
+            self::assertSame(
+                self::normalizePath($app->basePath('resources/views')),
+                self::normalizePath($config['viewsPath'])
+            );
+            self::assertSame(
+                self::normalizePath($app->basePath('storage/cache/views')),
+                self::normalizePath($config['cachePath'])
+            );
             self::assertIsBool($config['debug']);
             self::assertSame('.twig', $config['extension']);
             self::assertIsArray($config['cache']);
             self::assertArrayHasKey('enabled', $config['cache']);
             self::assertIsBool($config['cache']['enabled']);
-            self::assertSame($app->basePath('resources/views/themes'), $config['themePath']);
+            self::assertSame(
+                self::normalizePath($app->basePath('resources/views/themes')),
+                self::normalizePath($config['themePath'])
+            );
             self::assertSame('default', $config['activeTheme']);
             self::assertSame('default', $config['fallbackTheme']);
             self::assertSame('admin', $config['adminTheme']);
@@ -177,7 +189,10 @@ final class StarterConfigTest extends TestCase
             self::assertTrue($config['enable']);
             self::assertSame([], $config['filter']);
             self::assertSame('file', $config['storage']['driver']);
-            self::assertSame($app->basePath('storage/logs'), $config['storage']['path']);
+            self::assertSame(
+                self::normalizePath($app->basePath('storage/logs')),
+                self::normalizePath($config['storage']['path'])
+            );
             self::assertSame('marwa', $config['storage']['prefix']);
             self::assertSame('debug', $config['storage']['level']);
             self::assertArrayNotHasKey('max_bytes', $config['storage']);
@@ -216,7 +231,10 @@ final class StarterConfigTest extends TestCase
 
             self::assertIsArray($config);
             self::assertTrue($config['enabled']);
-            self::assertSame($app->basePath('storage/cache/modules.php'), $config['cache']);
+            self::assertSame(
+                self::normalizePath($app->basePath('storage/cache/modules.php')),
+                self::normalizePath($config['cache'])
+            );
         } finally {
             unset($GLOBALS['marwa_app']);
             foreach ([
@@ -228,5 +246,10 @@ final class StarterConfigTest extends TestCase
             }
             @rmdir($basePath);
         }
+    }
+
+    private static function normalizePath(string $path): string
+    {
+        return str_replace('\\', '/', $path);
     }
 }
