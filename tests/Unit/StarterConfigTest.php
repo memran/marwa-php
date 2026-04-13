@@ -137,6 +137,7 @@ final class StarterConfigTest extends TestCase
             self::assertSame('default', $config['fallbackTheme']);
             self::assertSame('admin', $config['adminTheme']);
             self::assertSame([
+                \App\View\Extensions\SecurityViewExtension::class,
                 \Marwa\View\Extension\AlpineExtension::class,
                 \Marwa\View\Extension\DateExtension::class,
                 \Marwa\View\Extension\HtmlExtension::class,
@@ -149,6 +150,27 @@ final class StarterConfigTest extends TestCase
                 \Marwa\View\Extension\StringPresentationExtension::class,
                 \Marwa\View\Extension\TextExtension::class,
             ], $config['extensions']);
+        } finally {
+            unset($GLOBALS['marwa_app']);
+            @rmdir($basePath);
+        }
+    }
+
+    public function testSecurityConfigEnablesCsrfForUnsafeMethodsByDefault(): void
+    {
+        $basePath = sys_get_temp_dir() . '/marwa-config-' . bin2hex(random_bytes(6));
+        mkdir($basePath, 0777, true);
+        $app = new Application($basePath);
+        $GLOBALS['marwa_app'] = $app;
+
+        try {
+            $config = require __DIR__ . '/../../config/security.php';
+
+            self::assertIsArray($config);
+            self::assertTrue($config['enabled']);
+            self::assertTrue($config['csrf']['enabled']);
+            self::assertSame('_token', $config['csrf']['field']);
+            self::assertSame(['POST', 'PUT', 'PATCH', 'DELETE'], $config['csrf']['methods']);
         } finally {
             unset($GLOBALS['marwa_app']);
             @rmdir($basePath);

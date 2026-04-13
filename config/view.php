@@ -11,6 +11,7 @@ return [
         'enabled' => !in_array((string) env('APP_ENV', 'production'), ['local', 'development'], true),
     ],
     'extensions' => [
+        App\View\Extensions\SecurityViewExtension::class,
         Marwa\View\Extension\AlpineExtension::class,
         Marwa\View\Extension\DateExtension::class,
         Marwa\View\Extension\HtmlExtension::class,

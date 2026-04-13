@@ -37,6 +37,8 @@ final class StarterThemeRoutingTest extends TestCase
         $this->makeDirectory($this->basePath . '/resources/views/themes/admin');
         $this->makeDirectory($this->basePath . '/modules');
         $this->makeDirectory($this->basePath . '/bootstrap/cache');
+        copy(__DIR__ . '/../../config/view.php', $this->basePath . '/config/view.php');
+        copy(__DIR__ . '/../../config/security.php', $this->basePath . '/config/security.php');
 
         file_put_contents(
             $this->basePath . '/.env',

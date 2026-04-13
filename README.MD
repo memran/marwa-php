@@ -59,6 +59,7 @@ Admin login uses the bootstrap credentials from `.env`:
 - `ADMIN_BOOTSTRAP_PASSWORD`
 
 That login is session-backed and does not query the users table.
+CSRF protection is enabled by default for unsafe HTTP methods, and the starter Auth and Users forms submit framework-managed CSRF tokens.
 The starter admin seeder now lives in `modules/Users/database/seeders/AdminUserSeeder.php` and is bootstrapped with the Users module when the table is empty.
 The admin theme now uses Tailwind utilities directly in the Twig templates, the framework Alpine bridge for its mobile sidebar toggle, and Lucide-style inline SVG icons in the sidebar and user status badges.
 The admin sidebar includes Users and Activity sections that link to the module CRUD screens and activity feed under `/admin/users` and `/admin/activity`.

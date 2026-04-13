@@ -5,7 +5,7 @@ declare(strict_types=1);
 return [
     'enabled' => env('SECURITY_ENABLED', true),
     'csrf' => [
-        'enabled' => env('CSRF_ENABLED', false),
+        'enabled' => env('CSRF_ENABLED', true),
         'field' => env('CSRF_FIELD', '_token'),
         'header' => env('CSRF_HEADER', 'X-CSRF-TOKEN'),
         'token' => env('CSRF_TOKEN_NAME', '__marwa_csrf_token'),

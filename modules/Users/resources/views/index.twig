@@ -99,6 +99,7 @@
                 <div class="flex flex-wrap gap-2">
                   {% if user.getAttribute('deleted_at') %}
                     <form method="post" action="/admin/users/{{ user.getKey() }}/restore">
+                      {{ csrf_field() }}
                       <button class="{{ button_secondary }}" type="submit">
                         {% include 'components/icon.twig' with { name: 'rotate-ccw', class: 'h-4 w-4 shrink-0' } only %}
                         <span>Restore</span>
@@ -114,6 +115,7 @@
                     <button class="{{ button_danger }}" type="button" disabled title="The last admin user cannot be deleted.">Delete</button>
                   {% else %}
                     <form method="post" action="/admin/users/{{ user.getKey() }}/delete">
+                      {{ csrf_field() }}
                       <button class="{{ button_danger }}" type="submit" onclick="return confirm('Delete this user?');">Delete</button>
                     </form>
                   {% endif %}

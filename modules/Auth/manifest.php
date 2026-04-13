@@ -17,4 +17,7 @@ return [
     'routes' => [
         'http' => 'routes/http.php',
     ],
+    'migrations' => [
+        'database/migrations/2026_04_10_000002_create_password_reset_tokens_table.php',
+    ],
 ];

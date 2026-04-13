@@ -27,6 +27,8 @@
   {% endif %}
 
   <form class="mt-6 grid gap-5" method="post" action="/admin/login">
+    {{ csrf_field() }}
+
     {% include "components/form-field.twig" with {
       id: 'email',
       label: 'Email address',
