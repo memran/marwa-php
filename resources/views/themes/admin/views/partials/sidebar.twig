@@ -1,16 +1,16 @@
 {% set currentPath = _current_path|default('') %}
-{% set nav_link_base = 'inline-flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition' %}
+{% set nav_link_base = 'inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition' %}
 {% set nav_link_active = 'bg-cyan-400/10 text-cyan-100 ring-1 ring-inset ring-cyan-300/20' %}
 {% set nav_link_inactive = 'text-slate-300 hover:bg-white/5 hover:text-white' %}
 
-<div class="grid gap-4">
+<div class="grid gap-3">
   <div class="inline-flex items-center gap-3">
-    <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-400/10 text-cyan-100 shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
-      {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-6 w-6' } only %}
+    <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 text-cyan-100 shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
+      {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-5 w-5' } only %}
     </span>
     <div class="grid gap-0.5">
-      <span class="text-sm font-black uppercase tracking-[0.24em] text-white">MarwaPHP</span>
-      <span class="text-sm text-slate-400">Operations console</span>
+      <span class="text-[0.82rem] font-black uppercase tracking-[0.18em] text-white">MarwaPHP</span>
+      <span class="text-xs text-slate-400">Operations console</span>
     </div>
   </div>
 </div>
@@ -27,6 +27,14 @@
   <a class="{{ nav_link_base }} {% if currentPath starts with '/admin/activity' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" href="/admin/activity" {% if currentPath starts with '/admin/activity' %}aria-current="page"{% endif %}>
     {% include 'components/icon.twig' with { name: 'activity', class: 'h-5 w-5 shrink-0' } only %}
     <span class="truncate">Activity</span>
+  </a>
+  <a class="{{ nav_link_base }} {% if currentPath starts with '/admin/database' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" href="/admin/database" {% if currentPath starts with '/admin/database' %}aria-current="page"{% endif %}>
+    {% include 'components/icon.twig' with { name: 'database', class: 'h-5 w-5 shrink-0' } only %}
+    <span class="truncate">Database</span>
+  </a>
+  <a class="{{ nav_link_base }} {% if currentPath starts with '/admin/settings' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" href="/admin/settings" {% if currentPath starts with '/admin/settings' %}aria-current="page"{% endif %}>
+    {% include 'components/icon.twig' with { name: 'settings', class: 'h-5 w-5 shrink-0' } only %}
+    <span class="truncate">Settings</span>
   </a>
   <a class="{{ nav_link_base }} {{ nav_link_inactive }}" href="/admin/logout">
     {% include 'components/icon.twig' with { name: 'log-out', class: 'h-5 w-5 shrink-0' } only %}

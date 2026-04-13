@@ -61,8 +61,10 @@ Admin login uses the bootstrap credentials from `.env`:
 That login is session-backed and does not query the users table.
 CSRF protection is enabled by default for unsafe HTTP methods, and the starter Auth and Users forms submit framework-managed CSRF tokens.
 The starter admin seeder now lives in `modules/Users/database/seeders/AdminUserSeeder.php` and is bootstrapped with the Users module when the table is empty.
-The admin theme now uses Tailwind utilities directly in the Twig templates, the framework Alpine bridge for its mobile sidebar toggle, and Lucide-style inline SVG icons in the sidebar and user status badges.
+The admin theme now uses Tailwind utilities directly in the Twig templates, the framework Alpine bridge for its mobile sidebar toggle, and a Lucide sprite-backed icon partial in the sidebar and user status badges.
 The admin sidebar includes Users and Activity sections that link to the module CRUD screens and activity feed under `/admin/users` and `/admin/activity`.
+The admin sidebar also exposes a raw SQL database console at `/admin/database` for admin users only. It runs single-statement raw SQL directly against the configured connection, paginates result sets in the UI, shows query errors clearly, and requires explicit confirmation before destructive queries such as `UPDATE` or `DELETE`.
+The starter also ships an admin-only Settings module at `/admin/settings`. It stores predefined `category -> key -> value` records in the database, caches them for fast reads, reloads them at bootstrap, and mirrors selected values into runtime config so they are globally readable through `config('settings.category.key')` and relevant core config keys.
 Soft-deleted users stay visible in the Users module with a `Trashed` badge and a restore action.
 User creation now rejects duplicate emails, and delete actions ask for a browser confirmation before submitting.
 The Activity module records admin login, logout, and user CRUD events through direct `ActivityRecorder` calls in the starter workflows, then shows them in the dashboard feed and on the activity page.

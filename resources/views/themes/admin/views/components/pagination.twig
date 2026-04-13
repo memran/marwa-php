@@ -1,8 +1,8 @@
-<div class="mt-5 flex flex-col gap-4 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
-  <div class="text-sm text-slate-400">{{ pagination.summary }}</div>
-  <div class="flex flex-wrap gap-2">
+<div class="admin-pagination mt-4 flex flex-col gap-3 border-t border-white/10 pt-3 sm:flex-row sm:items-center sm:justify-between">
+  <div class="text-xs text-slate-400 sm:text-sm">{{ pagination.summary }}</div>
+  <div class="flex flex-wrap gap-1.5">
     {% for link in pagination.links %}
-      <a class="inline-flex h-10 min-w-10 items-center justify-center rounded-full border px-3 text-sm font-semibold transition {% if link.active %}border-cyan-300/30 bg-cyan-400/10 text-cyan-100{% else %}border-white/10 bg-white/5 text-slate-200 hover:bg-white/10{% endif %}" href="{{ link.url }}">
+      <a class="inline-flex h-8 min-w-8 items-center justify-center rounded-xl border px-2.5 text-xs font-semibold transition {% if link.active %}border-cyan-300/30 bg-cyan-400/10 text-cyan-100{% else %}border-white/10 bg-white/5 text-slate-200 hover:bg-white/10{% endif %}" href="{{ link.url }}">
         {{ link.page }}
       </a>
     {% endfor %}

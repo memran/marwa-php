@@ -1,53 +1,8 @@
 {% set iconName = name|default('') %}
 {% set iconClass = class|default('') %}
 
-{% if iconName == 'layout-dashboard' %}
-  <svg{% if iconClass %} class="{{ iconClass }}"{% endif %} viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="3" y="3" width="7" height="9" rx="1.5"></rect>
-    <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
-    <rect x="14" y="10" width="7" height="11" rx="1.5"></rect>
-    <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
-  </svg>
-{% elseif iconName == 'users' %}
-  <svg{% if iconClass %} class="{{ iconClass }}"{% endif %} viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-    <circle cx="9" cy="7" r="4"></circle>
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-  </svg>
-{% elseif iconName == 'log-out' %}
-  <svg{% if iconClass %} class="{{ iconClass }}"{% endif %} viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M15 3h4a2 2 0 0 1 2 2v4"></path>
-    <path d="M10 17l5-5-5-5"></path>
-    <path d="M15 12H3"></path>
-  </svg>
-{% elseif iconName == 'menu' %}
-  <svg{% if iconClass %} class="{{ iconClass }}"{% endif %} viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <line x1="4" y1="6" x2="20" y2="6"></line>
-    <line x1="4" y1="12" x2="20" y2="12"></line>
-    <line x1="4" y1="18" x2="20" y2="18"></line>
-  </svg>
-{% elseif iconName == 'shield' %}
-  <svg{% if iconClass %} class="{{ iconClass }}"{% endif %} viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M20 13c0 5-3.5 7.7-8 9-4.5-1.3-8-4-8-9V6l8-3 8 3z"></path>
-    <path d="M12 9v4"></path>
-    <path d="M12 17h.01"></path>
-  </svg>
-{% elseif iconName == 'trash-2' %}
-  <svg{% if iconClass %} class="{{ iconClass }}"{% endif %} viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <polyline points="3 6 5 6 21 6"></polyline>
-    <path d="M8 6V4h8v2"></path>
-    <path d="M19 6l-1 14H6L5 6"></path>
-    <path d="M10 11v6"></path>
-    <path d="M14 11v6"></path>
-  </svg>
-{% elseif iconName == 'rotate-ccw' %}
-  <svg{% if iconClass %} class="{{ iconClass }}"{% endif %} viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M3 12a9 9 0 1 0 3-6.7"></path>
-    <path d="M3 4v6h6"></path>
-  </svg>
-{% elseif iconName == 'activity' %}
-  <svg{% if iconClass %} class="{{ iconClass }}"{% endif %} viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M22 12h-4l-3 9-4-18-3 9H2"></path>
+{% if iconName %}
+  <svg{% if iconClass %} class="{{ iconClass }}"{% endif %} aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <use href="{{ theme_asset('assets/icons/lucide.svg') }}#{{ iconName }}"></use>
   </svg>
 {% endif %}

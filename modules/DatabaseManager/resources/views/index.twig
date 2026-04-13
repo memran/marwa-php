@@ -1,0 +1,119 @@
+{% extends "layout.twig" %}
+
+{% block title %}Database | MarwaPHP Admin{% endblock %}
+
+{% block content %}
+  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
+  {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
+  {% set button_ghost = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
+
+  <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <div class="max-w-3xl space-y-2">
+      <span class="inline-flex w-fit items-center rounded-xl border border-rose-400/20 bg-rose-500/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-rose-100">High risk</span>
+      <h1 class="text-2xl font-black tracking-tight text-white sm:text-3xl">Database Manager</h1>
+      <p class="max-w-2xl text-sm leading-6 text-slate-300">Execute raw SQL against the configured application database. This tool can alter, corrupt, or permanently destroy production data.</p>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <a class="{{ button_ghost }}" href="/admin">Back to dashboard</a>
+    </div>
+  </section>
+
+  <div class="mt-4 rounded-[1rem] border border-rose-400/20 bg-rose-500/10 p-4 text-rose-100">
+    <p class="text-sm font-semibold">Danger zone</p>
+    <p class="mt-1 text-sm text-rose-100/85">Only execute queries you fully understand. UPDATE, DELETE, DROP, TRUNCATE, and similar statements can cause irreversible data loss.</p>
+  </div>
+
+  <section class="mt-6 overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/5 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-5">
+    <div class="border-b border-white/10 pb-4">
+      <h2 class="text-xl font-bold tracking-tight text-white">Query editor</h2>
+      <p class="mt-1 text-sm text-slate-400">One SQL statement per execution. Comments are blocked and queries run without the ORM.</p>
+    </div>
+
+    {% if error is defined and error %}
+      <div class="mt-4 rounded-xl border border-rose-400/20 bg-rose-500/10 p-3.5 text-rose-100">
+        <p class="text-sm font-semibold">Query error</p>
+        <p class="mt-1 text-sm text-rose-100/85">{{ error }}</p>
+      </div>
+    {% endif %}
+
+    <form class="mt-4 grid gap-4" method="post" action="/admin/database">
+      {{ csrf_field() }}
+      <div class="grid gap-2">
+        <label class="text-[0.82rem] font-semibold text-slate-200" for="query">SQL query</label>
+        <textarea
+          class="admin-control w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10"
+          id="query"
+          name="query"
+          rows="10"
+          placeholder="SELECT * FROM users ORDER BY id DESC"
+        >{{ query|default('') }}</textarea>
+      </div>
+
+      <label class="inline-flex items-start gap-3 text-sm text-slate-300">
+        <input type="checkbox" id="confirm_destructive" name="confirm_destructive" value="1">
+        <span>I understand that destructive queries can change or destroy data and should only be executed intentionally.</span>
+      </label>
+
+      <div class="flex flex-wrap gap-2">
+        <button class="{{ button_primary }}" type="submit">Execute query</button>
+      </div>
+    </form>
+  </section>
+
+  {% if result is defined and result %}
+    <section class="mt-6 overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/5 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-5">
+      <div class="flex flex-col gap-2 border-b border-white/10 pb-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 class="text-xl font-bold tracking-tight text-white">Query result</h2>
+          <p class="mt-1 text-sm text-slate-400">Statement type: <span class="font-semibold text-slate-200">{{ result.statement_type|upper }}</span></p>
+        </div>
+
+        {% if result.is_result_set %}
+          <span class="inline-flex rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-2.5 py-1 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-cyan-100">{{ result.total_rows }} rows</span>
+        {% else %}
+          <span class="inline-flex rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-emerald-100">{{ result.affected_rows }} affected</span>
+        {% endif %}
+      </div>
+
+      {% if result.is_result_set %}
+        {% if result.rows is empty %}
+          <div class="mt-4 rounded-xl border border-cyan-300/20 bg-cyan-400/10 p-3.5 text-cyan-100">
+            <p class="text-sm font-semibold">No rows returned</p>
+            <p class="mt-1 text-sm text-cyan-100/80">The query ran successfully but returned an empty result set.</p>
+          </div>
+        {% else %}
+          <div class="mt-4 overflow-x-auto rounded-[1rem] border border-white/10">
+            <table class="admin-table w-full border-collapse">
+              <thead>
+                <tr class="bg-white/5">
+                  {% for column in result.columns %}
+                    <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">{{ column }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/10">
+                {% for row in result.rows %}
+                  <tr class="align-top">
+                    {% for column in result.columns %}
+                      <td class="px-3 py-3 text-sm text-slate-200">{{ attribute(row, column)|default(null) is same as(null) ? 'NULL' : attribute(row, column) }}</td>
+                    {% endfor %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          {% if pagination %}
+            {% include 'components/pagination.twig' with { pagination: pagination } only %}
+          {% endif %}
+        {% endif %}
+      {% else %}
+        <div class="mt-4 rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-3.5 text-emerald-100">
+          <p class="text-sm font-semibold">Statement executed</p>
+          <p class="mt-1 text-sm text-emerald-100/85">The query completed successfully.</p>
+        </div>
+      {% endif %}
+    </section>
+  {% endif %}
+{% endblock %}

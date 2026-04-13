@@ -28,7 +28,7 @@
 - The Docker Compose files also include a MariaDB service for local container-based development, with the app container pointed at that database host.
 - Docker stack credentials are copied from `docker/docker.env.example` into an ignored `docker/docker.env` runtime file mounted into the app container.
 - `routes/` defines the HTTP entry points.
-- `resources/views/` contains Twig layouts, theme views, and shared partials. The admin theme uses a small Lucide-style icon partial for consistent inline SVGs, and the Users module shows soft-deleted rows with a restore action, asks for delete confirmation, and rejects duplicate emails at the starter layer. The Activity module records admin login/logout and user CRUD events through direct starter workflow calls and renders them on `/admin/activity` and in the dashboard feed.
+- `resources/views/` contains Twig layouts, theme views, and shared partials. The admin theme uses a shared Lucide sprite-backed icon partial for consistent SVGs, and the Users module shows soft-deleted rows with a restore action, asks for delete confirmation, and rejects duplicate emails at the starter layer. The Activity module records admin login/logout and user CRUD events through direct starter workflow calls and renders them on `/admin/activity` and in the dashboard feed. The admin-only Database Manager module provides a high-risk raw SQL console at `/admin/database` with confirmation for destructive queries. The admin-only Settings module exposes update-only predefined settings at `/admin/settings`, loads them at bootstrap, caches them, and mirrors them into `config('settings.*')`.
 - Starter maintenance and 404 pages live under `resources/views/themes/default/views/` so the framework can resolve them through `config/app.php`.
 - `modules/` stays optional and self-contained.
 - Module migrations are bootstrapped from a single app listener. Admin login is session-backed and uses `ADMIN_BOOTSTRAP_EMAIL` / `ADMIN_BOOTSTRAP_PASSWORD` from `.env`; the starter still seeds an admin account from `modules/Users/database/seeders/AdminUserSeeder.php` for the users module when the users table is empty, and the admin sidebar exposes the Users CRUD section at `/admin/users` plus the Activity feed at `/admin/activity`.
@@ -55,6 +55,7 @@
 - Keep `README.md` synchronized with the actual starter behavior.
 - Document `composer create-project`, quick start, project structure, routing, controller, view usage, and the split between app code and framework code.
 - Keep `docs/module-authoring.md` aligned with the actual module conventions used in this starter.
+- When documenting shared UI assets or dependencies, describe the real implementation precisely. Do not say a package or build pipeline is used unless it is actually installed, wired, and shipped by the starter.
 - If the starter changes, update the README in the same change.
 
 ## Refactoring

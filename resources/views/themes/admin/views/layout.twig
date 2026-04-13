@@ -6,30 +6,86 @@
   <meta name="color-scheme" content="light dark">
   <title>{% block title %}Admin{% endblock %}</title>
   <meta name="description" content="Executive-grade admin theme for MarwaPHP.">
+  <script>
+    (() => {
+      const storageKey = 'marwa-admin-theme';
+      const stored = window.localStorage.getItem(storageKey);
+      const preferred = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      const theme = stored === 'light' || stored === 'dark' ? stored : preferred;
+
+      document.documentElement.dataset.adminTheme = theme;
+      document.documentElement.style.colorScheme = theme;
+    })();
+  </script>
   <link rel="stylesheet" href="{{ theme_asset('css/app.css') }}">
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
-  <div class="relative isolate min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_36%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.12),_transparent_32%),linear-gradient(180deg,#020617_0%,#0f172a_48%,#020617_100%)]">
+<body class="admin-theme min-h-screen bg-slate-950 text-slate-100 antialiased">
+  <div class="admin-shell relative isolate min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_36%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.12),_transparent_32%),linear-gradient(180deg,#020617_0%,#0f172a_48%,#020617_100%)]">
     <div class="pointer-events-none absolute left-[-8rem] top-10 -z-10 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl"></div>
     <div class="pointer-events-none absolute right-[-10rem] top-32 -z-10 h-96 w-96 rounded-full bg-emerald-400/10 blur-3xl"></div>
 
-    <div class="grid min-h-screen lg:grid-cols-[18rem_minmax(0,1fr)]">
-      <aside id="admin-sidebar" aria-label="Sidebar navigation" class="border-b border-white/10 bg-slate-950/55 backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r">
-        <div class="flex h-full flex-col gap-10 p-6">
+    <div class="grid min-h-screen lg:grid-cols-[16rem_minmax(0,1fr)]">
+      <aside id="admin-sidebar" aria-label="Sidebar navigation" class="admin-sidebar border-b border-white/10 bg-slate-950/55 backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r">
+        <div class="flex h-full flex-col gap-7 p-4 lg:p-5">
           {% include 'partials/sidebar.twig' %}
         </div>
       </aside>
 
       <div class="flex min-w-0 flex-col">
-        <header class="border-b border-white/10 bg-slate-950/50 backdrop-blur-xl">
+        <header class="admin-topbar border-b border-white/10 bg-slate-950/50 backdrop-blur-xl">
           {% include 'partials/topbar.twig' %}
         </header>
 
-        <main class="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+        <main class="admin-content flex-1 px-4 py-4 sm:px-5 lg:px-6">
           {% block content %}{% endblock %}
         </main>
       </div>
     </div>
   </div>
+  <script>
+    (() => {
+      const storageKey = 'marwa-admin-theme';
+      const root = document.documentElement;
+      const toggle = document.querySelector('[data-theme-toggle]');
+      const label = document.querySelector('[data-theme-label]');
+      const moon = document.querySelector('[data-theme-icon="moon"]');
+      const sun = document.querySelector('[data-theme-icon="sun"]');
+
+      const applyTheme = (theme) => {
+        root.dataset.adminTheme = theme;
+        root.style.colorScheme = theme;
+
+        if (label) {
+          label.textContent = theme === 'dark' ? 'Dark' : 'Light';
+        }
+
+        if (moon) {
+          moon.classList.toggle('hidden', theme !== 'dark');
+        }
+
+        if (sun) {
+          sun.classList.toggle('hidden', theme !== 'light');
+        }
+
+        if (toggle) {
+          toggle.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
+          toggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+          toggle.setAttribute('title', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+        }
+      };
+
+      applyTheme(root.dataset.adminTheme || 'dark');
+
+      if (!toggle) {
+        return;
+      }
+
+      toggle.addEventListener('click', () => {
+        const next = (root.dataset.adminTheme || 'dark') === 'dark' ? 'light' : 'dark';
+        window.localStorage.setItem(storageKey, next);
+        applyTheme(next);
+      });
+    })();
+  </script>
 </body>
 </html>

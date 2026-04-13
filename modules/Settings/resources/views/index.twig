@@ -1,2 +1,106 @@
-<h1>Settings Module</h1>
-<p>Settings module scaffolding is ready.</p>
+{% extends "layout.twig" %}
+
+{% block title %}Settings | MarwaPHP Admin{% endblock %}
+
+{% block content %}
+  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
+  {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
+  {% set button_secondary = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
+
+  <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <div class="max-w-3xl space-y-2">
+      <span class="inline-flex w-fit items-center rounded-xl border border-amber-300/20 bg-amber-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-amber-100">Admin only</span>
+      <h1 class="text-2xl font-black tracking-tight text-white sm:text-3xl">Settings</h1>
+      <p class="max-w-2xl text-sm leading-6 text-slate-300">Update predefined starter settings only. Changes refresh the runtime cache immediately after save.</p>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <a class="{{ button_secondary }}" href="/admin">Back to dashboard</a>
+    </div>
+  </section>
+
+  <div class="mt-4 rounded-[1rem] border border-amber-400/20 bg-amber-500/10 p-4 text-amber-100">
+    <p class="text-sm font-semibold">Operational caution</p>
+    <p class="mt-1 text-sm text-amber-100/85">These values are loaded at bootstrap and can alter mail, cache, logging, theme, and other runtime behavior immediately after update.</p>
+  </div>
+
+  {% if notice %}
+    <div class="mt-4 rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-3.5 text-emerald-100">
+      <p class="text-sm font-semibold">{{ notice }}</p>
+    </div>
+  {% endif %}
+
+  {% if errors._global is defined %}
+    <div class="mt-4 rounded-xl border border-rose-400/20 bg-rose-500/10 p-3.5 text-rose-100">
+      <p class="text-sm font-semibold">{{ errors._global|first }}</p>
+    </div>
+  {% endif %}
+
+  <form class="mt-6 grid gap-5" method="post" action="/admin/settings">
+    {{ csrf_field() }}
+
+    {% for category, meta in categories %}
+      <section class="overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/5 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-5">
+        <div class="border-b border-white/10 pb-4">
+          <h2 class="text-lg font-bold tracking-tight text-white">{{ meta.label }}</h2>
+          <p class="mt-1 text-sm text-slate-400">{{ meta.description }}</p>
+        </div>
+
+        <div class="mt-4 grid gap-4 md:grid-cols-2">
+          {% for key, field in meta.fields %}
+            {% set field_id = category ~ '_' ~ key %}
+            {% set field_name = 'settings[' ~ category ~ '][' ~ key ~ ']' %}
+            {% set field_value = attribute(attribute(settings, category), key)|default(field.default) %}
+            {% set field_error = errors[category ~ '.' ~ key]|default([])|first %}
+
+            <div class="grid gap-2 {% if field.input == 'textarea' %}md:col-span-2{% endif %}">
+              <label class="text-[0.82rem] font-semibold text-slate-200" for="{{ field_id }}">{{ field.label }}</label>
+
+              {% if field.input == 'textarea' %}
+                <textarea
+                  class="admin-control w-full rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10"
+                  id="{{ field_id }}"
+                  name="{{ field_name }}"
+                  rows="4"
+                  placeholder="{{ field.help|default('') }}"
+                >{% if field.type == 'list' %}{{ field_value is iterable ? field_value|join("\n") : field_value }}{% else %}{{ field.sensitive|default(false) ? '' : field_value }}{% endif %}</textarea>
+              {% elseif field.input == 'select' %}
+                <select class="admin-control w-full rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10" id="{{ field_id }}" name="{{ field_name }}">
+                  {% for option_value, option_label in field.options %}
+                    <option value="{{ option_value }}" {% if field_value == option_value %}selected{% endif %}>{{ option_label }}</option>
+                  {% endfor %}
+                </select>
+              {% elseif field.input == 'checkbox' %}
+                <label class="inline-flex min-h-[2.5rem] items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-200">
+                  <input type="checkbox" id="{{ field_id }}" name="{{ field_name }}" value="1" {% if field_value %}checked{% endif %}>
+                  <span>Enabled</span>
+                </label>
+              {% else %}
+                <input
+                  class="admin-control w-full rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10"
+                  id="{{ field_id }}"
+                  name="{{ field_name }}"
+                  type="{{ field.input }}"
+                  value="{{ field.sensitive|default(false) ? '' : field_value }}"
+                  {% if field.min is defined %}min="{{ field.min }}"{% endif %}
+                  {% if field.step is defined %}step="{{ field.step }}"{% endif %}
+                >
+              {% endif %}
+
+              {% if field_error %}
+                <p class="text-sm text-rose-300">{{ field_error }}</p>
+              {% elseif field.help is defined %}
+                <p class="text-sm text-slate-400">{{ field.help }}</p>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+
+    <div class="flex flex-wrap gap-2">
+      <button class="{{ button_primary }}" type="submit">Save settings</button>
+      <a class="{{ button_secondary }}" href="/admin">Cancel</a>
+    </div>
+  </form>
+{% endblock %}
