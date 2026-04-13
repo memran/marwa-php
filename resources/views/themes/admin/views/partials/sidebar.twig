@@ -1,30 +1,35 @@
 {% set currentPath = _current_path|default('') %}
+{% set nav_link_base = 'inline-flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition' %}
+{% set nav_link_active = 'bg-cyan-400/10 text-cyan-100 ring-1 ring-inset ring-cyan-300/20' %}
+{% set nav_link_inactive = 'text-slate-300 hover:bg-white/5 hover:text-white' %}
 
-<div class="admin-brand">
-  <span class="admin-brand__mark">
-    {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'admin-brand__icon' } only %}
-  </span>
-  <div class="admin-brand__copy">
-    <span class="admin-brand__title">MarwaPHP</span>
-    <span class="admin-brand__sub">Operations console</span>
+<div class="grid gap-4">
+  <div class="inline-flex items-center gap-3">
+    <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-400/10 text-cyan-100 shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
+      {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-6 w-6' } only %}
+    </span>
+    <div class="grid gap-0.5">
+      <span class="text-sm font-black uppercase tracking-[0.24em] text-white">MarwaPHP</span>
+      <span class="text-sm text-slate-400">Operations console</span>
+    </div>
   </div>
 </div>
 
-<nav class="admin-nav" aria-label="Primary">
-  <a class="admin-nav__link {% if currentPath == '/admin' %}admin-nav__link--active{% endif %}" href="/admin" {% if currentPath == '/admin' %}aria-current="page"{% endif %}>
-    {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'admin-nav__icon' } only %}
-    <span class="admin-nav__label">Dashboard</span>
+<nav class="grid gap-2" aria-label="Primary">
+  <a class="{{ nav_link_base }} {% if currentPath == '/admin' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" href="/admin" {% if currentPath == '/admin' %}aria-current="page"{% endif %}>
+    {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-5 w-5 shrink-0' } only %}
+    <span class="truncate">Dashboard</span>
   </a>
-  <a class="admin-nav__link {% if currentPath starts with '/admin/users' %}admin-nav__link--active{% endif %}" href="/admin/users" {% if currentPath starts with '/admin/users' %}aria-current="page"{% endif %}>
-    {% include 'components/icon.twig' with { name: 'users', class: 'admin-nav__icon' } only %}
-    <span class="admin-nav__label">Users</span>
+  <a class="{{ nav_link_base }} {% if currentPath starts with '/admin/users' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" href="/admin/users" {% if currentPath starts with '/admin/users' %}aria-current="page"{% endif %}>
+    {% include 'components/icon.twig' with { name: 'users', class: 'h-5 w-5 shrink-0' } only %}
+    <span class="truncate">Users</span>
   </a>
-  <a class="admin-nav__link {% if currentPath starts with '/admin/activity' %}admin-nav__link--active{% endif %}" href="/admin/activity" {% if currentPath starts with '/admin/activity' %}aria-current="page"{% endif %}>
-    {% include 'components/icon.twig' with { name: 'activity', class: 'admin-nav__icon' } only %}
-    <span class="admin-nav__label">Activity</span>
+  <a class="{{ nav_link_base }} {% if currentPath starts with '/admin/activity' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" href="/admin/activity" {% if currentPath starts with '/admin/activity' %}aria-current="page"{% endif %}>
+    {% include 'components/icon.twig' with { name: 'activity', class: 'h-5 w-5 shrink-0' } only %}
+    <span class="truncate">Activity</span>
   </a>
-  <a class="admin-nav__link" href="/admin/logout">
-    {% include 'components/icon.twig' with { name: 'log-out', class: 'admin-nav__icon' } only %}
-    <span class="admin-nav__label">Logout</span>
+  <a class="{{ nav_link_base }} {{ nav_link_inactive }}" href="/admin/logout">
+    {% include 'components/icon.twig' with { name: 'log-out', class: 'h-5 w-5 shrink-0' } only %}
+    <span class="truncate">Logout</span>
   </a>
 </nav>

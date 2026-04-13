@@ -3,23 +3,26 @@
 {% block title %}Activity | MarwaPHP Admin{% endblock %}
 
 {% block content %}
-  <section class="admin-page-header">
-    <div class="admin-page-header__copy">
-      <span class="admin-eyebrow">Audit trail</span>
-      <h1 class="admin-page-title">Activity</h1>
-      <p class="admin-page-lead">Track sign-ins, user management, and other important admin actions.</p>
+  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5' %}
+  {% set button_ghost = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
+
+  <section class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div class="max-w-3xl space-y-3">
+      <span class="inline-flex w-fit items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-cyan-100">Audit trail</span>
+      <h1 class="text-3xl font-black tracking-tight text-white sm:text-4xl">Activity</h1>
+      <p class="max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">Track sign-ins, user management, and other important admin actions.</p>
     </div>
 
-    <div class="admin-table-tools">
-      <a class="admin-btn admin-btn--ghost" href="/admin">Back to dashboard</a>
+    <div class="flex flex-wrap gap-3">
+      <a class="{{ button_ghost }}" href="/admin">Back to dashboard</a>
     </div>
   </section>
 
-  <section class="admin-table-shell">
-    <div class="admin-table-shell__header">
+  <section class="mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-6">
+    <div class="flex flex-col gap-3 border-b border-white/10 pb-5 xl:flex-row xl:items-end xl:justify-between">
       <div>
-        <h2 class="admin-section-title">Recent activity</h2>
-        <p class="admin-section-subtitle">Newest actions appear at the top.</p>
+        <h2 class="text-2xl font-bold tracking-tight text-white">Recent activity</h2>
+        <p class="mt-1 text-sm text-slate-400">Newest actions appear at the top.</p>
       </div>
 
       {% include 'components/search-bar.twig' with {
@@ -31,38 +34,42 @@
     </div>
 
     {% if activities.data is empty %}
-      <div class="admin-alert admin-alert--info">
-        <p class="admin-alert__title">No activity yet</p>
-        <p class="admin-alert__body">Admin actions will appear here once the module records them.</p>
+      <div class="mt-5 rounded-2xl border border-cyan-300/20 bg-cyan-400/10 p-4 text-cyan-100">
+        <p class="text-sm font-semibold">No activity yet</p>
+        <p class="mt-1 text-sm text-cyan-100/80">Admin actions will appear here once the module records them.</p>
       </div>
     {% else %}
-      <table class="admin-table">
+      <div class="mt-5 overflow-hidden rounded-[1.5rem] border border-white/10">
+      <table class="w-full border-collapse">
         <thead>
-          <tr>
-            <th>Time</th>
-            <th>Action</th>
-            <th>Description</th>
-            <th>Details</th>
-            <th>Actor</th>
+          <tr class="bg-white/5">
+            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Time</th>
+            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Action</th>
+            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Description</th>
+            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Details</th>
+            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Actor</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody class="divide-y divide-white/10">
           {% for activity in activities.data %}
-            <tr>
-              <td>{{ activity.getAttribute('created_at')|default('Now') }}</td>
-              <td><span class="admin-badge admin-badge--neutral">{{ activity.getAttribute('action') }}</span></td>
-              <td>{{ activity.getAttribute('description') }}</td>
-              <td>{{ activity.readableDetails() }}</td>
-              <td>
-                <div class="admin-row-meta">
-                  <span class="admin-row-meta__title">{{ activity.getAttribute('actor_name')|default('System') }}</span>
-                  <span class="admin-row-meta__subtitle">{{ activity.getAttribute('actor_email')|default('No actor') }}</span>
+            <tr class="align-top">
+              <td class="px-3 py-3 text-sm text-slate-300">{{ activity.getAttribute('created_at')|default('Now') }}</td>
+              <td class="px-3 py-3">
+                <span class="inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-100">{{ activity.getAttribute('action') }}</span>
+              </td>
+              <td class="px-3 py-3 text-sm text-slate-200">{{ activity.getAttribute('description') }}</td>
+              <td class="px-3 py-3 text-sm text-slate-300">{{ activity.readableDetails() }}</td>
+              <td class="px-3 py-3">
+                <div class="grid gap-0.5">
+                  <span class="font-semibold text-slate-100">{{ activity.getAttribute('actor_name')|default('System') }}</span>
+                  <span class="text-sm text-slate-400">{{ activity.getAttribute('actor_email')|default('No actor') }}</span>
                 </div>
               </td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
+      </div>
     {% endif %}
 
     {% include 'components/pagination.twig' with { pagination: pagination } only %}

@@ -8,7 +8,10 @@
   },
   "scripts": {
     "css:dev": "tailwindcss -c tailwind.config.js -i ./resources/css/app.css -o ./public/assets/css/app.css --watch",
-    "css:build": "tailwindcss -c tailwind.config.js -i ./resources/css/app.css -o ./public/assets/css/app.css --minify",
+    "css:dev:admin": "tailwindcss -c tailwind.config.js -i ./resources/views/themes/admin/assets/css/app.css -o ./public/themes/admin/assets/css/app.css --watch",
+    "css:build:default": "tailwindcss -c tailwind.config.js -i ./resources/css/app.css -o ./public/assets/css/app.css --minify",
+    "css:build:admin": "tailwindcss -c tailwind.config.js -i ./resources/views/themes/admin/assets/css/app.css -o ./public/themes/admin/assets/css/app.css --minify",
+    "css:build": "npm run css:build:default && npm run css:build:admin",
     "dev": "npm run css:dev",
     "build": "npm run css:build"
   },

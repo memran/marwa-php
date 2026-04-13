@@ -1,14 +1,12 @@
-{% set field_state = state|default('default') %}
-
-<div class="admin-field admin-field--{{ field_state }}">
-  <label class="admin-field__label" for="{{ id }}">{{ label }}</label>
+<div class="grid gap-2">
+  <label class="text-sm font-semibold text-slate-200" for="{{ id }}">{{ label }}</label>
   {% if hint is defined and hint %}
-    <p class="admin-field__hint">{{ hint }}</p>
+    <p class="text-sm text-slate-400">{{ hint }}</p>
   {% endif %}
 
   {% if type|default('text') == 'textarea' %}
     <textarea
-      class="admin-field__control"
+      class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10 disabled:cursor-not-allowed disabled:opacity-60"
       id="{{ id }}"
       name="{{ name|default(id) }}"
       rows="{{ rows|default(4) }}"
@@ -17,7 +15,7 @@
     >{{ value|default('') }}</textarea>
   {% else %}
     <input
-      class="admin-field__control"
+      class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10 disabled:cursor-not-allowed disabled:opacity-60"
       id="{{ id }}"
       name="{{ name|default(id) }}"
       type="{{ type|default('text') }}"
@@ -29,10 +27,10 @@
   {% endif %}
 
   {% if error is defined and error %}
-    <p class="admin-field__message admin-field__message--error">{{ error }}</p>
+    <p class="text-sm text-rose-300">{{ error }}</p>
   {% endif %}
 
   {% if success is defined and success %}
-    <p class="admin-field__message admin-field__message--success">{{ success }}</p>
+    <p class="text-sm text-emerald-300">{{ success }}</p>
   {% endif %}
 </div>

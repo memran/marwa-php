@@ -10,9 +10,12 @@ use App\Modules\Users\Models\User;
 
 final class ActivityRecorder
 {
-    public function __construct(
-        private readonly AdminSearch $search,
-    ) {}
+    private readonly AdminSearch $search;
+
+    public function __construct(?AdminSearch $search = null)
+    {
+        $this->search = $search ?? new AdminSearch();
+    }
 
     public function record(string $action, string $description, array $context = []): void
     {

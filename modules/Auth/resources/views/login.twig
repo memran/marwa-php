@@ -3,27 +3,30 @@
 {% block title %}Sign in | MarwaPHP Admin{% endblock %}
 
 {% block content %}
-  <div class="admin-auth-panel__header">
-    <span class="admin-eyebrow">Secure login</span>
-    <h2 class="admin-auth-panel__title">Sign in to continue.</h2>
-    <p class="admin-auth-panel__body">Access the admin console with a lightweight session-backed login.</p>
+  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5' %}
+  {% set button_primary = button_base ~ ' w-full border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
+
+  <div class="space-y-3">
+    <span class="inline-flex w-fit items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-cyan-100">Secure login</span>
+    <h2 class="text-2xl font-bold tracking-tight text-white sm:text-3xl">Sign in to continue.</h2>
+    <p class="text-sm leading-6 text-slate-300">Access the admin console with a lightweight session-backed login.</p>
   </div>
 
   {% if notice is defined and notice %}
-    <div class="admin-alert admin-alert--success">
-      <p class="admin-alert__title">Session update</p>
-      <p class="admin-alert__body">{{ notice }}</p>
+    <div class="mt-5 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-emerald-100">
+      <p class="text-sm font-semibold">Session update</p>
+      <p class="mt-1 text-sm text-emerald-100/80">{{ notice }}</p>
     </div>
   {% endif %}
 
   {% if errors is defined and errors.email is defined %}
-    <div class="admin-alert admin-alert--danger">
-      <p class="admin-alert__title">Unable to sign in</p>
-      <p class="admin-alert__body">{{ errors.email|first }}</p>
+    <div class="mt-5 rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-rose-100">
+      <p class="text-sm font-semibold">Unable to sign in</p>
+      <p class="mt-1 text-sm text-rose-100/80">{{ errors.email|first }}</p>
     </div>
   {% endif %}
 
-  <form class="admin-auth-form" method="post" action="/admin/login">
+  <form class="mt-6 grid gap-5" method="post" action="/admin/login">
     {% include "components/form-field.twig" with {
       id: 'email',
       label: 'Email address',
@@ -43,14 +46,14 @@
       error: errors.password|default([])|first
     } only %}
 
-    <div class="admin-auth-form__footer">
-      <label class="admin-checkbox">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <label class="inline-flex items-center gap-3 text-sm text-slate-300">
         <input type="checkbox" name="remember" value="1" {% if old.remember|default(false) %}checked{% endif %}>
         <span>Remember me</span>
       </label>
-      <a class="admin-link" href="/admin/forgot-password">Forgot password?</a>
+      <a class="text-sm font-semibold text-cyan-200 transition hover:text-cyan-100" href="/admin/forgot-password">Forgot password?</a>
     </div>
 
-    <button class="admin-btn admin-btn--primary admin-btn--full" type="submit">Sign in</button>
+    <button class="{{ button_primary }}" type="submit">Sign in</button>
   </form>
 {% endblock %}

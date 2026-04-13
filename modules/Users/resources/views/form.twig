@@ -3,27 +3,32 @@
 {% block title %}{{ title }} | MarwaPHP Admin{% endblock %}
 
 {% block content %}
-  <section class="admin-page-header">
-    <div class="admin-page-header__copy">
-      <span class="admin-eyebrow">Identity management</span>
-      <h1 class="admin-page-title">{{ title }}</h1>
-      <p class="admin-page-lead">Keep the form compact and readable for long working sessions.</p>
+  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5' %}
+  {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
+  {% set button_secondary = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
+  {% set button_ghost = button_base ~ ' border-white/10 bg-transparent text-slate-200 hover:bg-white/5' %}
+
+  <section class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div class="max-w-3xl space-y-3">
+      <span class="inline-flex w-fit items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-cyan-100">Identity management</span>
+      <h1 class="text-3xl font-black tracking-tight text-white sm:text-4xl">{{ title }}</h1>
+      <p class="max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">Keep the form compact and readable for long working sessions.</p>
     </div>
 
-    <div class="admin-table-tools">
-      <a class="admin-btn admin-btn--ghost" href="/admin/users">Back to users</a>
+    <div class="flex flex-wrap gap-3">
+      <a class="{{ button_ghost }}" href="/admin/users">Back to users</a>
     </div>
   </section>
 
-  <section class="admin-form-card">
+  <section class="mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-6">
     {% if errors is defined and errors is not empty %}
-      <div class="admin-alert admin-alert--danger">
-        <p class="admin-alert__title">Please review the form</p>
-        <p class="admin-alert__body">One or more fields contain validation errors.</p>
+      <div class="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-rose-100">
+        <p class="text-sm font-semibold">Please review the form</p>
+        <p class="mt-1 text-sm text-rose-100/80">One or more fields contain validation errors.</p>
       </div>
     {% endif %}
 
-    <form class="admin-stack" method="post" action="{{ action }}">
+    <form class="mt-6 grid gap-5" method="post" action="{{ action }}">
       {% include "components/form-field.twig" with {
         id: 'name',
         label: 'Full name',
@@ -42,64 +47,64 @@
         error: errors.email|default([])|first
       } only %}
 
-      <div class="admin-field">
-        <label class="admin-field__label" for="role">Role</label>
-        <select class="admin-field__control" id="role" name="role">
+      <div class="grid gap-2">
+        <label class="text-sm font-semibold text-slate-200" for="role">Role</label>
+        <select class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10" id="role" name="role">
           {% for value, label in roles %}
             <option value="{{ value }}" {% if form.role|default('staff') == value %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
         </select>
         {% if errors.role is defined %}
-          <p class="admin-field__message admin-field__message--error">{{ errors.role|first }}</p>
+          <p class="text-sm text-rose-300">{{ errors.role|first }}</p>
         {% else %}
-          <p class="admin-field__hint">Controls the access level shown in the user table.</p>
+          <p class="text-sm text-slate-400">Controls the access level shown in the user table.</p>
         {% endif %}
       </div>
 
       {% set is_active_checked = form.is_active is defined ? form.is_active : true %}
 
-      <div class="admin-field">
-        <label class="admin-field__label" for="is_active">Status</label>
-        <label class="admin-checkbox">
+      <div class="grid gap-2">
+        <label class="text-sm font-semibold text-slate-200" for="is_active">Status</label>
+        <label class="inline-flex items-center gap-3 text-sm text-slate-300">
           <input type="checkbox" id="is_active" name="is_active" value="1" {% if is_active_checked %}checked{% endif %}>
           <span>Active account</span>
         </label>
         {% if errors.is_active is defined %}
-          <p class="admin-field__message admin-field__message--error">{{ errors.is_active|first }}</p>
+          <p class="text-sm text-rose-300">{{ errors.is_active|first }}</p>
         {% else %}
-          <p class="admin-field__hint">Inactive users cannot sign in.</p>
+          <p class="text-sm text-slate-400">Inactive users cannot sign in.</p>
         {% endif %}
       </div>
 
-      <div class="admin-field admin-field--password">
-        <label class="admin-field__label" for="password">{{ mode == 'create' ? 'Password' : 'Password (optional)' }}</label>
+      <div class="grid gap-2">
+        <label class="text-sm font-semibold text-slate-200" for="password">{{ mode == 'create' ? 'Password' : 'Password (optional)' }}</label>
         <input
-          class="admin-field__control"
+          class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
           id="password"
           name="password"
           type="password"
           autocomplete="new-password"
           placeholder="Minimum 8 characters"
         >
-        <div class="admin-password-tools">
-          <button class="admin-btn admin-btn--secondary admin-password-tools__button" type="button" id="generate_password">Generate password</button>
-          <button class="admin-btn admin-btn--ghost admin-password-tools__button" type="button" id="copy_password">Copy password</button>
-          <label class="admin-checkbox admin-password-tools__toggle">
+        <div class="flex flex-wrap items-center gap-3">
+          <button class="{{ button_secondary }}" type="button" id="generate_password">Generate password</button>
+          <button class="{{ button_ghost }}" type="button" id="copy_password">Copy password</button>
+          <label class="inline-flex items-center gap-3 text-sm text-slate-300">
             <input type="checkbox" id="show_password">
             <span>Show password</span>
           </label>
         </div>
         {% if errors.password is defined %}
-          <p class="admin-field__message admin-field__message--error">{{ errors.password|first }}</p>
+          <p class="text-sm text-rose-300">{{ errors.password|first }}</p>
         {% else %}
-          <p class="admin-field__hint">{{ mode == 'create' ? 'Required for new accounts. Use Generate password for a 12-character random string.' : 'Leave blank to keep the current password. Use Generate password for a 12-character random string.' }}</p>
+          <p class="text-sm text-slate-400">{{ mode == 'create' ? 'Required for new accounts. Use Generate password for a 12-character random string.' : 'Leave blank to keep the current password. Use Generate password for a 12-character random string.' }}</p>
         {% endif %}
       </div>
 
-      <div class="admin-field">
-        <label class="admin-field__label" for="password_confirmation">Confirm password</label>
+      <div class="grid gap-2">
+        <label class="text-sm font-semibold text-slate-200" for="password_confirmation">Confirm password</label>
         <input
-          class="admin-field__control"
+          class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
           id="password_confirmation"
           name="password_confirmation"
           type="password"
@@ -108,9 +113,9 @@
         >
       </div>
 
-      <div class="admin-table-tools">
-        <button class="admin-btn admin-btn--primary" type="submit">{{ submit_label }}</button>
-        <a class="admin-btn admin-btn--secondary" href="/admin/users">Cancel</a>
+      <div class="flex flex-wrap gap-3">
+        <button class="{{ button_primary }}" type="submit">{{ submit_label }}</button>
+        <a class="{{ button_secondary }}" href="/admin/users">Cancel</a>
       </div>
     </form>
   </section>

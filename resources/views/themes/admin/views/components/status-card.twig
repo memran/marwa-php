@@ -1,11 +1,19 @@
-<article class="admin-kpi">
-  <div class="admin-kpi__top">
-    <p class="admin-kpi__label">{{ label }}</p>
-    <span class="admin-trend admin-trend--{{ tone|default('neutral') }}">{{ status }}</span>
+{% set tone = tone|default('neutral') %}
+{% set tone_classes = {
+  'success': 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300',
+  'warning': 'border-amber-400/20 bg-amber-400/10 text-amber-200',
+  'danger': 'border-rose-400/20 bg-rose-500/10 text-rose-200',
+  'neutral': 'border-cyan-300/20 bg-cyan-400/10 text-cyan-100'
+} %}
+
+<article class="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 shadow-[0_20px_50px_rgba(2,6,23,0.28)] backdrop-blur-xl">
+  <div class="flex items-start justify-between gap-3">
+    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-300">{{ label }}</p>
+    <span class="inline-flex rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] {{ tone_classes[tone]|default(tone_classes.neutral) }}">{{ status }}</span>
   </div>
 
-  <p class="admin-kpi__value">{{ value }}</p>
-  <div class="admin-kpi__meta">
+  <p class="mt-4 text-2xl font-black tracking-tight text-white">{{ value }}</p>
+  <div class="mt-2 text-sm text-slate-400">
     <span>{{ meta }}</span>
   </div>
 </article>
