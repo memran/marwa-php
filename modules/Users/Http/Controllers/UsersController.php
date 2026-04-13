@@ -7,7 +7,6 @@ namespace App\Modules\Users\Http\Controllers;
 use App\Modules\Auth\Support\AuthManager;
 use App\Support\AdminPagination;
 use App\Support\AdminSearch;
-use App\Modules\Users\Support\UserActivityService;
 use App\Modules\Users\Support\UserFormData;
 use App\Modules\Users\Support\UserRepository;
 use App\Modules\Users\Support\UserValidationRules;
@@ -19,7 +18,6 @@ abstract class UsersController extends Controller
     public function __construct(
         protected readonly UserRepository $users,
         protected readonly UserFormData $forms,
-        protected readonly UserActivityService $activity,
         protected readonly UserValidationRules $rules,
         protected readonly AdminSearch $search,
         protected readonly AdminPagination $pagination,

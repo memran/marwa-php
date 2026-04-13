@@ -4,11 +4,24 @@ declare(strict_types=1);
 
 namespace App\Modules\Users\Support;
 
-use App\Modules\Activity\Support\ActivityRecorder;
 use App\Modules\Users\Models\User;
 
 final class UserActivityService
 {
+    /**
+     * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
+     */
+    public function payloadFromModelEvent(User $user, string $event): array
+    {
+        return match ($event) {
+            'created' => $this->createdPayload($user, $this->userSnapshot($user)),
+            'updated' => $this->updatedPayloadFromContext($user),
+            'deleted' => $this->deletedPayload($user),
+            'restored' => $this->restoredPayload($user),
+            default => throw new \InvalidArgumentException('Unsupported user activity event [' . $event . '].'),
+        };
+    }
+
     /**
      * @return array{name: string, email: string, role: string, is_active: int}
      */
@@ -90,16 +103,16 @@ final class UserActivityService
 
     /**
      * @param array{name: string, email: string, role: string, is_active: int} $afterState
+     * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
      */
-    public function recordCreated(User $user, array $afterState, ?User $actor): void
+    public function createdPayload(User $user, array $afterState): array
     {
-        (new ActivityRecorder())->recordActorAction(
-            'user.created',
-            'Created user ' . $afterState['email'] . '.',
-            $actor,
-            User::class,
-            (int) $user->getKey(),
-            [
+        return [
+            'action' => 'user.created',
+            'description' => 'Created user ' . $afterState['email'] . '.',
+            'subjectType' => User::class,
+            'subjectId' => (int) $user->getKey(),
+            'details' => [
                 'summary' => 'Created user account.',
                 'changes' => [
                     'name' => ['before' => null, 'after' => $afterState['name']],
@@ -107,59 +120,77 @@ final class UserActivityService
                     'role' => ['before' => null, 'after' => $afterState['role']],
                     'status' => ['before' => null, 'after' => $afterState['is_active'] === 1 ? 'active' : 'disabled'],
                 ],
-            ]
-        );
+            ],
+        ];
+    }
+
+    /**
+     * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
+     */
+    public function updatedPayloadFromContext(User $user): array
+    {
+        $context = $user->eventContext();
+        $beforeState = $this->snapshotFromAttributes((array) ($context['before'] ?? []));
+        $afterState = $this->snapshotFromAttributes((array) ($context['after'] ?? []));
+        $changes = (array) ($context['changes'] ?? []);
+        $passwordChanged = array_key_exists('password', $changes);
+
+        return $this->updatedPayload($user, $beforeState, $afterState, $passwordChanged);
     }
 
     /**
      * @param array{name: string, email: string, role: string, is_active: int} $beforeState
      * @param array{name: string, email: string, role: string, is_active: int} $afterState
+     * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
      */
-    public function recordUpdated(User $user, array $beforeState, array $afterState, bool $passwordChanged, ?User $actor): void
+    public function updatedPayload(User $user, array $beforeState, array $afterState, bool $passwordChanged): array
     {
-        (new ActivityRecorder())->recordActorAction(
-            'user.updated',
-            'Updated user ' . $afterState['email'] . '.',
-            $actor,
-            User::class,
-            (int) $user->getKey(),
-            [
+        return [
+            'action' => 'user.updated',
+            'description' => 'Updated user ' . $afterState['email'] . '.',
+            'subjectType' => User::class,
+            'subjectId' => (int) $user->getKey(),
+            'details' => [
                 'summary' => $this->userUpdateSummary($beforeState, $afterState, $passwordChanged),
                 'changes' => $this->userChanges($beforeState, $afterState, $passwordChanged),
                 'before' => $this->userReadableState($beforeState),
                 'after' => $this->userReadableState($afterState),
-            ]
-        );
+            ],
+        ];
     }
 
-    public function recordDeleted(User $user, ?User $actor): void
+    /**
+     * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
+     */
+    public function deletedPayload(User $user): array
     {
-        (new ActivityRecorder())->recordActorAction(
-            'user.deleted',
-            'Deleted user ' . (string) $user->getAttribute('email') . '.',
-            $actor,
-            User::class,
-            (int) $user->getKey(),
-            [
+        return [
+            'action' => 'user.deleted',
+            'description' => 'Deleted user ' . (string) $user->getAttribute('email') . '.',
+            'subjectType' => User::class,
+            'subjectId' => (int) $user->getKey(),
+            'details' => [
                 'summary' => 'Soft deleted user account.',
                 'state' => $this->userReadableState($this->userSnapshot($user)),
-            ]
-        );
+            ],
+        ];
     }
 
-    public function recordRestored(User $user, ?User $actor): void
+    /**
+     * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
+     */
+    public function restoredPayload(User $user): array
     {
-        (new ActivityRecorder())->recordActorAction(
-            'user.restored',
-            'Restored user ' . (string) $user->getAttribute('email') . '.',
-            $actor,
-            User::class,
-            (int) $user->getKey(),
-            [
+        return [
+            'action' => 'user.restored',
+            'description' => 'Restored user ' . (string) $user->getAttribute('email') . '.',
+            'subjectType' => User::class,
+            'subjectId' => (int) $user->getKey(),
+            'details' => [
                 'summary' => 'Restored user account.',
                 'state' => $this->userReadableState($this->userSnapshot($user)),
-            ]
-        );
+            ],
+        ];
     }
 
     private function fieldLabel(string $field): string
@@ -174,5 +205,19 @@ final class UserActivityService
         }
 
         return (string) $value;
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     * @return array{name: string, email: string, role: string, is_active: int}
+     */
+    private function snapshotFromAttributes(array $attributes): array
+    {
+        return [
+            'name' => trim((string) ($attributes['name'] ?? '')),
+            'email' => trim((string) ($attributes['email'] ?? '')),
+            'role' => trim((string) ($attributes['role'] ?? '')),
+            'is_active' => (int) (bool) ($attributes['is_active'] ?? 0),
+        ];
     }
 }

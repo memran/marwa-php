@@ -16,4 +16,7 @@ return [
     'routes' => [
         'http' => 'routes/http.php',
     ],
+    'migrations' => [
+        'database/migrations/2026_04_11_000001_create_activities_table.php',
+    ],
 ];

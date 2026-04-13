@@ -34,6 +34,18 @@
 - Module migrations are bootstrapped from a single app listener. Admin login is session-backed and uses `ADMIN_BOOTSTRAP_EMAIL` / `ADMIN_BOOTSTRAP_PASSWORD` from `.env`; the starter still seeds an admin account from `modules/Users/database/seeders/AdminUserSeeder.php` for the users module when the users table is empty, and the admin sidebar exposes the Users CRUD section at `/admin/users` plus the Activity feed at `/admin/activity`.
 - `tests/` contains only app-specific PHPUnit coverage.
 
+## Module Authoring
+- Use `modules/Users/` as the reference shape for new starter modules.
+- Keep each module self-contained under `modules/<Name>/` with only the pieces it needs: `manifest.php`, a service provider, `routes/http.php`, controllers, models, views, migrations, optional seeders, and small support classes.
+- Keep controllers thin. Put validation rules, query coordination, form shaping, and other app-specific logic into focused support classes only when it materially reduces duplication.
+- Prefer framework-native features first: router groups, controllers, middleware, Twig views, model APIs, events, config, and helper functions. Do not recreate these as starter-local infrastructure.
+- Do not add wrapper layers around framework services just to normalize style. Add app code only when the behavior is specific to this starter or module.
+- Register module view namespaces from the module service provider only when the module ships its own Twig views.
+- Keep module manifests explicit. If a module has migrations, add them to the manifest `migrations` list so cached installs can still discover them.
+- Use starter-local events and listeners for app-specific workflows, but treat true global lifecycle behavior as a framework concern. If a module needs model hook glue, keep it minimal and local to that module.
+- CSRF, auth, theme selection, routing, and request middleware should follow the existing starter patterns instead of inventing per-module alternatives.
+- New module tests should cover starter wiring and user-visible behavior, not framework internals already owned by `vendor/memran/marwa-framework/`.
+
 ## Testing Scope
 - Test starter behavior only: routes, custom middleware, starter commands if any, config integration, and custom module wiring.
 - Do not add tests for framework internals, framework commands, or framework view/theme mechanics that are already covered in `vendor/memran/marwa-framework/`.
@@ -42,6 +54,7 @@
 ## Documentation
 - Keep `README.md` synchronized with the actual starter behavior.
 - Document `composer create-project`, quick start, project structure, routing, controller, view usage, and the split between app code and framework code.
+- Keep `docs/module-authoring.md` aligned with the actual module conventions used in this starter.
 - If the starter changes, update the README in the same change.
 
 ## Refactoring

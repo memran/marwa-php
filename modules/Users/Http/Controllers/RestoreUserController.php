@@ -30,8 +30,7 @@ final class RestoreUserController extends UsersController
             }
         }
 
-        if ($user->restore()) {
-            $this->activity->recordRestored($user, $this->auth->user());
+        if ($this->users->restoreUser($user)) {
             $this->flash('users.notice', 'User restored successfully.');
         } else {
             $this->flash('users.notice', 'Unable to restore the selected user.');

@@ -157,6 +157,9 @@ declare(strict_types=1);
 
 return [
     'listeners' => [
+        App\Events\ActivityRecordRequested::class => [
+            App\Listeners\RecordActivityFromEvent::class,
+        ],
         Marwa\Framework\Adapters\Event\ModulesBootstrapped::class => [
             App\Listeners\RunModuleMigrations::class,
         ],
@@ -464,6 +467,12 @@ TWIG
         $activityPage = $kernel->handle($this->request('GET', '/admin/activity'));
         self::assertSame(200, $activityPage->getStatusCode());
         self::assertStringContainsString('Recent activity', (string) $activityPage->getBody());
+        self::assertStringContainsString('auth.login', (string) $activityPage->getBody());
+        self::assertStringContainsString('Signed in to the admin console.', (string) $activityPage->getBody());
+        self::assertStringContainsString('user.deleted', (string) $activityPage->getBody());
+        self::assertStringContainsString('Soft deleted user account.', (string) $activityPage->getBody());
+        self::assertStringContainsString('user.restored', (string) $activityPage->getBody());
+        self::assertStringContainsString('Restored user account.', (string) $activityPage->getBody());
 
         $bootstrapAdmin = User::findBy('email', 'admin@marwa.test');
 

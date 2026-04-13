@@ -14,6 +14,7 @@ final class UserRepository
 {
     public function __construct(
         private readonly AdminSearch $search,
+        private readonly UserActivityService $activity,
     ) {}
 
     /**
@@ -143,6 +144,33 @@ final class UserRepository
         $payload['email'] = $this->normalizeEmail((string) $payload['email']);
 
         $user->forceFill($payload)->saveOrFail();
+    }
+
+    public function deleteUser(User $user): void
+    {
+        $user->deleteOrFail();
+    }
+
+    public function restoreUser(User $user): bool
+    {
+        return $user->restore();
+    }
+
+    /**
+     * @return array{name: string, email: string, role: string, is_active: int}
+     */
+    public function userSnapshot(User $user): array
+    {
+        return $this->activity->userSnapshot($user);
+    }
+
+    /**
+     * @param array{name: string, email: string, role: string, is_active: int} $before
+     * @param array{name: string, email: string, role: string, is_active: int} $after
+     */
+    public function userStateHasChanges(array $before, array $after): bool
+    {
+        return $this->activity->userStateHasChanges($before, $after);
     }
 
     public function isSelfProtectedAdmin(User $user, array $afterState, AuthManager $auth): bool

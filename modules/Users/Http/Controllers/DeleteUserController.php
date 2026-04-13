@@ -32,8 +32,7 @@ final class DeleteUserController extends UsersController
             return $this->usersIndexRedirect();
         }
 
-        $this->activity->recordDeleted($user, $this->auth->user());
-        $user->deleteOrFail();
+        $this->users->deleteUser($user);
         $this->flash('users.notice', 'User deleted successfully.');
 
         return $this->usersIndexRedirect();

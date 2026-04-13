@@ -22,7 +22,7 @@ final class UpdateUserController extends UsersController
 
         $validated = $this->validate($this->rules->update());
 
-        $beforeState = $this->activity->userSnapshot($user);
+        $beforeState = $this->users->userSnapshot($user);
         $afterState = [
             'name' => trim((string) $validated['name']),
             'email' => $this->users->normalizeEmail((string) $validated['email']),
@@ -60,14 +60,13 @@ final class UpdateUserController extends UsersController
             return $this->userEditRedirect($user->getKey());
         }
 
-        if (!$passwordChanged && !$this->activity->userStateHasChanges($beforeState, $afterState)) {
+        if (!$passwordChanged && !$this->users->userStateHasChanges($beforeState, $afterState)) {
             $this->flash('users.notice', 'No changes detected.');
 
             return $this->userEditRedirect($user->getKey());
         }
 
         $this->users->updateUser($user, $afterState, $password);
-        $this->activity->recordUpdated($user, $beforeState, $afterState, $passwordChanged, $this->auth->user());
         $this->flash('users.notice', 'User updated successfully.');
 
         return $this->usersIndexRedirect();
