@@ -51,23 +51,7 @@ return [
 PHP
         );
 
-        file_put_contents(
-            $this->basePath . '/config/event.php',
-            <<<'PHP'
-<?php
-
-declare(strict_types=1);
-
-return [
-    'listeners' => [
-        App\Events\ActivityRecordRequested::class => [
-            App\Listeners\RecordActivityFromEvent::class,
-        ],
-    ],
-    'subscribers' => [],
-];
-PHP
-        );
+        file_put_contents($this->basePath . '/config/event.php', "<?php\n\ndeclare(strict_types=1);\n\nreturn [\n    'listeners' => [],\n    'subscribers' => [],\n];\n");
 
         file_put_contents($this->basePath . '/database/database.sqlite', '');
     }
@@ -109,7 +93,7 @@ PHP
         parent::tearDown();
     }
 
-    public function testUserModelHooksDispatchCentralizedCrudActivityEvents(): void
+    public function testUserRepositoryRecordsCrudActivityDirectly(): void
     {
         $app = new Application($this->basePath);
         $app->make(AppBootstrapper::class)->bootstrap();
@@ -150,25 +134,33 @@ SQL);
 
         /** @var UserRepository $users */
         $users = $app->make(UserRepository::class);
+        $actor = User::newInstance([
+            'id' => 999,
+            'name' => 'Administrator',
+            'email' => 'admin@marwa.test',
+            'role' => 'admin',
+            'is_active' => true,
+        ], false);
+
         $created = $users->createUser([
             'name' => 'Operations Lead',
             'email' => 'ops@example.test',
             'role' => 'manager',
             'is_active' => 1,
-        ], 'Secret123!');
+        ], 'Secret123!', $actor);
 
         $users->updateUser($created, [
             'name' => 'Operations Manager',
             'email' => 'ops@example.test',
             'role' => 'staff',
             'is_active' => 0,
-        ], null);
+        ], null, $actor);
 
-        $users->deleteUser($created);
+        $users->deleteUser($created, $actor);
         $trashed = User::withTrashed()->find((int) $created->getKey());
 
         self::assertInstanceOf(User::class, $trashed);
-        self::assertTrue($users->restoreUser($trashed));
+        self::assertTrue($users->restoreUser($trashed, $actor));
 
         $rows = Activity::query()->getBaseBuilder()->orderBy('id', 'asc')->get();
         $actions = array_map(static fn (array|object $row): string => (string) (is_array($row) ? $row['action'] : $row->action), $rows);

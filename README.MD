@@ -65,7 +65,7 @@ The admin theme now uses Tailwind utilities directly in the Twig templates, the 
 The admin sidebar includes Users and Activity sections that link to the module CRUD screens and activity feed under `/admin/users` and `/admin/activity`.
 Soft-deleted users stay visible in the Users module with a `Trashed` badge and a restore action.
 User creation now rejects duplicate emails, and delete actions ask for a browser confirmation before submitting.
-The Activity module records admin login, logout, and user CRUD events through a centralized app event listener, then shows them in the dashboard feed and on the activity page.
+The Activity module records admin login, logout, and user CRUD events through direct `ActivityRecorder` calls in the starter workflows, then shows them in the dashboard feed and on the activity page.
 To run module-local seeders manually, use `php marwa module:seed`.
 If you want to add a new module using the same conventions as `Users`, see [docs/module-authoring.md](docs/module-authoring.md).
 

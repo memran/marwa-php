@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Users\Support;
 
+use App\Modules\Activity\Support\ActivityRecorder;
 use App\Modules\Auth\Support\AuthManager;
 use App\Support\AdminSearch;
 use App\Modules\Users\Models\User;
@@ -119,41 +120,68 @@ final class UserRepository
     /**
      * @param array{name:string,email:string,role:string,is_active:int} $afterState
      */
-    public function createUser(array $afterState, string $password): User
+    public function createUser(array $afterState, string $password, ?User $actor = null): User
     {
-        return User::create([
+        $user = User::create([
             'name' => $afterState['name'],
             'email' => $this->normalizeEmail($afterState['email']),
             'role' => $afterState['role'],
             'is_active' => $afterState['is_active'],
             'password' => password_hash($password, PASSWORD_DEFAULT),
         ]);
+
+        $this->activityRecorder()->recordActorAction(
+            ...$this->activityArguments($this->activity->createdPayload($user, $afterState), $actor)
+        );
+
+        return $user;
     }
 
     /**
      * @param array{name:string,email:string,role:string,is_active:int} $afterState
      */
-    public function updateUser(User $user, array $afterState, ?string $password = null): void
+    public function updateUser(User $user, array $afterState, ?string $password = null, ?User $actor = null): void
     {
+        $beforeState = $this->activity->userSnapshot($user);
         $payload = $afterState;
+        $passwordChanged = $password !== null && $password !== '';
 
-        if ($password !== null && $password !== '') {
+        if ($passwordChanged) {
             $payload['password'] = password_hash($password, PASSWORD_DEFAULT);
         }
 
         $payload['email'] = $this->normalizeEmail((string) $payload['email']);
 
         $user->forceFill($payload)->saveOrFail();
+
+        $this->activityRecorder()->recordActorAction(
+            ...$this->activityArguments(
+                $this->activity->updatedPayload($user, $beforeState, $afterState, $passwordChanged),
+                $actor
+            )
+        );
     }
 
-    public function deleteUser(User $user): void
+    public function deleteUser(User $user, ?User $actor = null): void
     {
+        $payload = $this->activity->deletedPayload($user);
         $user->deleteOrFail();
+        $this->activityRecorder()->recordActorAction(
+            ...$this->activityArguments($payload, $actor)
+        );
     }
 
-    public function restoreUser(User $user): bool
+    public function restoreUser(User $user, ?User $actor = null): bool
     {
-        return $user->restore();
+        if (!$user->restore()) {
+            return false;
+        }
+
+        $this->activityRecorder()->recordActorAction(
+            ...$this->activityArguments($this->activity->restoredPayload($user), $actor)
+        );
+
+        return true;
     }
 
     /**
@@ -210,5 +238,26 @@ final class UserRepository
     private function normalized(string $value): string
     {
         return Str::lower(trim($value));
+    }
+
+    /**
+     * @param array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>} $payload
+     * @return array{0:string,1:string,2:?User,3:class-string<User>,4:int,5:array<string,mixed>}
+     */
+    private function activityArguments(array $payload, ?User $actor): array
+    {
+        return [
+            $payload['action'],
+            $payload['description'],
+            $actor,
+            $payload['subjectType'],
+            $payload['subjectId'],
+            $payload['details'],
+        ];
+    }
+
+    private function activityRecorder(): ActivityRecorder
+    {
+        return app(ActivityRecorder::class);
     }
 }

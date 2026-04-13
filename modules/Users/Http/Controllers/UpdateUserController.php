@@ -66,7 +66,7 @@ final class UpdateUserController extends UsersController
             return $this->userEditRedirect($user->getKey());
         }
 
-        $this->users->updateUser($user, $afterState, $password);
+        $this->users->updateUser($user, $afterState, $password, $this->auth->user());
         $this->flash('users.notice', 'User updated successfully.');
 
         return $this->usersIndexRedirect();

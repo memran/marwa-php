@@ -28,7 +28,7 @@
 - The Docker Compose files also include a MariaDB service for local container-based development, with the app container pointed at that database host.
 - Docker stack credentials are copied from `docker/docker.env.example` into an ignored `docker/docker.env` runtime file mounted into the app container.
 - `routes/` defines the HTTP entry points.
-- `resources/views/` contains Twig layouts, theme views, and shared partials. The admin theme uses a small Lucide-style icon partial for consistent inline SVGs, and the Users module shows soft-deleted rows with a restore action, asks for delete confirmation, and rejects duplicate emails at the starter layer. The Activity module records admin login/logout and user CRUD events and renders them on `/admin/activity` and in the dashboard feed.
+- `resources/views/` contains Twig layouts, theme views, and shared partials. The admin theme uses a small Lucide-style icon partial for consistent inline SVGs, and the Users module shows soft-deleted rows with a restore action, asks for delete confirmation, and rejects duplicate emails at the starter layer. The Activity module records admin login/logout and user CRUD events through direct starter workflow calls and renders them on `/admin/activity` and in the dashboard feed.
 - Starter maintenance and 404 pages live under `resources/views/themes/default/views/` so the framework can resolve them through `config/app.php`.
 - `modules/` stays optional and self-contained.
 - Module migrations are bootstrapped from a single app listener. Admin login is session-backed and uses `ADMIN_BOOTSTRAP_EMAIL` / `ADMIN_BOOTSTRAP_PASSWORD` from `.env`; the starter still seeds an admin account from `modules/Users/database/seeders/AdminUserSeeder.php` for the users module when the users table is empty, and the admin sidebar exposes the Users CRUD section at `/admin/users` plus the Activity feed at `/admin/activity`.
@@ -42,7 +42,7 @@
 - Do not add wrapper layers around framework services just to normalize style. Add app code only when the behavior is specific to this starter or module.
 - Register module view namespaces from the module service provider only when the module ships its own Twig views.
 - Keep module manifests explicit. If a module has migrations, add them to the manifest `migrations` list so cached installs can still discover them.
-- Use starter-local events and listeners for app-specific workflows, but treat true global lifecycle behavior as a framework concern. If a module needs model hook glue, keep it minimal and local to that module.
+- Prefer direct `ActivityRecorder` calls for starter-local activity logging unless there is a real multi-listener need. Treat true global lifecycle behavior as a framework concern instead of adding app-local event indirection by default.
 - CSRF, auth, theme selection, routing, and request middleware should follow the existing starter patterns instead of inventing per-module alternatives.
 - New module tests should cover starter wiring and user-visible behavior, not framework internals already owned by `vendor/memran/marwa-framework/`.
 

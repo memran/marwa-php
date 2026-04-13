@@ -32,7 +32,7 @@ final class StoreUserController extends UsersController
             return $this->userCreateRedirect();
         }
 
-        $this->users->createUser($afterState, (string) $validated['password']);
+        $this->users->createUser($afterState, (string) $validated['password'], $this->auth->user());
         $this->flash('users.notice', 'User created successfully.');
 
         return $this->usersIndexRedirect();

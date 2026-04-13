@@ -16,10 +16,10 @@ final class AdminPagination
      */
     public function viewData(array $pagination, string $path, array $params = [], string $pageParam = 'page'): array
     {
-        $currentPage = max(1, (int) ($pagination['current_page'] ?? 1));
-        $lastPage = max(1, (int) ($pagination['last_page'] ?? 1));
-        $total = max(0, (int) ($pagination['total'] ?? 0));
-        $perPage = max(1, (int) ($pagination['per_page'] ?? 1));
+        $currentPage = max(1, (int) $pagination['current_page']);
+        $lastPage = max(1, (int) $pagination['last_page']);
+        $total = max(0, (int) $pagination['total']);
+        $perPage = max(1, (int) $pagination['per_page']);
         $from = $total === 0 ? 0 : (($currentPage - 1) * $perPage) + 1;
         $to = min($total, $currentPage * $perPage);
         $summary = $total === 0

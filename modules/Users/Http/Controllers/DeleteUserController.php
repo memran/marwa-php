@@ -32,7 +32,7 @@ final class DeleteUserController extends UsersController
             return $this->usersIndexRedirect();
         }
 
-        $this->users->deleteUser($user);
+        $this->users->deleteUser($user, $this->auth->user());
         $this->flash('users.notice', 'User deleted successfully.');
 
         return $this->usersIndexRedirect();

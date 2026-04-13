@@ -142,11 +142,11 @@ The `Users` module seeder is a starter-specific bootstrap example, not a rule th
 
 ## Events And Activity
 
-Use app events and listeners when the workflow is app-specific.
+Use app events and listeners only when the workflow genuinely needs fan-out or decoupling.
 
-- Prefer one listener for persistence or cross-cutting write behavior.
+- Prefer direct `ActivityRecorder` calls for starter-local activity logging.
 - Avoid duplicating the same side effect across multiple controllers.
-- If using model hooks for a module, keep the hook registration minimal and let a service build any formatted payloads.
+- If using model hooks for a module, keep the hook registration minimal and justify it with a real need beyond simple controller or repository coordination.
 
 True global model event bridging belongs in the framework, not in this starter.
 

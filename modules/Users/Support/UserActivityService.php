@@ -9,20 +9,6 @@ use App\Modules\Users\Models\User;
 final class UserActivityService
 {
     /**
-     * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
-     */
-    public function payloadFromModelEvent(User $user, string $event): array
-    {
-        return match ($event) {
-            'created' => $this->createdPayload($user, $this->userSnapshot($user)),
-            'updated' => $this->updatedPayloadFromContext($user),
-            'deleted' => $this->deletedPayload($user),
-            'restored' => $this->restoredPayload($user),
-            default => throw new \InvalidArgumentException('Unsupported user activity event [' . $event . '].'),
-        };
-    }
-
-    /**
      * @return array{name: string, email: string, role: string, is_active: int}
      */
     public function userSnapshot(User $user): array
@@ -125,20 +111,6 @@ final class UserActivityService
     }
 
     /**
-     * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
-     */
-    public function updatedPayloadFromContext(User $user): array
-    {
-        $context = $user->eventContext();
-        $beforeState = $this->snapshotFromAttributes((array) ($context['before'] ?? []));
-        $afterState = $this->snapshotFromAttributes((array) ($context['after'] ?? []));
-        $changes = (array) ($context['changes'] ?? []);
-        $passwordChanged = array_key_exists('password', $changes);
-
-        return $this->updatedPayload($user, $beforeState, $afterState, $passwordChanged);
-    }
-
-    /**
      * @param array{name: string, email: string, role: string, is_active: int} $beforeState
      * @param array{name: string, email: string, role: string, is_active: int} $afterState
      * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
@@ -207,17 +179,4 @@ final class UserActivityService
         return (string) $value;
     }
 
-    /**
-     * @param array<string, mixed> $attributes
-     * @return array{name: string, email: string, role: string, is_active: int}
-     */
-    private function snapshotFromAttributes(array $attributes): array
-    {
-        return [
-            'name' => trim((string) ($attributes['name'] ?? '')),
-            'email' => trim((string) ($attributes['email'] ?? '')),
-            'role' => trim((string) ($attributes['role'] ?? '')),
-            'is_active' => (int) (bool) ($attributes['is_active'] ?? 0),
-        ];
-    }
 }
