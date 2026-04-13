@@ -6,40 +6,47 @@
   <meta name="color-scheme" content="light dark">
   <title>{% block title %}Admin Access{% endblock %}</title>
   <meta name="description" content="MarwaPHP admin authentication screens.">
-  <link rel="stylesheet" href="/themes/admin/assets/css/app.css">
+  <link rel="stylesheet" href="{{ theme_asset('css/app.css') }}">
 </head>
-<body class="theme theme--admin theme--auth">
-  <div class="admin-auth-shell">
-    <aside class="admin-auth-aside">
-      <div class="admin-auth-aside__copy">
-        <span class="admin-eyebrow admin-auth-aside__eyebrow">Operations console</span>
-        <h1 class="admin-auth-aside__title">Controlled access for internal teams.</h1>
-        <p class="admin-auth-aside__body">
-          Authentication and recovery follow the same restrained visual language used across the admin workspace.
-        </p>
-      </div>
+<body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
+  <div class="relative isolate min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_36%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.12),_transparent_32%),linear-gradient(180deg,#020617_0%,#0f172a_48%,#020617_100%)]">
+    <div class="pointer-events-none absolute left-[-8rem] top-10 -z-10 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl"></div>
+    <div class="pointer-events-none absolute right-[-10rem] top-32 -z-10 h-96 w-96 rounded-full bg-emerald-400/10 blur-3xl"></div>
 
-      <div class="admin-auth-aside__stats">
-        <div class="admin-auth-aside__stat">
-          <span class="admin-auth-aside__stat-label">Security</span>
-          <span class="admin-auth-aside__stat-value">Session</span>
-        </div>
-        <div class="admin-auth-aside__stat">
-          <span class="admin-auth-aside__stat-label">Recovery</span>
-          <span class="admin-auth-aside__stat-value">Token</span>
-        </div>
-        <div class="admin-auth-aside__stat">
-          <span class="admin-auth-aside__stat-label">Access</span>
-          <span class="admin-auth-aside__stat-value">Admin only</span>
-        </div>
-      </div>
-    </aside>
+    <div class="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
+      <aside class="hidden border-r border-white/10 p-8 lg:flex lg:flex-col lg:justify-center">
+        <div class="max-w-xl space-y-8 rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
+          <div class="space-y-3">
+            <span class="inline-flex w-fit items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-cyan-100">Operations console</span>
+            <h1 class="text-4xl font-black tracking-tight text-white xl:text-5xl">Controlled access for internal teams.</h1>
+            <p class="max-w-lg text-sm leading-6 text-slate-300 sm:text-base">
+              Authentication and recovery follow the same restrained visual language used across the admin workspace.
+            </p>
+          </div>
 
-    <main class="admin-auth-main">
-      <section class="admin-auth-panel">
-        {% block content %}{% endblock %}
-      </section>
-    </main>
+          <div class="grid gap-3 sm:grid-cols-3">
+            <div class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+              <span class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Security</span>
+              <span class="mt-2 block text-lg font-bold text-white">Session</span>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+              <span class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Recovery</span>
+              <span class="mt-2 block text-lg font-bold text-white">Token</span>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+              <span class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Access</span>
+              <span class="mt-2 block text-lg font-bold text-white">Admin only</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="flex items-center justify-center px-4 py-10 sm:px-6 lg:px-10">
+        <section class="w-full max-w-xl rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-8">
+          {% block content %}{% endblock %}
+        </section>
+      </main>
+    </div>
   </div>
 </body>
 </html>

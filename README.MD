@@ -60,7 +60,7 @@ Admin login uses the bootstrap credentials from `.env`:
 
 That login is session-backed and does not query the users table.
 The starter admin seeder now lives in `modules/Users/database/seeders/AdminUserSeeder.php` and is bootstrapped with the Users module when the table is empty.
-The admin theme uses the framework Alpine bridge for its mobile sidebar toggle and Lucide-style inline SVG icons in the sidebar and user status badges.
+The admin theme now uses Tailwind utilities directly in the Twig templates, the framework Alpine bridge for its mobile sidebar toggle, and Lucide-style inline SVG icons in the sidebar and user status badges.
 The admin sidebar includes Users and Activity sections that link to the module CRUD screens and activity feed under `/admin/users` and `/admin/activity`.
 Soft-deleted users stay visible in the Users module with a `Trashed` badge and a restore action.
 User creation now rejects duplicate emails, and delete actions ask for a browser confirmation before submitting.
@@ -100,6 +100,12 @@ npm install
 npm run dev
 ```
 
+To rebuild the admin theme assets while developing:
+
+```bash
+npm run css:dev:admin
+```
+
 ## Running the App
 
 - `php -S localhost:8000 -t public/` runs the HTTP app locally
@@ -108,4 +114,6 @@ npm run dev
 - `composer lint` checks PHP syntax
 - `composer ci` runs the local validation chain
 - `php marwa db:check` checks the active database connection and prints the result
-- `npm run build` compiles production CSS into `public/assets/css/app.css`
+- `npm run build` compiles production CSS into `public/assets/css/app.css` and `public/themes/admin/assets/css/app.css`
+- `npm run css:build:admin` compiles only the admin theme stylesheet into `public/themes/admin/assets/css/app.css`
+- The admin layouts load `public/themes/admin/css/app.css`, which forwards to the compiled admin stylesheet above

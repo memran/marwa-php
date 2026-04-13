@@ -6,24 +6,29 @@
   <meta name="color-scheme" content="light dark">
   <title>{% block title %}Admin{% endblock %}</title>
   <meta name="description" content="Executive-grade admin theme for MarwaPHP.">
-  <link rel="stylesheet" href="/themes/admin/assets/css/app.css">
+  <link rel="stylesheet" href="{{ theme_asset('css/app.css') }}">
 </head>
-<body class="theme theme--admin">
-  <div class="admin-shell">
-    <aside class="admin-sidebar" id="admin-sidebar" aria-label="Sidebar navigation">
-      <div class="admin-sidebar__inner">
-        {% include 'partials/sidebar.twig' %}
+<body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
+  <div class="relative isolate min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_36%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.12),_transparent_32%),linear-gradient(180deg,#020617_0%,#0f172a_48%,#020617_100%)]">
+    <div class="pointer-events-none absolute left-[-8rem] top-10 -z-10 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl"></div>
+    <div class="pointer-events-none absolute right-[-10rem] top-32 -z-10 h-96 w-96 rounded-full bg-emerald-400/10 blur-3xl"></div>
+
+    <div class="grid min-h-screen lg:grid-cols-[18rem_minmax(0,1fr)]">
+      <aside id="admin-sidebar" aria-label="Sidebar navigation" class="border-b border-white/10 bg-slate-950/55 backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r">
+        <div class="flex h-full flex-col gap-10 p-6">
+          {% include 'partials/sidebar.twig' %}
+        </div>
+      </aside>
+
+      <div class="flex min-w-0 flex-col">
+        <header class="border-b border-white/10 bg-slate-950/50 backdrop-blur-xl">
+          {% include 'partials/topbar.twig' %}
+        </header>
+
+        <main class="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+          {% block content %}{% endblock %}
+        </main>
       </div>
-    </aside>
-
-    <div class="admin-content">
-      <header class="admin-topbar">
-        {% include 'partials/topbar.twig' %}
-      </header>
-
-      <main class="admin-main">
-        {% block content %}{% endblock %}
-      </main>
     </div>
   </div>
 </body>
