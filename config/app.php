@@ -13,16 +13,19 @@ use Marwa\DebugBar\Collectors\RequestCollector;
 use Marwa\DebugBar\Collectors\SessionCollector;
 use Marwa\DebugBar\Collectors\TimelineCollector;
 use Marwa\DebugBar\Collectors\VarDumperCollector;
-use Marwa\Framework\Middlewares\DebugbarMiddleware;
 use Marwa\Framework\Middlewares\MaintenanceMiddleware;
 use Marwa\Framework\Middlewares\RequestIdMiddleware;
 use Marwa\Framework\Middlewares\RouterMiddleware;
 use Marwa\Framework\Middlewares\SecurityMiddleware;
 use Marwa\Framework\Middlewares\SessionMiddleware;
+use App\Http\Middleware\DebugbarMiddleware;
 
 return [
     'name' => env('APP_NAME', 'MarwaPHP'),
-    'debugbar' => (bool) env('DEBUGBAR_ENABLED', false),
+    'debugbar' => (bool) env('DEBUGBAR_ENABLED', 
+        (bool) env('APP_DEBUG', false) 
+        && !in_array((string) env('APP_ENV', 'production'), ['production', 'staging'], true)
+    ),
     'collectors' => [
         RequestCollector::class,
         DbQueryCollector::class,
@@ -51,7 +54,8 @@ return [
         SessionMiddleware::class,
         MaintenanceMiddleware::class,
         SecurityMiddleware::class,
-        RouterMiddleware::class,
         DebugbarMiddleware::class,
+        RouterMiddleware::class
+
     ],
 ];

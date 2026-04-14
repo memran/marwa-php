@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+[x-cloak] {
+  display: none !important;
+}
+
 @layer base {
   body.admin-theme {
     color: rgb(241 245 249);
@@ -119,6 +123,34 @@
       linear-gradient(180deg, #f8fafc 0%, #eef2ff 48%, #f8fafc 100%);
   }
 
+  /* Notification dropdown light mode */
+  html[data-admin-theme="light"] body.admin-theme .notification-dropdown {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(148, 163, 184, 0.18) !important;
+  }
+
+  html[data-admin-theme="light"] body.admin-theme .notification-dropdown .text-slate-100,
+  html[data-admin-theme="light"] body.admin-theme .notification-dropdown .text-slate-200 {
+    color: rgb(15 23 42) !important;
+  }
+
+  html[data-admin-theme="light"] body.admin-theme .notification-dropdown .text-slate-400,
+  html[data-admin-theme="light"] body.admin-theme .notification-dropdown .text-slate-500 {
+    color: rgb(71 85 105) !important;
+  }
+
+  html[data-admin-theme="light"] body.admin-theme .notification-dropdown .border-white\/5 {
+    border-color: rgba(148, 163, 184, 0.12) !important;
+  }
+
+  html[data-admin-theme="light"] body.admin-theme .notification-dropdown .border-white\/10 {
+    border-color: rgba(148, 163, 184, 0.18) !important;
+  }
+
+  html[data-admin-theme="light"] body.admin-theme .notification-dropdown .hover\:bg-white\/5:hover {
+    background-color: rgba(241, 245, 249, 0.5) !important;
+  }
+
   html[data-admin-theme="light"] body.admin-theme .admin-sidebar,
   html[data-admin-theme="light"] body.admin-theme .admin-topbar {
     background-color: rgba(255, 255, 255, 0.82);
@@ -206,12 +238,14 @@
   }
 
   html[data-admin-theme="light"] body.admin-theme .text-amber-100,
+  html[data-admin-theme="light"] body.admin-theme .text-amber-100\/85,
   html[data-admin-theme="light"] body.admin-theme .text-amber-200 {
     color: rgb(146 64 14) !important;
   }
 
   html[data-admin-theme="light"] body.admin-theme .text-rose-100,
   html[data-admin-theme="light"] body.admin-theme .text-rose-100\/80,
+  html[data-admin-theme="light"] body.admin-theme .text-rose-100\/85,
   html[data-admin-theme="light"] body.admin-theme .text-rose-200,
   html[data-admin-theme="light"] body.admin-theme .text-rose-300 {
     color: rgb(190 24 93) !important;

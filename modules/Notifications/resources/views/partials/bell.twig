@@ -1,26 +1,80 @@
-<div class="relative isolate">
-  <button id="notification-bell-btn" type="button" class="relative rounded-xl border border-white/10 bg-white/5 p-2.5 text-slate-300 transition hover:bg-white/10 hover:text-white">
+<div class="relative" x-data="notificationBell()">
+  <button 
+    type="button" 
+    class="relative rounded-xl border border-slate-300/20 bg-white/50 p-2.5 text-slate-600 transition hover:bg-white hover:text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+    @click="toggle()"
+    @click.outside="close()"
+  >
     {% include 'components/icon.twig' with { name: 'bell', class: 'h-5 w-5' } only %}
-    <span id="notification-badge" class="absolute -right-1 -top-1 hidden items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[0.65rem] font-bold text-white min-w-[1.25rem]">
+    <span 
+      x-show="unreadCount > 0" 
+      class="absolute -right-1 -top-1 flex items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[0.65rem] font-bold text-white min-w-[1.25rem]"
+      x-text="unreadCount > 9 ? '9+' : unreadCount"
+    >
       0
     </span>
   </button>
 
-  <div id="notifications-dropdown" class="absolute right-0 top-full z-[9999] mt-2 w-80 sm:w-96 hidden" role="menu">
-    <div class="overflow-hidden rounded-xl border border-white/10 bg-slate-950/95 backdrop-blur-xl shadow-[0_30px_80px_rgba(2,6,23,0.45)]">
-      <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
-        <h3 class="text-sm font-semibold text-slate-100">Notifications</h3>
-        <button id="mark-all-read-btn" class="text-xs font-medium text-cyan-300 hover:text-cyan-200 hidden">Mark all read</button>
+  <div 
+    x-show="isOpen" 
+    x-cloak
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0 translate-y-1"
+    x-transition:enter-end="opacity-100 translate-y-0"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100 translate-y-0"
+    x-transition:leave-end="opacity-0 translate-y-1"
+    class="absolute right-0 top-full z-[9999] mt-2 w-80 sm:w-96"
+    role="menu"
+  >
+    <div class="overflow-hidden rounded-xl border border-slate-300/20 bg-white/95 backdrop-blur-xl shadow-lg dark:border-white/10 dark:bg-slate-950/95 dark:shadow-[0_30px_80px_rgba(2,6,23,0.45)]">
+      <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-white/10">
+        <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-100">Notifications</h3>
+        <button 
+          x-show="unreadCount > 0" 
+          @click="markAllRead()" 
+          class="text-xs font-medium text-cyan-600 hover:text-cyan-700 dark:text-cyan-300 dark:hover:text-cyan-200"
+        >Mark all read</button>
       </div>
       
-      <div id="notifications-list" class="max-h-96 overflow-y-auto">
-        <div class="flex items-center justify-center py-8 text-slate-500">
-          <span class="text-sm">Loading...</span>
-        </div>
+      <div class="max-h-96 overflow-y-auto">
+        <template x-if="loading">
+          <div class="flex items-center justify-center py-8 text-slate-400 dark:text-slate-500">
+            <span class="text-sm">Loading...</span>
+          </div>
+        </template>
+        <template x-if="!loading && notifications.length === 0">
+          <div class="flex items-center justify-center py-8 text-slate-400 dark:text-slate-500">
+            <span class="text-sm">No notifications</span>
+          </div>
+        </template>
+        <template x-if="!loading && notifications.length > 0">
+          <div>
+            <template x-for="notification in notifications" :key="notification.id">
+              <a 
+                :href="notification.action_url || '/admin/notifications'" 
+                class="flex items-start gap-3 border-b border-slate-100 px-4 py-3 transition hover:bg-slate-50 dark:border-white/5 dark:hover:bg-white/5"
+                @click="markAsRead(notification)"
+              >
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" :class="getTypeClass(notification.type)">
+                  <svg class="h-4 w-4"><use :href="iconAsset + '#' + getTypeIcon(notification.type)"></use></svg>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2">
+                    <span class="truncate text-sm font-medium text-slate-700 dark:text-slate-100" x-text="notification.title"></span>
+                    <span x-show="!notification.is_read" class="h-2 w-2 rounded-full bg-cyan-500 dark:bg-cyan-400"></span>
+                  </div>
+                  <p class="truncate text-xs text-slate-500 dark:text-slate-400" x-text="notification.message"></p>
+                  <span class="mt-1 block text-xs text-slate-400 dark:text-slate-500" x-text="formatTime(notification.created_at)"></span>
+                </div>
+              </a>
+            </template>
+          </div>
+        </template>
       </div>
       
-      <div class="border-t border-white/10 px-4 py-3">
-        <a href="/admin/notifications" class="flex items-center justify-center gap-1 text-sm font-medium text-cyan-300 hover:text-cyan-200">
+      <div class="border-t border-slate-200 px-4 py-3 dark:border-white/10">
+        <a href="/admin/notifications" class="flex items-center justify-center gap-1 text-sm font-medium text-cyan-600 hover:text-cyan-700 dark:text-cyan-300 dark:hover:text-cyan-200">
           See all notifications
           {% include 'components/icon.twig' with { name: 'arrow-right', class: 'h-4 w-4' } only %}
         </a>
@@ -30,162 +84,106 @@
 </div>
 
 <script>
-(function() {
-  const dropdown = document.getElementById('notifications-dropdown');
-  const list = document.getElementById('notifications-list');
-  const markAllBtn = document.getElementById('mark-all-read-btn');
-  const bellBtn = document.getElementById('notification-bell-btn');
-  let isOpen = false;
-  let loaded = false;
+function notificationBell() {
+  return {
+    isOpen: false,
+    loaded: false,
+    loading: true,
+    unreadCount: 0,
+    notifications: [],
+    iconAsset: window.themeAsset ? window.themeAsset('assets/icons/lucide.svg') : '',
 
-  function toggle() {
-    isOpen = !isOpen;
-    dropdown.classList.toggle('hidden', !isOpen);
-    if (isOpen && !loaded) {
-      loadNotifications();
-    }
-  }
+    init() {
+      this.updateBadge();
+    },
 
-  function close() {
-    isOpen = false;
-    dropdown.classList.add('hidden');
-  }
-
-  function loadNotifications() {
-    fetch('/admin/notifications/latest')
-      .then(r => r.json())
-      .then(data => {
-        loaded = true;
-        renderNotifications(data.notifications, data.unread_count);
-      })
-      .catch(() => {
-        list.innerHTML = '<div class="flex items-center justify-center py-8 text-slate-500"><span class="text-sm">Failed to load</span></div>';
-      });
-  }
-
-  function renderNotifications(notifications, unreadCount) {
-    if (unreadCount > 0) {
-      markAllBtn.classList.remove('hidden');
-    }
-    
-    if (!notifications || notifications.length === 0) {
-      list.innerHTML = '<div class="flex flex-col items-center justify-center py-8 text-slate-500"><span class="text-sm">No notifications</span></div>';
-      return;
-    }
-
-    const typeColors = {
-      info: 'text-cyan-400 bg-cyan-400/10',
-      success: 'text-emerald-400 bg-emerald-400/10',
-      warning: 'text-amber-400 bg-amber-400/10',
-      error: 'text-rose-400 bg-rose-400/10'
-    };
-    
-    const typeIcons = {
-      info: 'info',
-      success: 'check-circle',
-      warning: 'alert-triangle',
-      error: 'x-circle'
-    };
-
-    list.innerHTML = notifications.map(n => {
-      const icon = typeIcons[n.type] || 'bell';
-      const colorClass = typeColors[n.type] || 'text-slate-400 bg-white/10';
-      const time = formatTime(n.created_at);
-      
-      return '<a href="' + (n.action_url || '/admin/notifications') + '" ' +
-        'class="flex items-start gap-3 border-b border-white/5 px-4 py-3 transition hover:bg-white/5 notification-item" ' +
-        'data-id="' + n.id + '" ' +
-        'data-read="' + n.is_read + '">' +
-        '<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ' + colorClass + '">' +
-        '<svg class="h-4 w-4"><use href="' + (window.themeAsset ? window.themeAsset('assets/icons/lucide.svg') : '') + '#' + icon + '"></use></svg>' +
-        '</div>' +
-        '<div class="min-w-0 flex-1">' +
-        '<div class="flex items-center gap-2">' +
-        '<span class="truncate text-sm font-medium text-slate-100">' + escapeHtml(n.title) + '</span>' +
-        (n.is_read ? '' : '<span class="h-2 w-2 rounded-full bg-cyan-400"></span>') +
-        '</div>' +
-        '<p class="truncate text-xs text-slate-400">' + escapeHtml(n.message) + '</p>' +
-        '<span class="mt-1 block text-xs text-slate-500">' + time + '</span>' +
-        '</div>' +
-        '</a>';
-    }).join('');
-
-    document.querySelectorAll('.notification-item').forEach(item => {
-      item.addEventListener('click', function(e) {
-        if (!this.dataset.read || this.dataset.read === 'false') {
-          const id = this.dataset.id;
-          fetch('/admin/notifications/' + id + '/read', {
-            method: 'POST',
-            headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '' }
-          });
-        }
-      });
-    });
-  }
-
-  function formatTime(dateStr) {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    const now = new Date();
-    const diff = now - d;
-    const mins = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-
-    if (mins < 1) return 'Just now';
-    if (mins < 60) return mins + 'm ago';
-    if (hours < 24) return hours + 'h ago';
-    if (days < 7) return days + 'd ago';
-    return d.toLocaleDateString();
-  }
-
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
-  markAllBtn?.addEventListener('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    fetch('/admin/notifications/read-all', {
-      method: 'POST',
-      headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '' }
-    }).then(r => r.json()).then(data => {
-      if (data.success) {
-        loaded = false;
-        loadNotifications();
-        updateBellCount(0);
+    async toggle() {
+      this.isOpen = !this.isOpen;
+      if (this.isOpen && !this.loaded) {
+        await this.loadNotifications();
       }
-    });
-  });
+    },
 
-  function updateBellCount(count) {
-    const badge = document.getElementById('notification-badge');
-    if (count > 0) {
-      if (badge) {
-        badge.textContent = count > 9 ? '9+' : count;
-        badge.classList.remove('hidden');
+    close() {
+      this.isOpen = false;
+    },
+
+    async loadNotifications() {
+      this.loading = true;
+      try {
+        const response = await fetch('/admin/notifications/latest');
+        const data = await response.json();
+        this.notifications = data.notifications || [];
+        this.unreadCount = data.unread_count || 0;
+        this.loaded = true;
+      } catch (e) {
+        this.notifications = [];
+      } finally {
+        this.loading = false;
       }
-    } else if (badge) {
-      badge.classList.add('hidden');
+    },
+
+    async markAsRead(notification) {
+      if (!notification.is_read) {
+        await fetch('/admin/notifications/' + notification.id + '/read', {
+          method: 'POST',
+          headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '' }
+        });
+        notification.is_read = true;
+        this.unreadCount = Math.max(0, this.unreadCount - 1);
+        this.updateBadge();
+      }
+    },
+
+    async markAllRead() {
+      await fetch('/admin/notifications/read-all', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '' }
+      });
+      this.notifications.forEach(n => n.is_read = true);
+      this.unreadCount = 0;
+      this.updateBadge();
+    },
+
+    updateBadge() {
+      window.updateNotificationBadge && window.updateNotificationBadge(this.unreadCount);
+    },
+
+    getTypeClass(type) {
+      const colors = {
+        info: 'text-cyan-400 bg-cyan-400/10',
+        success: 'text-emerald-400 bg-emerald-400/10',
+        warning: 'text-amber-400 bg-amber-400/10',
+        error: 'text-rose-400 bg-rose-400/10'
+      };
+      return colors[type] || 'text-slate-400 bg-white/10';
+    },
+
+    getTypeIcon(type) {
+      const icons = {
+        info: 'info',
+        success: 'check-circle',
+        warning: 'alert-triangle',
+        error: 'x-circle'
+      };
+      return icons[type] || 'bell';
+    },
+
+    formatTime(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      const now = new Date();
+      const diff = now - d;
+      const mins = Math.floor(diff / 60000);
+      const hours = Math.floor(diff / 3600000);
+      const days = Math.floor(diff / 86400000);
+
+      if (mins < 1) return 'Just now';
+      if (mins < 60) return mins + 'm ago';
+      if (hours < 24) return hours + 'h ago';
+      if (days < 7) return days + 'd ago';
+      return d.toLocaleDateString();
     }
-  }
-
-  window.updateNotificationBadge = updateBellCount;
-
-  if (bellBtn) {
-    bellBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      toggle();
-    });
-  }
-
-  document.addEventListener('click', function(e) {
-    if (isOpen && !dropdown.contains(e.target) && (!bellBtn || !bellBtn.contains(e.target))) {
-      close();
-    }
-  });
-})();
+  };
+}
 </script>

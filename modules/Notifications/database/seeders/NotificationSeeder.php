@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Database\Seeders;
+namespace App\Modules\Notifications\Database\Seeders;
 
 use App\Modules\Notifications\Models\Notification;
 use App\Modules\Users\Models\User;

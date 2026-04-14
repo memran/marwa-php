@@ -81,23 +81,43 @@ final class SettingsCatalog
                 'label' => 'Cache',
                 'description' => 'Runtime cache preferences. Driver is mirrored into config for global reads.',
                 'fields' => [
+                    'enabled' => ['label' => 'Cache enabled', 'input' => 'checkbox', 'type' => 'bool', 'default' => true, 'help' => 'When disabled, caching is bypassed globally.'],
                     'driver' => ['label' => 'Cache driver', 'input' => 'select', 'type' => 'string', 'default' => extension_loaded('pdo_sqlite') ? 'sqlite' : 'memory', 'options' => ['memory' => 'memory', 'sqlite' => 'sqlite']],
                     'ttl' => ['label' => 'Default TTL (seconds)', 'input' => 'number', 'type' => 'int', 'default' => 3600, 'min' => 0],
+                    'purge_cache' => ['label' => 'Purge cache', 'input' => 'action', 'type' => 'action', 'default' => false, 'help' => 'Clear all cached data.'],
                 ],
             ],
             'logging' => [
                 'label' => 'Logging',
                 'description' => 'Application logging defaults mirrored into config where supported.',
                 'fields' => [
+                    'enabled' => ['label' => 'Logging enabled', 'input' => 'checkbox', 'type' => 'bool', 'default' => true, 'help' => 'When disabled, logging is bypassed globally.'],
                     'level' => ['label' => 'Log level', 'input' => 'select', 'type' => 'string', 'default' => (string) env('LOG_LEVEL', 'debug'), 'options' => ['debug' => 'debug', 'info' => 'info', 'notice' => 'notice', 'warning' => 'warning', 'error' => 'error', 'critical' => 'critical', 'alert' => 'alert', 'emergency' => 'emergency']],
                     'retention_days' => ['label' => 'Retention days', 'input' => 'number', 'type' => 'int', 'default' => 30, 'min' => 1],
+                    'clear_logs' => ['label' => 'Clear logs', 'input' => 'action', 'type' => 'action', 'default' => false, 'help' => 'Delete all log files.'],
                 ],
             ],
             'payment' => [
                 'label' => 'Payment',
                 'description' => 'Commercial defaults available globally to future billing flows.',
                 'fields' => [
-                    'currency' => ['label' => 'Currency', 'input' => 'text', 'type' => 'string', 'default' => 'USD'],
+                    'currency' => ['label' => 'Currency', 'input' => 'select', 'type' => 'string', 'default' => 'USD', 'options' => [
+                        'USD' => 'USD - US Dollar',
+                        'EUR' => 'EUR - Euro',
+                        'GBP' => 'GBP - British Pound',
+                        'BDT' => 'BDT - Bangladeshi Taka',
+                        'INR' => 'INR - Indian Rupee',
+                        'AUD' => 'AUD - Australian Dollar',
+                        'CAD' => 'CAD - Canadian Dollar',
+                        'JPY' => 'JPY - Japanese Yen',
+                        'CNY' => 'CNY - Chinese Yuan',
+                        'SGD' => 'SGD - Singapore Dollar',
+                        'MYR' => 'MYR - Malaysian Ringgit',
+                        'THB' => 'THB - Thai Baht',
+                        'VND' => 'VND - Vietnamese Dong',
+                        'PHP' => 'PHP - Philippine Peso',
+                        'IDR' => 'IDR - Indonesian Rupiah',
+                    ]],
                     'tax_rate' => ['label' => 'Tax rate', 'input' => 'number', 'type' => 'float', 'default' => 0.0, 'min' => 0, 'step' => '0.01'],
                 ],
             ],
@@ -221,6 +241,7 @@ final class SettingsCatalog
             'url' => $this->normalizeUrl($input),
             'timezone' => $this->normalizeTimezone($input),
             'list' => $this->normalizeList($input),
+            'action' => false,
             default => $this->normalizeString($input, $field),
         };
     }

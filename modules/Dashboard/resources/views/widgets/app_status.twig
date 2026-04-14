@@ -1,0 +1,15 @@
+{% set tone = 'neutral' %}
+{% set status = 'Active' %}
+{% set value = 'MarwaPHP' %}
+{% set meta = 'Production' %}
+
+<div class="flex flex-col">
+  <div class="flex items-center justify-between mb-2">
+    <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Application</span>
+    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-emerald-400/10 text-emerald-400">
+      {{ status }}
+    </span>
+  </div>
+  <div class="text-2xl font-bold text-slate-100">{{ value }}</div>
+  <div class="mt-1 text-xs text-slate-500">{{ meta }}</div>
+</div>

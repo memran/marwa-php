@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Backend;
+namespace App\Modules\Dashboard\Http\Controllers;
 
-use App\Modules\Dashboard\Models\DashboardWidget;
 use App\Modules\Dashboard\Support\WidgetRegistry;
 use Marwa\Framework\Controllers\Controller;
 use Marwa\Framework\Views\View;
+use PDO;
 use Psr\Http\Message\ResponseInterface;
 
 final class DashboardController extends Controller
@@ -110,7 +110,7 @@ final class DashboardController extends Controller
             return;
         }
 
-        app()->view()->addNamespace('dashboard', base_path('modules/Dashboard/resources/views'));
+        app()->view()->addNamespace('dashboard', dirname(__DIR__, 2) . '/resources/views');
     }
 
     private function getUserId(): ?int
@@ -138,7 +138,7 @@ final class DashboardController extends Controller
             $stmt->execute();
         }
 
-        $widgets = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $widgets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($widgets)) {
             return $this->getDefaultWidgets();
@@ -151,11 +151,11 @@ final class DashboardController extends Controller
     {
         $pdo = db()->getPdo();
         $stmt = $pdo->prepare(
-            "SELECT * FROM " . self::TABLE . " WHERE user_id IS NULL OR user_id = '' ORDER BY position ASC"
+            "SELECT * FROM " . self::TABLE . " WHERE user_id IS NULL ORDER BY position ASC"
         );
         $stmt->execute();
 
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     private function saveUserWidgets(?int $userId, array $widgets): void
@@ -194,7 +194,7 @@ final class DashboardController extends Controller
 
     private function renderWidget(string $id): string
     {
-        $viewFile = dirname(__DIR__, 3) . '/modules/Dashboard/resources/views/widgets/' . $id . '.twig';
+        $viewFile = dirname(__DIR__, 2) . '/resources/views/widgets/' . $id . '.twig';
 
         if (!file_exists($viewFile)) {
             return '<div class="p-4 text-slate-400 dark:text-slate-500">Widget template not found</div>';
@@ -202,7 +202,7 @@ final class DashboardController extends Controller
 
         try {
             $view = app()->make(View::class);
-            $view->addNamespace('dashboard', base_path('modules/Dashboard/resources/views'));
+            $view->addNamespace('dashboard', dirname(__DIR__, 2) . '/resources/views');
 
             $data = [];
             

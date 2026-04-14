@@ -6,7 +6,28 @@
 {% set section_header = 'px-3 py-2 text-[0.65rem] font-extrabold uppercase tracking-wider text-slate-500' %}
 
 <div class="grid gap-3">
-  <div class="inline-flex items-center gap-3">
+  <!-- Mobile Close Button -->
+  <div class="flex items-center justify-between lg:hidden">
+    <div class="inline-flex items-center gap-3">
+      <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 text-cyan-100 shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
+        {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-5 w-5' } only %}
+      </span>
+      <div class="grid gap-0.5">
+        <span class="text-[0.82rem] font-black uppercase tracking-[0.18em] text-white">MarwaPHP</span>
+        <span class="text-xs text-slate-400">Console</span>
+      </div>
+    </div>
+    <button 
+      type="button" 
+      class="rounded-lg p-2 text-slate-400 hover:bg-white/5 hover:text-white"
+      @click="$dispatch('close-mobile')"
+    >
+      {% include 'components/icon.twig' with { name: 'x', class: 'h-5 w-5' } only %}
+    </button>
+  </div>
+
+  <!-- Desktop Logo (hidden on mobile) -->
+  <div class="hidden lg:inline-flex items-center gap-3">
     <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 text-cyan-100 shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
       {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-5 w-5' } only %}
     </span>
@@ -21,7 +42,7 @@
   {# User Space #}
   <span class="{{ section_header }}">User Space</span>
   
-  <a class="{{ nav_link_base }} {% if currentPath == '/admin' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" href="/admin" {% if currentPath == '/admin' %}aria-current="page"{% endif %}>
+  <a class="{{ nav_link_base }} {% if currentPath == '/admin/dashboard' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" href="/admin/dashboard" {% if currentPath == '/admin/dashboard' %}aria-current="page"{% endif %}>
     {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-5 w-5 shrink-0' } only %}
     <span class="truncate">Dashboard</span>
   </a>

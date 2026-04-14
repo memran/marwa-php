@@ -14,7 +14,9 @@
     "css:build:admin": "npm run icons:build:admin && tailwindcss -c tailwind.config.js -i ./resources/views/themes/admin/assets/css/app.css -o ./public/themes/admin/assets/css/app.css --minify",
     "css:build": "npm run css:build:default && npm run css:build:admin",
     "dev": "npm run css:dev",
-    "build": "npm run css:build"
+    "build": "npm run css:build",
+    "alpine:copy": "node -e \"require('fs').copyFileSync('node_modules/alpinejs/dist/cdn.min.js', 'public/themes/admin/assets/js/alpine.min.js')\"",
+    "sortable:copy": "node -e \"require('fs').copyFileSync('node_modules/sortablejs/Sortable.min.js', 'public/themes/admin/assets/js/sortable.min.js')\""
   },
   "repository": {
     "type": "git",
@@ -38,5 +40,9 @@
     "lucide-static": "^1.8.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17"
+  },
+  "dependencies": {
+    "alpinejs": "^3.15.11",
+    "sortablejs": "^1.15.7"
   }
 }

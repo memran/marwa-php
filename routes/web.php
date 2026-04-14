@@ -12,4 +12,5 @@ Router::get('/', [HomeController::class, 'index'])->name('home')->register();
 
 Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class]], static function ($routes): void {
     $routes->get('/', [DashboardController::class, 'index'])->name('admin.dashboard')->register();
+    $routes->get('/dashboard', [DashboardController::class, 'index'])->register();
 });

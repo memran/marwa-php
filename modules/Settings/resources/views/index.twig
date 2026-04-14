@@ -36,17 +36,29 @@
     </div>
   {% endif %}
 
-  <form class="mt-6 grid gap-5" method="post" action="/admin/settings">
+  <div class="mt-6 flex flex-wrap gap-2 border-b border-white/10 pb-4" role="tablist">
+    {% for category, meta in categories %}
+      <button
+        type="button"
+        class="settings-tab rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
+        data-target="category-{{ category }}"
+      >
+        {{ meta.label }}
+      </button>
+    {% endfor %}
+  </div>
+
+  <form class="mt-4 grid gap-5" method="post" action="/admin/settings">
     {{ csrf_field() }}
 
     {% for category, meta in categories %}
-      <section class="overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/5 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-5">
+      <section id="category-{{ category }}" class="settings-category overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/5 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-5">
         <div class="border-b border-white/10 pb-4">
           <h2 class="text-lg font-bold tracking-tight text-white">{{ meta.label }}</h2>
           <p class="mt-1 text-sm text-slate-400">{{ meta.description }}</p>
         </div>
 
-        <div class="mt-4 grid gap-4 md:grid-cols-2">
+        <div class="mt-4 grid gap-4 md:grid-cols-2 items-start">
           {% for key, field in meta.fields %}
             {% set field_id = category ~ '_' ~ key %}
             {% set field_name = 'settings[' ~ category ~ '][' ~ key ~ ']' %}
@@ -73,8 +85,26 @@
               {% elseif field.input == 'checkbox' %}
                 <label class="inline-flex min-h-[2.5rem] items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-200">
                   <input type="checkbox" id="{{ field_id }}" name="{{ field_name }}" value="1" {% if field_value %}checked{% endif %}>
-                  <span>Enabled</span>
+                  <span>{{ field.label }}</span>
                 </label>
+              {% elseif field.input == 'action' %}
+                {% if key == 'purge_cache' %}
+                <form method="post" action="/admin/settings/purge-cache">
+                  {{ csrf_field() }}
+                  <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-400/20 bg-rose-500/10 px-3.5 py-2 text-[0.82rem] font-semibold text-rose-100 transition hover:bg-rose-500/20">
+                    {% include 'components/icon.twig' with { name: 'trash-2', class: 'h-4 w-4' } only %}
+                    Purge Cache
+                  </button>
+                </form>
+                {% elseif key == 'clear_logs' %}
+                <form method="post" action="/admin/settings/clear-logs">
+                  {{ csrf_field() }}
+                  <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-400/20 bg-rose-500/10 px-3.5 py-2 text-[0.82rem] font-semibold text-rose-100 transition hover:bg-rose-500/20">
+                    {% include 'components/icon.twig' with { name: 'file-x-2', class: 'h-4 w-4' } only %}
+                    Clear Logs
+                  </button>
+                </form>
+                {% endif %}
               {% else %}
                 <input
                   class="admin-control w-full rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10"
@@ -95,6 +125,10 @@
             </div>
           {% endfor %}
         </div>
+
+        <div class="mt-4 flex justify-end">
+          <button class="{{ button_primary }}" type="submit">Save {{ meta.label }}</button>
+        </div>
       </section>
     {% endfor %}
 
@@ -103,4 +137,37 @@
       <a class="{{ button_secondary }}" href="/admin">Cancel</a>
     </div>
   </form>
+
+  <script>
+    (function() {
+      const tabs = document.querySelectorAll('.settings-tab');
+      const categories = document.querySelectorAll('.settings-category');
+
+      function switchTab(targetId) {
+        tabs.forEach(tab => {
+          const isActive = tab.dataset.target === targetId;
+          tab.classList.toggle('bg-cyan-500/20', isActive);
+          tab.classList.toggle('border-cyan-400/30', isActive);
+          tab.classList.toggle('text-cyan-100', isActive);
+        });
+
+        categories.forEach(cat => {
+          const isVisible = cat.id === targetId;
+          cat.style.display = isVisible ? 'block' : 'none';
+        });
+      }
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+          e.preventDefault();
+          switchTab(this.dataset.target);
+        });
+      });
+
+      const firstTab = tabs[0];
+      if (firstTab) {
+        switchTab(firstTab.dataset.target);
+      }
+    })();
+  </script>
 {% endblock %}

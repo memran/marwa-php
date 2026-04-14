@@ -1,0 +1,153 @@
+{% extends "layout.twig" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div 
+  x-data="dashboardWidget()" 
+  x-init="init()"
+  data-widgets='{{ widgets|json_encode|escape }}'
+  data-available='{{ available_widgets|json_encode|escape }}'
+  data-sizes='{{ size_options|json_encode|escape }}'
+>
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-white">Dashboard</h1>
+      <p class="mt-1 text-sm text-slate-400">Welcome back! Here's your overview.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button 
+        x-show="!editMode"
+        @click="toggleEditMode()"
+        class="inline-flex items-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20"
+      >
+        <svg class="h-4 w-4"><use href="#icon-settings"></use></svg>
+        <span>Edit Dashboard</span>
+      </button>
+      <button 
+        x-show="editMode"
+        @click="toggleEditMode()"
+        class="inline-flex items-center gap-2 rounded-xl border border-slate-600 bg-slate-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-600"
+      >
+        <svg class="h-4 w-4"><use href="#icon-x"></use></svg>
+        <span>Done</span>
+      </button>
+    </div>
+  </div>
+
+  <div 
+    x-ref="widgetGrid"
+    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+  >
+    {% for widget in widgets %}
+      {% if widget.enabled %}
+      <div 
+        class="widget-item dashboard-widget relative rounded-xl border border-white/10 bg-white/5 p-4 shadow-lg backdrop-blur-xl"
+        :class="getWidthClass('{{ widget.width }}')"
+        data-widget-id="{{ widget.widget_id }}"
+        data-position="{{ widget.position }}"
+      >
+        <div x-show="editMode" class="absolute top-2 right-2 flex items-center gap-1 z-10">
+          <div class="drag-handle cursor-move p-1.5 text-slate-400 hover:text-white rounded hover:bg-white/10">
+            <svg class="h-4 w-4"><use href="#icon-grip-vertical"></use></svg>
+          </div>
+          <button 
+            @click="removeWidget('{{ widget.widget_id }}')" 
+            class="p-1.5 text-rose-400 hover:text-rose-300 rounded hover:bg-rose-500/20"
+          >
+            <svg class="h-4 w-4"><use href="#icon-trash-2"></use></svg>
+          </button>
+          <button 
+            @click="refreshWidget('{{ widget.widget_id }}')" 
+            class="p-1.5 text-slate-400 hover:text-white rounded hover:bg-white/10"
+            title="Refresh widget"
+          >
+            <svg class="h-4 w-4"><use href="#icon-refresh-cw"></use></svg>
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold text-slate-200">{{ widget.title }}</h3>
+          <button 
+            x-show="!editMode"
+            @click="refreshWidget('{{ widget.widget_id }}')" 
+            class="p-1 text-slate-500 hover:text-white rounded hover:bg-white/10"
+            title="Refresh widget"
+          >
+            <svg class="h-3.5 w-3.5"><use href="#icon-refresh-cw"></use></svg>
+          </button>
+        </div>
+
+        <div class="widget-content">
+          {% include '@dashboard/widgets/' ~ widget.widget_id ~ '.twig' ignore missing %}
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <div 
+    x-show="editMode"
+    x-cloak
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+    @click="toggleEditMode()"
+  ></div>
+
+  <div 
+    x-show="editMode"
+    x-cloak
+    class="fixed right-0 top-0 h-full w-80 max-w-full bg-slate-950 border-l border-white/10 p-4 overflow-y-auto z-50"
+  >
+    <div class="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
+      <h3 class="text-lg font-semibold text-white">Add Widgets</h3>
+      <button @click="toggleEditMode()" class="p-1.5 text-slate-400 hover:text-white rounded hover:bg-white/10">
+        <svg class="h-5 w-5"><use href="#icon-x"></use></svg>
+      </button>
+    </div>
+
+    <div class="space-y-2 mb-6">
+      <template x-for="widget in availableWidgets" :key="widget.id">
+        <div 
+          class="p-3 rounded-lg border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition"
+          @click="addWidget(widget.id)"
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-medium text-slate-200" x-text="widget.name"></span>
+            <span class="text-xs text-slate-500" x-text="widget.size"></span>
+          </div>
+          <p class="text-xs text-slate-400 mt-1" x-text="widget.description"></p>
+        </div>
+      </template>
+    </div>
+
+    <div class="space-y-2 pt-4 border-t border-white/10">
+      <button 
+        @click="saveWidgets()"
+        class="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-2.5 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20"
+      >
+        <svg class="h-4 w-4"><use href="#icon-save"></use></svg>
+        Save Changes
+      </button>
+      <button 
+        @click="resetDashboard()"
+        class="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-2.5 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/20"
+      >
+        <svg class="h-4 w-4"><use href="#icon-refresh-cw"></use></svg>
+        Reset to Default
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+.dashboard-widget {
+  min-height: 160px;
+}
+</style>
+{% endblock %}

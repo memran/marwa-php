@@ -50,9 +50,58 @@ final class SettingsController extends Controller
         return $this->redirect('/admin/settings');
     }
 
+    public function purgeCache(): ResponseInterface
+    {
+        $this->ensureViewNamespace();
+
+        try {
+            if (app()->has(\Marwa\Framework\Contracts\CacheInterface::class)) {
+                app()->cache()->flush();
+                session()->flash('settings.notice', 'Cache cleared successfully.');
+            } else {
+                session()->flash('settings.notice', 'Cache service not available.');
+            }
+        } catch (\Throwable $e) {
+            session()->flash('settings.notice', 'Failed to clear cache: ' . $e->getMessage());
+        }
+
+        return $this->redirect('/admin/settings');
+    }
+
+    public function clearLogs(): ResponseInterface
+    {
+        $this->ensureViewNamespace();
+
+        try {
+            $logsPath = logs_path();
+            if (!is_dir($logsPath)) {
+                session()->flash('settings.notice', 'Logs directory not found.');
+                return $this->redirect('/admin/settings');
+            }
+
+            $files = glob($logsPath . DIRECTORY_SEPARATOR . '*.log');
+            $count = 0;
+            foreach ($files as $file) {
+                if (is_file($file) && unlink($file)) {
+                    $count++;
+                }
+            }
+
+            if ($count > 0) {
+                session()->flash('settings.notice', "Deleted {$count} log file(s).");
+            } else {
+                session()->flash('settings.notice', 'No log files to delete.');
+            }
+        } catch (\Throwable $e) {
+            session()->flash('settings.notice', 'Failed to clear logs: ' . $e->getMessage());
+        }
+
+        return $this->redirect('/admin/settings');
+    }
+
     private function ensureViewNamespace(): void
     {
-        if (!app()->has(View::class)) {
+        if (!app()->has(\Marwa\Framework\Views\View::class)) {
             return;
         }
 

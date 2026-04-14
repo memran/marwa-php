@@ -11,6 +11,7 @@ module.exports = {
     './routes/**/*.php',
     './tests/**/*.php',
   ],
+  darkMode: ['class', '[data-admin-theme="dark"]'],
   theme: {
     extend: {
       boxShadow: {

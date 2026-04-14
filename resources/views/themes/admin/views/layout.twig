@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" x-data="adminTheme()">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,32 +7,149 @@
   <title>{% block title %}Admin{% endblock %}</title>
   <meta name="description" content="Executive-grade admin theme for MarwaPHP.">
   <script>
-    (() => {
-      const storageKey = 'marwa-admin-theme';
-      const stored = window.localStorage.getItem(storageKey);
-      const preferred = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-      const theme = stored === 'light' || stored === 'dark' ? stored : preferred;
-
-      document.documentElement.dataset.adminTheme = theme;
-      document.documentElement.style.colorScheme = theme;
+    (function() {
+      var theme = localStorage.getItem('marwa-admin-theme');
+      var preferred = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      var finalTheme = (theme === 'light' || theme === 'dark') ? theme : preferred;
+      document.documentElement.dataset.adminTheme = finalTheme;
+      document.documentElement.style.colorScheme = finalTheme;
     })();
+  </script>
+  <script defer src="{{ theme_asset('assets/js/alpine.min.js') }}"></script>
+  <script defer src="{{ theme_asset('assets/js/sortable.min.js') }}"></script>
+  <script defer src="{{ theme_asset('assets/js/dashboard.js') }}"></script>
+  <script>
+    document.addEventListener('alpine:init', function() {
+      Alpine.data('dashboardWidget', function() {
+        return {
+          editMode: false,
+          sortable: null,
+          widgets: [],
+          availableWidgets: [],
+          sizeOptions: {},
+          init() {
+            try {
+              this.widgets = this.$el.dataset.widgets ? JSON.parse(this.$el.dataset.widgets) : [];
+              this.availableWidgets = this.$el.dataset.available ? JSON.parse(this.$el.dataset.available) : [];
+              this.sizeOptions = this.$el.dataset.sizes ? JSON.parse(this.$el.dataset.sizes) : [];
+            } catch (e) { console.error('Init error:', e); }
+          },
+          toggleEditMode() {
+            this.editMode = !this.editMode;
+            if (this.editMode) { this.$nextTick(() => this.initSortable()); }
+            else { this.destroySortable(); }
+          },
+          initSortable() {
+            const grid = this.$refs.widgetGrid;
+            if (!grid || typeof Sortable === 'undefined') return;
+            this.sortable = new Sortable(grid, { animation: 150, handle: '.drag-handle', ghostClass: 'opacity-50', onEnd: () => this.updatePositions() });
+          },
+          destroySortable() { if (this.sortable) { this.sortable.destroy(); this.sortable = null; } },
+          updatePositions() {
+            const items = this.$refs.widgetGrid.querySelectorAll('.widget-item');
+            this.widgets = Array.from(items).map((item, i) => {
+              const id = item.dataset.widgetId;
+              const existing = this.widgets.find(w => w.widget_id === id);
+              return existing ? {...existing, position: i} : {widget_id: id, position: i};
+            });
+          },
+          async saveWidgets() {
+            try {
+              const res = await fetch('/admin/dashboard/save', { method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRF-Token': this.getCsrfToken()}, body: JSON.stringify({widgets: this.widgets}) });
+              const data = await res.json();
+              if (data.success) { this.editMode = false; this.destroySortable(); window.location.reload(); }
+            } catch(e) { console.error(e); }
+          },
+          addWidget(id) {
+            const w = this.availableWidgets[id];
+            if (!w) return;
+            this.widgets.push({widget_id: id, widget_type: 'system', title: w.name, position: this.widgets.length, width: w.size||'medium', enabled: true, config: {}});
+          },
+          removeWidget(id) { this.widgets = this.widgets.filter(w => w.widget_id !== id); },
+          async refreshWidget(id) {
+            const el = document.querySelector(`[data-widget-id="${id}"] .widget-content`);
+            if (!el) return;
+            el.innerHTML = '<div class="p-4 text-center text-slate-400">Refreshing...</div>';
+            try {
+              const res = await fetch(`/admin/dashboard/widget/${id}/refresh`);
+              const data = await res.json();
+              el.innerHTML = data.success ? data.content : `<div class="p-4 text-red-400">${data.message}</div>`;
+            } catch(e) { el.innerHTML = '<div class="p-4 text-red-400">Error</div>'; }
+          },
+          async resetDashboard() {
+            if (!confirm('Reset dashboard?')) return;
+            try {
+              const res = await fetch('/admin/dashboard/reset', { method: 'POST', headers: {'X-CSRF-Token': this.getCsrfToken()} });
+              if (res.ok) window.location.reload();
+            } catch(e) { console.error(e); }
+          },
+          getCsrfToken() { const m = document.querySelector('meta[name="csrf-token"]'); return m ? m.content : ''; },
+          getWidthClass(w) { return {'small':'col-span-1','medium':'col-span-1 md:col-span-2','large':'col-span-1 md:col-span-2 lg:col-span-3'}[w] || 'col-span-1 md:col-span-2'; }
+        };
+      });
+    });
+  </script>
+  <script>
+    document.addEventListener('alpine:init', function() {
+      Alpine.data('adminTheme', function() {
+        return {
+          theme: document.documentElement.dataset.adminTheme || 'dark',
+          mobileOpen: false,
+          toggle() {
+            var newTheme = this.theme === 'dark' ? 'light' : 'dark';
+            this.theme = newTheme;
+            localStorage.setItem('marwa-admin-theme', newTheme);
+            document.documentElement.dataset.adminTheme = newTheme;
+            document.documentElement.style.colorScheme = newTheme;
+          },
+          toggleMobile() {
+            this.mobileOpen = !this.mobileOpen;
+          },
+          closeMobile() {
+            this.mobileOpen = false;
+          }
+        };
+      });
+    });
   </script>
   <link rel="stylesheet" href="{{ theme_asset('css/app.css') }}">
 </head>
-<body class="admin-theme min-h-screen bg-slate-950 text-slate-100 antialiased">
+<body class="admin-theme min-h-screen bg-slate-950 text-slate-100 antialiased" @close-mobile.window="closeMobile()">
   <div class="admin-shell relative isolate min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_36%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.12),_transparent_32%),linear-gradient(180deg,#020617_0%,#0f172a_48%,#020617_100%)]">
     <div class="pointer-events-none absolute left-[-8rem] top-10 -z-10 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl"></div>
     <div class="pointer-events-none absolute right-[-10rem] top-32 -z-10 h-96 w-96 rounded-full bg-emerald-400/10 blur-3xl"></div>
 
+    <!-- Mobile Overlay Backdrop -->
+    <div 
+      x-show="mobileOpen" 
+      x-cloak
+      @click="closeMobile()"
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-150"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+    ></div>
+
+    <!-- Grid Container for Desktop -->
     <div class="grid min-h-screen lg:grid-cols-[16rem_minmax(0,1fr)]">
-      <aside id="admin-sidebar" aria-label="Sidebar navigation" class="admin-sidebar border-b border-white/10 bg-slate-950/55 backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r">
+      <!-- Sidebar -->
+      <aside 
+        id="admin-sidebar" 
+        aria-label="Sidebar navigation"
+        class="admin-sidebar fixed lg:sticky top-0 left-0 z-50 h-screen w-64 transform border-b border-white/10 bg-slate-950/55 backdrop-blur-xl transition-transform duration-300 lg:border-b-0 lg:border-r lg:translate-x-0"
+        :class="mobileOpen ? 'translate-x-0' : '-translate-x-full'"
+      >
         <div class="flex h-full flex-col gap-7 p-4 lg:p-5">
           {% include 'partials/sidebar.twig' %}
         </div>
       </aside>
 
+      <!-- Main Content Area -->
       <div class="flex min-w-0 flex-col">
-        <header class="admin-topbar border-b border-white/10 bg-slate-950/50 backdrop-blur-xl">
+        <header class="admin-topbar sticky top-0 z-30 border-b border-white/10 bg-slate-950/50 backdrop-blur-xl overflow-visible">
           {% include 'partials/topbar.twig' %}
         </header>
 
@@ -42,50 +159,5 @@
       </div>
     </div>
   </div>
-  <script>
-    (() => {
-      const storageKey = 'marwa-admin-theme';
-      const root = document.documentElement;
-      const toggle = document.querySelector('[data-theme-toggle]');
-      const label = document.querySelector('[data-theme-label]');
-      const moon = document.querySelector('[data-theme-icon="moon"]');
-      const sun = document.querySelector('[data-theme-icon="sun"]');
-
-      const applyTheme = (theme) => {
-        root.dataset.adminTheme = theme;
-        root.style.colorScheme = theme;
-
-        if (label) {
-          label.textContent = theme === 'dark' ? 'Dark' : 'Light';
-        }
-
-        if (moon) {
-          moon.classList.toggle('hidden', theme !== 'dark');
-        }
-
-        if (sun) {
-          sun.classList.toggle('hidden', theme !== 'light');
-        }
-
-        if (toggle) {
-          toggle.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
-          toggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
-          toggle.setAttribute('title', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
-        }
-      };
-
-      applyTheme(root.dataset.adminTheme || 'dark');
-
-      if (!toggle) {
-        return;
-      }
-
-      toggle.addEventListener('click', () => {
-        const next = (root.dataset.adminTheme || 'dark') === 'dark' ? 'light' : 'dark';
-        window.localStorage.setItem(storageKey, next);
-        applyTheme(next);
-      });
-    })();
-  </script>
 </body>
 </html>

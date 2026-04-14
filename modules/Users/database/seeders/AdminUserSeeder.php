@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Database\Seeders;
+namespace App\Modules\Users\Database\Seeders;
 
 use App\Modules\Users\Models\User;
 use Marwa\DB\Seeder\Seeder;
