@@ -14,7 +14,7 @@ final class UserValidationRules
         return [
             'name' => 'required|string|max:120',
             'email' => 'required|email|max:190',
-            'role' => 'required|string|in:admin,manager,staff,viewer',
+            'role_id' => 'required|integer',
             'is_active' => 'sometimes|boolean',
             'password' => 'required|string|min:8|confirmed',
         ];
@@ -28,7 +28,7 @@ final class UserValidationRules
         return [
             'name' => 'required|string|max:120',
             'email' => 'required|email|max:190',
-            'role' => 'required|string|in:admin,manager,staff,viewer',
+            'role_id' => 'required|integer',
             'is_active' => 'sometimes|boolean',
             'password' => 'nullable|string|min:8|confirmed',
         ];

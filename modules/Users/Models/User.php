@@ -17,17 +17,29 @@ final class User extends Model
         'name',
         'email',
         'password',
-        'role',
+        'role_id',
         'is_active',
         'last_login_at',
     ];
 
-    /**
-     * @var array<string, string>
-     */
     protected static array $casts = [
         'is_active' => 'int',
+        'role_id' => 'int',
     ];
 
     protected static bool $softDeletes = true;
+
+    public function role(): ?\App\Modules\Auth\Models\Role
+    {
+        if (!app()->has(\Marwa\DB\Connection\ConnectionManager::class)) {
+            return null;
+        }
+
+        $roleId = $this->getAttribute('role_id');
+        if ($roleId === null) {
+            return null;
+        }
+
+        return \App\Modules\Auth\Models\Role::findById((int) $roleId);
+    }
 }

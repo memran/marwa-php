@@ -10,16 +10,19 @@ use Marwa\Framework\Validation\ValidationException;
 final class UserFormData
 {
     /**
-     * @return array<string, string>
+     * @return array<int, string>
      */
     public function roles(): array
     {
-        return [
-            'admin' => 'Admin',
-            'manager' => 'Manager',
-            'staff' => 'Staff',
-            'viewer' => 'Viewer',
-        ];
+        $roles = \App\Modules\Auth\Models\Role::newQuery()->getBaseBuilder()
+            ->orderBy('level', 'desc')
+            ->get();
+
+        $result = [];
+        foreach ($roles as $role) {
+            $result[(int) $role['id']] = (string) $role['name'];
+        }
+        return $result;
     }
 
     /**
@@ -29,10 +32,11 @@ final class UserFormData
     public function formViewData(array $extra = []): array
     {
         $user = $extra['user'] ?? null;
+        $role = $user instanceof User ? $user->role() : null;
         $defaults = [
             'name' => $user instanceof User ? (string) $user->getAttribute('name') : '',
             'email' => $user instanceof User ? (string) $user->getAttribute('email') : '',
-            'role' => $user instanceof User ? (string) $user->getAttribute('role') : 'staff',
+            'role_id' => $role !== null ? (int) $role->getKey() : null,
             'is_active' => $user instanceof User ? (bool) $user->getAttribute('is_active') : true,
         ];
 
@@ -40,9 +44,13 @@ final class UserFormData
         $errors = session(ValidationException::ERROR_BAG_KEY, []);
 
         if (is_array($old) && is_array($errors) && $errors !== []) {
-            foreach (['name', 'email', 'role'] as $field) {
+            foreach (['name', 'email', 'role_id'] as $field) {
                 if (array_key_exists($field, $old)) {
-                    $defaults[$field] = (string) $old[$field];
+                    if ($field === 'role_id') {
+                        $defaults[$field] = (int) $old[$field];
+                    } else {
+                        $defaults[$field] = (string) $old[$field];
+                    }
                 }
             }
 

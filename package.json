@@ -7,10 +7,11 @@
     "test": "tests"
   },
   "scripts": {
+    "icons:build:admin": "php scripts/build-admin-lucide-sprite.php",
     "css:dev": "tailwindcss -c tailwind.config.js -i ./resources/css/app.css -o ./public/assets/css/app.css --watch",
-    "css:dev:admin": "tailwindcss -c tailwind.config.js -i ./resources/views/themes/admin/assets/css/app.css -o ./public/themes/admin/assets/css/app.css --watch",
+    "css:dev:admin": "npm run icons:build:admin && tailwindcss -c tailwind.config.js -i ./resources/views/themes/admin/assets/css/app.css -o ./public/themes/admin/assets/css/app.css --watch",
     "css:build:default": "tailwindcss -c tailwind.config.js -i ./resources/css/app.css -o ./public/assets/css/app.css --minify",
-    "css:build:admin": "tailwindcss -c tailwind.config.js -i ./resources/views/themes/admin/assets/css/app.css -o ./public/themes/admin/assets/css/app.css --minify",
+    "css:build:admin": "npm run icons:build:admin && tailwindcss -c tailwind.config.js -i ./resources/views/themes/admin/assets/css/app.css -o ./public/themes/admin/assets/css/app.css --minify",
     "css:build": "npm run css:build:default && npm run css:build:admin",
     "dev": "npm run css:dev",
     "build": "npm run css:build"
@@ -34,6 +35,7 @@
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.11",
     "autoprefixer": "^10.4.21",
+    "lucide-static": "^1.8.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17"
   }

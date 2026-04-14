@@ -50,14 +50,14 @@
       } only %}
 
       <div class="grid gap-2">
-        <label class="text-sm font-semibold text-slate-200" for="role">Role</label>
-        <select class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10" id="role" name="role">
+        <label class="text-sm font-semibold text-slate-200" for="role_id">Role</label>
+        <select class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10" id="role_id" name="role_id">
           {% for value, label in roles %}
-            <option value="{{ value }}" {% if form.role|default('staff') == value %}selected{% endif %}>{{ label }}</option>
+            <option value="{{ value }}" {% if form.role_id|default(0) == value %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
         </select>
-        {% if errors.role is defined %}
-          <p class="text-sm text-rose-300">{{ errors.role|first }}</p>
+        {% if errors.role_id is defined %}
+          <p class="text-sm text-rose-300">{{ errors.role_id|first }}</p>
         {% else %}
           <p class="text-sm text-slate-400">Controls the access level shown in the user table.</p>
         {% endif %}

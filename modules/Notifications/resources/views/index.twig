@@ -1,2 +1,147 @@
-<h1>Notifications Module</h1>
-<p>Notifications module scaffolding is ready.</p>
+{% extends "layout.twig" %}
+
+{% block title %}Notifications | MarwaPHP Admin{% endblock %}
+
+{% block content %}
+  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
+  {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
+  {% set button_secondary = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
+
+  <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <div class="max-w-3xl space-y-2">
+      <span class="inline-flex w-fit items-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-cyan-100">Notifications</span>
+      <h1 class="text-2xl font-black tracking-tight text-white sm:text-3xl">Notifications</h1>
+      <p class="max-w-2xl text-sm leading-6 text-slate-300">Stay informed with the latest updates and alerts.</p>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <a class="{{ button_secondary }}" href="/admin">Back to dashboard</a>
+    </div>
+  </section>
+
+  <div class="mt-4 flex flex-wrap gap-2 border-b border-white/10">
+    <a class="border-b-2 px-4 py-2.5 text-sm font-medium transition {% if filter == 'all' %}border-cyan-400 text-cyan-200{% else %}border-transparent text-slate-400 hover:text-slate-200{% endif %}" href="/admin/notifications?filter=all">All</a>
+    <a class="border-b-2 px-4 py-2.5 text-sm font-medium transition {% if filter == 'unread' %}border-cyan-400 text-cyan-200{% else %}border-transparent text-slate-400 hover:text-slate-200{% endif %}" href="/admin/notifications?filter=unread">Unread{% if unread_count > 0 %} <span class="ml-1 inline-flex items-center rounded-full bg-rose-500/20 px-2 py-0.5 text-xs font-semibold text-rose-200">{{ unread_count }}</span>{% endif %}</a>
+    <a class="border-b-2 px-4 py-2.5 text-sm font-medium transition {% if filter == 'read' %}border-cyan-400 text-cyan-200{% else %}border-transparent text-slate-400 hover:text-slate-200{% endif %}" href="/admin/notifications?filter=read">Read</a>
+  </div>
+
+  {% if unread_count > 0 and is_admin %}
+    <form class="mt-4" method="post" action="/admin/notifications/read-all">
+      {{ csrf_field() }}
+      <button class="{{ button_secondary }}" type="submit">Mark all as read</button>
+    </form>
+  {% endif %}
+
+  {% set has_notifications = false %}
+  {% for group, items in notifications %}
+    {% if items|length > 0 %}
+      {% set has_notifications = true %}
+    {% endif %}
+  {% endfor %}
+
+  {% if not has_notifications %}
+    <div class="mt-8 flex flex-col items-center justify-center py-12 text-center">
+      <div class="flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
+        {% include 'components/icon.twig' with { name: 'bell-off', class: 'h-8 w-8 text-slate-500' } only %}
+      </div>
+      <h3 class="mt-4 text-lg font-semibold text-slate-200">No notifications</h3>
+      <p class="mt-1 text-sm text-slate-400">You're all caught up!</p>
+    </div>
+  {% else %}
+    {% for group, items in notifications %}
+      {% if items|length > 0 %}
+        <section class="mt-6">
+          {% set group_label = '' %}
+          {% if group == 'today' %}{% set group_label = 'Today' %}
+          {% elseif group == 'yesterday' %}{% set group_label = 'Yesterday' %}
+          {% elseif group == 'last_7_days' %}{% set group_label = 'Last 7 Days' %}
+          {% elseif group == 'last_30_days' %}{% set group_label = 'Last 30 Days' %}
+          {% elseif group == 'older' %}{% set group_label = 'Older' %}
+          {% endif %}
+          
+          <h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400">{{ group_label }}</h2>
+          
+          <div class="space-y-2">
+            {% for notification in items %}
+              {% set type = notification.getAttribute('type') %}
+              {% set is_read = notification.getAttribute('is_read') %}
+              
+              {% set type_colors = {
+                'info': 'text-cyan-400 bg-cyan-400/10 border-cyan-400/20',
+                'success': 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+                'warning': 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+                'error': 'text-rose-400 bg-rose-400/10 border-rose-400/20'
+              } %}
+              
+              {% set type_icons = {
+                'info': 'info',
+                'success': 'check-circle',
+                'warning': 'alert-triangle',
+                'error': 'x-circle'
+              } %}
+              
+              <div class="group relative flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/10 {% if not is_read %}ring-1 ring-cyan-400/30{% endif %}">
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg {{ type_colors[type]|default('text-slate-400 bg-white/10 border-white/10') }}">
+                  {% include 'components/icon.twig' with { name: type_icons[type]|default('bell'), class: 'h-4 w-4' } only %}
+                </div>
+                
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2">
+                    <h3 class="truncate text-sm font-semibold text-slate-100">{{ notification.getAttribute('title') }}</h3>
+                    {% if not is_read %}
+                      <span class="inline-flex h-2 w-2 rounded-full bg-cyan-400"></span>
+                    {% endif %}
+                  </div>
+                  <p class="mt-1 text-sm text-slate-400">{{ notification.getAttribute('message') }}</p>
+                  <p class="mt-2 text-xs text-slate-500">{{ notification.getAttribute('created_at')|date('M d, Y g:i A') }}</p>
+                  
+                  {% if notification.getAttribute('action_url') %}
+                    <a class="mt-2 inline-flex items-center gap-1 text-xs font-medium text-cyan-300 hover:text-cyan-200" href="{{ notification.getAttribute('action_url') }}">
+                      View details
+                      {% include 'components/icon.twig' with { name: 'arrow-right', class: 'h-3 w-3' } only %}
+                    </a>
+                  {% endif %}
+                </div>
+                
+                <div class="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                  {% if not is_read %}
+                    <form method="post" action="/admin/notifications/{{ notification.getKey() }}/read">
+                      {{ csrf_field() }}
+                      <button class="rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-slate-200" title="Mark as read">
+                        {% include 'components/icon.twig' with { name: 'check', class: 'h-4 w-4' } only %}
+                      </button>
+                    </form>
+                  {% endif %}
+                  
+                  {% if is_admin %}
+                    <form method="post" action="/admin/notifications/{{ notification.getKey() }}" onsubmit="return confirm('Delete this notification?');">
+                      {{ csrf_field() }}
+                      <input type="hidden" name="_method" value="DELETE">
+                      <button class="rounded-lg p-2 text-slate-400 hover:bg-rose-500/20 hover:text-rose-400" title="Delete">
+                        {% include 'components/icon.twig' with { name: 'trash-2', class: 'h-4 w-4' } only %}
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </section>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+  {% if last_page > 1 %}
+    <nav class="mt-8 flex items-center justify-center gap-2">
+      {% if current_page > 1 %}
+        <a class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/10" href="/admin/notifications?filter={{ filter }}&page={{ current_page - 1 }}">Previous</a>
+      {% endif %}
+      
+      <span class="px-3 py-2 text-sm text-slate-400">Page {{ current_page }} of {{ last_page }}</span>
+      
+      {% if current_page < last_page %}
+        <a class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/10" href="/admin/notifications?filter={{ filter }}&page={{ current_page + 1 }}">Next</a>
+      {% endif %}
+    </nav>
+  {% endif %}
+{% endblock %}

@@ -22,11 +22,17 @@ final class AdminUserSeeder implements Seeder
         $email = trim((string) env('ADMIN_BOOTSTRAP_EMAIL', 'admin@marwa.test'));
         $password = (string) env('ADMIN_BOOTSTRAP_PASSWORD', 'ExampleAdminPassword123!');
 
+        $adminRole = \App\Modules\Auth\Models\Role::newQuery()->getBaseBuilder()
+            ->where('slug', '=', 'admin')
+            ->first();
+
+        $roleId = $adminRole !== null ? (int) $adminRole['id'] : null;
+
         User::create([
             'name' => 'Administrator',
             'email' => $email !== '' ? $email : 'admin@marwa.test',
             'password' => password_hash($password, PASSWORD_DEFAULT),
-            'role' => 'admin',
+            'role_id' => $roleId,
             'is_active' => true,
         ]);
     }

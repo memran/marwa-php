@@ -44,7 +44,10 @@
         <tr class="align-top">
           <td class="w-44 px-3 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-slate-300">Role</td>
           <td class="px-3 py-3">
-            <span class="inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-100">{{ user.getAttribute('role')|default('unknown') }}</span>
+            {% set user_role = user.role() %}
+            <span class="inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-100">
+              {{ user_role is not null ? user_role.getAttribute('name') : 'Unknown' }}
+            </span>
           </td>
         </tr>
         <tr class="align-top">

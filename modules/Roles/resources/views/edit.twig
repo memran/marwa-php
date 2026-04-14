@@ -1,0 +1,80 @@
+{% extends "layout.twig" %}
+
+{% block title %}Edit Role | MarwaPHP Admin{% endblock %}
+
+{% block content %}
+  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
+  {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
+  {% set button_secondary = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
+
+  <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <div class="max-w-3xl space-y-2">
+      <span class="inline-flex w-fit items-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-cyan-100">Roles & Permissions</span>
+      <h1 class="text-2xl font-black tracking-tight text-white sm:text-3xl">Edit Role</h1>
+      <p class="max-w-2xl text-sm leading-6 text-slate-300">Configure role details and permissions.</p>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <a class="{{ button_secondary }}" href="/admin/roles">Back to roles</a>
+    </div>
+  </section>
+
+  <form method="post" action="/admin/roles/{{ role.getKey() }}" class="mt-6">
+    {{ csrf_field() }}
+    <input type="hidden" name="_method" value="PUT">
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="rounded-xl border border-white/10 bg-white/5 p-6">
+        <h2 class="text-lg font-semibold text-slate-100 mb-4">Role Details</h2>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Name</label>
+            <input type="text" name="name" value="{{ role.getAttribute('name') }}" class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-cyan-400 focus:outline-none" {% if role.getAttribute('is_system') %}readonly{% endif %}>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Description</label>
+            <textarea name="description" rows="3" class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-cyan-400 focus:outline-none">{{ role.getAttribute('description') }}</textarea>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-slate-400">Level:</span>
+            <span class="inline-flex items-center rounded-full bg-cyan-400/10 px-2 py-0.5 text-xs font-medium text-cyan-200">
+              {{ role.getAttribute('level') }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-white/10 bg-white/5 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-slate-100">Permissions</h2>
+          <span class="text-xs text-slate-400">{{ role_permission_ids|length }} assigned</span>
+        </div>
+        
+        <div class="space-y-4 max-h-64 overflow-y-auto">
+          {% for group, perms in permissions %}
+            <div class="border-b border-white/5 pb-3 last:border-0">
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">{{ group }}</h3>
+              <div class="space-y-2">
+                {% for perm in perms %}
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="permissions[]" value="{{ perm.getKey() }}" {% if perm.getKey() in role_permission_ids %}checked{% endif %} class="rounded border-white/10 bg-white/5 text-cyan-400 focus:ring-cyan-400/20">
+                    <span class="text-sm text-slate-300">{{ perm.getAttribute('name') }}</span>
+                    <span class="text-xs text-slate-500">({{ perm.getAttribute('slug') }})</span>
+                  </label>
+                {% endfor %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-6 flex justify-end gap-3">
+      <a href="/admin/roles" class="{{ button_secondary }}">Cancel</a>
+      <button type="submit" class="{{ button_primary }}">Save Changes</button>
+    </div>
+  </form>
+{% endblock %}

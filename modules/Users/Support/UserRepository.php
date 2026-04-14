@@ -40,8 +40,18 @@ final class UserRepository
 
     public function protectedAdminId(): int|string|null
     {
+        $adminRoleIds = \App\Modules\Auth\Models\Role::newQuery()->getBaseBuilder()
+            ->select('id')
+            ->where('slug', '=', 'admin')
+            ->pluck('id')
+            ->toArray();
+
+        if (empty($adminRoleIds)) {
+            return null;
+        }
+
         $builder = User::newQuery()->getBaseBuilder()
-            ->where('role', '=', 'admin')
+            ->whereIn('role_id', $adminRoleIds)
             ->whereNull('deleted_at');
 
         if ($builder->count() !== 1) {
@@ -77,13 +87,24 @@ final class UserRepository
 
     public function isLastAdminUser(User $user): bool
     {
-        if ($this->normalized((string) $user->getAttribute('role')) !== 'admin') {
+        $role = $user->role();
+        if ($role === null || $role->getAttribute('slug') !== 'admin') {
+            return false;
+        }
+
+        $adminRoleIds = \App\Modules\Auth\Models\Role::newQuery()->getBaseBuilder()
+            ->select('id')
+            ->where('slug', '=', 'admin')
+            ->pluck('id')
+            ->toArray();
+
+        if (empty($adminRoleIds)) {
             return false;
         }
 
         return User::newQuery()->getBaseBuilder()
+            ->whereIn('role_id', $adminRoleIds)
             ->whereNull('deleted_at')
-            ->where('role', '=', 'admin')
             ->count() <= 1;
     }
 
@@ -118,14 +139,14 @@ final class UserRepository
     }
 
     /**
-     * @param array{name:string,email:string,role:string,is_active:int} $afterState
+     * @param array{name:string,email:string,role_id:int,is_active:int} $afterState
      */
     public function createUser(array $afterState, string $password, ?User $actor = null): User
     {
         $user = User::create([
             'name' => $afterState['name'],
             'email' => $this->normalizeEmail($afterState['email']),
-            'role' => $afterState['role'],
+            'role_id' => $afterState['role_id'],
             'is_active' => $afterState['is_active'],
             'password' => password_hash($password, PASSWORD_DEFAULT),
         ]);
@@ -138,7 +159,7 @@ final class UserRepository
     }
 
     /**
-     * @param array{name:string,email:string,role:string,is_active:int} $afterState
+     * @param array{name:string,email:string,role_id:int,is_active:int} $afterState
      */
     public function updateUser(User $user, array $afterState, ?string $password = null, ?User $actor = null): void
     {
@@ -152,7 +173,8 @@ final class UserRepository
 
         $payload['email'] = $this->normalizeEmail((string) $payload['email']);
 
-        $user->forceFill($payload)->saveOrFail();
+        $user->fill($payload);
+        $user->save();
 
         $this->activityRecorder()->recordActorAction(
             ...$this->activityArguments(
@@ -193,8 +215,8 @@ final class UserRepository
     }
 
     /**
-     * @param array{name: string, email: string, role: string, is_active: int} $before
-     * @param array{name: string, email: string, role: string, is_active: int} $after
+     * @param array{name: string, email: string, role_id: int|null, role_name: string, is_active: int} $before
+     * @param array{name: string, email: string, role_id: int|null, role_name: string, is_active: int} $after
      */
     public function userStateHasChanges(array $before, array $after): bool
     {

@@ -1,0 +1,21 @@
+<div id="notifications-dropdown" class="absolute right-0 top-full z-50 mt-2 w-80 sm:w-96 hidden" role="menu">
+  <div class="overflow-hidden rounded-xl border border-white/10 bg-slate-950/95 backdrop-blur-xl shadow-[0_30px_80px_rgba(2,6,23,0.45)]">
+    <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
+      <h3 class="text-sm font-semibold text-slate-100">Notifications</h3>
+      <button id="mark-all-read-btn" class="text-xs font-medium text-cyan-300 hover:text-cyan-200 hidden">Mark all read</button>
+    </div>
+    
+    <div id="notifications-list" class="max-h-96 overflow-y-auto">
+      <div class="flex items-center justify-center py-8 text-slate-500">
+        <span class="text-sm">Loading...</span>
+      </div>
+    </div>
+    
+    <div class="border-t border-white/10 px-4 py-3">
+      <a href="/admin/notifications" class="flex items-center justify-center gap-1 text-sm font-medium text-cyan-300 hover:text-cyan-200">
+        See all notifications
+        {% include 'components/icon.twig' with { name: 'arrow-right', class: 'h-4 w-4' } only %}
+      </a>
+    </div>
+  </div>
+</div>

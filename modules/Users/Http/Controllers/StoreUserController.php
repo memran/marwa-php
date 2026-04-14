@@ -15,7 +15,7 @@ final class StoreUserController extends UsersController
         $afterState = [
             'name' => trim((string) $validated['name']),
             'email' => $this->users->normalizeEmail((string) $validated['email']),
-            'role' => trim((string) $validated['role']),
+            'role_id' => (int) $validated['role_id'],
             'is_active' => array_key_exists('is_active', $validated) ? (int) (bool) $validated['is_active'] : 1,
         ];
 
@@ -25,7 +25,7 @@ final class StoreUserController extends UsersController
             ])->withInput([
                 'name' => $afterState['name'],
                 'email' => $afterState['email'],
-                'role' => $afterState['role'],
+                'role_id' => $afterState['role_id'],
                 'is_active' => $afterState['is_active'] === 1,
             ]);
 

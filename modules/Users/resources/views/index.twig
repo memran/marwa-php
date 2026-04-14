@@ -72,7 +72,10 @@
               </td>
               <td class="px-3 py-3 text-sm text-slate-200">{{ user.getAttribute('email') }}</td>
               <td class="px-3 py-3">
-                <span class="inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-100">{{ user.getAttribute('role') }}</span>
+                {% set user_role = user.role() %}
+                <span class="inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-100">
+                  {{ user_role is not null ? user_role.getAttribute('name') : 'Unknown' }}
+                </span>
               </td>
               <td class="px-3 py-3">
                 {% if user.getAttribute('deleted_at') %}
