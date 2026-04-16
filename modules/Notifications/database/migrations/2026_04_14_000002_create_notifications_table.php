@@ -10,7 +10,7 @@ return new class extends AbstractMigration {
     {
         Schema::create('notifications', function ($table): void {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('user_id');
+            $table->bigInteger('user_id', true);
             $table->string('type', 20)->default('info');
             $table->string('title', 150);
             $table->text('message');
@@ -19,7 +19,7 @@ return new class extends AbstractMigration {
             $table->string('action_url', 255)->nullable();
             $table->timestamps();
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('user_id', 'users', 'id', null, ['onDelete' => 'cascade']);
             $table->index('user_id');
             $table->index('is_read');
             $table->index('created_at');

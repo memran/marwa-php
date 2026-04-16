@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Listeners;
 
-use Database\Seeders\AdminUserSeeder;
+use App\Modules\Users\Database\Seeders\AdminUserSeeder;
 use Marwa\DB\Connection\ConnectionManager;
 use Marwa\DB\Schema\MigrationRepository;
 use Marwa\Framework\Adapters\Event\AbstractEvent;

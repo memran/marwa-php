@@ -14,26 +14,15 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class RolesController extends Controller
 {
-    private RoleRepository $roleRepo;
-    private PermissionRepository $permRepo;
-    private Gate $gate;
-
-    public function __construct()
-    {
-        $this->roleRepo = app(RoleRepository::class);
-        $this->permRepo = app(PermissionRepository::class);
-        $this->gate = app(Gate::class);
-    }
-
     public function index(): ResponseInterface
     {
         $this->ensureViewNamespace();
 
-        if (!$this->gate->allows('roles.view')) {
+        if (!$this->gate()->allows('roles.view')) {
             return $this->json(['error' => 'Forbidden'], 403);
         }
 
-        $roles = $this->roleRepo->all();
+        $roles = $this->roleRepo()->all();
 
         return $this->view('@roles/index', [
             'roles' => $roles,
@@ -44,18 +33,18 @@ final class RolesController extends Controller
     {
         $this->ensureViewNamespace();
 
-        if (!$this->gate->allows('roles.manage')) {
+        if (!$this->gate()->allows('roles.manage')) {
             return $this->json(['error' => 'Forbidden'], 403);
         }
 
         $id = (int) ($vars['id'] ?? 0);
-        $role = $this->roleRepo->findById($id);
+        $role = $this->roleRepo()->findById($id);
         if ($role === null) {
             return $this->redirect('/admin/roles');
         }
 
-        $allPermissions = $this->permRepo->grouped();
-        $rolePermissions = $this->roleRepo->getPermissions($id);
+        $allPermissions = $this->permRepo()->grouped();
+        $rolePermissions = $this->roleRepo()->getPermissions($id);
         $rolePermissionIds = array_map(
             static fn ($p) => $p->getKey(),
             $rolePermissions
@@ -70,12 +59,12 @@ final class RolesController extends Controller
 
     public function update(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        if (!$this->gate->allows('roles.manage')) {
+        if (!$this->gate()->allows('roles.manage')) {
             return $this->json(['error' => 'Forbidden'], 403);
         }
 
         $id = (int) ($vars['id'] ?? 0);
-        $role = $this->roleRepo->findById($id);
+        $role = $this->roleRepo()->findById($id);
         if ($role === null) {
             return $this->json(['error' => 'Role not found'], 404);
         }
@@ -88,13 +77,13 @@ final class RolesController extends Controller
             return $this->json(['error' => 'Name is required'], 422);
         }
 
-        $this->roleRepo->update($id, [
+        $this->roleRepo()->update($id, [
             'name' => $name,
             'description' => $description,
         ]);
 
         if (is_array($permissionIds)) {
-            $this->roleRepo->syncPermissions($id, array_map('intval', $permissionIds));
+            $this->roleRepo()->syncPermissions($id, array_map('intval', $permissionIds));
         }
 
         session()->flash('roles.notice', 'Role updated successfully.');
@@ -104,12 +93,12 @@ final class RolesController extends Controller
 
     public function destroy(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        if (!$this->gate->allows('roles.manage')) {
+        if (!$this->gate()->allows('roles.manage')) {
             return $this->json(['error' => 'Forbidden'], 403);
         }
 
         $id = (int) ($vars['id'] ?? 0);
-        $role = $this->roleRepo->findById($id);
+        $role = $this->roleRepo()->findById($id);
         if ($role === null) {
             return $this->json(['error' => 'Role not found'], 404);
         }
@@ -118,7 +107,7 @@ final class RolesController extends Controller
             return $this->json(['error' => 'Cannot delete system role'], 422);
         }
 
-        $this->roleRepo->delete($id);
+        $this->roleRepo()->delete($id);
 
         return $this->json(['success' => true]);
     }
@@ -127,11 +116,11 @@ final class RolesController extends Controller
     {
         $this->ensureViewNamespace();
 
-        if (!$this->gate->allows('permissions.view')) {
+        if (!$this->gate()->allows('permissions.view')) {
             return $this->json(['error' => 'Forbidden'], 403);
         }
 
-        $permissions = $this->permRepo->grouped();
+        $permissions = $this->permRepo()->grouped();
 
         return $this->view('@roles/permissions', [
             'permissions' => $permissions,
@@ -145,5 +134,20 @@ final class RolesController extends Controller
         }
 
         app()->view()->addNamespace('roles', dirname(__DIR__, 2) . '/resources/views');
+    }
+
+    private function roleRepo(): RoleRepository
+    {
+        return app(RoleRepository::class);
+    }
+
+    private function permRepo(): PermissionRepository
+    {
+        return app(PermissionRepository::class);
+    }
+
+    private function gate(): Gate
+    {
+        return app(Gate::class);
     }
 }

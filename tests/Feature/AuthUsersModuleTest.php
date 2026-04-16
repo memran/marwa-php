@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Modules\Users\Models\User;
+use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Support\AuthManager;
 use Marwa\Framework\Application;
 use Marwa\Framework\Bootstrappers\AppBootstrapper;
@@ -386,7 +387,7 @@ TWIG
             $created = User::create([
                 'name' => 'Operations Lead',
                 'email' => 'ops@example.test',
-                'role' => 'manager',
+                'role_id' => $this->roleId('manager'),
                 'is_active' => true,
                 'password' => password_hash('Secret123!', PASSWORD_DEFAULT),
             ]);
@@ -480,14 +481,14 @@ TWIG
         $soleAdmin = User::create([
             'name' => 'Standalone Admin',
             'email' => 'sole-admin@example.test',
-            'role' => 'admin',
+            'role_id' => $this->roleId('admin'),
             'is_active' => true,
             'password' => password_hash('Secret123!', PASSWORD_DEFAULT),
         ]);
 
         $adminIndex = $kernel->handle($this->request('GET', '/admin/users'));
         self::assertSame(200, $adminIndex->getStatusCode());
-        self::assertStringContainsString('disabled', (string) $adminIndex->getBody());
+        self::assertStringContainsString('Disabled', (string) $adminIndex->getBody());
         self::assertStringContainsString('Protected', (string) $adminIndex->getBody());
 
         $blockedDelete = $kernel->handle($this->request('POST', '/admin/users/' . $soleAdmin->getKey() . '/delete', [
@@ -576,5 +577,16 @@ TWIG
         }
 
         @rmdir($path);
+    }
+
+    private function roleId(string $slug): int
+    {
+        $role = Role::findBySlug($slug);
+
+        if ($role === null) {
+            self::fail("Role {$slug} was not seeded.");
+        }
+
+        return (int) $role->getKey();
     }
 }

@@ -122,6 +122,9 @@ final class DashboardController extends Controller
         return (int) session()->get('admin_user_id');
     }
 
+    /**
+     * @return list<array<string, mixed>>
+     */
     private function getUserWidgets(?int $userId): array
     {
         $pdo = db()->getPdo();
@@ -147,6 +150,9 @@ final class DashboardController extends Controller
         return $widgets;
     }
 
+    /**
+     * @return list<array<string, mixed>>
+     */
     private function getDefaultWidgets(): array
     {
         $pdo = db()->getPdo();
@@ -158,6 +164,9 @@ final class DashboardController extends Controller
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    /**
+     * @param list<array<string, mixed>> $widgets
+     */
     private function saveUserWidgets(?int $userId, array $widgets): void
     {
         $pdo = db()->getPdo();

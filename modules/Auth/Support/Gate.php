@@ -40,8 +40,12 @@ final class Gate
             return null;
         }
 
-        $roleRepo = app(RoleRepository::class);
-        $this->currentRole = $roleRepo->findByUserRole($userRole);
+        try {
+            $roleRepo = app(RoleRepository::class);
+            $this->currentRole = $roleRepo->findByUserRole($userRole);
+        } catch (\Throwable) {
+            return null;
+        }
 
         return $this->currentRole;
     }

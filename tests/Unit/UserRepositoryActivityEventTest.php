@@ -103,12 +103,25 @@ PHP
         $pdo = $manager->getPdo();
 
         $pdo->exec(<<<'SQL'
+CREATE TABLE roles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    level INTEGER NOT NULL DEFAULT 1,
+    description TEXT NULL,
+    is_system INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NULL,
+    updated_at TEXT NULL
+)
+SQL);
+
+        $pdo->exec(<<<'SQL'
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
-    role TEXT NOT NULL,
+    role_id INTEGER NOT NULL,
     is_active INTEGER NOT NULL DEFAULT 1,
     last_login_at TEXT NULL,
     deleted_at TEXT NULL,
@@ -118,7 +131,7 @@ CREATE TABLE users (
 SQL);
 
         $pdo->exec(<<<'SQL'
-CREATE TABLE activities (
+        CREATE TABLE activities (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     action TEXT NOT NULL,
     description TEXT NOT NULL,
@@ -132,27 +145,34 @@ CREATE TABLE activities (
 )
 SQL);
 
+        $pdo->exec(<<<'SQL'
+INSERT INTO roles (name, slug, level, description, is_system, created_at, updated_at) VALUES
+('Admin', 'admin', 5, 'System administrator', 1, datetime('now'), datetime('now')),
+('Manager', 'manager', 3, 'Operations manager', 0, datetime('now'), datetime('now')),
+('Staff', 'staff', 1, 'Standard staff member', 0, datetime('now'), datetime('now'))
+SQL);
+
         /** @var UserRepository $users */
         $users = $app->make(UserRepository::class);
         $actor = User::newInstance([
             'id' => 999,
             'name' => 'Administrator',
             'email' => 'admin@marwa.test',
-            'role' => 'admin',
+            'role_id' => 1,
             'is_active' => true,
         ], false);
 
         $created = $users->createUser([
             'name' => 'Operations Lead',
             'email' => 'ops@example.test',
-            'role' => 'manager',
+            'role_id' => 2,
             'is_active' => 1,
         ], 'Secret123!', $actor);
 
         $users->updateUser($created, [
             'name' => 'Operations Manager',
             'email' => 'ops@example.test',
-            'role' => 'staff',
+            'role_id' => 3,
             'is_active' => 0,
         ], null, $actor);
 

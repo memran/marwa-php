@@ -13,11 +13,12 @@ return new class extends AbstractMigration {
             $table->string('name', 120);
             $table->string('email', 190)->unique();
             $table->string('password', 255);
-            $table->string('role', 32)->default('staff');
+            $table->bigInteger('role_id', true);
             $table->boolean('is_active')->default(true);
             $table->dateTime('last_login_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
+            $table->foreign('role_id', 'roles', 'id', null, ['onDelete' => 'restrict']);
         });
     }
 

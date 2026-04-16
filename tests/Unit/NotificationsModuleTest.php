@@ -22,7 +22,7 @@ final class NotificationsModuleTest extends TestCase
 
         self::assertEquals('Test', $notification->getAttribute('title'));
         self::assertEquals('info', $notification->getAttribute('type'));
-        self::assertFalse($notification->getAttribute('is_read'));
+        self::assertSame(0, $notification->getAttribute('is_read'));
     }
 
     public function test_notification_model_type_constants(): void

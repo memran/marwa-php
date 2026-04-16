@@ -12,8 +12,8 @@ return new class extends AbstractMigration {
             $table->bigInteger('role_id')->unsigned();
             $table->bigInteger('permission_id')->unsigned();
             $table->primary(['role_id', 'permission_id']);
-            $table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');
-            $table->foreign('permission_id')->references('id')->on('permissions')->onDelete('cascade');
+            $table->foreign('role_id', 'roles', 'id', null, ['onDelete' => 'cascade']);
+            $table->foreign('permission_id', 'permissions', 'id', null, ['onDelete' => 'cascade']);
         });
     }
 
