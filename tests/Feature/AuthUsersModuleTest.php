@@ -809,6 +809,9 @@ TWIG
 
     private function seedAuthAndUsers(): void
     {
+        if (!class_exists(RolesPermissionsSeeder::class, false)) {
+            require_once $this->basePath . '/modules/Auth/Database/Seeders/RolesPermissionsSeeder.php';
+        }
         (new RolesPermissionsSeeder())->run();
         (new AdminUserSeeder())->run();
     }

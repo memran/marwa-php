@@ -12,6 +12,7 @@ use App\Modules\Notifications\Support\NotificationService;
 use App\Modules\Users\Models\User;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 final class NotificationsController extends Controller
 {
@@ -44,6 +45,7 @@ final class NotificationsController extends Controller
             'filter' => $filter,
             'unread_count' => $unreadCount,
             'is_admin' => $this->isAdmin($user),
+            'notice' => session('notifications.notice'),
         ]);
     }
 
@@ -112,22 +114,24 @@ final class NotificationsController extends Controller
         ]);
     }
 
-    public function destroy(int $id): ResponseInterface
+    public function destroy(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
         $user = $this->getUser();
 
         if ($user === null) {
-            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+            return $this->redirect('/admin/login');
         }
 
+        $id = (int) ($vars['id'] ?? 0);
         $result = $this->repository->delete($id, $user->getKey());
 
         if ($result) {
-            $unreadCount = $this->repository->unreadCountForUser($user->getKey());
-            return $this->json(['success' => true, 'unread_count' => $unreadCount]);
+            session()->flash('notifications.notice', 'Notification deleted successfully.');
+            return $this->redirect('/admin/notifications');
         }
 
-        return $this->json(['success' => false, 'message' => 'Notification not found'], 404);
+        session()->flash('notifications.notice', 'Notification not found.');
+        return $this->redirect('/admin/notifications');
     }
 
     public function store(): ResponseInterface

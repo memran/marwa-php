@@ -29,7 +29,7 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
 });
 
 Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class, RequireAdminRole::class]], static function ($routes): void {
-    $routes->delete('/notifications/{id}', [NotificationsController::class, 'destroy'])
+    $routes->post('/notifications/{id}/delete', [NotificationsController::class, 'destroy'])
         ->middleware(new RequirePermission('notifications.manage'))
         ->name('admin.notifications.destroy')
         ->register();

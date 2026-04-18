@@ -286,6 +286,9 @@ TWIG
         (new MigrationRepository($connections->getPdo(), $this->basePath . '/modules/Activity/database/migrations'))->migrate();
         (new MigrationRepository($connections->getPdo(), $this->basePath . '/modules/Dashboard/database/migrations'))->migrate();
         (new MigrationRepository($connections->getPdo(), $this->basePath . '/modules/Settings/database/migrations'))->migrate();
+        if (!class_exists(RolesPermissionsSeeder::class, false)) {
+            require_once $this->basePath . '/modules/Auth/Database/Seeders/RolesPermissionsSeeder.php';
+        }
         (new RolesPermissionsSeeder())->run();
         $kernel = $app->make(HttpKernel::class);
 
