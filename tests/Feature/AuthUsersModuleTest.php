@@ -810,10 +810,10 @@ TWIG
     private function seedAuthAndUsers(): void
     {
         if (!class_exists(RolesPermissionsSeeder::class, false)) {
-            require_once __DIR__ . '/../../modules/Auth/database/seeders/RolesPermissionsSeeder.php';
+            require_once __DIR__ . '/../../modules/Auth/Database/Seeders/RolesPermissionsSeeder.php';
         }
         if (!class_exists(AdminUserSeeder::class, false)) {
-            require_once __DIR__ . '/../../modules/Users/database/seeders/AdminUserSeeder.php';
+            require_once __DIR__ . '/../../modules/Users/Database/Seeders/AdminUserSeeder.php';
         }
         (new RolesPermissionsSeeder())->run();
         (new AdminUserSeeder())->run();
