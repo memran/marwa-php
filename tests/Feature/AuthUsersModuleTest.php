@@ -812,6 +812,9 @@ TWIG
         if (!class_exists(RolesPermissionsSeeder::class, false)) {
             require_once __DIR__ . '/../../modules/Auth/database/seeders/RolesPermissionsSeeder.php';
         }
+        if (!class_exists(AdminUserSeeder::class, false)) {
+            require_once __DIR__ . '/../../modules/Users/database/seeders/AdminUserSeeder.php';
+        }
         (new RolesPermissionsSeeder())->run();
         (new AdminUserSeeder())->run();
     }
