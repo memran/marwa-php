@@ -5,7 +5,6 @@
 [![PHP](https://img.shields.io/packagist/dependency-v/memran/marwa-php/php?label=php)](https://packagist.org/packages/memran/marwa-php)
 [![PHPUnit](https://img.shields.io/github/actions/workflow/status/memran/marwa-php/ci.yml?branch=main&label=phpunit)](https://github.com/memran/marwa-php/actions/workflows/ci.yml)
 [![PHPStan](https://img.shields.io/github/actions/workflow/status/memran/marwa-php/ci.yml?branch=main&label=phpstan)](https://github.com/memran/marwa-php/actions/workflows/ci.yml)
-[![GitHub Pages](https://img.shields.io/github/actions/workflow/status/memran/marwa-php/pages.yml?branch=main&label=pages)](https://github.com/memran/marwa-php/actions/workflows/pages.yml)
 
 MarwaPHP Starter is a `composer create-project` application built on top of `memran/marwa-framework`.
 It is a thin, production-ready starting point for building real Marwa apps without inheriting framework internals into the app layer.
