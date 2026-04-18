@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Backend;
 
-use App\Modules\Dashboard\Models\DashboardWidget;
 use App\Modules\Dashboard\Support\WidgetRegistry;
 use Marwa\Framework\Controllers\Controller;
 use Marwa\Framework\Views\View;
@@ -15,13 +14,11 @@ final class DashboardController extends Controller
     private const TABLE = 'dashboard_widgets';
 
     public function __construct(
-        private readonly WidgetRegistry $widgetRegistry
+        private readonly WidgetRegistry $widgetRegistry,
     ) {}
 
     public function index(): ResponseInterface
     {
-        $this->ensureViewNamespace();
-
         $userId = $this->getUserId();
         $widgets = $this->getUserWidgets($userId);
 
@@ -102,15 +99,6 @@ final class DashboardController extends Controller
             'id' => $id,
             'content' => $content,
         ]);
-    }
-
-    private function ensureViewNamespace(): void
-    {
-        if (!app()->has(View::class)) {
-            return;
-        }
-
-        app()->view()->addNamespace('dashboard', base_path('modules/Dashboard/resources/views'));
     }
 
     private function getUserId(): ?int
@@ -211,7 +199,6 @@ final class DashboardController extends Controller
 
         try {
             $view = app()->make(View::class);
-            $view->addNamespace('dashboard', base_path('modules/Dashboard/resources/views'));
 
             $data = [];
             

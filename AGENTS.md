@@ -34,9 +34,10 @@
 - Docker stack credentials are copied from `docker/docker.env.example` into an ignored `docker/docker.env` runtime file mounted into the app container.
 - `routes/` defines the HTTP entry points.
 - `resources/views/` contains Twig layouts, theme views, and shared partials. The admin theme uses a shared Lucide sprite-backed icon partial for consistent SVGs, and the Users module shows soft-deleted rows with a restore action, asks for delete confirmation, and rejects duplicate emails at the starter layer. The Activity module records admin login/logout and user CRUD events through direct starter workflow calls and renders them on `/admin/activity` and in the dashboard feed. The admin-only Database Manager module provides a high-risk raw SQL console at `/admin/database` with confirmation for destructive queries. The admin-only Settings module exposes update-only predefined settings at `/admin/settings`, loads them at bootstrap, caches them, and mirrors them into `config('settings.*')`.
+- Keep the Database Manager disabled by default in `production` and `staging`; enable it explicitly with `DATABASE_MANAGER_ENABLED=1` only for controlled environments.
 - Starter maintenance and 404 pages live under `resources/views/themes/default/views/` so the framework can resolve them through `config/app.php`.
 - `modules/` stays optional and self-contained.
-- Module migrations are bootstrapped from a single app listener. Admin login is session-backed and uses `ADMIN_BOOTSTRAP_EMAIL` / `ADMIN_BOOTSTRAP_PASSWORD` from `.env`; the starter still seeds an admin account from `modules/Users/database/seeders/AdminUserSeeder.php` for the users module when the users table is empty, and the admin sidebar exposes the Users CRUD section at `/admin/users` plus the Activity feed at `/admin/activity`.
+- Module migrations and seeders must run through the framework CLI commands, not from HTTP requests. Use `php marwa migrate`, `php marwa module:migrate`, and `php marwa module:seed` during setup. Admin login is session-backed and uses `ADMIN_BOOTSTRAP_EMAIL` / `ADMIN_BOOTSTRAP_PASSWORD` from `.env`; the starter admin seed lives at `modules/Users/database/seeders/AdminUserSeeder.php`, and the admin sidebar exposes the Users CRUD section at `/admin/users` plus the Activity feed at `/admin/activity`.
 - `tests/` contains only app-specific PHPUnit coverage.
 
 ## Structure Reference
@@ -54,7 +55,7 @@
 - Keep controllers thin. Put validation rules, query coordination, form shaping, and other app-specific logic into focused support classes only when it materially reduces duplication.
 - Prefer framework-native features first: router groups, controllers, middleware, Twig views, model APIs, events, config, and helper functions. Do not recreate these as starter-local infrastructure.
 - Do not add wrapper layers around framework services just to normalize style. Add app code only when the behavior is specific to this starter or module.
-- Register module view namespaces from the module service provider only when the module ships its own Twig views.
+- Use manifest `paths.views` for module Twig namespaces; the framework auto-registers them. Do not manually call `addNamespace()` in service providers.
 - Keep module manifests explicit. If a module has migrations, add them to the manifest `migrations` list so cached installs can still discover them.
 - Each module manifest should stay explicit about `name`, `slug`, `version`, `providers`, `routes`, `migrations`, and, when used by the module, dependencies, permissions, widgets, menu, and status metadata.
 - Prefer direct `ActivityRecorder` calls for starter-local activity logging unless there is a real multi-listener need. Treat true global lifecycle behavior as a framework concern instead of adding app-local event indirection by default.

@@ -9,7 +9,11 @@ return [
     'providers' => [
         App\Modules\Activity\ActivityServiceProvider::class,
     ],
+    'requires' => [
+        'auth',
+    ],
     'paths' => [
+        'views' => 'resources/views',
         'commands' => 'Console/Commands',
         'database/migrations' => 'database/migrations',
     ],

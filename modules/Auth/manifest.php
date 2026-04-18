@@ -10,6 +10,7 @@ return [
         App\Modules\Auth\AuthServiceProvider::class,
     ],
     'paths' => [
+        'views' => 'resources/views',
         'commands' => 'Console/Commands',
         'database/migrations' => 'database/migrations',
         'database/seeders' => 'database/seeders',

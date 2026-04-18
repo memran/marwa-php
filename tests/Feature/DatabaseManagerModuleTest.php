@@ -140,6 +140,22 @@ SQL);
         self::assertSame(2, (int) db()->getPdo()->query('SELECT COUNT(*) FROM query_test_users')->fetchColumn());
     }
 
+    #[\PHPUnit\Framework\Attributes\RunInSeparateProcess]
+    public function testDatabaseManagerIsDisabledByDefaultInProduction(): void
+    {
+        file_put_contents(
+            $this->basePath . '/.env',
+            "APP_ENV=production\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=admin\nTIMEZONE=UTC\nDB_ENABLED=1\nDB_CONNECTION=sqlite\nDB_DATABASE={$this->basePath}/database/database.sqlite\nAPP_CONFIG_CACHE={$this->basePath}/bootstrap/cache/config.php\nAPP_ROUTE_CACHE={$this->basePath}/bootstrap/cache/routes.php\nAPP_MODULE_CACHE={$this->basePath}/storage/cache/modules.php\nADMIN_BOOTSTRAP_EMAIL=admin@marwa.test\nADMIN_BOOTSTRAP_PASSWORD=ExampleAdminPassword123!\n"
+        );
+
+        $app = new Application($this->basePath);
+        $app->make(AppBootstrapper::class)->bootstrap();
+        $kernel = $app->make(HttpKernel::class);
+
+        $guest = $kernel->handle($this->request('GET', '/admin/database'));
+        self::assertSame(404, $guest->getStatusCode());
+    }
+
     /**
      * @param array<string, mixed> $body
      */

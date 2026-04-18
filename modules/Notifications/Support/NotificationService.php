@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Notifications\Support;
 
+use App\Modules\Auth\Models\Role;
 use App\Modules\Notifications\Models\Notification;
 
 final class NotificationService
@@ -69,9 +70,16 @@ final class NotificationService
 
     private function getAdminUserIds(?int $exceptId = null): array
     {
+        $adminRoleIds = $this->adminRoleIds();
+
+        if ($adminRoleIds === []) {
+            return [];
+        }
+
         $builder = \App\Modules\Users\Models\User::newQuery()->getBaseBuilder()
-            ->where('role', '=', 'admin')
-            ->where('is_active', '=', 1);
+            ->whereIn('role_id', $adminRoleIds)
+            ->where('is_active', '=', 1)
+            ->whereNull('deleted_at');
 
         if ($exceptId !== null) {
             $builder->where('id', '!=', $exceptId);
@@ -81,5 +89,23 @@ final class NotificationService
         $ids = is_array($rows) ? $rows : (array) $rows;
 
         return array_map('intval', $ids);
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function adminRoleIds(): array
+    {
+        $ids = [];
+
+        foreach (['admin', 'super_admin'] as $slug) {
+            $role = Role::findBySlug($slug);
+
+            if ($role !== null) {
+                $ids[] = (int) $role->getKey();
+            }
+        }
+
+        return array_values(array_unique($ids));
     }
 }

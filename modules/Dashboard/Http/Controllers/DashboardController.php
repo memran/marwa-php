@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Dashboard\Http\Controllers;
 
 use App\Modules\Dashboard\Support\WidgetRegistry;
+use App\Modules\Auth\Support\Gate;
 use Marwa\Framework\Controllers\Controller;
 use Marwa\Framework\Views\View;
 use PDO;
@@ -15,12 +16,15 @@ final class DashboardController extends Controller
     private const TABLE = 'dashboard_widgets';
 
     public function __construct(
-        private readonly WidgetRegistry $widgetRegistry
+        private readonly WidgetRegistry $widgetRegistry,
+        private readonly Gate $gate,
     ) {}
 
     public function index(): ResponseInterface
     {
-        $this->ensureViewNamespace();
+        if ($this->gate->denies('dashboard.view')) {
+            return $this->forbidden();
+        }
 
         $userId = $this->getUserId();
         $widgets = $this->getUserWidgets($userId);
@@ -35,6 +39,10 @@ final class DashboardController extends Controller
 
     public function widgets(): ResponseInterface
     {
+        if ($this->gate->denies('dashboard.view')) {
+            return $this->forbidden();
+        }
+
         $userId = $this->getUserId();
         $widgets = $this->getUserWidgets($userId);
 
@@ -46,6 +54,10 @@ final class DashboardController extends Controller
 
     public function saveWidgets(): ResponseInterface
     {
+        if ($this->gate->denies('dashboard.view')) {
+            return $this->forbidden();
+        }
+
         $userId = $this->getUserId();
         $widgets = request('widgets', []);
 
@@ -60,6 +72,10 @@ final class DashboardController extends Controller
 
     public function reset(): ResponseInterface
     {
+        if ($this->gate->denies('dashboard.view')) {
+            return $this->forbidden();
+        }
+
         $userId = $this->getUserId();
 
         if ($userId !== null) {
@@ -73,6 +89,10 @@ final class DashboardController extends Controller
 
     public function widgetContent(string $id): ResponseInterface
     {
+        if ($this->gate->denies('dashboard.view')) {
+            return $this->forbidden();
+        }
+
         $widget = $this->widgetRegistry->get($id);
 
         if (!$widget) {
@@ -89,6 +109,10 @@ final class DashboardController extends Controller
 
     public function refreshWidget(string $id): ResponseInterface
     {
+        if ($this->gate->denies('dashboard.view')) {
+            return $this->forbidden();
+        }
+
         $widget = $this->widgetRegistry->get($id);
 
         if (!$widget) {
@@ -102,15 +126,6 @@ final class DashboardController extends Controller
             'id' => $id,
             'content' => $content,
         ]);
-    }
-
-    private function ensureViewNamespace(): void
-    {
-        if (!app()->has(View::class)) {
-            return;
-        }
-
-        app()->view()->addNamespace('dashboard', dirname(__DIR__, 2) . '/resources/views');
     }
 
     private function getUserId(): ?int
@@ -202,7 +217,6 @@ final class DashboardController extends Controller
 
         try {
             $view = app()->make(View::class);
-            $view->addNamespace('dashboard', dirname(__DIR__, 2) . '/resources/views');
 
             $data = [];
             

@@ -33,6 +33,11 @@ final class AuthManager
             return null;
         }
 
+        $persistedUser = $this->findPersistedUserByEmail($email);
+        if ($persistedUser instanceof User) {
+            return $persistedUser;
+        }
+
         return User::newInstance([
             'id' => 0,
             'name' => trim((string) session(self::SESSION_USER_NAME, self::DEFAULT_ADMIN_NAME)) ?: self::DEFAULT_ADMIN_NAME,
@@ -123,5 +128,28 @@ final class AuthManager
     private function matchesConfiguredPassword(string $password): bool
     {
         return hash_equals($this->configuredPassword(), $password);
+    }
+
+    private function findPersistedUserByEmail(string $email): ?User
+    {
+        if (!app()->has(\Marwa\DB\Connection\ConnectionManager::class)) {
+            return null;
+        }
+
+        try {
+            $user = User::findBy('email', $email);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        if (!$user instanceof User) {
+            return null;
+        }
+
+        if (!(bool) $user->getAttribute('is_active')) {
+            return null;
+        }
+
+        return $user;
     }
 }

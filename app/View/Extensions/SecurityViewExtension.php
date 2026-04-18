@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\View\Extensions;
 
 use Marwa\Framework\Contracts\ViewExtensionInterface;
-use Marwa\Framework\View\Extension\AbstractViewExtension;
+use Marwa\Framework\Views\Extension\AbstractViewExtension;
 
 final class SecurityViewExtension extends AbstractViewExtension implements ViewExtensionInterface
 {

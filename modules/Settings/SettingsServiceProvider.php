@@ -8,8 +8,7 @@ use App\Modules\Settings\Support\SettingsApplier;
 use App\Modules\Settings\Support\SettingsCatalog;
 use App\Modules\Settings\Support\SettingsStore;
 use League\Container\Container;
-use Marwa\Framework\Supports\Runtime;
-use Marwa\Framework\Views\View;
+use Marwa\Framework\Navigation\MenuRegistry;
 use Marwa\Module\Contracts\ModuleServiceProviderInterface;
 
 final class SettingsServiceProvider implements ModuleServiceProviderInterface
@@ -24,6 +23,17 @@ final class SettingsServiceProvider implements ModuleServiceProviderInterface
     public function register($app): void
     {
         $this->container->addShared(SettingsCatalog::class, new SettingsCatalog());
+
+        if ($app->has(MenuRegistry::class)) {
+            $app->make(MenuRegistry::class)->add([
+                'name' => 'settings',
+                'label' => 'Settings',
+                'url' => '/admin/settings',
+                'parent' => 'admin.settings',
+                'order' => 10,
+                'icon' => 'settings',
+            ]);
+        }
     }
 
     public function boot($app): void
@@ -34,11 +44,5 @@ final class SettingsServiceProvider implements ModuleServiceProviderInterface
         $applier = $app->make(SettingsApplier::class);
 
         $applier->apply($store->all());
-
-        if (!Runtime::isWeb() || !$app->has(View::class)) {
-            return;
-        }
-
-        $app->view()->addNamespace('settings', __DIR__ . '/resources/views');
     }
 }

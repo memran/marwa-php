@@ -9,6 +9,10 @@ return [
     'providers' => [
         App\Modules\Notifications\NotificationsServiceProvider::class,
     ],
+    'requires' => [
+        'auth',
+        'users',
+    ],
     'paths' => [
         'views' => 'resources/views',
         'commands' => 'Console/Commands',

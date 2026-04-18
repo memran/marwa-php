@@ -39,63 +39,26 @@
 </div>
 
 <nav class="grid gap-1" aria-label="Primary">
-  {# User Space #}
-  <span class="{{ section_header }}">User Space</span>
-  
-  <a class="{{ nav_link_base }} {% if currentPath == '/admin/dashboard' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" href="/admin/dashboard" {% if currentPath == '/admin/dashboard' %}aria-current="page"{% endif %}>
-    {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-5 w-5 shrink-0' } only %}
-    <span class="truncate">Dashboard</span>
-  </a>
-  
-  <a class="{{ nav_link_base }} {% if currentPath starts with '/admin/notifications' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" href="/admin/notifications" {% if currentPath starts with '/admin/notifications' %}aria-current="page"{% endif %}>
-    {% include 'components/icon.twig' with { name: 'bell', class: 'h-5 w-5 shrink-0' } only %}
-    <span class="truncate">Notifications</span>
-    {% if unread_notification_count|default(0) > 0 %}
-      <span class="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[0.65rem] font-bold text-white">
-        {{ unread_notification_count > 9 ? '9+' : unread_notification_count }}
-      </span>
+  {% set menuTree = mainMenu is defined and mainMenu is not empty ? mainMenu : menu_tree() %}
+  {% for section in menuTree %}
+    {% if section.children is not empty %}
+      <span class="{{ section_header }} {% if not loop.first %}mt-2{% endif %}">{{ section.label }}</span>
+
+      {% for item in section.children %}
+        <a class="{{ nav_link_base }} {% if currentPath starts with item.url %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" href="{{ item.url }}" {% if currentPath starts with item.url %}aria-current="page"{% endif %}>
+          {% if item.icon is not empty %}
+            {% include 'components/icon.twig' with { name: item.icon, class: 'h-5 w-5 shrink-0' } only %}
+          {% endif %}
+          <span class="truncate">{{ item.label }}</span>
+          {% if item.name == 'notifications' and unread_notification_count|default(0) > 0 %}
+            <span class="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[0.65rem] font-bold text-white">
+              {{ unread_notification_count > 9 ? '9+' : unread_notification_count }}
+            </span>
+          {% endif %}
+        </a>
+      {% endfor %}
     {% endif %}
-  </a>
-
-  {# System - Admin only #}
-  {% if is_admin %}
-  <span class="{{ section_header }} mt-2">System</span>
-  
-  <a class="{{ nav_link_base }} {% if currentPath starts with '/admin/database' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" href="/admin/database" {% if currentPath starts with '/admin/database' %}aria-current="page"{% endif %}>
-    {% include 'components/icon.twig' with { name: 'database', class: 'h-5 w-5 shrink-0' } only %}
-    <span class="truncate">Database</span>
-  </a>
-  {% endif %}
-
-  {# Management - Admin only #}
-  {% if is_admin %}
-  <span class="{{ section_header }} mt-2">Management</span>
-  
-  <a class="{{ nav_link_base }} {% if currentPath starts with '/admin/users' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" href="/admin/users" {% if currentPath starts with '/admin/users' %}aria-current="page"{% endif %}>
-    {% include 'components/icon.twig' with { name: 'users', class: 'h-5 w-5 shrink-0' } only %}
-    <span class="truncate">Users</span>
-  </a>
-  
-  <a class="{{ nav_link_base }} {% if currentPath starts with '/admin/activity' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" href="/admin/activity" {% if currentPath starts with '/admin/activity' %}aria-current="page"{% endif %}>
-    {% include 'components/icon.twig' with { name: 'activity', class: 'h-5 w-5 shrink-0' } only %}
-    <span class="truncate">Activity</span>
-  </a>
-  {% endif %}
-
-  {# Settings #}
-  <span class="{{ section_header }} mt-2">Settings</span>
-  
-  <a class="{{ nav_link_base }} {% if currentPath starts with '/admin/settings' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" href="/admin/settings" {% if currentPath starts with '/admin/settings' %}aria-current="page"{% endif %}>
-    {% include 'components/icon.twig' with { name: 'settings', class: 'h-5 w-5 shrink-0' } only %}
-    <span class="truncate">Settings</span>
-  </a>
-
-  {% if gate.allows('roles.view') %}
-  <a class="{{ nav_link_base }} {% if currentPath starts with '/admin/roles' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" href="/admin/roles" {% if currentPath starts with '/admin/roles' %}aria-current="page"{% endif %}>
-    {% include 'components/icon.twig' with { name: 'shield', class: 'h-5 w-5 shrink-0' } only %}
-    <span class="truncate">Roles</span>
-  </a>
-  {% endif %}
+  {% endfor %}
 
   {# Footer #}
   <div class="mt-2 pt-2 border-t border-white/10">

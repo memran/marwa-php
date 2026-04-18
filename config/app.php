@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 return [
     'name' => env('APP_NAME', 'MarwaPHP'),
+    'providers' => [
+        App\Providers\AdminNavigationServiceProvider::class,
+    ],
     'debugbar' => (bool) env(
         'DEBUGBAR_ENABLED',
         (bool) env('APP_DEBUG', false)

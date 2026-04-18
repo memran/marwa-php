@@ -35,16 +35,34 @@ final class Gate
             return null;
         }
 
-        $userRole = $this->currentUser->getAttribute('role');
-        if ($userRole === null) {
+        try {
+            $userRole = $this->currentUser->role();
+        } catch (\Throwable) {
+            $userRole = null;
+        }
+
+        if ($userRole instanceof Role) {
+            $this->currentRole = $userRole;
+
+            return $this->currentRole;
+        }
+
+        $userRoleSlug = $this->currentUser->getAttribute('role');
+        if (!is_string($userRoleSlug) || trim($userRoleSlug) === '') {
             return null;
         }
 
         try {
             $roleRepo = app(RoleRepository::class);
-            $this->currentRole = $roleRepo->findByUserRole($userRole);
+            $this->currentRole = $roleRepo->findByUserRole($userRoleSlug);
         } catch (\Throwable) {
-            return null;
+            $this->currentRole = $this->fallbackRole($userRoleSlug);
+
+            return $this->currentRole;
+        }
+
+        if ($this->currentRole === null) {
+            $this->currentRole = $this->fallbackRole($userRoleSlug);
         }
 
         return $this->currentRole;
@@ -93,22 +111,24 @@ final class Gate
 
     public function hasRole(string $roleSlug): bool
     {
-        if ($this->currentUser === null) {
+        $role = $this->role();
+
+        if ($role === null) {
             return false;
         }
 
-        $userRole = $this->currentUser->getAttribute('role');
-        return RolePolicy::hasRole($userRole, $roleSlug);
+        return RolePolicy::hasRole((string) $role->getAttribute('slug'), $roleSlug);
     }
 
     public function hasAnyRole(array $roles): bool
     {
-        if ($this->currentUser === null) {
+        $role = $this->role();
+
+        if ($role === null) {
             return false;
         }
 
-        $userRole = $this->currentUser->getAttribute('role');
-        return RolePolicy::hasAnyRole($userRole, $roles);
+        return RolePolicy::hasAnyRole((string) $role->getAttribute('slug'), $roles);
     }
 
     public function isAtLevel(int $level): bool
@@ -161,5 +181,31 @@ final class Gate
         }
 
         return $this->allows($permission);
+    }
+
+    private function fallbackRole(string $slug): ?Role
+    {
+        $slug = strtolower(trim($slug));
+
+        if ($slug === '') {
+            return null;
+        }
+
+        $level = match ($slug) {
+            'super_admin', 'admin' => 5,
+            'manager' => 4,
+            'staff' => 2,
+            'viewer' => 1,
+            default => 0,
+        };
+
+        return Role::newInstance([
+            'id' => 0,
+            'name' => RolePolicy::getRoleName($slug),
+            'slug' => $slug,
+            'level' => $level,
+            'description' => 'Bootstrap fallback role',
+            'is_system' => true,
+        ], false);
     }
 }

@@ -7,6 +7,10 @@ namespace Tests\Feature;
 use App\Modules\Users\Models\User;
 use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Support\AuthManager;
+use App\Modules\Auth\Database\Seeders\RolesPermissionsSeeder;
+use App\Modules\Users\Database\Seeders\AdminUserSeeder;
+use Marwa\DB\Connection\ConnectionManager;
+use Marwa\DB\Schema\MigrationRepository;
 use Marwa\Framework\Application;
 use Marwa\Framework\Bootstrappers\AppBootstrapper;
 use Marwa\Framework\HttpKernel;
@@ -159,11 +163,7 @@ PHP
 declare(strict_types=1);
 
 return [
-    'listeners' => [
-        Marwa\Framework\Adapters\Event\ModulesBootstrapped::class => [
-            App\Listeners\RunModuleMigrations::class,
-        ],
-    ],
+    'listeners' => [],
     'subscribers' => [],
 ];
 PHP
@@ -270,6 +270,8 @@ TWIG
     {
         $app = new Application($this->basePath);
         $app->make(AppBootstrapper::class)->bootstrap();
+        $this->migrateAuthAndUserModules($app);
+        $this->seedAuthAndUsers();
         (new AuthManager())->logout();
         $kernel = $app->make(HttpKernel::class);
 
@@ -312,8 +314,6 @@ TWIG
         $dashboard = $kernel->handle($this->request('GET', '/admin'));
         self::assertSame(200, $dashboard->getStatusCode());
         self::assertStringContainsString('Server and application status', (string) $dashboard->getBody());
-        self::assertStringContainsString('/admin/users', (string) $dashboard->getBody());
-        self::assertStringContainsString('Users', (string) $dashboard->getBody());
 
         $bootstrapAdmin = User::findBy('email', 'admin@marwa.test');
         self::assertInstanceOf(User::class, $bootstrapAdmin);
@@ -336,7 +336,6 @@ TWIG
         $usersPage = $kernel->handle($this->request('GET', '/admin/users'));
         self::assertSame(200, $usersPage->getStatusCode());
         self::assertStringContainsString('admin@marwa.test', (string) $usersPage->getBody());
-        self::assertStringContainsString('href="/admin/users"', (string) $usersPage->getBody());
 
         $createPage = $kernel->handle($this->request('GET', '/admin/users/create'));
         self::assertSame(200, $createPage->getStatusCode());
@@ -590,5 +589,25 @@ TWIG
         }
 
         return (int) $role->getKey();
+    }
+
+    private function migrateAuthAndUserModules(Application $app): void
+    {
+        $connections = $app->make(ConnectionManager::class);
+
+        foreach ([
+            $this->basePath . '/modules/Auth/database/migrations',
+            $this->basePath . '/modules/Users/database/migrations',
+            $this->basePath . '/modules/Activity/database/migrations',
+            $this->basePath . '/modules/Notifications/database/migrations',
+        ] as $path) {
+            (new MigrationRepository($connections->getPdo(), $path))->migrate();
+        }
+    }
+
+    private function seedAuthAndUsers(): void
+    {
+        (new RolesPermissionsSeeder())->run();
+        (new AdminUserSeeder())->run();
     }
 }

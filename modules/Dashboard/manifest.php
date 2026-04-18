@@ -9,6 +9,9 @@ return [
     'providers' => [
         App\Modules\Dashboard\DashboardServiceProvider::class,
     ],
+    'requires' => [
+        'auth',
+    ],
     'paths' => [
         'views' => 'resources/views',
         'assets' => 'resources/views/assets',

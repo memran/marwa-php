@@ -17,7 +17,8 @@ final class StarterConfigTest extends TestCase
         self::assertArrayHasKey('debugbar', $config);
         self::assertIsBool($config['debugbar']);
         self::assertArrayNotHasKey('key', $config);
-        self::assertArrayNotHasKey('providers', $config);
+        self::assertArrayHasKey('providers', $config);
+        self::assertContains(\App\Providers\AdminNavigationServiceProvider::class, $config['providers']);
         self::assertArrayNotHasKey('middlewares', $config);
         self::assertArrayNotHasKey('collectors', $config);
         self::assertSame('maintenance.twig', $config['maintenance']['template']);

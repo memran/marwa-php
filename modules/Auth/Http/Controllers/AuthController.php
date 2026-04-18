@@ -16,8 +16,6 @@ final class AuthController extends Controller
 
     public function login(): ResponseInterface
     {
-        $this->ensureViewNamespace();
-
         if ($this->auth->check()) {
             return $this->redirect('/admin');
         }
@@ -54,8 +52,6 @@ final class AuthController extends Controller
 
     public function forgotPassword(): ResponseInterface
     {
-        $this->ensureViewNamespace();
-
         return $this->view('@auth/forgot-password', $this->sharedViewData([
             'notice' => session('auth.notice'),
             'recovery_link' => session('auth.recovery_link'),
@@ -64,8 +60,6 @@ final class AuthController extends Controller
 
     public function sendForgotPasswordLink(): ResponseInterface
     {
-        $this->ensureViewNamespace();
-
         $validated = $this->validate([
             'email' => 'required|email',
         ]);
@@ -82,8 +76,6 @@ final class AuthController extends Controller
 
     public function resetPassword(): ResponseInterface
     {
-        $this->ensureViewNamespace();
-
         $token = trim((string) $this->request('token', ''));
 
         return $this->view('@auth/reset-password', $this->sharedViewData([
@@ -95,8 +87,6 @@ final class AuthController extends Controller
 
     public function updatePassword(): ResponseInterface
     {
-        $this->ensureViewNamespace();
-
         $validated = $this->validate([
             'token' => 'required|string',
             'password' => 'required|string|min:8|confirmed',
@@ -138,14 +128,5 @@ final class AuthController extends Controller
             'errors' => session('errors', []),
             'old' => session('_old_input', []),
         ], $extra);
-    }
-
-    private function ensureViewNamespace(): void
-    {
-        if (!app()->has(\Marwa\Framework\Views\View::class)) {
-            return;
-        }
-
-        app()->view()->addNamespace('auth', dirname(__DIR__, 2) . '/resources/views');
     }
 }

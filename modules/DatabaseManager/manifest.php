@@ -9,7 +9,11 @@ return [
     'providers' => [
         App\Modules\DatabaseManager\DatabaseManagerServiceProvider::class,
     ],
+    'requires' => [
+        'auth',
+    ],
     'paths' => [
+        'views' => 'resources/views',
         'commands' => 'Console/Commands',
     ],
     'routes' => [

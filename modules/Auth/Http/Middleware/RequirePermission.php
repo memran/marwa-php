@@ -15,14 +15,14 @@ final class RequirePermission implements MiddlewareInterface
 {
     private Gate $gate;
 
-    public function __construct()
+    public function __construct(private readonly ?string $permission = null)
     {
         $this->gate = app(Gate::class);
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $permission = $request->getAttribute('required_permission');
+        $permission = $this->permission ?? $request->getAttribute('required_permission');
 
         if ($permission === null) {
             return $handler->handle($request);
@@ -39,24 +39,24 @@ final class RequirePermission implements MiddlewareInterface
         return $handler->handle($request);
     }
 
-    public static function forPermission(string $permission): array
+    public static function forPermission(string $permission): self
     {
-        return [self::class, $permission];
+        return new self($permission);
     }
 
-    public static function forAnyPermission(array $permissions): array
+    public static function forAnyPermission(array $permissions): AnyPermissionMiddleware
     {
-        return [AnyPermissionMiddleware::class, implode(',', $permissions)];
+        return new AnyPermissionMiddleware(implode(',', $permissions));
     }
 
-    public static function forRole(string $role): array
+    public static function forRole(string $role): RequireRole
     {
-        return [RequireRole::class, $role];
+        return new RequireRole($role);
     }
 
-    public static function forMinimumLevel(int $level): array
+    public static function forMinimumLevel(int $level): MinimumLevelMiddleware
     {
-        return [MinimumLevelMiddleware::class, $level];
+        return new MinimumLevelMiddleware($level);
     }
 }
 
@@ -64,14 +64,14 @@ final class AnyPermissionMiddleware implements MiddlewareInterface
 {
     private Gate $gate;
 
-    public function __construct()
+    public function __construct(private readonly ?string $permissions = null)
     {
         $this->gate = app(Gate::class);
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $permissions = $request->getAttribute('required_permissions', '');
+        $permissions = $this->permissions ?? $request->getAttribute('required_permissions', '');
         $permissionList = array_filter(array_map('trim', explode(',', $permissions)));
 
         if (empty($permissionList)) {
@@ -96,14 +96,14 @@ final class RequireRole implements MiddlewareInterface
 {
     private Gate $gate;
 
-    public function __construct()
+    public function __construct(private readonly ?string $role = null)
     {
         $this->gate = app(Gate::class);
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $role = $request->getAttribute('required_role');
+        $role = $this->role ?? $request->getAttribute('required_role');
 
         if ($role === null) {
             return $handler->handle($request);
@@ -125,14 +125,14 @@ final class MinimumLevelMiddleware implements MiddlewareInterface
 {
     private Gate $gate;
 
-    public function __construct()
+    public function __construct(private readonly ?int $level = null)
     {
         $this->gate = app(Gate::class);
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $level = (int) $request->getAttribute('minimum_level', 0);
+        $level = $this->level ?? (int) $request->getAttribute('minimum_level', 0);
 
         if ($level <= 0) {
             return $handler->handle($request);

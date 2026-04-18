@@ -12,8 +12,9 @@ use App\Modules\Users\Support\UserRepository;
 use App\Modules\Users\Support\UserValidationRules;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
-abstract class UsersController extends Controller
+final class UsersController extends Controller
 {
     public function __construct(
         protected readonly UserRepository $users,
@@ -21,21 +22,221 @@ abstract class UsersController extends Controller
         protected readonly UserValidationRules $rules,
         protected readonly AdminSearch $search,
         protected readonly AdminPagination $pagination,
-        protected readonly AuthManager $auth
+        protected readonly AuthManager $auth,
     ) {}
 
-    protected function usersIndexRedirect(): ResponseInterface
+    public function index(): ResponseInterface
     {
+        $this->authorize('view', \App\Modules\Users\Models\User::class);
+
+        $search = $this->search->state();
+        $users = $this->users->paginatedUsers($search['query'], $search['page']);
+        $pagination = $this->pagination->viewData($users, '/admin/users', [
+            'q' => $search['query'],
+        ]);
+
+        return $this->view('@users/index', [
+            'users' => $users,
+            'query' => $search['query'],
+            'pagination' => $pagination,
+            'errors' => session('errors', []),
+            'notice' => session('users.notice'),
+            'protected_admin_id' => $this->users->protectedAdminId(),
+        ]);
+    }
+
+    public function create(): ResponseInterface
+    {
+        $this->authorize('create', \App\Modules\Users\Models\User::class);
+
+        return $this->view('@users/form', $this->forms->formViewData([
+            'mode' => 'create',
+            'title' => 'Create user',
+            'action' => '/admin/users',
+            'submit_label' => 'Create user',
+        ]));
+    }
+
+    public function store(): ResponseInterface
+    {
+        $this->authorize('create', \App\Modules\Users\Models\User::class);
+
+        $validated = $this->validate($this->rules->store());
+
+        $afterState = [
+            'name' => trim((string) $validated['name']),
+            'email' => $this->users->normalizeEmail((string) $validated['email']),
+            'role_id' => (int) $validated['role_id'],
+            'is_active' => array_key_exists('is_active', $validated) ? (int) (bool) $validated['is_active'] : 1,
+        ];
+
+        if ($duplicate = $this->users->findDuplicateUserByEmail($afterState['email'])) {
+            $this->withErrors([
+                'email' => [$this->users->duplicateUserMessage($duplicate)],
+            ])->withInput([
+                'name' => $afterState['name'],
+                'email' => $afterState['email'],
+                'role_id' => $afterState['role_id'],
+                'is_active' => $afterState['is_active'] === 1,
+            ]);
+
+            return $this->redirect('/admin/users/create');
+        }
+
+        $this->users->createUser($afterState, (string) $validated['password'], $this->auth->user());
+        $this->flash('users.notice', 'User created successfully.');
+
         return $this->redirect('/admin/users');
     }
 
-    protected function userCreateRedirect(): ResponseInterface
+    public function show(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        return $this->redirect('/admin/users/create');
+        $user = $this->users->findUser($vars, true);
+
+        if ($user === null) {
+            return $this->response('User not found.', 404);
+        }
+
+        $this->authorize('view', $user);
+
+        return $this->view('@users/profile', [
+            'user' => $user,
+            'protected_admin_id' => $this->users->protectedAdminId(),
+        ]);
     }
 
-    protected function userEditRedirect(int|string $id): ResponseInterface
+    public function edit(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        return $this->redirect('/admin/users/' . $id . '/edit');
+        $user = $this->users->findUser($vars);
+
+        if ($user === null) {
+            return $this->response('User not found.', 404);
+        }
+
+        $this->authorize('update', $user);
+
+        return $this->view('@users/form', $this->forms->formViewData([
+            'mode' => 'edit',
+            'title' => 'Edit user',
+            'action' => '/admin/users/' . $user->getKey(),
+            'submit_label' => 'Save changes',
+            'user' => $user,
+        ]));
     }
+
+    public function update(ServerRequestInterface $request, array $vars = []): ResponseInterface
+    {
+        $user = $this->users->findUser($vars);
+
+        if ($user === null) {
+            return $this->response('User not found.', 404);
+        }
+
+        $this->authorize('update', $user);
+
+        $validated = $this->validate($this->rules->update());
+        $beforeState = $this->users->userSnapshot($user);
+
+        $afterState = [
+            'name' => trim((string) $validated['name']),
+            'email' => $this->users->normalizeEmail((string) $validated['email']),
+            'role_id' => (int) $validated['role_id'],
+            'is_active' => array_key_exists('is_active', $validated) ? (int) (bool) $validated['is_active'] : 0,
+        ];
+        $password = array_key_exists('password', $validated) && $validated['password'] !== null
+            ? (string) $validated['password']
+            : null;
+        $passwordChanged = $password !== null && $password !== '';
+
+        if ($duplicate = $this->users->findDuplicateUserByEmail($afterState['email'], (int) $user->getKey())) {
+            $this->withErrors([
+                'email' => [$this->users->duplicateUserMessage($duplicate)],
+            ])->withInput([
+                'name' => $afterState['name'],
+                'email' => $afterState['email'],
+                'role_id' => $afterState['role_id'],
+                'is_active' => $afterState['is_active'] === 1,
+            ]);
+
+            return $this->redirect('/admin/users/' . $user->getKey() . '/edit');
+        }
+
+        if ($this->users->isSelfProtectedAdmin($user, $afterState, $this->auth)) {
+            $this->withErrors([
+                'is_active' => ['The last admin user cannot disable themselves.'],
+            ])->withInput([
+                'name' => $afterState['name'],
+                'email' => $afterState['email'],
+                'role_id' => $afterState['role_id'],
+                'is_active' => false,
+            ]);
+
+            return $this->redirect('/admin/users/' . $user->getKey() . '/edit');
+        }
+
+        if (!$passwordChanged && !$this->users->userStateHasChanges($beforeState, $afterState)) {
+            $this->flash('users.notice', 'No changes detected.');
+
+            return $this->redirect('/admin/users/' . $user->getKey() . '/edit');
+        }
+
+        $this->users->updateUser($user, $afterState, $password, $this->auth->user());
+        $this->flash('users.notice', 'User updated successfully.');
+
+        return $this->redirect('/admin/users');
+    }
+
+    public function restore(ServerRequestInterface $request, array $vars = []): ResponseInterface
+    {
+        $user = $this->users->findUser($vars, true);
+
+        if ($user === null) {
+            return $this->response('User not found.', 404);
+        }
+
+        if (!empty($user->getAttribute('deleted_at'))) {
+            $duplicate = $this->users->findDuplicateUserByEmail((string) $user->getAttribute('email'), (int) $user->getKey());
+
+            if ($duplicate !== null) {
+                $this->flash('users.notice', $this->users->duplicateUserMessage($duplicate));
+
+                return $this->redirect('/admin/users');
+            }
+        }
+
+        if ($this->users->restoreUser($user, $this->auth->user())) {
+            $this->flash('users.notice', 'User restored successfully.');
+        } else {
+            $this->flash('users.notice', 'Unable to restore the selected user.');
+        }
+
+        return $this->redirect('/admin/users');
+    }
+
+    public function delete(ServerRequestInterface $request, array $vars = []): ResponseInterface
+    {
+        $user = $this->users->findUser($vars);
+
+        if ($user === null) {
+            return $this->response('User not found.', 404);
+        }
+
+        if ($this->users->isLastAdminUser($user)) {
+            $this->flash('users.notice', 'You cannot delete the last admin user.');
+
+            return $this->redirect('/admin/users');
+        }
+
+        if ($this->users->isActiveSessionUser($user, $this->auth)) {
+            $this->flash('users.notice', 'You cannot delete the active session user.');
+
+            return $this->redirect('/admin/users');
+        }
+
+        $this->users->deleteUser($user, $this->auth->user());
+        $this->flash('users.notice', 'User deleted successfully.');
+
+        return $this->redirect('/admin/users');
+    }
+
 }

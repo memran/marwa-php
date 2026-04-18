@@ -6,9 +6,7 @@ namespace App\Modules\Roles\Http\Controllers;
 
 use App\Modules\Auth\Support\RoleRepository;
 use App\Modules\Auth\Support\PermissionRepository;
-use App\Modules\Auth\Support\Gate;
 use Marwa\Framework\Controllers\Controller;
-use Marwa\Framework\Views\View;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -16,12 +14,6 @@ final class RolesController extends Controller
 {
     public function index(): ResponseInterface
     {
-        $this->ensureViewNamespace();
-
-        if (!$this->gate()->allows('roles.view')) {
-            return $this->json(['error' => 'Forbidden'], 403);
-        }
-
         $roles = $this->roleRepo()->all();
 
         return $this->view('@roles/index', [
@@ -31,12 +23,6 @@ final class RolesController extends Controller
 
     public function edit(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        $this->ensureViewNamespace();
-
-        if (!$this->gate()->allows('roles.manage')) {
-            return $this->json(['error' => 'Forbidden'], 403);
-        }
-
         $id = (int) ($vars['id'] ?? 0);
         $role = $this->roleRepo()->findById($id);
         if ($role === null) {
@@ -59,10 +45,6 @@ final class RolesController extends Controller
 
     public function update(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        if (!$this->gate()->allows('roles.manage')) {
-            return $this->json(['error' => 'Forbidden'], 403);
-        }
-
         $id = (int) ($vars['id'] ?? 0);
         $role = $this->roleRepo()->findById($id);
         if ($role === null) {
@@ -93,10 +75,6 @@ final class RolesController extends Controller
 
     public function destroy(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        if (!$this->gate()->allows('roles.manage')) {
-            return $this->json(['error' => 'Forbidden'], 403);
-        }
-
         $id = (int) ($vars['id'] ?? 0);
         $role = $this->roleRepo()->findById($id);
         if ($role === null) {
@@ -114,26 +92,11 @@ final class RolesController extends Controller
 
     public function permissions(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        $this->ensureViewNamespace();
-
-        if (!$this->gate()->allows('permissions.view')) {
-            return $this->json(['error' => 'Forbidden'], 403);
-        }
-
         $permissions = $this->permRepo()->grouped();
 
         return $this->view('@roles/permissions', [
             'permissions' => $permissions,
         ]);
-    }
-
-    private function ensureViewNamespace(): void
-    {
-        if (!app()->has(View::class)) {
-            return;
-        }
-
-        app()->view()->addNamespace('roles', dirname(__DIR__, 2) . '/resources/views');
     }
 
     private function roleRepo(): RoleRepository
@@ -144,10 +107,5 @@ final class RolesController extends Controller
     private function permRepo(): PermissionRepository
     {
         return app(PermissionRepository::class);
-    }
-
-    private function gate(): Gate
-    {
-        return app(Gate::class);
     }
 }

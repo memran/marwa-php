@@ -16,7 +16,7 @@
 
     <div class="flex flex-wrap gap-3">
       <a class="{{ button_ghost }}" href="/admin/users">Back to users</a>
-      {% if not user.getAttribute('deleted_at') %}
+      {% if not user.getAttribute('deleted_at') and gate.allows('users.edit') %}
         <a class="{{ button_secondary }}" href="/admin/users/{{ user.getKey() }}/edit">Edit user</a>
       {% endif %}
     </div>

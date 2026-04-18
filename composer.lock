@@ -1411,16 +1411,16 @@
         },
         {
             "name": "memran/marwa-framework",
-            "version": "v1.4.5",
+            "version": "v1.4.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/memran/marwa-framework.git",
-                "reference": "92e39502acf07fd91dc200b150b410171f0ee5b3"
+                "reference": "fe089bcd8bd23d88e3ac3f65fc2bae6f4f0e0d95"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/memran/marwa-framework/zipball/92e39502acf07fd91dc200b150b410171f0ee5b3",
-                "reference": "92e39502acf07fd91dc200b150b410171f0ee5b3",
+                "url": "https://api.github.com/repos/memran/marwa-framework/zipball/fe089bcd8bd23d88e3ac3f65fc2bae6f4f0e0d95",
+                "reference": "fe089bcd8bd23d88e3ac3f65fc2bae6f4f0e0d95",
                 "shasum": ""
             },
             "require": {
@@ -1504,9 +1504,9 @@
             ],
             "support": {
                 "issues": "https://github.com/memran/marwa-framework/issues",
-                "source": "https://github.com/memran/marwa-framework/tree/v1.4.5"
+                "source": "https://github.com/memran/marwa-framework/tree/v1.4.6"
             },
-            "time": "2026-04-18T00:07:55+00:00"
+            "time": "2026-04-18T10:03:35+00:00"
         },
         {
             "name": "memran/marwa-logger",

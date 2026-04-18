@@ -4,18 +4,22 @@ declare(strict_types=1);
 
 namespace App\Modules\DatabaseManager\Http\Controllers;
 
-use App\Support\AdminPagination;
 use Marwa\Framework\Controllers\Controller;
-use Marwa\Framework\Views\View;
 use Psr\Http\Message\ResponseInterface;
 use App\Modules\DatabaseManager\Support\RawSqlExecutor;
 use App\Modules\DatabaseManager\Support\SqlQueryGuard;
 
 final class DatabaseManagerController extends Controller
 {
+    public function __construct()
+    {
+    }
+
     public function index(): ResponseInterface
     {
-        $this->ensureViewNamespace();
+        if (!$this->isEnabled()) {
+            return $this->response('Not found.', 404);
+        }
 
         $query = trim((string) session('database_manager.query', ''));
         $page = max(1, (int) request('page', 1));
@@ -30,12 +34,14 @@ final class DatabaseManagerController extends Controller
             }
         }
 
-            return $this->view('@dbmanager/index', $this->viewData($query, $result, $error));
+        return $this->view('@database_manager/index', $this->viewData($query, $result, $error));
     }
 
     public function execute(): ResponseInterface
     {
-        $this->ensureViewNamespace();
+        if (!$this->isEnabled()) {
+            return $this->response('Not found.', 404);
+        }
 
         $query = trim((string) request('query', ''));
         $confirmed = (bool) request('confirm_destructive', false);
@@ -49,7 +55,7 @@ final class DatabaseManagerController extends Controller
             $sanitized = $guard->sanitize($query);
 
             if ($guard->requiresConfirmation($sanitized['normalized']) && !$confirmed) {
-                return $this->view('@dbmanager/index', $this->viewData(
+                return $this->view('@database_manager/index', $this->viewData(
                     $sanitized['query'],
                     null,
                     'This query can modify or destroy data. Tick the confirmation checkbox before executing it.'
@@ -60,9 +66,9 @@ final class DatabaseManagerController extends Controller
 
             session()->set('database_manager.query', $sanitized['query']);
 
-            return $this->view('@dbmanager/index', $this->viewData($preview['query'], $preview));
+            return $this->view('@database_manager/index', $this->viewData($preview['query'], $preview));
         } catch (\Throwable $exception) {
-            return $this->view('@dbmanager/index', $this->viewData($query, null, $exception->getMessage()));
+            return $this->view('@database_manager/index', $this->viewData($query, null, $exception->getMessage()));
         }
     }
 
@@ -72,8 +78,8 @@ final class DatabaseManagerController extends Controller
      */
     private function viewData(string $query, ?array $result, ?string $error = null): array
     {
-        /** @var AdminPagination $pagination */
-        $pagination = app(AdminPagination::class);
+        /** @var \App\Support\AdminPagination $pagination */
+        $pagination = app(\App\Support\AdminPagination::class);
 
         return [
             'query' => $query,
@@ -90,12 +96,11 @@ final class DatabaseManagerController extends Controller
         ];
     }
 
-    private function ensureViewNamespace(): void
+    private function isEnabled(): bool
     {
-        if (!app()->has(View::class)) {
-            return;
-        }
-
-        app()->view()->addNamespace('dbmanager', dirname(__DIR__, 2) . '/resources/views');
+        return (bool) env(
+            'DATABASE_MANAGER_ENABLED',
+            !in_array((string) env('APP_ENV', 'production'), ['production', 'staging'], true)
+        );
     }
 }

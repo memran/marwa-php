@@ -13,10 +13,27 @@ use Marwa\Support\Str;
 
 final class UserRepository
 {
+    private ?int $adminRoleId = null;
+
     public function __construct(
         private readonly AdminSearch $search,
         private readonly UserActivityService $activity,
     ) {}
+
+    private function adminRoleId(): ?int
+    {
+        if ($this->adminRoleId !== null) {
+            return $this->adminRoleId;
+        }
+
+        $ids = \App\Modules\Auth\Models\Role::newQuery()->getBaseBuilder()
+            ->select('id')
+            ->where('slug', '=', 'admin')
+            ->pluck('id')
+            ->toArray();
+
+        return $this->adminRoleId = empty($ids) ? null : (int) $ids[0];
+    }
 
     /**
      * @return array{data:list<User>,total:int,per_page:int,current_page:int,last_page:int}
@@ -40,18 +57,13 @@ final class UserRepository
 
     public function protectedAdminId(): int|string|null
     {
-        $adminRoleIds = \App\Modules\Auth\Models\Role::newQuery()->getBaseBuilder()
-            ->select('id')
-            ->where('slug', '=', 'admin')
-            ->pluck('id')
-            ->toArray();
-
-        if (empty($adminRoleIds)) {
+        $adminRoleId = $this->adminRoleId();
+        if ($adminRoleId === null) {
             return null;
         }
 
         $builder = User::newQuery()->getBaseBuilder()
-            ->whereIn('role_id', $adminRoleIds)
+            ->where('role_id', '=', $adminRoleId)
             ->whereNull('deleted_at');
 
         if ($builder->count() !== 1) {
@@ -92,18 +104,13 @@ final class UserRepository
             return false;
         }
 
-        $adminRoleIds = \App\Modules\Auth\Models\Role::newQuery()->getBaseBuilder()
-            ->select('id')
-            ->where('slug', '=', 'admin')
-            ->pluck('id')
-            ->toArray();
-
-        if (empty($adminRoleIds)) {
+        $adminRoleId = $this->adminRoleId();
+        if ($adminRoleId === null) {
             return false;
         }
 
         return User::newQuery()->getBaseBuilder()
-            ->whereIn('role_id', $adminRoleIds)
+            ->where('role_id', '=', $adminRoleId)
             ->whereNull('deleted_at')
             ->count() <= 1;
     }
@@ -227,9 +234,9 @@ final class UserRepository
     {
         $currentUser = $auth->user();
         $currentEmail = $currentUser instanceof User
-            ? $this->normalized((string) $currentUser->getAttribute('email'))
+            ? $this->normalizeEmail((string) $currentUser->getAttribute('email'))
             : '';
-        $targetEmail = $this->normalized((string) $user->getAttribute('email'));
+        $targetEmail = $this->normalizeEmail((string) $user->getAttribute('email'));
 
         return $currentEmail !== ''
             && $currentEmail === $targetEmail
@@ -245,8 +252,8 @@ final class UserRepository
             return false;
         }
 
-        $currentEmail = $this->normalized((string) $currentUser->getAttribute('email'));
-        $targetEmail = $this->normalized((string) $user->getAttribute('email'));
+        $currentEmail = $this->normalizeEmail((string) $currentUser->getAttribute('email'));
+        $targetEmail = $this->normalizeEmail((string) $user->getAttribute('email'));
 
         return ($currentEmail !== '' && $currentEmail === $targetEmail)
             || $currentUser->getKey() === $user->getKey();
@@ -254,12 +261,7 @@ final class UserRepository
 
     public function normalizeEmail(string $email): string
     {
-        return $this->normalized($email);
-    }
-
-    private function normalized(string $value): string
-    {
-        return Str::lower(trim($value));
+        return Str::lower(trim($email));
     }
 
     /**

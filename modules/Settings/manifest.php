@@ -9,6 +9,9 @@ return [
     'providers' => [
         App\Modules\Settings\SettingsServiceProvider::class,
     ],
+    'requires' => [
+        'auth',
+    ],
     'paths' => [
         'views' => 'resources/views',
         'commands' => 'Console/Commands',

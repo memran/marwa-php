@@ -9,7 +9,12 @@ return [
     'providers' => [
         App\Modules\Users\UsersServiceProvider::class,
     ],
+    'requires' => [
+        'auth',
+        'activity',
+    ],
     'paths' => [
+        'views' => 'resources/views',
         'commands' => 'Console/Commands',
         'database/migrations' => 'database/migrations',
         'database/seeders' => 'database/seeders',

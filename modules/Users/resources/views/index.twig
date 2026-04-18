@@ -17,7 +17,9 @@
     </div>
 
     <div class="flex flex-wrap gap-3">
+      {% if gate.allows('users.create') %}
       <a class="{{ button_primary }}" href="/admin/users/create">Create user</a>
+      {% endif %}
     </div>
   </section>
 
@@ -101,6 +103,7 @@
               <td class="px-3 py-3">
                 <div class="flex flex-wrap gap-2">
                   {% if user.getAttribute('deleted_at') %}
+                    {% if gate.allows('users.restore') %}
                     <form method="post" action="/admin/users/{{ user.getKey() }}/restore">
                       {{ csrf_field() }}
                       <button class="{{ button_secondary }}" type="submit">
@@ -108,14 +111,19 @@
                         <span>Restore</span>
                       </button>
                     </form>
+                    {% endif %}
                   {% else %}
                     <a class="{{ button_ghost }}" href="/admin/users/{{ user.getKey() }}">Profile</a>
+                    {% if gate.allows('users.edit') %}
                     <a class="{{ button_secondary }}" href="/admin/users/{{ user.getKey() }}/edit">Edit</a>
+                    {% endif %}
                   {% endif %}
                   {% if user.getAttribute('deleted_at') %}
                     <button class="{{ button_danger }}" type="button" disabled title="Restored users can be edited or deleted after restore.">Delete</button>
                   {% elseif protected_admin_id is defined and protected_admin_id is not null and user.getKey() == protected_admin_id %}
                     <button class="{{ button_danger }}" type="button" disabled title="The last admin user cannot be deleted.">Delete</button>
+                  {% elseif not gate.allows('users.delete') %}
+                    <button class="{{ button_danger }}" type="button" disabled title="You do not have permission to delete users.">Delete</button>
                   {% else %}
                     <form method="post" action="/admin/users/{{ user.getKey() }}/delete">
                       {{ csrf_field() }}

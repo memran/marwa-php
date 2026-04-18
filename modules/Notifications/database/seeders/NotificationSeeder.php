@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Notifications\Database\Seeders;
 
+use App\Modules\Auth\Models\Role;
 use App\Modules\Notifications\Models\Notification;
 use App\Modules\Users\Models\User;
 use Marwa\DB\Seeder\Seeder;
@@ -16,9 +17,23 @@ final class NotificationSeeder implements Seeder
             return;
         }
 
+        $adminRoleIds = [];
+        foreach (['admin', 'super_admin'] as $slug) {
+            $role = Role::findBySlug($slug);
+
+            if ($role !== null) {
+                $adminRoleIds[] = (int) $role->getKey();
+            }
+        }
+
+        if ($adminRoleIds === []) {
+            return;
+        }
+
         $admin = User::newQuery()->getBaseBuilder()
-            ->where('role', '=', 'admin')
+            ->whereIn('role_id', array_values(array_unique($adminRoleIds)))
             ->where('is_active', '=', 1)
+            ->whereNull('deleted_at')
             ->first();
 
         if ($admin === null) {

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Notifications\Http\Controllers;
 
+use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Notifications\Models\Notification;
 use App\Modules\Notifications\Support\NotificationRepository;
 use App\Modules\Notifications\Support\NotificationService;
 use App\Modules\Users\Models\User;
 use Marwa\Framework\Controllers\Controller;
-use Marwa\Framework\Views\View;
 use Psr\Http\Message\ResponseInterface;
 
 final class NotificationsController extends Controller
@@ -23,7 +23,6 @@ final class NotificationsController extends Controller
 
     public function index(): ResponseInterface
     {
-        $this->ensureViewNamespace();
         $user = $this->getUser();
 
         if ($user === null) {
@@ -121,10 +120,6 @@ final class NotificationsController extends Controller
             return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
-        if (!$this->isAdmin($user)) {
-            return $this->json(['success' => false, 'message' => 'Forbidden'], 403);
-        }
-
         $result = $this->repository->delete($id, $user->getKey());
 
         if ($result) {
@@ -139,8 +134,8 @@ final class NotificationsController extends Controller
     {
         $user = $this->getUser();
 
-        if ($user === null || !$this->isAdmin($user)) {
-            return $this->json(['success' => false, 'message' => 'Forbidden'], 403);
+        if ($user === null) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
         $type = request('type', 'info');
@@ -242,9 +237,16 @@ final class NotificationsController extends Controller
 
     private function getActualAdminUser(): ?User
     {
+        $adminRoleIds = $this->adminRoleIds();
+
+        if ($adminRoleIds === []) {
+            return null;
+        }
+
         $builder = \App\Modules\Users\Models\User::newQuery()->getBaseBuilder()
-            ->where('role', '=', 'admin')
+            ->whereIn('role_id', $adminRoleIds)
             ->where('is_active', '=', 1)
+            ->whereNull('deleted_at')
             ->first();
 
         if ($builder === null) {
@@ -259,16 +261,27 @@ final class NotificationsController extends Controller
 
     private function isAdmin(User $user): bool
     {
-        $role = $user->getAttribute('role');
-        return is_string($role) && strcasecmp(trim($role), 'admin') === 0;
+        $role = $user->role();
+
+        return $role !== null
+            && in_array((string) $role->getAttribute('slug'), ['admin', 'super_admin'], true);
     }
 
-    private function ensureViewNamespace(): void
+    /**
+     * @return list<int>
+     */
+    private function adminRoleIds(): array
     {
-        if (!app()->has(View::class)) {
-            return;
+        $ids = [];
+
+        foreach (['admin', 'super_admin'] as $slug) {
+            $role = Role::findBySlug($slug);
+
+            if ($role !== null) {
+                $ids[] = (int) $role->getKey();
+            }
         }
 
-        app()->view()->addNamespace('notifications', dirname(__DIR__, 2) . '/resources/views');
+        return array_values(array_unique($ids));
     }
 }

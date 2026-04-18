@@ -7,7 +7,6 @@ namespace App\Modules\Settings\Http\Controllers;
 use App\Modules\Settings\Support\SettingsCatalog;
 use App\Modules\Settings\Support\SettingsStore;
 use Marwa\Framework\Controllers\Controller;
-use Marwa\Framework\Views\View;
 use Psr\Http\Message\ResponseInterface;
 
 final class SettingsController extends Controller
@@ -19,8 +18,6 @@ final class SettingsController extends Controller
 
     public function index(): ResponseInterface
     {
-        $this->ensureViewNamespace();
-
         return $this->view('@settings/index', [
             'categories' => $this->catalog->categories(),
             'settings' => $this->store->all(),
@@ -31,8 +28,6 @@ final class SettingsController extends Controller
 
     public function update(): ResponseInterface
     {
-        $this->ensureViewNamespace();
-
         $submitted = request('settings', []);
         $normalized = is_array($submitted) ? $this->catalog->normalizeSubmission($submitted, $this->store->all()) : null;
 
@@ -52,8 +47,6 @@ final class SettingsController extends Controller
 
     public function purgeCache(): ResponseInterface
     {
-        $this->ensureViewNamespace();
-
         try {
             if (app()->has(\Marwa\Framework\Contracts\CacheInterface::class)) {
                 app()->cache()->flush();
@@ -70,8 +63,6 @@ final class SettingsController extends Controller
 
     public function clearLogs(): ResponseInterface
     {
-        $this->ensureViewNamespace();
-
         try {
             $logsPath = logs_path();
             if (!is_dir($logsPath)) {
@@ -97,14 +88,5 @@ final class SettingsController extends Controller
         }
 
         return $this->redirect('/admin/settings');
-    }
-
-    private function ensureViewNamespace(): void
-    {
-        if (!app()->has(\Marwa\Framework\Views\View::class)) {
-            return;
-        }
-
-        app()->view()->addNamespace('settings', dirname(__DIR__, 2) . '/resources/views');
     }
 }

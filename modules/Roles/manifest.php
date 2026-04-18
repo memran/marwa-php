@@ -9,6 +9,9 @@ return [
     'providers' => [
         App\Modules\Roles\RolesServiceProvider::class,
     ],
+    'requires' => [
+        'auth',
+    ],
     'paths' => [
         'views' => 'resources/views',
     ],

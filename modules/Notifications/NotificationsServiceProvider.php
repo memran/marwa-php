@@ -7,8 +7,7 @@ namespace App\Modules\Notifications;
 use App\Modules\Notifications\Support\NotificationRepository;
 use App\Modules\Notifications\Support\NotificationService;
 use League\Container\Container;
-use Marwa\Framework\Supports\Runtime;
-use Marwa\Framework\Views\View;
+use Marwa\Framework\Navigation\MenuRegistry;
 use Marwa\Module\Contracts\ModuleServiceProviderInterface;
 
 final class NotificationsServiceProvider implements ModuleServiceProviderInterface
@@ -26,14 +25,20 @@ final class NotificationsServiceProvider implements ModuleServiceProviderInterfa
         $this->container->addShared(NotificationService::class, new NotificationService(
             $this->container->get(NotificationRepository::class)
         ));
+
+        if ($app->has(MenuRegistry::class)) {
+            $app->make(MenuRegistry::class)->add([
+                'name' => 'notifications',
+                'label' => 'Notifications',
+                'url' => '/admin/notifications',
+                'parent' => 'admin.user-space',
+                'order' => 20,
+                'icon' => 'bell',
+            ]);
+        }
     }
 
     public function boot($app): void
     {
-        if (!Runtime::isWeb() || !$app->has(View::class)) {
-            return;
-        }
-
-        $app->view()->addNamespace('notifications', __DIR__ . '/resources/views');
     }
 }
