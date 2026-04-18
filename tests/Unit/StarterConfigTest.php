@@ -17,6 +17,9 @@ final class StarterConfigTest extends TestCase
         self::assertArrayHasKey('debugbar', $config);
         self::assertIsBool($config['debugbar']);
         self::assertArrayNotHasKey('key', $config);
+        self::assertArrayNotHasKey('providers', $config);
+        self::assertArrayNotHasKey('middlewares', $config);
+        self::assertArrayNotHasKey('collectors', $config);
         self::assertSame('maintenance.twig', $config['maintenance']['template']);
         self::assertSame('errors/404.twig', $config['error404']['template']);
     }
@@ -124,11 +127,6 @@ final class StarterConfigTest extends TestCase
                 self::normalizePath($app->basePath('storage/cache/views')),
                 self::normalizePath($config['cachePath'])
             );
-            self::assertIsBool($config['debug']);
-            self::assertSame('.twig', $config['extension']);
-            self::assertIsArray($config['cache']);
-            self::assertArrayHasKey('enabled', $config['cache']);
-            self::assertIsBool($config['cache']['enabled']);
             self::assertSame(
                 self::normalizePath($app->basePath('resources/views/themes')),
                 self::normalizePath($config['themePath'])
@@ -136,99 +134,9 @@ final class StarterConfigTest extends TestCase
             self::assertSame('default', $config['activeTheme']);
             self::assertSame('default', $config['fallbackTheme']);
             self::assertSame('admin', $config['adminTheme']);
-            self::assertSame([
-                \App\View\Extensions\SecurityViewExtension::class,
-                \Marwa\View\Extension\AlpineExtension::class,
-                \Marwa\View\Extension\DateExtension::class,
-                \Marwa\View\Extension\HtmlExtension::class,
-                \Marwa\View\Extension\ImageExtension::class,
-                \Marwa\View\Extension\JsonExtension::class,
-                \Marwa\View\Extension\ListExtension::class,
-                \Marwa\View\Extension\MoneyExtension::class,
-                \Marwa\View\Extension\NumberExtension::class,
-                \Marwa\View\Extension\StatusExtension::class,
-                \Marwa\View\Extension\StringPresentationExtension::class,
-                \Marwa\View\Extension\TextExtension::class,
-            ], $config['extensions']);
+            self::assertContains(\App\View\Extensions\SecurityViewExtension::class, $config['extensions']);
         } finally {
             unset($GLOBALS['marwa_app']);
-            @rmdir($basePath);
-        }
-    }
-
-    public function testSecurityConfigEnablesCsrfForUnsafeMethodsByDefault(): void
-    {
-        $basePath = sys_get_temp_dir() . '/marwa-config-' . bin2hex(random_bytes(6));
-        mkdir($basePath, 0777, true);
-        $app = new Application($basePath);
-        $GLOBALS['marwa_app'] = $app;
-
-        try {
-            $config = require __DIR__ . '/../../config/security.php';
-
-            self::assertIsArray($config);
-            self::assertTrue($config['enabled']);
-            self::assertTrue($config['csrf']['enabled']);
-            self::assertSame('_token', $config['csrf']['field']);
-            self::assertSame(['POST', 'PUT', 'PATCH', 'DELETE'], $config['csrf']['methods']);
-        } finally {
-            unset($GLOBALS['marwa_app']);
-            @rmdir($basePath);
-        }
-    }
-
-    public function testLoggerConfigUsesFrameworkShapeWithStarterDefaults(): void
-    {
-        $basePath = sys_get_temp_dir() . '/marwa-config-' . bin2hex(random_bytes(6));
-        mkdir($basePath, 0777, true);
-        $app = new Application($basePath);
-        $GLOBALS['marwa_app'] = $app;
-
-        foreach ([
-            'APP_DEBUG',
-            'LOG_CHANNEL',
-            'LOG_LEVEL',
-            'LOG_PREFIX',
-        ] as $key) {
-            unset($_ENV[$key], $_SERVER[$key]);
-            putenv($key);
-        }
-
-        putenv('APP_DEBUG=1');
-        putenv('LOG_CHANNEL=file');
-        putenv('LOG_LEVEL=debug');
-        $_ENV['APP_DEBUG'] = '1';
-        $_ENV['LOG_CHANNEL'] = 'file';
-        $_ENV['LOG_LEVEL'] = 'debug';
-        $_SERVER['APP_DEBUG'] = '1';
-        $_SERVER['LOG_CHANNEL'] = 'file';
-        $_SERVER['LOG_LEVEL'] = 'debug';
-
-        try {
-            $config = require __DIR__ . '/../../config/logger.php';
-
-            self::assertIsArray($config);
-            self::assertTrue($config['enable']);
-            self::assertSame([], $config['filter']);
-            self::assertSame('file', $config['storage']['driver']);
-            self::assertSame(
-                self::normalizePath($app->basePath('storage/logs')),
-                self::normalizePath($config['storage']['path'])
-            );
-            self::assertSame('marwa', $config['storage']['prefix']);
-            self::assertSame('debug', $config['storage']['level']);
-            self::assertArrayNotHasKey('max_bytes', $config['storage']);
-        } finally {
-            unset($GLOBALS['marwa_app']);
-            foreach ([
-                'APP_DEBUG',
-                'LOG_CHANNEL',
-                'LOG_LEVEL',
-                'LOG_PREFIX',
-            ] as $key) {
-                unset($_ENV[$key], $_SERVER[$key]);
-                putenv($key);
-            }
             @rmdir($basePath);
         }
     }

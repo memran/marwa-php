@@ -43,14 +43,15 @@ Owns application composition only.
 - app routes
 - app controllers
 - app-specific views and overrides
-- environment defaults for this product
+- environment defaults and app-specific config overrides for this product
 - module wiring for this product
+- starter-specific module workflows and support classes
 
 ## Current Boot Flow
 
 1. `public/index.php` creates `Marwa\Framework\Application`.
 2. `Application` loads `.env` and registers core services.
-3. `AppBootstrapper` loads config and providers.
+3. `AppBootstrapper` loads framework defaults plus any starter config overrides from `config/`.
 4. `ModuleBootstrapper` loads module manifests, providers, views, and routes.
 5. `HttpKernel` runs the middleware pipeline and router dispatch.
 6. `ViewAdapter` resolves Twig templates and renders the response.
@@ -64,6 +65,7 @@ The CLI entrypoint follows the same application bootstrap pattern through `marwa
 - Keep app routes declarative and avoid bootstrapping framework behavior inside route files.
 - Keep caches under `storage/`.
 - Make configuration the source of truth for app defaults.
+- Keep `config/` limited to starter-specific overrides; rely on framework defaults when the starter is not intentionally changing behavior.
 
 ## App Responsibilities
 
@@ -79,14 +81,26 @@ The CLI entrypoint follows the same application bootstrap pattern through `marwa
 ### Modules
 - Each module should keep its own manifest, provider, routes, views, migrations, and seeders when needed.
 - Modules should register through the framework module bootstrap, not through ad hoc app wiring.
+- Starter-local activity logging should prefer direct `ActivityRecorder` calls unless a real fan-out need appears.
+
+### Config
+- `config/app.php` should contain starter-owned overrides such as the maintenance and 404 templates and the starter-specific debugbar toggle behavior.
+- Theme defaults belong in `config/view.php`.
+- Module cache and module enablement belong in `config/module.php`.
+- Session defaults should come from the framework unless the starter has a real app-specific override.
+
+### Testing
+- Tests in this repo should verify starter-owned behavior only.
+- Do not lock tests to framework internal config shape, framework default middleware lists, or framework default extension lists.
+- Prefer feature coverage for routes, theme resolution, auth flow, module wiring, and other user-visible starter behavior.
 
 ## Framework Gaps To Consider Upstream
 
 If the app keeps needing the same workaround more than once, the framework probably needs a new capability.
 
 - a first-class frontend/backend controller abstraction
-- a framework-owned debug collector registry
-- unified cache-path normalization in framework config
+- safer config list merging for middleware/provider overrides without restating full framework defaults
+- configurable default session save path so apps and tests do not depend on the machine-wide PHP session path
 - clearer documentation for boot order and extension points
 
 ## Working Rule
