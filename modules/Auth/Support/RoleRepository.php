@@ -62,11 +62,9 @@ final class RoleRepository
             return false;
         }
 
-        foreach ($data as $key => $value) {
-            $role->$key = $value;
-        }
+        $role->fill($data);
 
-        return $role->update();
+        return $role->save();
     }
 
     public function delete(int $id): bool
@@ -81,6 +79,27 @@ final class RoleRepository
         }
 
         return $role->delete();
+    }
+
+    public function countUsers(int $roleId): int
+    {
+        $pdo = $this->cm->getPdo();
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM users WHERE role_id = ? AND deleted_at IS NULL');
+        $stmt->execute([$roleId]);
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function hasSlug(string $slug, ?int $ignoreId = null): bool
+    {
+        $builder = Role::newQuery()->getBaseBuilder()
+            ->where('slug', '=', $slug);
+
+        if ($ignoreId !== null) {
+            $builder->where('id', '!=', $ignoreId);
+        }
+
+        return $builder->count() > 0;
     }
 
     public function getPermissions(int $roleId): array
@@ -117,6 +136,20 @@ final class RoleRepository
         }
 
         return true;
+    }
+
+    /**
+     * @return array<int, array{value:int,label:string}>
+     */
+    public function levelOptions(): array
+    {
+        return [
+            ['value' => 1, 'label' => 'Viewer'],
+            ['value' => 2, 'label' => 'Staff'],
+            ['value' => 3, 'label' => 'Custom'],
+            ['value' => 4, 'label' => 'Manager'],
+            ['value' => 5, 'label' => 'Admin'],
+        ];
     }
 
     public function findByUserRole(string $userRole): ?Role

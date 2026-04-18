@@ -62,7 +62,8 @@
           {% for key, field in meta.fields %}
             {% set field_id = category ~ '_' ~ key %}
             {% set field_name = 'settings[' ~ category ~ '][' ~ key ~ ']' %}
-            {% set field_value = attribute(attribute(settings, category), key)|default(field.default) %}
+            {% set field_value = attribute(attribute(settings, category), key) %}
+            {% set field_value = field_value is same as(null) ? field.default : field_value %}
             {% set field_error = errors[category ~ '.' ~ key]|default([])|first %}
 
             <div class="grid gap-2 {% if field.input == 'textarea' %}md:col-span-2{% endif %}">
@@ -89,21 +90,25 @@
                 </label>
               {% elseif field.input == 'action' %}
                 {% if key == 'purge_cache' %}
-                <form method="post" action="/admin/settings/purge-cache">
-                  {{ csrf_field() }}
-                  <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-400/20 bg-rose-500/10 px-3.5 py-2 text-[0.82rem] font-semibold text-rose-100 transition hover:bg-rose-500/20">
-                    {% include 'components/icon.twig' with { name: 'trash-2', class: 'h-4 w-4' } only %}
-                    Purge Cache
-                  </button>
-                </form>
+                <button
+                  type="submit"
+                  formaction="/admin/settings/purge-cache"
+                  formmethod="post"
+                  class="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-400/20 bg-rose-500/10 px-3.5 py-2 text-[0.82rem] font-semibold text-rose-100 transition hover:bg-rose-500/20"
+                >
+                  {% include 'components/icon.twig' with { name: 'trash-2', class: 'h-4 w-4' } only %}
+                  Purge Cache
+                </button>
                 {% elseif key == 'clear_logs' %}
-                <form method="post" action="/admin/settings/clear-logs">
-                  {{ csrf_field() }}
-                  <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-400/20 bg-rose-500/10 px-3.5 py-2 text-[0.82rem] font-semibold text-rose-100 transition hover:bg-rose-500/20">
-                    {% include 'components/icon.twig' with { name: 'file-x-2', class: 'h-4 w-4' } only %}
-                    Clear Logs
-                  </button>
-                </form>
+                <button
+                  type="submit"
+                  formaction="/admin/settings/clear-logs"
+                  formmethod="post"
+                  class="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-400/20 bg-rose-500/10 px-3.5 py-2 text-[0.82rem] font-semibold text-rose-100 transition hover:bg-rose-500/20"
+                >
+                  {% include 'components/icon.twig' with { name: 'file-x-2', class: 'h-4 w-4' } only %}
+                  Clear Logs
+                </button>
                 {% endif %}
               {% else %}
                 <input
@@ -126,13 +131,10 @@
           {% endfor %}
         </div>
 
-        <div class="mt-4 flex justify-end">
-          <button class="{{ button_primary }}" type="submit">Save {{ meta.label }}</button>
-        </div>
       </section>
     {% endfor %}
 
-    <div class="flex flex-wrap gap-2">
+    <div class="mt-8 flex flex-wrap justify-center gap-2">
       <button class="{{ button_primary }}" type="submit">Save settings</button>
       <a class="{{ button_secondary }}" href="/admin">Cancel</a>
     </div>

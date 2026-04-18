@@ -53,7 +53,7 @@
         <tbody class="divide-y divide-white/10">
           {% for activity in activities.data %}
             <tr class="align-top">
-              <td class="px-3 py-3 text-sm text-slate-300">{{ activity.getAttribute('created_at')|default('Now') }}</td>
+              <td class="px-3 py-3 text-sm text-slate-300">{{ activity.getAttribute('created_at')|default('Now')|date((_system_date_format|default('Y-m-d')) ~ ' ' ~ (_system_time_format|default('H:i'))) }}</td>
               <td class="px-3 py-3">
                 <span class="inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-100">{{ activity.getAttribute('action') }}</span>
               </td>

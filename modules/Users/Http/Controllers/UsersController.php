@@ -27,8 +27,6 @@ final class UsersController extends Controller
 
     public function index(): ResponseInterface
     {
-        $this->authorize('view', \App\Modules\Users\Models\User::class);
-
         $search = $this->search->state();
         $users = $this->users->paginatedUsers($search['query'], $search['page']);
         $pagination = $this->pagination->viewData($users, '/admin/users', [
@@ -47,8 +45,6 @@ final class UsersController extends Controller
 
     public function create(): ResponseInterface
     {
-        $this->authorize('create', \App\Modules\Users\Models\User::class);
-
         return $this->view('@users/form', $this->forms->formViewData([
             'mode' => 'create',
             'title' => 'Create user',
@@ -59,8 +55,6 @@ final class UsersController extends Controller
 
     public function store(): ResponseInterface
     {
-        $this->authorize('create', \App\Modules\Users\Models\User::class);
-
         $validated = $this->validate($this->rules->store());
 
         $afterState = [
@@ -97,8 +91,6 @@ final class UsersController extends Controller
             return $this->response('User not found.', 404);
         }
 
-        $this->authorize('view', $user);
-
         return $this->view('@users/profile', [
             'user' => $user,
             'protected_admin_id' => $this->users->protectedAdminId(),
@@ -112,8 +104,6 @@ final class UsersController extends Controller
         if ($user === null) {
             return $this->response('User not found.', 404);
         }
-
-        $this->authorize('update', $user);
 
         return $this->view('@users/form', $this->forms->formViewData([
             'mode' => 'edit',
@@ -131,8 +121,6 @@ final class UsersController extends Controller
         if ($user === null) {
             return $this->response('User not found.', 404);
         }
-
-        $this->authorize('update', $user);
 
         $validated = $this->validate($this->rules->update());
         $beforeState = $this->users->userSnapshot($user);
@@ -238,5 +226,4 @@ final class UsersController extends Controller
 
         return $this->redirect('/admin/users');
     }
-
 }

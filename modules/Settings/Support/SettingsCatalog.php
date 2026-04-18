@@ -20,12 +20,12 @@ final class SettingsCatalog
                 'label' => 'Application',
                 'description' => 'Starter identity and global runtime defaults.',
                 'fields' => [
-                    'name' => ['label' => 'App name', 'input' => 'text', 'type' => 'string', 'default' => (string) env('APP_NAME', 'MarwaPHP'), 'help' => 'Shown in health checks and shared admin labels.'],
+                    'name' => ['label' => 'App name', 'input' => 'text', 'type' => 'string', 'default' => (string) env('APP_NAME', 'MarwaPHP'), 'help' => 'Applied to the runtime app config and shared labels immediately after save.'],
                     'env' => ['label' => 'Environment', 'input' => 'select', 'type' => 'string', 'default' => (string) env('APP_ENV', 'production'), 'options' => ['production' => 'production', 'staging' => 'staging', 'development' => 'development', 'testing' => 'testing', 'local' => 'local']],
-                    'debug' => ['label' => 'Debug mode', 'input' => 'checkbox', 'type' => 'bool', 'default' => (bool) env('APP_DEBUG', false), 'help' => 'Stored globally for starter logic and mirrored into config.'],
+                    'debug' => ['label' => 'Debug mode', 'input' => 'checkbox', 'type' => 'bool', 'default' => (bool) env('APP_DEBUG', false), 'help' => 'Mirrored into the runtime view and error config.'],
                     'timezone' => ['label' => 'Timezone', 'input' => 'text', 'type' => 'timezone', 'default' => (string) env('TIMEZONE', 'UTC')],
                     'locale' => ['label' => 'Locale', 'input' => 'text', 'type' => 'string', 'default' => 'en'],
-                    'maintenance_mode' => ['label' => 'Maintenance mode', 'input' => 'checkbox', 'type' => 'bool', 'default' => false, 'help' => 'Framework maintenance middleware is still env-driven; this setting is global starter state.'],
+                    'maintenance_mode' => ['label' => 'Maintenance mode', 'input' => 'checkbox', 'type' => 'bool', 'default' => false, 'help' => 'Applied dynamically through the starter maintenance middleware.'],
                 ],
             ],
             'system' => [
@@ -63,6 +63,7 @@ final class SettingsCatalog
                 'description' => 'Visual and layout defaults shared across starter UIs.',
                 'fields' => [
                     'theme' => ['label' => 'Frontend theme', 'input' => 'text', 'type' => 'string', 'default' => (string) env('FRONTEND_THEME', 'default')],
+                    'admin_theme' => ['label' => 'Admin theme', 'input' => 'text', 'type' => 'string', 'default' => (string) env('ADMIN_THEME', 'admin')],
                     'logo_url' => ['label' => 'Logo URL', 'input' => 'url', 'type' => 'url', 'default' => ''],
                     'layout_mode' => ['label' => 'Layout mode', 'input' => 'select', 'type' => 'string', 'default' => 'compact', 'options' => ['compact' => 'compact', 'comfortable' => 'comfortable']],
                     'sidebar_state' => ['label' => 'Sidebar state', 'input' => 'select', 'type' => 'string', 'default' => 'expanded', 'options' => ['expanded' => 'expanded', 'collapsed' => 'collapsed']],

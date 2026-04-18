@@ -45,17 +45,40 @@
       <span class="{{ section_header }} {% if not loop.first %}mt-2{% endif %}">{{ section.label }}</span>
 
       {% for item in section.children %}
-        <a class="{{ nav_link_base }} {% if currentPath starts with item.url %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" href="{{ item.url }}" {% if currentPath starts with item.url %}aria-current="page"{% endif %}>
-          {% if item.icon is not empty %}
-            {% include 'components/icon.twig' with { name: item.icon, class: 'h-5 w-5 shrink-0' } only %}
-          {% endif %}
-          <span class="truncate">{{ item.label }}</span>
-          {% if item.name == 'notifications' and unread_notification_count|default(0) > 0 %}
-            <span class="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[0.65rem] font-bold text-white">
-              {{ unread_notification_count > 9 ? '9+' : unread_notification_count }}
+        <div class="grid gap-1">
+          <a class="{{ nav_link_base }} rounded-2xl border border-transparent {% if currentPath starts with item.url %}{{ nav_link_active }} border-cyan-300/20 bg-cyan-400/10 shadow-[0_8px_24px_rgba(8,145,178,0.08)]{% else %}{{ nav_link_inactive }} hover:border-white/10 hover:bg-white/5{% endif %}" href="{{ item.url }}" {% if currentPath starts with item.url %}aria-current="page"{% endif %}>
+            <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
+              {% if item.icon is not empty %}
+                {% include 'components/icon.twig' with { name: item.icon, class: 'h-4 w-4 shrink-0' } only %}
+              {% else %}
+                <span class="h-2 w-2 rounded-full bg-slate-400"></span>
+              {% endif %}
             </span>
+            <span class="truncate">{{ item.label }}</span>
+            {% if item.name == 'notifications' and unread_notification_count|default(0) > 0 %}
+              <span class="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[0.65rem] font-bold text-white">
+                {{ unread_notification_count > 9 ? '9+' : unread_notification_count }}
+              </span>
+            {% endif %}
+          </a>
+
+          {% if item.children is not empty %}
+            <div class="ml-4 grid gap-2 border-l border-cyan-300/15 pl-4 py-1">
+              {% for child in item.children %}
+                <a class="{{ nav_link_base }} rounded-xl border border-white/5 bg-white/[0.03] py-2.5 text-[0.78rem] shadow-[0_1px_0_rgba(255,255,255,0.02)] {% if currentPath starts with child.url %}{{ nav_link_active }} border-cyan-300/20 bg-cyan-400/10{% else %}{{ nav_link_inactive }} hover:border-white/10 hover:bg-white/5{% endif %}" href="{{ child.url }}" {% if currentPath starts with child.url %}aria-current="page"{% endif %}>
+                  <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg">
+                    {% if child.icon is not empty %}
+                      {% include 'components/icon.twig' with { name: child.icon, class: 'h-3.5 w-3.5 shrink-0' } only %}
+                    {% else %}
+                      <span class="h-1.5 w-1.5 rounded-full bg-cyan-300/70"></span>
+                    {% endif %}
+                  </span>
+                  <span class="truncate">{{ child.label }}</span>
+                </a>
+              {% endfor %}
+            </div>
           {% endif %}
-        </a>
+        </div>
       {% endfor %}
     {% endif %}
   {% endfor %}

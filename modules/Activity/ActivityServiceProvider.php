@@ -17,7 +17,7 @@ final class ActivityServiceProvider implements ModuleServiceProviderInterface
                 'label' => 'Activity',
                 'url' => '/admin/activity',
                 'parent' => 'admin.management',
-                'order' => 20,
+                'order' => 40,
                 'icon' => 'activity',
             ]);
         }

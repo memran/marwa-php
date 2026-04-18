@@ -135,6 +135,7 @@
 - Validate and sanitize user input with framework or support-layer primitives rather than ad hoc logic.
 - Favor readability and maintainability over cleverness or premature optimization.
 - Treat reusable cross-app behavior as a framework concern and starter-specific behavior as an app concern.
+- donot run raw sql query.Use ORM or Query Builder
 
 ## Testing
 

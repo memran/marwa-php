@@ -55,6 +55,30 @@ final class PermissionRepository
         return Permission::create($data);
     }
 
+    public function update(int $id, array $data): bool
+    {
+        $permission = $this->findById($id);
+        if ($permission === null) {
+            return false;
+        }
+
+        $permission->fill($data);
+
+        return $permission->save();
+    }
+
+    public function hasSlug(string $slug, ?int $ignoreId = null): bool
+    {
+        $builder = Permission::newQuery()->getBaseBuilder()
+            ->where('slug', '=', $slug);
+
+        if ($ignoreId !== null) {
+            $builder->where('id', '!=', $ignoreId);
+        }
+
+        return $builder->count() > 0;
+    }
+
     public function delete(int $id): bool
     {
         $permission = $this->findById($id);

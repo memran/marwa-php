@@ -88,7 +88,7 @@ final class DatabaseManagerController extends Controller
             'pagination' => $result !== null && ($result['is_result_set'] ?? false)
                 ? $pagination->viewData([
                     'total' => (int) ($result['total_rows'] ?? 0),
-                    'per_page' => (int) ($result['per_page'] ?? 25),
+                    'per_page' => (int) ($result['per_page'] ?? config('settings.lifecycle.pagination.default_per_page', 25)),
                     'current_page' => (int) ($result['current_page'] ?? 1),
                     'last_page' => (int) ($result['last_page'] ?? 1),
                 ], '/admin/database')
@@ -98,9 +98,9 @@ final class DatabaseManagerController extends Controller
 
     private function isEnabled(): bool
     {
-        return (bool) env(
-            'DATABASE_MANAGER_ENABLED',
-            !in_array((string) env('APP_ENV', 'production'), ['production', 'staging'], true)
+        return (bool) config(
+            'settings.lifecycle.app.database_manager_enabled',
+            !in_array((string) config('settings.lifecycle.app.env', config('app.env', 'production')), ['production', 'staging'], true)
         );
     }
 }

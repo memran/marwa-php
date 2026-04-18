@@ -1,0 +1,121 @@
+{% extends "layout.twig" %}
+
+{% block title %}{{ title }} | MarwaPHP Admin{% endblock %}
+
+{% block content %}
+  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
+  {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
+  {% set button_secondary = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
+  {% set role = role|default(null) %}
+  {% set form = form|default({}) %}
+  {% set permissions = permissions|default({}) %}
+  {% set role_permission_ids = role_permission_ids|default([]) %}
+  {% set is_system_role = role is not null and role.getAttribute('is_system') %}
+
+  <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <div class="max-w-3xl space-y-2">
+      <span class="inline-flex w-fit items-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-cyan-100">Roles & Permissions</span>
+      <h1 class="text-2xl font-black tracking-tight text-white sm:text-3xl">{{ title }}</h1>
+      <p class="max-w-2xl text-sm leading-6 text-slate-300">
+        Create a new role or update permissions for an existing one. Role permissions apply immediately to every user assigned to that role.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <a class="{{ button_secondary }}" href="/admin/roles">Back to roles</a>
+    </div>
+  </section>
+
+  <form method="post" action="{{ action }}" class="mt-6">
+    {{ csrf_field() }}
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="rounded-xl border border-white/10 bg-white/5 p-6">
+        <div class="mb-4 flex items-center justify-between gap-3">
+          <h2 class="text-lg font-semibold text-slate-100">Role Details</h2>
+          {% if is_system_role %}
+            <span class="inline-flex items-center rounded-full bg-amber-400/10 px-2 py-0.5 text-xs font-medium text-amber-200">System role</span>
+          {% endif %}
+        </div>
+
+        <div class="space-y-4">
+          {% include "components/form-field.twig" with {
+            id: 'name',
+            label: 'Name',
+            value: form.name|default(''),
+            placeholder: 'Support Agent',
+            error: errors.name|default([])|first,
+            disabled: false,
+            readonly: is_system_role
+          } only %}
+
+          {% include "components/form-field.twig" with {
+            id: 'slug',
+            label: 'Slug',
+            value: form.slug|default(''),
+            placeholder: 'support_agent',
+            hint: 'Used by permissions and middleware checks.',
+            error: errors.slug|default([])|first,
+            readonly: is_system_role
+          } only %}
+
+          {% include "components/form-field.twig" with {
+            id: 'level',
+            label: 'Level',
+            type: 'number',
+            value: form.level|default(1),
+            placeholder: '1',
+            hint: 'Higher levels can satisfy lower role checks.',
+            error: errors.level|default([])|first,
+            readonly: is_system_role
+          } only %}
+
+          {% include "components/form-field.twig" with {
+            id: 'description',
+            label: 'Description',
+            type: 'textarea',
+            rows: 4,
+            value: form.description|default(''),
+            placeholder: 'Short note about the role purpose.',
+            error: errors.description|default([])|first
+          } only %}
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-white/10 bg-white/5 p-6">
+        <div class="mb-4 flex items-center justify-between gap-3">
+          <h2 class="text-lg font-semibold text-slate-100">Permissions</h2>
+          <span class="text-xs text-slate-400">{{ role_permission_ids|length }} assigned</span>
+        </div>
+
+        <p class="mb-4 text-sm text-slate-400">
+          Checked permissions are saved to the selected role immediately, and every user with this role inherits them dynamically.
+        </p>
+
+        <div class="max-h-[30rem] space-y-4 overflow-y-auto pr-1">
+          {% for group, perms in permissions %}
+            <div class="rounded-2xl border border-white/5 bg-white/[0.03] p-4">
+              <h3 class="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{{ group }}</h3>
+              <div class="grid gap-2 sm:grid-cols-2">
+                {% for perm in perms %}
+                  <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-white/5 bg-white/[0.02] px-3 py-2 transition hover:border-cyan-300/20 hover:bg-cyan-400/5">
+                    <input type="checkbox" name="permissions[]" value="{{ perm.getKey() }}" {% if perm.getKey() in role_permission_ids %}checked{% endif %} class="mt-1 rounded border-white/10 bg-white/5 text-cyan-400 focus:ring-cyan-400/20">
+                    <span class="min-w-0">
+                      <span class="block text-sm font-medium text-slate-200">{{ perm.getAttribute('name') }}</span>
+                      <span class="block text-xs text-slate-500">{{ perm.getAttribute('slug') }}</span>
+                    </span>
+                  </label>
+                {% endfor %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-6 flex justify-end gap-3">
+      <a href="/admin/roles" class="{{ button_secondary }}">Cancel</a>
+      <button type="submit" class="{{ button_primary }}">{{ submit_label }}</button>
+    </div>
+  </form>
+{% endblock %}

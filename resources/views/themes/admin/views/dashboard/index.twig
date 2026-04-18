@@ -3,6 +3,8 @@
 {% block title %}System Dashboard | MarwaPHP{% endblock %}
 
 {% block content %}
+  {% set status_cards = status_cards|default([]) %}
+  {% set activities = activities|default([]) %}
   {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
   {% set button_ghost = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
   {% set badge_neutral = 'inline-flex items-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-2.5 py-1 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-cyan-100' %}
@@ -26,7 +28,7 @@
       <span class="{{ badge_neutral }}">Module driven</span>
     </div>
 
-    <div class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+    <div class="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
       {% for card in status_cards %}
         {% include "components/status-card.twig" with card only %}
       {% endfor %}

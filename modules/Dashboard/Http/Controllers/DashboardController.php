@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Dashboard\Http\Controllers;
 
 use App\Modules\Dashboard\Support\WidgetRegistry;
-use App\Modules\Auth\Support\Gate;
+use Marwa\Framework\Authorization\AuthManager as FrameworkAuthManager;
 use Marwa\Framework\Controllers\Controller;
 use Marwa\Framework\Views\View;
 use PDO;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 final class DashboardController extends Controller
 {
@@ -17,17 +18,19 @@ final class DashboardController extends Controller
 
     public function __construct(
         private readonly WidgetRegistry $widgetRegistry,
-        private readonly Gate $gate,
     ) {}
 
     public function index(): ResponseInterface
     {
-        if ($this->gate->denies('dashboard.view')) {
+        if (gate()->denies('dashboard.view')) {
             return $this->forbidden();
         }
 
         $userId = $this->getUserId();
-        $widgets = $this->getUserWidgets($userId);
+        $widgets = array_map(
+            fn (array $widget): array => $this->hydrateWidget($widget),
+            $this->getUserWidgets($userId)
+        );
 
         return $this->view('@dashboard/index', [
             'widgets' => $widgets,
@@ -39,7 +42,7 @@ final class DashboardController extends Controller
 
     public function widgets(): ResponseInterface
     {
-        if ($this->gate->denies('dashboard.view')) {
+        if (gate()->denies('dashboard.view')) {
             return $this->forbidden();
         }
 
@@ -54,12 +57,12 @@ final class DashboardController extends Controller
 
     public function saveWidgets(): ResponseInterface
     {
-        if ($this->gate->denies('dashboard.view')) {
+        if (gate()->denies('dashboard.view')) {
             return $this->forbidden();
         }
 
         $userId = $this->getUserId();
-        $widgets = request('widgets', []);
+        $widgets = $this->extractWidgetsPayload($this->request());
 
         if (!is_array($widgets)) {
             return $this->json(['success' => false, 'message' => 'Invalid data']);
@@ -72,7 +75,7 @@ final class DashboardController extends Controller
 
     public function reset(): ResponseInterface
     {
-        if ($this->gate->denies('dashboard.view')) {
+        if (gate()->denies('dashboard.view')) {
             return $this->forbidden();
         }
 
@@ -87,12 +90,13 @@ final class DashboardController extends Controller
         return $this->json(['success' => true, 'message' => 'Dashboard reset to default']);
     }
 
-    public function widgetContent(string $id): ResponseInterface
+    public function widgetContent(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        if ($this->gate->denies('dashboard.view')) {
+        if (gate()->denies('dashboard.view')) {
             return $this->forbidden();
         }
 
+        $id = (string) ($vars['id'] ?? '');
         $widget = $this->widgetRegistry->get($id);
 
         if (!$widget) {
@@ -107,34 +111,36 @@ final class DashboardController extends Controller
         ]);
     }
 
-    public function refreshWidget(string $id): ResponseInterface
+    public function refreshWidget(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        if ($this->gate->denies('dashboard.view')) {
+        if (gate()->denies('dashboard.view')) {
             return $this->forbidden();
         }
 
+        $id = (string) ($vars['id'] ?? '');
         $widget = $this->widgetRegistry->get($id);
 
         if (!$widget) {
             return $this->json(['success' => false, 'message' => 'Widget not found']);
         }
 
-        $content = $this->renderWidget($id);
-
         return $this->json([
             'success' => true,
             'id' => $id,
-            'content' => $content,
+            'card' => $this->widgetCard($id),
         ]);
     }
 
     private function getUserId(): ?int
     {
-        if (!session()->has('admin_user_id')) {
+        if (!app()->has(FrameworkAuthManager::class)) {
             return null;
         }
 
-        return (int) session()->get('admin_user_id');
+        /** @var FrameworkAuthManager $auth */
+        $auth = app(FrameworkAuthManager::class);
+
+        return $auth->id();
     }
 
     private function getUserWidgets(?int $userId): array
@@ -218,27 +224,82 @@ final class DashboardController extends Controller
         try {
             $view = app()->make(View::class);
 
-            $data = [];
-            
-            if ($id !== 'theme_info' && class_exists(\App\Modules\DashboardStatus\DashboardStatusCards::class)) {
-                $statusCards = app(\App\Modules\DashboardStatus\DashboardStatusCards::class);
-                $cards = $statusCards->cards();
-                
-                $cardMap = [
-                    'app_status' => 0,
-                    'runtime_info' => 1,
-                    'memory_usage' => 2,
-                    'disk_space' => 3,
-                    'load_average' => 4,
-                    'theme_info' => 5,
-                ];
-                
-                $data['card'] = $cards[$cardMap[$id] ?? 0] ?? null;
-            }
+            $data = ['card' => $this->widgetCard($id)];
 
             return $view->render('@dashboard/widgets/' . $id, $data);
         } catch (\Throwable $e) {
             return '<div class="p-4 text-slate-400 dark:text-slate-500">Error: ' . $e->getMessage() . '</div>';
         }
+    }
+
+    /**
+     * @param array<string, mixed> $widget
+     * @return array<string, mixed>
+     */
+    private function hydrateWidget(array $widget): array
+    {
+        $widget['content'] = $this->renderWidget((string) ($widget['widget_id'] ?? ''));
+
+        return $widget;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function widgetCard(string $id): ?array
+    {
+        if ($id === 'theme_info') {
+            return [
+                'label' => 'Admin theme',
+                'value' => (string) config('settings.lifecycle.theme.admin', config('view.adminTheme', 'admin')),
+                'meta' => 'Active workspace skin',
+                'tone' => 'primary',
+                'status' => 'Loaded',
+                'metric_percent' => 66,
+                'metric_width' => '66%',
+                'metric_bars' => ['84%', '70%', '56%', '42%'],
+            ];
+        }
+
+        if (!class_exists(\App\Modules\DashboardStatus\DashboardStatusCards::class)) {
+            return null;
+        }
+
+        $cards = app(\App\Modules\DashboardStatus\DashboardStatusCards::class)->cards();
+        $cardMap = [
+            'app_status' => 0,
+            'runtime_info' => 1,
+            'memory_usage' => 2,
+            'disk_space' => 3,
+            'load_average' => 4,
+        ];
+
+        return $cards[$cardMap[$id] ?? 0] ?? null;
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return array<int, array<string, mixed>>|mixed
+     */
+    private function extractWidgetsPayload(ServerRequestInterface $request): mixed
+    {
+        $parsed = $request->getParsedBody();
+
+        if (is_array($parsed) && array_key_exists('widgets', $parsed)) {
+            return $parsed['widgets'];
+        }
+
+        $body = (string) $request->getBody();
+        if ($body === '') {
+            return [];
+        }
+
+        $decoded = json_decode($body, true);
+
+        if (!is_array($decoded) || !array_key_exists('widgets', $decoded)) {
+            return [];
+        }
+
+        return $decoded['widgets'];
     }
 }

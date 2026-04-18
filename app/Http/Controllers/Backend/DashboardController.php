@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Backend;
 
+use App\Modules\Activity\Support\ActivityRecorder;
+use App\Modules\DashboardStatus\DashboardStatusCards;
 use App\Modules\Dashboard\Support\WidgetRegistry;
+use Marwa\Framework\Authorization\AuthManager as FrameworkAuthManager;
 use Marwa\Framework\Controllers\Controller;
 use Marwa\Framework\Views\View;
 use Psr\Http\Message\ResponseInterface;
@@ -23,6 +26,8 @@ final class DashboardController extends Controller
         $widgets = $this->getUserWidgets($userId);
 
         return $this->view('@dashboard/index', [
+            'status_cards' => $this->statusCards(),
+            'activities' => $this->recentActivities(),
             'widgets' => $widgets,
             'available_widgets' => $this->widgetRegistry->all(),
             'size_options' => $this->widgetRegistry->getSizeOptions(),
@@ -103,11 +108,14 @@ final class DashboardController extends Controller
 
     private function getUserId(): ?int
     {
-        if (!session()->has('admin_user_id')) {
+        if (!app()->has(FrameworkAuthManager::class)) {
             return null;
         }
 
-        return (int) session()->get('admin_user_id');
+        /** @var FrameworkAuthManager $auth */
+        $auth = app(FrameworkAuthManager::class);
+
+        return $auth->id();
     }
 
     /**
@@ -222,5 +230,29 @@ final class DashboardController extends Controller
         } catch (\Throwable $e) {
             return '<div class="p-4 text-slate-400 dark:text-slate-500">Error: ' . $e->getMessage() . '</div>';
         }
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function statusCards(): array
+    {
+        if (!class_exists(DashboardStatusCards::class)) {
+            return [];
+        }
+
+        return app(DashboardStatusCards::class)->cards();
+    }
+
+    /**
+     * @return list<\App\Modules\Activity\Models\Activity>
+     */
+    private function recentActivities(): array
+    {
+        if (!class_exists(ActivityRecorder::class)) {
+            return [];
+        }
+
+        return app(ActivityRecorder::class)->recent(5);
     }
 }

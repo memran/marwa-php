@@ -9,9 +9,9 @@ use App\Modules\Auth\Http\Middleware\RequirePermission;
 use App\Modules\DatabaseManager\Http\Controllers\DatabaseManagerController;
 use Marwa\Framework\Facades\Router;
 
-$databaseManagerEnabled = (bool) env(
-    'DATABASE_MANAGER_ENABLED',
-    !in_array((string) env('APP_ENV', 'production'), ['production', 'staging'], true)
+$databaseManagerEnabled = (bool) config(
+    'settings.lifecycle.app.database_manager_enabled',
+    !in_array((string) config('settings.lifecycle.app.env', config('app.env', 'production')), ['production', 'staging'], true)
 );
 
 if ($databaseManagerEnabled) {

@@ -16,6 +16,8 @@
     </div>
 
     <div class="flex flex-wrap gap-2">
+      <a class="{{ button_primary }}" href="{{ create_url|default('/admin/roles/create') }}">Create role</a>
+      <a class="{{ button_secondary }}" href="/admin/permissions">Permissions</a>
       <a class="{{ button_secondary }}" href="/admin">Back to dashboard</a>
     </div>
   </section>
@@ -69,9 +71,8 @@
                   {% include 'components/icon.twig' with { name: 'pencil', class: 'h-4 w-4' } only %}
                 </a>
                 {% if not role.getAttribute('is_system') %}
-                  <form method="post" action="/admin/roles/{{ role.getKey() }}" onsubmit="return confirm('Delete this role?');">
+                  <form method="post" action="/admin/roles/{{ role.getKey() }}/delete" onsubmit="return confirm('Delete this role?');">
                     {{ csrf_field() }}
-                    <input type="hidden" name="_method" value="DELETE">
                     <button type="submit" class="rounded-lg p-2 text-slate-400 hover:bg-rose-500/20 hover:text-rose-400" title="Delete">
                       {% include 'components/icon.twig' with { name: 'trash-2', class: 'h-4 w-4' } only %}
                     </button>

@@ -6,43 +6,74 @@
   <meta name="color-scheme" content="light dark">
   <title>{% block title %}Admin Access{% endblock %}</title>
   <meta name="description" content="MarwaPHP admin authentication screens.">
+  <script>
+    (function() {
+      var theme = localStorage.getItem('marwa-admin-theme') || localStorage.getItem('marwa-auth-theme');
+      var preferred = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      var finalTheme = (theme === 'light' || theme === 'dark') ? theme : preferred;
+      document.documentElement.dataset.adminTheme = finalTheme;
+      document.documentElement.style.colorScheme = finalTheme;
+      localStorage.setItem('marwa-admin-theme', finalTheme);
+      localStorage.setItem('marwa-auth-theme', finalTheme);
+    })();
+  </script>
   <link rel="stylesheet" href="{{ theme_asset('css/app.css') }}">
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
-  <div class="relative isolate min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_36%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.12),_transparent_32%),linear-gradient(180deg,#020617_0%,#0f172a_48%,#020617_100%)]">
-    <div class="pointer-events-none absolute left-[-8rem] top-10 -z-10 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl"></div>
-    <div class="pointer-events-none absolute right-[-10rem] top-32 -z-10 h-96 w-96 rounded-full bg-emerald-400/10 blur-3xl"></div>
+<body class="auth-theme min-h-screen bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+  <div class="relative isolate min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.10),_transparent_36%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.08),_transparent_32%),linear-gradient(180deg,#f8fafc_0%,#e2e8f0_48%,#cbd5e1_100%)] dark:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_36%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.12),_transparent_32%),linear-gradient(180deg,#020617_0%,#0f172a_48%,#020617_100%)]">
+    <div class="pointer-events-none absolute left-[-8rem] top-10 -z-10 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl dark:bg-cyan-500/15"></div>
+    <div class="pointer-events-none absolute right-[-10rem] top-32 -z-10 h-96 w-96 rounded-full bg-emerald-400/10 blur-3xl dark:bg-emerald-400/15"></div>
+
+    <button
+      type="button"
+      class="absolute right-4 top-4 z-20 inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white/80 p-2 text-slate-600 transition hover:bg-white hover:text-slate-900 dark:border-white/10 dark:bg-white/10 dark:text-slate-200 dark:hover:bg-white/15 dark:hover:text-white"
+      aria-label="Toggle theme"
+      title="Toggle theme"
+      onclick="
+        (function() {
+          var current = document.documentElement.dataset.adminTheme || 'dark';
+          var next = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.dataset.adminTheme = next;
+          document.documentElement.style.colorScheme = next;
+          localStorage.setItem('marwa-admin-theme', next);
+          localStorage.setItem('marwa-auth-theme', next);
+        })();
+      "
+    >
+      {% include 'components/icon.twig' with { name: 'moon', class: 'h-4 w-4 shrink-0 dark:hidden' } only %}
+      {% include 'components/icon.twig' with { name: 'sun', class: 'h-4 w-4 shrink-0 hidden dark:block' } only %}
+    </button>
 
     <div class="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
-      <aside class="hidden border-r border-white/10 p-8 lg:flex lg:flex-col lg:justify-center">
-        <div class="max-w-xl space-y-8 rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
+      <aside class="hidden border-r border-slate-200/80 p-8 lg:flex lg:flex-col lg:justify-center dark:border-slate-300/60">
+        <div class="max-w-xl space-y-8 rounded-[2rem] border border-slate-200/80 bg-white/75 p-8 shadow-[0_30px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-slate-300/50 dark:bg-white/80 dark:shadow-[0_30px_80px_rgba(15,23,42,0.12)]">
           <div class="space-y-3">
-            <span class="inline-flex w-fit items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-cyan-100">Operations console</span>
-            <h1 class="text-4xl font-black tracking-tight text-white xl:text-5xl">Controlled access for internal teams.</h1>
-            <p class="max-w-lg text-sm leading-6 text-slate-300 sm:text-base">
+            <span class="inline-flex w-fit items-center rounded-full border border-cyan-200 bg-cyan-50 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-cyan-700 dark:border-cyan-500/20 dark:bg-cyan-500/10 dark:text-cyan-100">Operations console</span>
+            <h1 class="text-4xl font-black tracking-tight text-slate-900 xl:text-5xl dark:text-white">Controlled access for internal teams.</h1>
+            <p class="max-w-lg text-sm leading-6 text-slate-600 sm:text-base dark:text-slate-300">
               Authentication and recovery follow the same restrained visual language used across the admin workspace.
             </p>
           </div>
 
           <div class="grid gap-3 sm:grid-cols-3">
-            <div class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
-              <span class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Security</span>
-              <span class="mt-2 block text-lg font-bold text-white">Session</span>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-300/40 dark:bg-white/70">
+              <span class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-500">Security</span>
+              <span class="mt-2 block text-lg font-bold text-slate-900 dark:text-slate-900">Session</span>
             </div>
-            <div class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
-              <span class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Recovery</span>
-              <span class="mt-2 block text-lg font-bold text-white">Token</span>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-300/40 dark:bg-white/70">
+              <span class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-500">Recovery</span>
+              <span class="mt-2 block text-lg font-bold text-slate-900 dark:text-slate-900">Token</span>
             </div>
-            <div class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
-              <span class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Access</span>
-              <span class="mt-2 block text-lg font-bold text-white">Admin only</span>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-300/40 dark:bg-white/70">
+              <span class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-500">Access</span>
+              <span class="mt-2 block text-lg font-bold text-slate-900 dark:text-slate-900">Admin only</span>
             </div>
           </div>
         </div>
       </aside>
 
       <main class="flex items-center justify-center px-4 py-10 sm:px-6 lg:px-10">
-        <section class="w-full max-w-xl rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-8">
+        <section class="w-full max-w-xl rounded-[2rem] border border-slate-200/80 bg-white/75 p-6 shadow-[0_30px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:p-8 dark:border-slate-300/50 dark:bg-white/80 dark:shadow-[0_30px_80px_rgba(15,23,42,0.12)]">
           {% block content %}{% endblock %}
         </section>
       </main>

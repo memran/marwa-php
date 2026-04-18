@@ -36,8 +36,23 @@ final class AdminPagination
         }
 
         $links = [];
+        $window = 2;
+        $pages = [$currentPage];
 
-        for ($page = 1; $page <= $lastPage; $page++) {
+        for ($offset = 1; $offset <= $window; $offset++) {
+            $pages[] = $currentPage - $offset;
+            $pages[] = $currentPage + $offset;
+        }
+
+        $pages[] = 1;
+        $pages[] = $lastPage;
+        $pages = array_values(array_unique(array_filter(
+            $pages,
+            static fn (int $page) => $page >= 1 && $page <= $lastPage
+        )));
+        sort($pages);
+
+        foreach ($pages as $page) {
             $query = http_build_query(array_replace($cleanParams, [$pageParam => $page]));
             $links[] = [
                 'page' => $page,

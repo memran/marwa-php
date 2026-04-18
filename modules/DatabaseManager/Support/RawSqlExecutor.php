@@ -32,13 +32,13 @@ final class RawSqlExecutor
      *     last_page:int
      * }
      */
-    public function execute(string $query, int $page = 1, int $perPage = 25): array
+    public function execute(string $query, int $page = 1, ?int $perPage = null): array
     {
         $sanitized = $this->guard->sanitize($query);
         $query = $sanitized['query'];
         $normalized = $sanitized['normalized'];
         $page = max(1, $page);
-        $perPage = max(1, min(100, $perPage));
+        $perPage = max(1, min(100, (int) ($perPage ?? config('settings.lifecycle.pagination.default_per_page', 25))));
 
         $statement = $this->pdo()->prepare($normalized);
 

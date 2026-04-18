@@ -31,9 +31,10 @@ final class NotificationRepository
         );
     }
 
-    public function paginatedForUser(int $userId, int $page = 1, int $perPage = 15): array
+    public function paginatedForUser(int $userId, int $page = 1, ?int $perPage = null): array
     {
         $page = max(1, $page);
+        $perPage = max(1, (int) ($perPage ?? config('settings.lifecycle.pagination.default_per_page', config('pagination.default_per_page', 15))));
 
         $pageData = $this->forUser($userId)
             ->orderBy('created_at', 'desc')
@@ -106,7 +107,7 @@ final class NotificationRepository
         return Notification::create($data);
     }
 
-    public function groupedByDate(int $userId, int $perPage = 15): array
+    public function groupedByDate(int $userId, ?int $perPage = null): array
     {
         $pageData = $this->paginatedForUser($userId, 1, $perPage);
         $notifications = $pageData['data'];

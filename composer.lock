@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4f2f1d2d366d5e07e29124e14e8837e5",
+    "content-hash": "7a5148152af3e6809a1fb3e03dae788d",
     "packages": [
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -1411,16 +1411,16 @@
         },
         {
             "name": "memran/marwa-framework",
-            "version": "v1.4.6",
+            "version": "v1.4.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/memran/marwa-framework.git",
-                "reference": "fe089bcd8bd23d88e3ac3f65fc2bae6f4f0e0d95"
+                "reference": "c6d4b07b482e0b0a926e79f91394ce34d58847ea"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/memran/marwa-framework/zipball/fe089bcd8bd23d88e3ac3f65fc2bae6f4f0e0d95",
-                "reference": "fe089bcd8bd23d88e3ac3f65fc2bae6f4f0e0d95",
+                "url": "https://api.github.com/repos/memran/marwa-framework/zipball/c6d4b07b482e0b0a926e79f91394ce34d58847ea",
+                "reference": "c6d4b07b482e0b0a926e79f91394ce34d58847ea",
                 "shasum": ""
             },
             "require": {
@@ -1504,9 +1504,9 @@
             ],
             "support": {
                 "issues": "https://github.com/memran/marwa-framework/issues",
-                "source": "https://github.com/memran/marwa-framework/tree/v1.4.6"
+                "source": "https://github.com/memran/marwa-framework/tree/v1.4.7"
             },
-            "time": "2026-04-18T10:03:35+00:00"
+            "time": "2026-04-18T14:28:48+00:00"
         },
         {
             "name": "memran/marwa-logger",

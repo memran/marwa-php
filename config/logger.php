@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-    'enable' => (bool) env('APP_DEBUG', false),
+    'enable' => (bool) env('LOG_ENABLED', true),
     'filter' => [],
     'storage' => [
         'driver' => env('LOG_CHANNEL', 'file'),

@@ -38,9 +38,10 @@ final class UserRepository
     /**
      * @return array{data:list<User>,total:int,per_page:int,current_page:int,last_page:int}
      */
-    public function paginatedUsers(string $query, int $page, int $perPage = 10): array
+    public function paginatedUsers(string $query, int $page, ?int $perPage = null): array
     {
         $page = max(1, $page);
+        $perPage = max(1, (int) ($perPage ?? config('settings.lifecycle.pagination.default_per_page', config('pagination.default_per_page', 10))));
         $query = trim($query);
         $builder = User::newQuery()->getBaseBuilder()->orderBy('created_at', 'desc');
 

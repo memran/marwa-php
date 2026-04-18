@@ -1,7 +1,38 @@
-<div class="flex flex-col">
-  <div class="flex items-center justify-between mb-2">
-    <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Disk</span>
+{% set card = card|default({}) %}
+{% set metricBars = card.metric_bars|default([]) %}
+{% set metricWidth = card.metric_width|default('74%') %}
+<div class="space-y-4">
+  <div class="h-1.5 rounded-full bg-gradient-to-r from-emerald-300 via-cyan-300 to-emerald-300"></div>
+  <div class="flex items-start gap-3">
+    <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-400/20 bg-emerald-400/10 text-emerald-100">
+      {% include 'components/icon.twig' with { name: 'hard-drive', class: 'h-5 w-5' } only %}
+    </span>
+    <div class="space-y-1">
+      <p class="text-[0.65rem] font-extrabold uppercase tracking-[0.18em] text-emerald-100/75">{{ card.label|default('Disk') }}</p>
+      <div class="text-2xl font-black tracking-tight text-white">{{ card.value|default('Storage') }}</div>
+    </div>
   </div>
-  <div class="text-xl font-bold text-slate-100">Storage</div>
-  <div class="mt-1 text-xs text-slate-500">Available</div>
+  <div class="flex items-center justify-between gap-3 rounded-2xl border border-emerald-400/10 bg-emerald-400/5 px-3 py-2">
+    <div class="inline-flex items-center gap-2 text-xs text-emerald-50">
+      <span class="h-2 w-2 rounded-full bg-emerald-300"></span>
+      <span>{{ card.meta|default('Available') }}</span>
+    </div>
+    <span class="text-[0.65rem] font-bold uppercase tracking-[0.18em] text-emerald-200/80">Space</span>
+  </div>
+  <div class="space-y-2">
+    <div class="h-2 overflow-hidden rounded-full bg-white/10">
+      <span class="block h-full rounded-full bg-gradient-to-r from-emerald-300 via-cyan-300 to-emerald-300" style="width: {{ metricWidth }};"></span>
+    </div>
+    <div class="flex flex-col gap-1">
+      {% for bar in metricBars %}
+        <div class="h-1.5 overflow-hidden rounded-full bg-white/10">
+          <span class="block h-full rounded-full bg-emerald-300/80" style="width: {{ bar }};"></span>
+        </div>
+      {% else %}
+        <div class="h-1.5 overflow-hidden rounded-full bg-white/10">
+          <span class="block h-full w-full rounded-full bg-emerald-300/80"></span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
 </div>

@@ -7,6 +7,16 @@ return [
     'providers' => [
         App\Providers\AdminNavigationServiceProvider::class,
     ],
+    'middlewares' => [
+        Marwa\Framework\Middlewares\RequestIdMiddleware::class,
+        Marwa\Framework\Middlewares\SessionMiddleware::class,
+        App\Http\Middleware\NormalizeTrailingSlashMiddleware::class,
+        App\Http\Middleware\ApplicationLifecycleMiddleware::class,
+        Marwa\Framework\Middlewares\MaintenanceMiddleware::class,
+        Marwa\Framework\Middlewares\SecurityMiddleware::class,
+        Marwa\Framework\Middlewares\RouterMiddleware::class,
+        Marwa\Framework\Middlewares\DebugbarMiddleware::class,
+    ],
     'debugbar' => (bool) env(
         'DEBUGBAR_ENABLED',
         (bool) env('APP_DEBUG', false)

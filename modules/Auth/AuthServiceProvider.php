@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth;
 
+use App\Modules\Auth\Support\RolePolicy;
 use Marwa\Module\Contracts\ModuleServiceProviderInterface;
 
 final class AuthServiceProvider implements ModuleServiceProviderInterface
@@ -14,5 +15,6 @@ final class AuthServiceProvider implements ModuleServiceProviderInterface
 
     public function boot($app): void
     {
+        RolePolicy::loadFromDatabase();
     }
 }

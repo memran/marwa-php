@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Modules\Auth\Support\AuthManager;
+use App\Modules\Auth\Database\Seeders\RolesPermissionsSeeder;
 use Marwa\Framework\Application;
 use Marwa\Framework\Bootstrappers\AppBootstrapper;
 use Marwa\Framework\HttpKernel;
@@ -93,6 +94,9 @@ PHP
         $app = new Application($this->basePath);
         $app->make(AppBootstrapper::class)->bootstrap();
         $kernel = $app->make(HttpKernel::class);
+        $connections = $app->make(\Marwa\DB\Connection\ConnectionManager::class);
+        (new \Marwa\DB\Schema\MigrationRepository($connections->getPdo(), $this->basePath . '/modules/Auth/database/migrations'))->migrate();
+        (new RolesPermissionsSeeder())->run();
 
         db()->getPdo()->exec(<<<'SQL'
 CREATE TABLE query_test_users (

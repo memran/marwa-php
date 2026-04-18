@@ -4,25 +4,32 @@
 
 {% block content %}
   {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5' %}
-  {% set button_primary = button_base ~ ' w-full border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
+  {% set button_primary = button_base ~ ' w-full border-slate-900/10 bg-slate-900 text-white hover:bg-slate-800 dark:border-white/10 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-200' %}
 
   <div class="space-y-3">
-    <span class="inline-flex w-fit items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-cyan-100">Secure login</span>
-    <h2 class="text-2xl font-bold tracking-tight text-white sm:text-3xl">Sign in to continue.</h2>
-    <p class="text-sm leading-6 text-slate-300">Access the admin console with a lightweight session-backed login.</p>
+    <span class="inline-flex w-fit items-center rounded-full border border-cyan-200 bg-cyan-50 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-cyan-700 dark:border-cyan-300/20 dark:bg-cyan-400/10 dark:text-cyan-100">Secure login</span>
+    <h2 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-white">Sign in to continue.</h2>
+    <p class="text-sm leading-6 text-slate-600 dark:text-slate-300">Access the admin console with a lightweight session-backed login.</p>
   </div>
 
+  {% if _security_two_factor_enabled is defined and _security_two_factor_enabled %}
+    <div class="mt-5 rounded-2xl border border-cyan-200 bg-cyan-50 p-4 text-cyan-800 dark:border-cyan-300/20 dark:bg-cyan-400/10 dark:text-cyan-100">
+      <p class="text-sm font-semibold">Two-factor authentication</p>
+      <p class="mt-1 text-sm text-cyan-700/80 dark:text-cyan-100/80">2FA is enabled for the application settings.</p>
+    </div>
+  {% endif %}
+
   {% if notice is defined and notice %}
-    <div class="mt-5 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-emerald-100">
+    <div class="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100">
       <p class="text-sm font-semibold">Session update</p>
-      <p class="mt-1 text-sm text-emerald-100/80">{{ notice }}</p>
+      <p class="mt-1 text-sm text-emerald-700/80 dark:text-emerald-100/80">{{ notice }}</p>
     </div>
   {% endif %}
 
   {% if errors is defined and errors.email is defined %}
-    <div class="mt-5 rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-rose-100">
+    <div class="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-800 dark:border-rose-400/20 dark:bg-rose-500/10 dark:text-rose-100">
       <p class="text-sm font-semibold">Unable to sign in</p>
-      <p class="mt-1 text-sm text-rose-100/80">{{ errors.email|first }}</p>
+      <p class="mt-1 text-sm text-rose-700/80 dark:text-rose-100/80">{{ errors.email|first }}</p>
     </div>
   {% endif %}
 
@@ -49,11 +56,11 @@
     } only %}
 
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <label class="inline-flex items-center gap-3 text-sm text-slate-300">
-        <input type="checkbox" name="remember" value="1" {% if old.remember|default(false) %}checked{% endif %}>
+      <label class="inline-flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <input type="checkbox" name="remember" value="1" class="form-checkbox h-4 w-4 rounded border-slate-300 bg-white text-cyan-600 focus:ring-cyan-400/20 dark:border-white/20 dark:bg-white/5 dark:text-cyan-400" {% if old.remember|default(false) %}checked{% endif %}>
         <span>Remember me</span>
       </label>
-      <a class="text-sm font-semibold text-cyan-200 transition hover:text-cyan-100" href="/admin/forgot-password">Forgot password?</a>
+      <a class="text-sm font-semibold text-cyan-700 transition hover:text-cyan-600 dark:text-cyan-200 dark:hover:text-cyan-100" href="/admin/forgot-password">Forgot password?</a>
     </div>
 
     <button class="{{ button_primary }}" type="submit">Sign in</button>

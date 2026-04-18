@@ -1,0 +1,89 @@
+{% extends "layout.twig" %}
+
+{% block title %}Permissions | MarwaPHP Admin{% endblock %}
+
+{% block content %}
+  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
+  {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
+  {% set button_secondary = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
+
+  <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <div class="max-w-3xl space-y-2">
+      <span class="inline-flex w-fit items-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-cyan-100">Roles & Permissions</span>
+      <h1 class="text-2xl font-black tracking-tight text-white sm:text-3xl">Permissions</h1>
+      <p class="max-w-2xl text-sm leading-6 text-slate-300">
+        Permissions are assigned to roles dynamically. Updating a role here changes access for every user attached to that role.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <a class="{{ button_primary }}" href="{{ create_url|default('/admin/permissions/create') }}">Create permission</a>
+      <a class="{{ button_secondary }}" href="/admin/roles">Back to roles</a>
+    </div>
+  </section>
+
+  {% if notice|default(false) %}
+    <div class="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+      {{ notice }}
+    </div>
+  {% endif %}
+
+  <div class="mt-6 overflow-hidden rounded-xl border border-white/10 bg-white/5">
+    <table class="w-full">
+      <thead>
+        <tr class="border-b border-white/10 bg-white/5 text-left">
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Name</th>
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Slug</th>
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Group</th>
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Description</th>
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white/5">
+        {% for group, perms in permissions %}
+          {% for perm in perms %}
+            <tr class="hover:bg-white/5">
+              <td class="px-4 py-3">
+                <span class="text-sm font-semibold text-slate-100">{{ perm.getAttribute('name') }}</span>
+              </td>
+              <td class="px-4 py-3">
+                <span class="text-xs text-slate-400">{{ perm.getAttribute('slug') }}</span>
+              </td>
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center rounded-full bg-cyan-400/10 px-2 py-0.5 text-xs font-medium text-cyan-200">
+                  {{ perm.getAttribute('group')|default(group) }}
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                <span class="text-xs text-slate-400">{{ perm.getAttribute('description')|default('') ?: 'No description' }}</span>
+              </td>
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-2">
+                  <a href="/admin/permissions/{{ perm.getKey() }}/edit" class="rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-cyan-200" title="Edit">
+                    {% include 'components/icon.twig' with { name: 'pencil', class: 'h-4 w-4' } only %}
+                  </a>
+                  <form method="post" action="/admin/permissions/{{ perm.getKey() }}/delete" onsubmit="return confirm('Delete this permission?');">
+                    {{ csrf_field() }}
+                    <button type="submit" class="rounded-lg p-2 text-slate-400 hover:bg-rose-500/20 hover:text-rose-400" title="Delete">
+                      {% include 'components/icon.twig' with { name: 'trash-2', class: 'h-4 w-4' } only %}
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if permissions|length == 0 %}
+    <div class="mt-8 flex flex-col items-center justify-center py-12 text-center">
+      <div class="flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
+        {% include 'components/icon.twig' with { name: 'key-round', class: 'h-8 w-8 text-slate-500' } only %}
+      </div>
+      <h3 class="mt-4 text-lg font-semibold text-slate-200">No permissions found</h3>
+      <p class="mt-1 text-sm text-slate-400">Permissions will appear here after seeding or creation.</p>
+    </div>
+  {% endif %}
+{% endblock %}

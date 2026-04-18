@@ -74,10 +74,10 @@ final class ActivityRecorder
     /**
      * @return array{data:list<Activity>,total:int,per_page:int,current_page:int,last_page:int}
      */
-    public function paginated(string $query = '', int $page = 1, int $perPage = 20): array
+    public function paginated(string $query = '', int $page = 1, ?int $perPage = null): array
     {
         $page = max(1, $page);
-        $perPage = max(1, $perPage);
+        $perPage = max(1, (int) ($perPage ?? config('settings.lifecycle.pagination.default_per_page', config('pagination.default_per_page', 20))));
         $query = trim($query);
 
         try {

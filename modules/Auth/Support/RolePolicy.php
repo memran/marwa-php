@@ -121,12 +121,18 @@ final class RolePolicy
 
     public static function loadFromDatabase(): void
     {
-        if (!app()->has(\Marwa\DB\Connection\ConnectionManager::class)) {
+        if (!function_exists('app')) {
             return;
         }
 
         try {
-            $pdo = app(\Marwa\DB\Connection\ConnectionManager::class)->getPdo();
+            $connectionManager = app(\Marwa\DB\Connection\ConnectionManager::class);
+        } catch (\Throwable) {
+            return;
+        }
+
+        try {
+            $pdo = $connectionManager->getPdo();
             $stmt = $pdo->query('SELECT slug, level FROM roles WHERE level > 0');
             $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 

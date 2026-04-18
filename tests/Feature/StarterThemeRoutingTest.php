@@ -96,7 +96,7 @@ Router::get('/health', static fn (): \Psr\Http\Message\ResponseInterface => Resp
 PHP
         );
 
-        file_put_contents(
+file_put_contents(
             $this->basePath . '/config/app.php',
             <<<'PHP'
 <?php
@@ -105,6 +105,16 @@ declare(strict_types=1);
 
 return [
     'name' => env('APP_NAME', 'MarwaPHP'),
+    'middlewares' => [
+        Marwa\Framework\Middlewares\RequestIdMiddleware::class,
+        Marwa\Framework\Middlewares\SessionMiddleware::class,
+        App\Http\Middleware\NormalizeTrailingSlashMiddleware::class,
+        App\Http\Middleware\ApplicationLifecycleMiddleware::class,
+        Marwa\Framework\Middlewares\MaintenanceMiddleware::class,
+        Marwa\Framework\Middlewares\SecurityMiddleware::class,
+        Marwa\Framework\Middlewares\RouterMiddleware::class,
+        Marwa\Framework\Middlewares\DebugbarMiddleware::class,
+    ],
     'maintenance' => [
         'template' => 'maintenance.twig',
         'message' => 'Service temporarily unavailable for maintenance',
@@ -218,7 +228,9 @@ TWIG
         $kernel = $app->make(HttpKernel::class);
 
         $frontend = $kernel->handle(new ServerRequest(uri: '/', method: 'GET'));
+        $adminSlash = $kernel->handle(new ServerRequest(uri: '/admin/', method: 'GET'));
         $admin = $kernel->handle(new ServerRequest(uri: '/admin', method: 'GET'));
+        $dashboard = $kernel->handle(new ServerRequest(uri: '/admin/dashboard', method: 'GET'));
         $logout = $kernel->handle(new ServerRequest(uri: '/admin/logout', method: 'GET'));
         $login = $kernel->handle(new ServerRequest(uri: '/admin/login', method: 'GET'));
         $forgot = $kernel->handle(new ServerRequest(uri: '/admin/forgot-password', method: 'GET'));
@@ -226,11 +238,17 @@ TWIG
         $health = $kernel->handle(new ServerRequest(uri: '/health', method: 'GET'));
 
         self::assertSame(200, $frontend->getStatusCode());
+        self::assertSame(302, $adminSlash->getStatusCode());
+        self::assertSame('/admin/dashboard', $adminSlash->getHeaderLine('Location'));
         self::assertContains($admin->getStatusCode(), [200, 302]);
         if ($admin->getStatusCode() === 302) {
             self::assertSame('/admin/login', $admin->getHeaderLine('Location'));
         } else {
             self::assertStringContainsString('Admin dashboard', (string) $admin->getBody());
+        }
+        self::assertContains($dashboard->getStatusCode(), [200, 302]);
+        if ($dashboard->getStatusCode() === 302) {
+            self::assertSame('/admin/login', $dashboard->getHeaderLine('Location'));
         }
         self::assertSame(302, $logout->getStatusCode());
         self::assertSame('/admin/login', $logout->getHeaderLine('Location'));

@@ -17,7 +17,7 @@ final class AuthController extends Controller
     public function login(): ResponseInterface
     {
         if ($this->auth->check()) {
-            return $this->redirect('/admin');
+            return $this->redirect('/admin/');
         }
 
         return $this->view('@auth/login', $this->sharedViewData([
@@ -36,6 +36,10 @@ final class AuthController extends Controller
         $password = (string) ($validated['password'] ?? '');
 
         if (!$this->auth->attempt($email, $password)) {
+            if ($this->auth->lastFailureReason() === 'rate_limited') {
+                $this->flash('auth.notice', 'Too many login attempts. Please try again later.');
+            }
+
             $this->withErrors([
                 'email' => 'The provided credentials are invalid.',
             ])->withInput([
@@ -47,7 +51,7 @@ final class AuthController extends Controller
 
         $this->flash('auth.notice', 'Signed in successfully.');
 
-        return $this->redirect('/admin');
+        return $this->redirect('/admin/');
     }
 
     public function forgotPassword(): ResponseInterface

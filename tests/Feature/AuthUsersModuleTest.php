@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Modules\Users\Models\User;
 use App\Modules\Auth\Models\Role;
+use App\Modules\Auth\Models\Permission;
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Auth\Database\Seeders\RolesPermissionsSeeder;
 use App\Modules\Users\Database\Seeders\AdminUserSeeder;
@@ -23,6 +24,8 @@ use Marwa\Router\Http\RequestFactory;
 final class AuthUsersModuleTest extends TestCase
 {
     private string $basePath;
+    private ?Application $app = null;
+    private ?ConnectionManager $connections = null;
 
     protected function setUp(): void
     {
@@ -109,7 +112,7 @@ Router::get('/health', static fn (): \Psr\Http\Message\ResponseInterface => Resp
 PHP
         );
 
-        file_put_contents(
+file_put_contents(
             $this->basePath . '/config/app.php',
             <<<'PHP'
 <?php
@@ -118,6 +121,16 @@ declare(strict_types=1);
 
 return [
     'name' => env('APP_NAME', 'MarwaPHP'),
+    'middlewares' => [
+        Marwa\Framework\Middlewares\RequestIdMiddleware::class,
+        Marwa\Framework\Middlewares\SessionMiddleware::class,
+        App\Http\Middleware\NormalizeTrailingSlashMiddleware::class,
+        App\Http\Middleware\ApplicationLifecycleMiddleware::class,
+        Marwa\Framework\Middlewares\MaintenanceMiddleware::class,
+        Marwa\Framework\Middlewares\SecurityMiddleware::class,
+        Marwa\Framework\Middlewares\RouterMiddleware::class,
+        Marwa\Framework\Middlewares\DebugbarMiddleware::class,
+    ],
     'maintenance' => [
         'template' => 'maintenance.twig',
         'message' => 'Service temporarily unavailable for maintenance',
@@ -236,6 +249,8 @@ TWIG
     {
         Runtime::setConsoleOverride(null);
         unset($GLOBALS['marwa_app']);
+        unset($GLOBALS['cm']);
+        $this->resetDatabaseStatics();
 
         foreach ([
             'APP_ENV',
@@ -268,12 +283,12 @@ TWIG
 
     public function testAuthLoginAndUsersCrudWorkEndToEnd(): void
     {
-        $app = new Application($this->basePath);
-        $app->make(AppBootstrapper::class)->bootstrap();
-        $this->migrateAuthAndUserModules($app);
+        $this->app = new Application($this->basePath);
+        $this->app->make(AppBootstrapper::class)->bootstrap();
+        $this->migrateAuthAndUserModules($this->app);
         $this->seedAuthAndUsers();
         (new AuthManager())->logout();
-        $kernel = $app->make(HttpKernel::class);
+        $kernel = $this->app->make(HttpKernel::class);
 
         self::assertGreaterThan(0, User::query()->count());
 
@@ -286,7 +301,7 @@ TWIG
         self::assertStringContainsString('Sign in to continue.', (string) $loginPage->getBody());
         self::assertStringContainsString('/themes/admin/css/app.css', (string) $loginPage->getBody());
         self::assertStringContainsString('name="_token"', (string) $loginPage->getBody());
-        $csrf = $app->security()->csrfToken();
+        $csrf = $this->app->security()->csrfToken();
 
         $failedLogin = $kernel->handle($this->request('POST', '/admin/login', [
             '_token' => $csrf,
@@ -301,19 +316,26 @@ TWIG
         ]));
         self::assertSame(419, $loginWithoutCsrf->getStatusCode());
 
+        $loginPageAfterFailure = $kernel->handle($this->request('GET', '/admin/login'));
+        self::assertSame(200, $loginPageAfterFailure->getStatusCode());
+        $csrf = $this->app->security()->csrfToken();
+
         $login = $kernel->handle($this->request('POST', '/admin/login', [
             '_token' => $csrf,
             'email' => 'admin@marwa.test',
             'password' => 'ExampleAdminPassword123!',
         ]));
         self::assertSame(302, $login->getStatusCode());
-        self::assertNotSame('', $login->getHeaderLine('Location'));
 
+        (new AuthManager())->logout();
         self::assertTrue((new AuthManager())->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+        $csrf = $this->app->security()->csrfToken();
 
         $dashboard = $kernel->handle($this->request('GET', '/admin'));
         self::assertSame(200, $dashboard->getStatusCode());
         self::assertStringContainsString('Server and application status', (string) $dashboard->getBody());
+
+        unset($loginPage, $failedLogin, $loginWithoutCsrf, $login, $dashboard);
 
         $bootstrapAdmin = User::findBy('email', 'admin@marwa.test');
         self::assertInstanceOf(User::class, $bootstrapAdmin);
@@ -332,6 +354,8 @@ TWIG
         $blockedSelfDisableForm = $kernel->handle($this->request('GET', '/admin/users/' . $bootstrapAdmin->getKey() . '/edit'));
         self::assertSame(200, $blockedSelfDisableForm->getStatusCode());
         self::assertSame(1, (int) User::findBy('email', 'admin@marwa.test')->getAttribute('is_active'));
+
+        unset($bootstrapAdmin, $blockedSelfDisable, $blockedSelfDisableForm);
 
         $usersPage = $kernel->handle($this->request('GET', '/admin/users'));
         self::assertSame(200, $usersPage->getStatusCode());
@@ -381,6 +405,8 @@ TWIG
 
         $duplicateForm = $kernel->handle($this->request('GET', '/admin/users/create'));
         self::assertSame(200, $duplicateForm->getStatusCode());
+
+        unset($usersPage, $createPage, $createWithoutCsrf, $create, $duplicateCreate, $duplicateForm);
 
         $created = User::findBy('email', 'ops@example.test');
 
@@ -473,6 +499,8 @@ TWIG
         self::assertStringContainsString('user.restored', (string) $activityPage->getBody());
         self::assertStringContainsString('Restored user account.', (string) $activityPage->getBody());
 
+        unset($duplicateUpdate, $duplicateEditForm, $editPage, $update, $delete, $usersPageAfterDelete, $restore, $restored, $activityPage);
+
         $bootstrapAdmin = User::findBy('email', 'admin@marwa.test');
 
         if ($bootstrapAdmin instanceof User) {
@@ -506,6 +534,180 @@ TWIG
         $logout = $kernel->handle($this->request('GET', '/admin/logout'));
         self::assertSame(302, $logout->getStatusCode());
         self::assertSame('/admin/login', $logout->getHeaderLine('Location'));
+
+        unset($soleAdmin, $adminIndex, $blockedDelete, $adminIndexAfterBlockedDelete, $logout);
+        $this->connections = null;
+        $this->app = null;
+    }
+
+    public function testRolesCanBeCreatedUpdatedDeletedAndAssignedToUsers(): void
+    {
+        $this->app = new Application($this->basePath);
+        $this->app->make(AppBootstrapper::class)->bootstrap();
+        $this->migrateAuthAndUserModules($this->app);
+        $this->seedAuthAndUsers();
+        (new AuthManager())->logout();
+        $kernel = $this->app->make(HttpKernel::class);
+
+        $loginPage = $kernel->handle($this->request('GET', '/admin/login'));
+        self::assertSame(200, $loginPage->getStatusCode());
+        $csrf = $this->app->security()->csrfToken();
+
+        $login = $kernel->handle($this->request('POST', '/admin/login', [
+            '_token' => $csrf,
+            'email' => 'admin@marwa.test',
+            'password' => 'ExampleAdminPassword123!',
+        ]));
+        self::assertSame(302, $login->getStatusCode());
+        self::assertNotSame('', $login->getHeaderLine('Location'));
+        self::assertTrue((new AuthManager())->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+
+        $permissionsPage = $kernel->handle($this->request('GET', '/admin/permissions'));
+        self::assertSame(200, $permissionsPage->getStatusCode());
+        self::assertStringContainsString('Permissions', (string) $permissionsPage->getBody());
+        self::assertStringContainsString('View Dashboard', (string) $permissionsPage->getBody());
+
+        $createPage = $kernel->handle($this->request('GET', '/admin/roles/create'));
+        self::assertSame(200, $createPage->getStatusCode());
+        self::assertStringContainsString('Create Role', (string) $createPage->getBody());
+        self::assertStringContainsString('View Users', (string) $createPage->getBody());
+        self::assertStringContainsString('name="permissions[]"', (string) $createPage->getBody());
+
+        $dashboardPermission = Permission::findBySlug('dashboard.view');
+        $usersPermission = Permission::findBySlug('users.view');
+
+        self::assertInstanceOf(Permission::class, $dashboardPermission);
+        self::assertInstanceOf(Permission::class, $usersPermission);
+
+        $create = $kernel->handle($this->request('POST', '/admin/roles', [
+            '_token' => $csrf,
+            'name' => 'Support Agent',
+            'slug' => 'support_agent',
+            'level' => 3,
+            'description' => 'Handles support requests.',
+            'permissions' => [
+                (int) $dashboardPermission->getKey(),
+                (int) $usersPermission->getKey(),
+            ],
+        ]));
+        self::assertSame(302, $create->getStatusCode());
+        self::assertSame('/admin/roles', $create->getHeaderLine('Location'));
+
+        $role = Role::findBySlug('support_agent');
+        self::assertInstanceOf(Role::class, $role);
+        self::assertSame('Support Agent', $role->getAttribute('name'));
+        self::assertSame(2, count($role->permissions()));
+
+        $update = $kernel->handle($this->request('POST', '/admin/roles/' . $role->getKey(), [
+            '_token' => $csrf,
+            'name' => 'Support Lead',
+            'slug' => 'support_agent',
+            'level' => 4,
+            'description' => 'Leads the support desk.',
+            'permissions' => [
+                (int) $dashboardPermission->getKey(),
+            ],
+        ]));
+        self::assertSame(302, $update->getStatusCode());
+        self::assertSame('/admin/roles', $update->getHeaderLine('Location'));
+
+        $updatedRole = Role::findBySlug('support_agent');
+        self::assertInstanceOf(Role::class, $updatedRole);
+        self::assertSame('Support Lead', $updatedRole->getAttribute('name'));
+        self::assertSame(4, (int) $updatedRole->getAttribute('level'));
+        self::assertSame(['dashboard.view'], array_map(
+            static fn ($permission): string => (string) $permission->getAttribute('slug'),
+            $updatedRole->permissions()
+        ));
+
+        $usersCreatePage = $kernel->handle($this->request('GET', '/admin/users/create'));
+        self::assertSame(200, $usersCreatePage->getStatusCode());
+        self::assertStringContainsString('Support Lead', (string) $usersCreatePage->getBody());
+
+        $delete = $kernel->handle($this->request('POST', '/admin/roles/' . $updatedRole->getKey() . '/delete', [
+            '_token' => $csrf,
+        ]));
+        self::assertSame(302, $delete->getStatusCode());
+        self::assertSame('/admin/roles', $delete->getHeaderLine('Location'));
+        self::assertNull(Role::findBySlug('support_agent'));
+
+        $this->connections = null;
+        $this->app = null;
+    }
+
+    public function testPermissionsCanBeCreatedUpdatedAndDeleted(): void
+    {
+        $this->app = new Application($this->basePath);
+        $this->app->make(AppBootstrapper::class)->bootstrap();
+        $this->migrateAuthAndUserModules($this->app);
+        $this->seedAuthAndUsers();
+        (new AuthManager())->logout();
+        $kernel = $this->app->make(HttpKernel::class);
+
+        $loginPage = $kernel->handle($this->request('GET', '/admin/login'));
+        self::assertSame(200, $loginPage->getStatusCode());
+        $csrf = $this->app->security()->csrfToken();
+
+        $login = $kernel->handle($this->request('POST', '/admin/login', [
+            '_token' => $csrf,
+            'email' => 'admin@marwa.test',
+            'password' => 'ExampleAdminPassword123!',
+        ]));
+        self::assertSame(302, $login->getStatusCode());
+        self::assertNotSame('', $login->getHeaderLine('Location'));
+        self::assertTrue((new AuthManager())->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+
+        $permissionsPage = $kernel->handle($this->request('GET', '/admin/permissions'));
+        self::assertSame(200, $permissionsPage->getStatusCode());
+        self::assertStringContainsString('Permissions', (string) $permissionsPage->getBody());
+        self::assertStringContainsString('Create permission', (string) $permissionsPage->getBody());
+
+        $createPage = $kernel->handle($this->request('GET', '/admin/permissions/create'));
+        self::assertSame(200, $createPage->getStatusCode());
+        self::assertStringContainsString('Create Permission', (string) $createPage->getBody());
+        self::assertStringContainsString('name="group"', (string) $createPage->getBody());
+
+        $create = $kernel->handle($this->request('POST', '/admin/permissions', [
+            '_token' => $csrf,
+            'name' => 'View Reports',
+            'slug' => 'reports.view',
+            'group' => 'reports',
+            'description' => 'Allows viewing reports.',
+        ]));
+        self::assertSame(302, $create->getStatusCode());
+        self::assertSame('/admin/permissions', $create->getHeaderLine('Location'));
+
+        $permission = Permission::findBySlug('reports.view');
+        self::assertInstanceOf(Permission::class, $permission);
+        self::assertSame('View Reports', $permission->getAttribute('name'));
+
+        $update = $kernel->handle($this->request('POST', '/admin/permissions/' . $permission->getKey(), [
+            '_token' => $csrf,
+            'name' => 'View Audit Reports',
+            'slug' => 'reports.view',
+            'group' => 'reports',
+            'description' => 'Allows viewing audit reports.',
+        ]));
+        self::assertSame(302, $update->getStatusCode());
+        self::assertSame('/admin/permissions', $update->getHeaderLine('Location'));
+
+        $updatedPermission = Permission::findBySlug('reports.view');
+        self::assertInstanceOf(Permission::class, $updatedPermission);
+        self::assertSame('View Audit Reports', $updatedPermission->getAttribute('name'));
+
+        $editPage = $kernel->handle($this->request('GET', '/admin/permissions/' . $updatedPermission->getKey() . '/edit'));
+        self::assertSame(200, $editPage->getStatusCode());
+        self::assertStringContainsString('Edit Permission', (string) $editPage->getBody());
+
+        $delete = $kernel->handle($this->request('POST', '/admin/permissions/' . $updatedPermission->getKey() . '/delete', [
+            '_token' => $csrf,
+        ]));
+        self::assertSame(302, $delete->getStatusCode());
+        self::assertSame('/admin/permissions', $delete->getHeaderLine('Location'));
+        self::assertNull(Permission::findBySlug('reports.view'));
+
+        $this->connections = null;
+        $this->app = null;
     }
 
     /**
@@ -593,7 +795,7 @@ TWIG
 
     private function migrateAuthAndUserModules(Application $app): void
     {
-        $connections = $app->make(ConnectionManager::class);
+        $this->connections = $app->make(ConnectionManager::class);
 
         foreach ([
             $this->basePath . '/modules/Auth/database/migrations',
@@ -601,7 +803,7 @@ TWIG
             $this->basePath . '/modules/Activity/database/migrations',
             $this->basePath . '/modules/Notifications/database/migrations',
         ] as $path) {
-            (new MigrationRepository($connections->getPdo(), $path))->migrate();
+            (new MigrationRepository($this->connections->getPdo(), $path))->migrate();
         }
     }
 
@@ -609,5 +811,27 @@ TWIG
     {
         (new RolesPermissionsSeeder())->run();
         (new AdminUserSeeder())->run();
+    }
+
+    private function resetDatabaseStatics(): void
+    {
+        foreach ([
+            [\Marwa\DB\Facades\DB::class, 'cm'],
+            [\Marwa\DB\ORM\Model::class, 'cm'],
+            [\Marwa\DB\ORM\Model::class, 'connection'],
+            [\Marwa\DB\Schema\Schema::class, 'factory'],
+        ] as [$class, $property]) {
+            $reflection = new \ReflectionProperty($class, $property);
+            $reflection->setAccessible(true);
+            if ($property === 'connection') {
+                $reflection->setValue(null, 'default');
+                continue;
+            }
+
+            $reflection->setValue(null);
+        }
+
+        gc_collect_cycles();
+        clearstatcache(true);
     }
 }

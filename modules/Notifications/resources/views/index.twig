@@ -93,7 +93,7 @@
                     {% endif %}
                   </div>
                   <p class="mt-1 text-sm text-slate-400">{{ notification.getAttribute('message') }}</p>
-                  <p class="mt-2 text-xs text-slate-500">{{ notification.getAttribute('created_at')|date('M d, Y g:i A') }}</p>
+                  <p class="mt-2 text-xs text-slate-500">{{ notification.getAttribute('created_at')|date((_system_date_format|default('M d, Y')) ~ ' ' ~ (_system_time_format|default('g:i A'))) }}</p>
                   
                   {% if notification.getAttribute('action_url') %}
                     <a class="mt-2 inline-flex items-center gap-1 text-xs font-medium text-cyan-300 hover:text-cyan-200" href="{{ notification.getAttribute('action_url') }}">

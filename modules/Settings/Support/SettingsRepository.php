@@ -61,6 +61,31 @@ final class SettingsRepository
 
         $pdo = app(ConnectionManager::class)->getPdo();
         $timestamp = gmdate('Y-m-d H:i:s');
+        $existing = [];
+
+        try {
+            $statement = $pdo->query('SELECT category, setting_key FROM settings');
+
+            if ($statement !== false) {
+                foreach ($statement->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+                    if (!is_array($row)) {
+                        continue;
+                    }
+
+                    $category = isset($row['category']) ? trim((string) $row['category']) : '';
+                    $key = isset($row['setting_key']) ? trim((string) $row['setting_key']) : '';
+
+                    if ($category === '' || $key === '') {
+                        continue;
+                    }
+
+                    $existing[$category . '.' . $key] = true;
+                }
+            }
+        } catch (\Throwable) {
+            $existing = [];
+        }
+
         $update = $pdo->prepare(
             'UPDATE settings SET setting_value = :value, updated_at = :updated_at WHERE category = :category AND setting_key = :setting_key'
         );
@@ -72,24 +97,30 @@ final class SettingsRepository
 
         try {
             foreach ($rows as $row) {
-                $update->execute([
-                    ':category' => $row['category'],
-                    ':setting_key' => $row['key'],
-                    ':value' => $row['value'],
-                    ':updated_at' => $timestamp,
-                ]);
+                $category = (string) $row['category'];
+                $key = (string) $row['key'];
+                $identifier = $category . '.' . $key;
 
-                if ($update->rowCount() > 0) {
+                if (isset($existing[$identifier])) {
+                    $update->execute([
+                        ':value' => $row['value'],
+                        ':updated_at' => $timestamp,
+                        ':category' => $category,
+                        ':setting_key' => $key,
+                    ]);
+
                     continue;
                 }
 
                 $insert->execute([
-                    ':category' => $row['category'],
-                    ':setting_key' => $row['key'],
+                    ':category' => $category,
+                    ':setting_key' => $key,
                     ':value' => $row['value'],
                     ':created_at' => $timestamp,
                     ':updated_at' => $timestamp,
                 ]);
+
+                $existing[$identifier] = true;
             }
 
             $pdo->commit();

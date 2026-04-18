@@ -6,6 +6,8 @@ namespace App\Modules\Roles\Http\Controllers;
 
 use App\Modules\Auth\Support\RoleRepository;
 use App\Modules\Auth\Support\PermissionRepository;
+use App\Modules\Auth\Support\RolePolicy;
+use App\Modules\Roles\Support\RoleFormData;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -18,7 +20,48 @@ final class RolesController extends Controller
 
         return $this->view('@roles/index', [
             'roles' => $roles,
+            'create_url' => '/admin/roles/create',
         ]);
+    }
+
+    public function create(ServerRequestInterface $request, array $vars = []): ResponseInterface
+    {
+        return $this->view('@roles/form', $this->roleForms()->formViewData([
+            'mode' => 'create',
+            'title' => 'Create Role',
+            'action' => '/admin/roles',
+            'submit_label' => 'Create Role',
+            'role' => null,
+        ]));
+    }
+
+    public function store(ServerRequestInterface $request, array $vars = []): ResponseInterface
+    {
+        $payload = $this->roleForms()->payload();
+        $errors = $this->roleForms()->validate($payload);
+
+        if ($errors !== []) {
+            $this->withErrors($errors)->withInput($this->roleForms()->oldInput($payload));
+            return $this->redirect('/admin/roles/create');
+        }
+
+        if ($this->roleRepo()->hasSlug($payload['slug'])) {
+            $this->withErrors(['slug' => ['The slug has already been taken.']])->withInput($this->roleForms()->oldInput($payload));
+            return $this->redirect('/admin/roles/create');
+        }
+
+        $role = $this->roleRepo()->create([
+            'name' => $payload['name'],
+            'slug' => $payload['slug'],
+            'level' => $payload['level'],
+            'description' => $payload['description'],
+            'is_system' => 0,
+        ]);
+        $this->syncPermissions($role->getKey(), $payload['permissions']);
+        RolePolicy::loadFromDatabase();
+        session()->flash('roles.notice', 'Role created successfully.');
+
+        return $this->redirect('/admin/roles');
     }
 
     public function edit(ServerRequestInterface $request, array $vars = []): ResponseInterface
@@ -29,18 +72,13 @@ final class RolesController extends Controller
             return $this->redirect('/admin/roles');
         }
 
-        $allPermissions = $this->permRepo()->grouped();
-        $rolePermissions = $this->roleRepo()->getPermissions($id);
-        $rolePermissionIds = array_map(
-            static fn ($p) => $p->getKey(),
-            $rolePermissions
-        );
-
-        return $this->view('@roles/edit', [
+        return $this->view('@roles/form', $this->roleForms()->formViewData([
+            'mode' => 'edit',
+            'title' => 'Edit Role',
+            'action' => '/admin/roles/' . $role->getKey(),
+            'submit_label' => 'Save Changes',
             'role' => $role,
-            'permissions' => $allPermissions,
-            'role_permission_ids' => $rolePermissionIds,
-        ]);
+        ]));
     }
 
     public function update(ServerRequestInterface $request, array $vars = []): ResponseInterface
@@ -51,22 +89,27 @@ final class RolesController extends Controller
             return $this->json(['error' => 'Role not found'], 404);
         }
 
-        $name = request('name', '');
-        $description = request('description', '');
-        $permissionIds = request('permissions', []);
+        $payload = $this->roleForms()->payload();
+        $errors = $this->roleForms()->validate($payload, (bool) $role->getAttribute('is_system'));
 
-        if ($name === '') {
-            return $this->json(['error' => 'Name is required'], 422);
+        if ($errors !== []) {
+            $this->withErrors($errors)->withInput($this->roleForms()->oldInput($payload));
+            return $this->redirect('/admin/roles/' . $id . '/edit');
+        }
+
+        if ($this->roleRepo()->hasSlug($payload['slug'], $id)) {
+            $this->withErrors(['slug' => ['The slug has already been taken.']])->withInput($this->roleForms()->oldInput($payload));
+            return $this->redirect('/admin/roles/' . $id . '/edit');
         }
 
         $this->roleRepo()->update($id, [
-            'name' => $name,
-            'description' => $description,
+            'name' => $payload['name'],
+            'slug' => $payload['slug'],
+            'level' => $payload['level'],
+            'description' => $payload['description'],
         ]);
-
-        if (is_array($permissionIds)) {
-            $this->roleRepo()->syncPermissions($id, array_map('intval', $permissionIds));
-        }
+        $this->syncPermissions($id, $payload['permissions']);
+        RolePolicy::loadFromDatabase();
 
         session()->flash('roles.notice', 'Role updated successfully.');
 
@@ -85,9 +128,16 @@ final class RolesController extends Controller
             return $this->json(['error' => 'Cannot delete system role'], 422);
         }
 
-        $this->roleRepo()->delete($id);
+        if ($this->roleRepo()->countUsers($id) > 0) {
+            session()->flash('roles.notice', 'This role is still assigned to users and cannot be deleted.');
+            return $this->redirect('/admin/roles');
+        }
 
-        return $this->json(['success' => true]);
+        $this->roleRepo()->delete($id);
+        RolePolicy::loadFromDatabase();
+        session()->flash('roles.notice', 'Role deleted successfully.');
+
+        return $this->redirect('/admin/roles');
     }
 
     public function permissions(ServerRequestInterface $request, array $vars = []): ResponseInterface
@@ -97,6 +147,16 @@ final class RolesController extends Controller
         return $this->view('@roles/permissions', [
             'permissions' => $permissions,
         ]);
+    }
+
+    private function syncPermissions(int $roleId, array $permissionIds): void
+    {
+        $this->roleRepo()->syncPermissions($roleId, $permissionIds);
+    }
+
+    private function roleForms(): RoleFormData
+    {
+        return app(RoleFormData::class);
     }
 
     private function roleRepo(): RoleRepository

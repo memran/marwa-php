@@ -16,9 +16,18 @@ final class RolesServiceProvider implements ModuleServiceProviderInterface
                 'name' => 'roles',
                 'label' => 'Roles',
                 'url' => '/admin/roles',
-                'parent' => 'admin.settings',
-                'order' => 20,
+                'parent' => 'admin.management',
+                'order' => 25,
                 'icon' => 'shield',
+            ]);
+
+            $app->make(MenuRegistry::class)->add([
+                'name' => 'permissions',
+                'label' => 'Permissions',
+                'url' => '/admin/permissions',
+                'parent' => 'admin.management',
+                'order' => 30,
+                'icon' => 'key-round',
             ]);
         }
     }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Http\Middleware;
 
-use App\Modules\Auth\Support\Gate;
 use Marwa\Router\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -13,12 +12,8 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 final class RequirePermission implements MiddlewareInterface
 {
-    private Gate $gate;
-
     public function __construct(private readonly ?string $permission = null)
-    {
-        $this->gate = app(Gate::class);
-    }
+    {}
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -28,7 +23,7 @@ final class RequirePermission implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        if (!$this->gate->allows($permission)) {
+        if (!gate()->allows($permission)) {
             return Response::json([
                 'error' => 'Forbidden',
                 'message' => "You don't have permission to access this resource.",
@@ -62,12 +57,8 @@ final class RequirePermission implements MiddlewareInterface
 
 final class AnyPermissionMiddleware implements MiddlewareInterface
 {
-    private Gate $gate;
-
     public function __construct(private readonly ?string $permissions = null)
-    {
-        $this->gate = app(Gate::class);
-    }
+    {}
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -79,7 +70,7 @@ final class AnyPermissionMiddleware implements MiddlewareInterface
         }
 
         foreach ($permissionList as $permission) {
-            if ($this->gate->allows($permission)) {
+            if (gate()->allows($permission)) {
                 return $handler->handle($request);
             }
         }
@@ -94,12 +85,8 @@ final class AnyPermissionMiddleware implements MiddlewareInterface
 
 final class RequireRole implements MiddlewareInterface
 {
-    private Gate $gate;
-
     public function __construct(private readonly ?string $role = null)
-    {
-        $this->gate = app(Gate::class);
-    }
+    {}
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -109,7 +96,9 @@ final class RequireRole implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        if (!$this->gate->hasRole($role)) {
+        $currentRole = app(\App\Modules\Auth\Support\AuthManager::class)->user()?->role();
+
+        if ($currentRole === null || !\App\Modules\Auth\Support\RolePolicy::hasRole((string) $currentRole->getAttribute('slug'), $role)) {
             return Response::json([
                 'error' => 'Forbidden',
                 'message' => "You don't have the required role: {$role}",
@@ -123,12 +112,8 @@ final class RequireRole implements MiddlewareInterface
 
 final class MinimumLevelMiddleware implements MiddlewareInterface
 {
-    private Gate $gate;
-
     public function __construct(private readonly ?int $level = null)
-    {
-        $this->gate = app(Gate::class);
-    }
+    {}
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -138,7 +123,10 @@ final class MinimumLevelMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        if (!$this->gate->isAtLevel($level)) {
+        $currentRole = app(\App\Modules\Auth\Support\AuthManager::class)->user()?->role();
+        $currentLevel = $currentRole !== null ? \App\Modules\Auth\Support\RolePolicy::getRoleLevel((string) $currentRole->getAttribute('slug')) : 0;
+
+        if ($currentLevel < $level) {
             return Response::json([
                 'error' => 'Forbidden',
                 'message' => "You don't have the required access level.",

@@ -9,10 +9,19 @@ use App\Modules\Users\Models\User;
 final class UserFormData
 {
     /**
+     * @var array<int, string>|null
+     */
+    private ?array $rolesCache = null;
+
+    /**
      * @return array<int, string>
      */
     public function roles(): array
     {
+        if ($this->rolesCache !== null) {
+            return $this->rolesCache;
+        }
+
         $roles = \App\Modules\Auth\Models\Role::newQuery()->getBaseBuilder()
             ->orderBy('level', 'desc')
             ->get();
@@ -21,7 +30,8 @@ final class UserFormData
         foreach ($roles as $role) {
             $result[(int) $role['id']] = (string) $role['name'];
         }
-        return $result;
+
+        return $this->rolesCache = $result;
     }
 
     /**

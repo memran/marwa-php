@@ -1,36 +1,48 @@
 <div class="grid gap-2">
-  <label class="text-[0.82rem] font-semibold text-slate-200" for="{{ id }}">{{ label }}</label>
+  <label class="text-[0.82rem] font-semibold text-slate-700 dark:text-slate-200" for="{{ id }}">{{ label }}</label>
   {% if hint is defined and hint %}
-    <p class="text-xs leading-5 text-slate-400">{{ hint }}</p>
+    <p class="text-xs leading-5 text-slate-500 dark:text-slate-400">{{ hint }}</p>
   {% endif %}
 
   {% if type|default('text') == 'textarea' %}
     <textarea
-      class="admin-control w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10 disabled:cursor-not-allowed disabled:opacity-60"
+      class="form-textarea w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-slate-100 dark:placeholder:text-slate-500"
       id="{{ id }}"
       name="{{ name|default(id) }}"
       rows="{{ rows|default(3) }}"
       {% if placeholder is defined and placeholder %}placeholder="{{ placeholder }}"{% endif %}
       {% if disabled|default(false) %}disabled{% endif %}
     >{{ value|default('') }}</textarea>
+  {% elseif type|default('text') == 'select' %}
+    <select
+      class="form-select w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
+      id="{{ id }}"
+      name="{{ name|default(id) }}"
+      {% if disabled|default(false) %}disabled{% endif %}
+    >
+      {% for option_value, option_label in options|default([]) %}
+        <option value="{{ option_value }}" {% if value is defined and value == option_value %}selected{% endif %}>{{ option_label }}</option>
+      {% endfor %}
+    </select>
   {% else %}
     <input
-      class="admin-control w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10 disabled:cursor-not-allowed disabled:opacity-60"
+      class="form-input w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-slate-100 dark:placeholder:text-slate-500"
       id="{{ id }}"
       name="{{ name|default(id) }}"
       type="{{ type|default('text') }}"
       value="{{ value|default('') }}"
       {% if placeholder is defined and placeholder %}placeholder="{{ placeholder }}"{% endif %}
       {% if autocomplete is defined and autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
+      {% if readonly|default(false) %}readonly{% endif %}
       {% if disabled|default(false) %}disabled{% endif %}
     >
   {% endif %}
 
   {% if error is defined and error %}
-    <p class="text-xs text-rose-300">{{ error }}</p>
+    <p class="text-xs text-rose-600 dark:text-rose-300">{{ error }}</p>
   {% endif %}
 
   {% if success is defined and success %}
-    <p class="text-xs text-emerald-300">{{ success }}</p>
+    <p class="text-xs text-emerald-600 dark:text-emerald-300">{{ success }}</p>
   {% endif %}
 </div>

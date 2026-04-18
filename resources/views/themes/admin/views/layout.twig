@@ -15,80 +15,7 @@
       document.documentElement.style.colorScheme = finalTheme;
     })();
   </script>
-  <script defer src="{{ theme_asset('assets/js/alpine.min.js') }}"></script>
-  <script defer src="{{ theme_asset('assets/js/sortable.min.js') }}"></script>
   <script defer src="{{ theme_asset('assets/js/dashboard.js') }}"></script>
-  <script>
-    document.addEventListener('alpine:init', function() {
-      Alpine.data('dashboardWidget', function() {
-        return {
-          editMode: false,
-          sortable: null,
-          widgets: [],
-          availableWidgets: [],
-          sizeOptions: {},
-          init() {
-            try {
-              this.widgets = this.$el.dataset.widgets ? JSON.parse(this.$el.dataset.widgets) : [];
-              this.availableWidgets = this.$el.dataset.available ? JSON.parse(this.$el.dataset.available) : [];
-              this.sizeOptions = this.$el.dataset.sizes ? JSON.parse(this.$el.dataset.sizes) : [];
-            } catch (e) { console.error('Init error:', e); }
-          },
-          toggleEditMode() {
-            this.editMode = !this.editMode;
-            if (this.editMode) { this.$nextTick(() => this.initSortable()); }
-            else { this.destroySortable(); }
-          },
-          initSortable() {
-            const grid = this.$refs.widgetGrid;
-            if (!grid || typeof Sortable === 'undefined') return;
-            this.sortable = new Sortable(grid, { animation: 150, handle: '.drag-handle', ghostClass: 'opacity-50', onEnd: () => this.updatePositions() });
-          },
-          destroySortable() { if (this.sortable) { this.sortable.destroy(); this.sortable = null; } },
-          updatePositions() {
-            const items = this.$refs.widgetGrid.querySelectorAll('.widget-item');
-            this.widgets = Array.from(items).map((item, i) => {
-              const id = item.dataset.widgetId;
-              const existing = this.widgets.find(w => w.widget_id === id);
-              return existing ? {...existing, position: i} : {widget_id: id, position: i};
-            });
-          },
-          async saveWidgets() {
-            try {
-              const res = await fetch('/admin/dashboard/save', { method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRF-Token': this.getCsrfToken()}, body: JSON.stringify({widgets: this.widgets}) });
-              const data = await res.json();
-              if (data.success) { this.editMode = false; this.destroySortable(); window.location.reload(); }
-            } catch(e) { console.error(e); }
-          },
-          addWidget(id) {
-            const w = this.availableWidgets[id];
-            if (!w) return;
-            this.widgets.push({widget_id: id, widget_type: 'system', title: w.name, position: this.widgets.length, width: w.size||'medium', enabled: true, config: {}});
-          },
-          removeWidget(id) { this.widgets = this.widgets.filter(w => w.widget_id !== id); },
-          async refreshWidget(id) {
-            const el = document.querySelector(`[data-widget-id="${id}"] .widget-content`);
-            if (!el) return;
-            el.innerHTML = '<div class="p-4 text-center text-slate-400">Refreshing...</div>';
-            try {
-              const res = await fetch(`/admin/dashboard/widget/${id}/refresh`);
-              const data = await res.json();
-              el.innerHTML = data.success ? data.content : `<div class="p-4 text-red-400">${data.message}</div>`;
-            } catch(e) { el.innerHTML = '<div class="p-4 text-red-400">Error</div>'; }
-          },
-          async resetDashboard() {
-            if (!confirm('Reset dashboard?')) return;
-            try {
-              const res = await fetch('/admin/dashboard/reset', { method: 'POST', headers: {'X-CSRF-Token': this.getCsrfToken()} });
-              if (res.ok) window.location.reload();
-            } catch(e) { console.error(e); }
-          },
-          getCsrfToken() { const m = document.querySelector('meta[name="csrf-token"]'); return m ? m.content : ''; },
-          getWidthClass(w) { return {'small':'col-span-1','medium':'col-span-1 md:col-span-2','large':'col-span-1 md:col-span-2 lg:col-span-3'}[w] || 'col-span-1 md:col-span-2'; }
-        };
-      });
-    });
-  </script>
   <script>
     document.addEventListener('alpine:init', function() {
       Alpine.data('adminTheme', function() {
@@ -112,9 +39,11 @@
       });
     });
   </script>
+  <script defer src="{{ theme_asset('assets/js/alpine.min.js') }}"></script>
   <link rel="stylesheet" href="{{ theme_asset('css/app.css') }}">
 </head>
 <body class="admin-theme min-h-screen bg-slate-950 text-slate-100 antialiased" @close-mobile.window="closeMobile()">
+  <div class="hidden" aria-hidden="true">{{ csrf_field() }}</div>
   <div class="admin-shell relative isolate min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_36%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.12),_transparent_32%),linear-gradient(180deg,#020617_0%,#0f172a_48%,#020617_100%)]">
     <div class="pointer-events-none absolute left-[-8rem] top-10 -z-10 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl"></div>
     <div class="pointer-events-none absolute right-[-10rem] top-32 -z-10 h-96 w-96 rounded-full bg-emerald-400/10 blur-3xl"></div>

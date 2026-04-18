@@ -7,63 +7,170 @@ namespace App\Modules\DashboardStatus;
 final class DashboardStatusCards
 {
     /**
-     * @return array<int, array<string, string>>
+     * @return array<int, array<string, mixed>>
      */
     public function cards(): array
     {
         $basePath = base_path();
         $phpVersion = PHP_VERSION;
+        $phpScore = $this->phpScore(PHP_VERSION_ID);
         $loadAverage = $this->loadAverage();
         $memoryLimit = $this->formatBytes($this->toBytes((string) ini_get('memory_limit')));
+        $memoryScore = $this->memoryScore($this->toBytes((string) ini_get('memory_limit')));
         $diskFree = $this->formatBytes($this->safeDiskFreeSpace($basePath));
-        $environment = (string) env('APP_ENV', 'production');
-        $debugMode = (bool) env('APP_DEBUG', false);
-        $theme = (string) config('view.adminTheme', 'admin');
+        $diskScore = $this->diskScore($this->safeDiskFreeSpace($basePath));
+        $environment = (string) config('settings.lifecycle.app.env', config('app.env', 'production'));
+        $debugMode = (bool) config('settings.lifecycle.app.debug', config('app.debug', false));
+        $theme = (string) config('settings.lifecycle.theme.admin', config('view.adminTheme', 'admin'));
+        $loadScore = $this->loadScore($loadAverage);
+        $themeScore = $theme === 'admin' ? 90 : 78;
 
         return [
-            [
-                'label' => 'Application',
-                'value' => (string) config('app.name', 'MarwaPHP'),
-                'meta' => sprintf('%s environment', ucfirst($environment)),
-                'tone' => $debugMode ? 'warning' : 'success',
-                'status' => $debugMode ? 'Debug on' : 'Healthy',
-            ],
-            [
-                'label' => 'Runtime',
-                'value' => $phpVersion,
-                'meta' => php_sapi_name() ?: 'CLI',
-                'tone' => 'primary',
-                'status' => 'Stable',
-            ],
-            [
-                'label' => 'Memory limit',
-                'value' => $memoryLimit,
-                'meta' => 'Configured ceiling',
-                'tone' => 'neutral',
-                'status' => 'Monitored',
-            ],
-            [
-                'label' => 'Disk free',
-                'value' => $diskFree,
-                'meta' => 'Available for logs and cache',
-                'tone' => 'success',
-                'status' => 'Ready',
-            ],
-            [
-                'label' => 'Load average',
-                'value' => $loadAverage,
-                'meta' => '1 minute sample',
-                'tone' => 'neutral',
-                'status' => 'Normal',
-            ],
-            [
-                'label' => 'Admin theme',
-                'value' => $theme,
-                'meta' => 'Active workspace skin',
-                'tone' => 'primary',
-                'status' => 'Loaded',
-            ],
+            $this->card(
+                'Application',
+                (string) config('settings.lifecycle.app.name', config('app.name', 'MarwaPHP')),
+                sprintf('%s environment', ucfirst($environment)),
+                $debugMode ? 'warning' : 'success',
+                $debugMode ? 'Debug on' : 'Healthy',
+                $debugMode ? 68 : 92,
+                4
+            ),
+            $this->card(
+                'Runtime',
+                $phpVersion,
+                php_sapi_name() ?: 'CLI',
+                'primary',
+                'Stable',
+                $phpScore,
+                4
+            ),
+            $this->card(
+                'Memory limit',
+                $memoryLimit,
+                'Configured ceiling',
+                'neutral',
+                'Monitored',
+                $memoryScore,
+                4
+            ),
+            $this->card(
+                'Disk free',
+                $diskFree,
+                'Available for logs and cache',
+                'success',
+                'Ready',
+                $diskScore,
+                4
+            ),
+            $this->card(
+                'Load average',
+                $loadAverage,
+                '1 minute sample',
+                'neutral',
+                'Normal',
+                $loadScore,
+                3
+            ),
+            $this->card(
+                'Admin theme',
+                $theme,
+                'Active workspace skin',
+                'primary',
+                'Loaded',
+                $themeScore,
+                4
+            ),
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function card(
+        string $label,
+        string $value,
+        string $meta,
+        string $tone,
+        string $status,
+        int $metricPercent,
+        int $barCount
+    ): array {
+        return [
+            'label' => $label,
+            'value' => $value,
+            'meta' => $meta,
+            'tone' => $tone,
+            'status' => $status,
+            'metric_percent' => $this->clampPercent($metricPercent),
+            'metric_width' => $this->clampPercent($metricPercent) . '%',
+            'metric_bars' => $this->buildBarWidths($metricPercent, $barCount),
+        ];
+    }
+
+    private function phpScore(int $versionId): int
+    {
+        return match (true) {
+            $versionId >= 80400 => 96,
+            $versionId >= 80300 => 93,
+            $versionId >= 80200 => 90,
+            $versionId >= 80100 => 87,
+            default => 78,
+        };
+    }
+
+    private function memoryScore(int $bytes): int
+    {
+        return match (true) {
+            $bytes <= 0 => 45,
+            $bytes <= 134217728 => 40,
+            $bytes <= 268435456 => 52,
+            $bytes <= 536870912 => 66,
+            $bytes <= 1073741824 => 78,
+            default => 90,
+        };
+    }
+
+    private function diskScore(int $bytes): int
+    {
+        return match (true) {
+            $bytes <= 0 => 30,
+            $bytes <= 1073741824 => 38,
+            $bytes <= 5368709120 => 50,
+            $bytes <= 21474836480 => 68,
+            $bytes <= 107374182400 => 82,
+            default => 94,
+        };
+    }
+
+    private function loadScore(string $loadAverage): int
+    {
+        if (!is_numeric($loadAverage)) {
+            return 64;
+        }
+
+        $value = (float) $loadAverage;
+
+        return (int) max(18, min(96, 100 - ($value * 18)));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function buildBarWidths(int $percent, int $count): array
+    {
+        $percent = $this->clampPercent($percent);
+        $bars = [];
+
+        for ($index = 0; $index < $count; $index++) {
+            $bars[] = $this->clampPercent($percent - ($index * 14)) . '%';
+        }
+
+        return $bars;
+    }
+
+    private function clampPercent(int $percent): int
+    {
+        return max(18, min(100, $percent));
     }
 
     private function loadAverage(): string

@@ -4,7 +4,7 @@ This directory contains the app-specific overrides that sit on top of Marwa Fram
 
 ## Files
 
-- `app.php` - application identity, providers, middleware, debugbar collectors, and starter maintenance / 404 template references
+- `app.php` - application identity, providers, middleware stack, debugbar collectors, and starter maintenance / 404 template references
 - `cache.php` - cache backend defaults and storage options
 - `console.php` - app command discovery from `app/Commands`
 - `database.php` - framework-aligned database connections and migration/seed paths for SQLite and Docker MariaDB
