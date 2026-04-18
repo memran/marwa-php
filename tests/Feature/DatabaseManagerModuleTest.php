@@ -28,6 +28,7 @@ final class DatabaseManagerModuleTest extends TestCase
         $this->makeDirectory($this->basePath . '/config');
         $this->makeDirectory($this->basePath . '/routes');
         $this->makeDirectory($this->basePath . '/database');
+        $this->makeDirectory($this->basePath . '/sessions');
         $this->makeDirectory($this->basePath . '/resources/views');
         $this->makeDirectory($this->basePath . '/resources/views/themes/default/views/home');
         $this->makeDirectory($this->basePath . '/resources/views/themes/default/views/errors');
@@ -46,6 +47,8 @@ final class DatabaseManagerModuleTest extends TestCase
             $this->basePath . '/.env',
             "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=admin\nTIMEZONE=UTC\nDB_ENABLED=1\nDB_CONNECTION=sqlite\nDB_DATABASE={$this->basePath}/database/database.sqlite\nAPP_CONFIG_CACHE={$this->basePath}/bootstrap/cache/config.php\nAPP_ROUTE_CACHE={$this->basePath}/bootstrap/cache/routes.php\nAPP_MODULE_CACHE={$this->basePath}/storage/cache/modules.php\nADMIN_BOOTSTRAP_EMAIL=admin@marwa.test\nADMIN_BOOTSTRAP_PASSWORD=ExampleAdminPassword123!\n"
         );
+
+        ini_set('session.save_path', $this->basePath . '/sessions');
 
         file_put_contents(
             $this->basePath . '/routes/web.php',

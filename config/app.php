@@ -40,7 +40,7 @@ return [
         KpiCollector::class,
     ],
     'providers' => [
-        Marwa\Framework\Providers\KernalServiceProvider::class,
+        Marwa\Framework\Providers\KernelServiceProvider::class,
     ],
     'maintenance' => [
         'template' => 'maintenance.twig',

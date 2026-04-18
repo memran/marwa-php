@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Users\Support;
 
 use App\Modules\Users\Models\User;
-use Marwa\Framework\Validation\ValidationException;
 
 final class UserFormData
 {
@@ -40,8 +39,8 @@ final class UserFormData
             'is_active' => $user instanceof User ? (bool) $user->getAttribute('is_active') : true,
         ];
 
-        $old = session(ValidationException::OLD_INPUT_KEY, []);
-        $errors = session(ValidationException::ERROR_BAG_KEY, []);
+        $old = session('_old_input', []);
+        $errors = session('errors', []);
 
         if (is_array($old) && is_array($errors) && $errors !== []) {
             foreach (['name', 'email', 'role_id'] as $field) {

@@ -18,6 +18,9 @@ final class AuthManagerTest extends TestCase
         $this->basePath = sys_get_temp_dir() . '/marwa-auth-static-' . bin2hex(random_bytes(6));
         mkdir($this->basePath, 0777, true);
         mkdir($this->basePath . '/config', 0777, true);
+        mkdir($this->basePath . '/sessions', 0777, true);
+
+        ini_set('session.save_path', $this->basePath . '/sessions');
 
         file_put_contents(
             $this->basePath . '/.env',
@@ -44,6 +47,7 @@ final class AuthManagerTest extends TestCase
         }
 
         @rmdir($this->basePath . '/config');
+        @rmdir($this->basePath . '/sessions');
         @rmdir($this->basePath);
 
         unset(
@@ -67,12 +71,6 @@ final class AuthManagerTest extends TestCase
     {
         $app = new Application($this->basePath);
         $GLOBALS['marwa_app'] = $app;
-
-        $session = session();
-
-        if (!$session->isStarted()) {
-            $session->start();
-        }
 
         $auth = new AuthManager();
 

@@ -6,7 +6,6 @@ namespace App\Modules\Auth\Http\Controllers;
 
 use App\Modules\Auth\Support\AuthManager;
 use Marwa\Framework\Controllers\Controller;
-use Marwa\Framework\Validation\ValidationException;
 use Psr\Http\Message\ResponseInterface;
 
 final class AuthController extends Controller
@@ -136,8 +135,8 @@ final class AuthController extends Controller
     private function sharedViewData(array $extra = []): array
     {
         return array_replace([
-            'errors' => session(ValidationException::ERROR_BAG_KEY, []),
-            'old' => session(ValidationException::OLD_INPUT_KEY, []),
+            'errors' => session('errors', []),
+            'old' => session('_old_input', []),
         ], $extra);
     }
 

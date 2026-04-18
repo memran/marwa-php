@@ -45,13 +45,11 @@ final class RunModuleMigrations extends AbstractEventListener
             }
         }
 
-        if ($directories === []) {
-            $fallbackPaths = glob(base_path('modules/*/database/migrations'), GLOB_ONLYDIR) ?: [];
+        $fallbackPaths = glob(base_path('modules/*/database/migrations'), GLOB_ONLYDIR) ?: [];
 
-            foreach ($fallbackPaths as $migrationPath) {
-                if (is_dir($migrationPath)) {
-                    $directories[$migrationPath] = true;
-                }
+        foreach ($fallbackPaths as $migrationPath) {
+            if (is_dir($migrationPath)) {
+                $directories[$migrationPath] = true;
             }
         }
 

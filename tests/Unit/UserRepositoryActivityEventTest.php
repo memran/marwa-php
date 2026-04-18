@@ -183,14 +183,11 @@ SQL);
         self::assertTrue($users->restoreUser($trashed, $actor));
 
         $rows = Activity::query()->getBaseBuilder()->orderBy('id', 'asc')->get();
-        $actions = array_map(static fn (array|object $row): string => (string) (is_array($row) ? $row['action'] : $row->action), $rows);
-        $descriptions = array_map(static fn (array|object $row): string => (string) (is_array($row) ? $row['description'] : $row->description), $rows);
-        $details = array_map(static fn (array|object $row): string => (string) (is_array($row) ? $row['details'] : $row->details), $rows);
+        $actions = array_map(static fn (array $row): string => (string) $row['action'], $rows);
+        $descriptions = array_map(static fn (array $row): string => (string) $row['description'], $rows);
+        $details = array_map(static fn (array $row): string => (string) $row['details'], $rows);
 
-        self::assertSame(
-            ['user.created', 'user.updated', 'user.deleted', 'user.restored'],
-            $actions
-        );
+        self::assertSame(['user.created', 'user.updated', 'user.deleted', 'user.restored'], $actions);
         self::assertContains('Created user ops@example.test.', $descriptions);
         self::assertContains('Updated user ops@example.test.', $descriptions);
         self::assertContains('Deleted user ops@example.test.', $descriptions);

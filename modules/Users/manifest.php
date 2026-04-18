@@ -19,5 +19,6 @@ return [
     ],
     'migrations' => [
         'database/migrations/2026_04_10_000001_create_users_table.php',
+        'database/migrations/2026_04_14_000001_add_role_id_to_users.php',
     ],
 ];

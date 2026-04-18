@@ -13,20 +13,30 @@ use Symfony\Component\Console\Tester\CommandTester;
 
 final class CheckDatabaseConnectivityCommandTest extends TestCase
 {
+    /**
+     * @return array{
+     *     default: array{
+     *         driver: 'sqlite',
+     *         database: string
+     *     }
+     * }
+     */
+    private function sqliteConfig(string $databasePath): array
+    {
+        return [
+            'default' => [
+                'driver' => 'sqlite',
+                'database' => $databasePath,
+            ],
+        ];
+    }
+
     public function testItPrintsSuccessfulDatabaseConnectivity(): void
     {
         $databasePath = tempnam(sys_get_temp_dir(), 'marwa-db-');
         self::assertNotFalse($databasePath);
 
-        $manager = new ConnectionManager(new DbConfig([
-            'default' => 'sqlite',
-            'connections' => [
-                'sqlite' => [
-                    'driver' => 'sqlite',
-                    'database' => $databasePath,
-                ],
-            ],
-        ]));
+        $manager = new ConnectionManager(new DbConfig($this->sqliteConfig($databasePath)));
 
         $tester = new CommandTester(new CheckDatabaseConnectivityCommand($manager));
         $exitCode = $tester->execute([]);
@@ -41,15 +51,9 @@ final class CheckDatabaseConnectivityCommandTest extends TestCase
 
     public function testItPrintsFailureWhenTheDatabaseCannotBeOpened(): void
     {
-        $manager = new ConnectionManager(new DbConfig([
-            'default' => 'sqlite',
-            'connections' => [
-                'sqlite' => [
-                    'driver' => 'sqlite',
-                    'database' => sys_get_temp_dir() . '/missing-directory-' . bin2hex(random_bytes(4)) . '/database.sqlite',
-                ],
-            ],
-        ]));
+        $manager = new ConnectionManager(new DbConfig(
+            $this->sqliteConfig(sys_get_temp_dir() . '/missing-directory-' . bin2hex(random_bytes(4)) . '/database.sqlite')
+        ));
 
         $tester = new CommandTester(new CheckDatabaseConnectivityCommand($manager));
         $exitCode = $tester->execute([]);

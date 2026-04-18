@@ -30,6 +30,7 @@ final class StarterThemeRoutingTest extends TestCase
         $this->makeDirectory($this->basePath);
         $this->makeDirectory($this->basePath . '/config');
         $this->makeDirectory($this->basePath . '/routes');
+        $this->makeDirectory($this->basePath . '/sessions');
         $this->makeDirectory($this->basePath . '/resources/views');
         $this->makeDirectory($this->basePath . '/resources/views/components');
         $this->makeDirectory($this->basePath . '/resources/views/themes/default/views/home');
@@ -48,6 +49,7 @@ final class StarterThemeRoutingTest extends TestCase
         putenv('APP_CONFIG_CACHE=' . $this->basePath . '/bootstrap/cache/config.php');
         putenv('APP_ROUTE_CACHE=' . $this->basePath . '/bootstrap/cache/routes.php');
         putenv('APP_MODULE_CACHE=' . $this->basePath . '/storage/cache/modules.php');
+        ini_set('session.save_path', $this->basePath . '/sessions');
         $_ENV['APP_CONFIG_CACHE'] = $this->basePath . '/bootstrap/cache/config.php';
         $_ENV['APP_ROUTE_CACHE'] = $this->basePath . '/bootstrap/cache/routes.php';
         $_ENV['APP_MODULE_CACHE'] = $this->basePath . '/storage/cache/modules.php';

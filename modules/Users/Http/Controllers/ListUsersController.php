@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Users\Http\Controllers;
 
-use Marwa\Framework\Validation\ValidationException;
 use Psr\Http\Message\ResponseInterface;
 
 final class ListUsersController extends UsersController
@@ -21,7 +20,7 @@ final class ListUsersController extends UsersController
             'users' => $users,
             'query' => $search['query'],
             'pagination' => $pagination,
-            'errors' => session(ValidationException::ERROR_BAG_KEY, []),
+            'errors' => session('errors', []),
             'notice' => session('users.notice'),
             'protected_admin_id' => $this->users->protectedAdminId(),
         ]);
