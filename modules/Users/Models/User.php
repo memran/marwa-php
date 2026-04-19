@@ -6,10 +6,9 @@ namespace App\Modules\Users\Models;
 
 use App\Modules\Auth\Models\Permission;
 use App\Modules\Auth\Models\Role;
-use Marwa\Framework\Authorization\Contracts\UserInterface;
 use Marwa\Framework\Database\Model;
 
-final class User extends Model implements UserInterface
+final class User extends Model
 {
     protected static ?string $table = 'users';
 

@@ -7,6 +7,7 @@ namespace App\Modules\Auth\Http\Controllers;
 use App\Modules\Auth\Support\AuthManager;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 final class AuthController extends Controller
 {
@@ -69,18 +70,27 @@ final class AuthController extends Controller
         ]);
 
         $email = trim((string) ($validated['email'] ?? ''));
-        $this->withErrors([
-            'email' => 'Password reset is unavailable in static auth mode.',
-        ])->withInput([
-            'email' => $email,
-        ]);
+        $recoveryLink = $this->auth->createPasswordResetLink($email);
+
+        if ($recoveryLink === null) {
+            $this->withErrors([
+                'email' => 'We could not prepare a recovery link for that address.',
+            ])->withInput([
+                'email' => $email,
+            ]);
+
+            return $this->redirect('/admin/forgot-password');
+        }
+
+        $this->flash('auth.notice', 'Recovery link created successfully.');
+        $this->flash('auth.recovery_link', $recoveryLink);
 
         return $this->redirect('/admin/forgot-password');
     }
 
-    public function resetPassword(): ResponseInterface
+    public function resetPassword(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        $token = trim((string) $this->request('token', ''));
+        $token = $this->resolveResetToken($request, $vars);
 
         return $this->view('@auth/reset-password', $this->sharedViewData([
             'token' => $token,
@@ -89,19 +99,18 @@ final class AuthController extends Controller
         ]));
     }
 
-    public function updatePassword(): ResponseInterface
+    public function updatePassword(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
         $validated = $this->validate([
-            'token' => 'required|string',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $token = trim((string) ($validated['token'] ?? ''));
+        $token = $this->resolveResetToken($request, $vars);
         $password = (string) ($validated['password'] ?? '');
 
         if (!$this->auth->resetPassword($token, $password)) {
             $this->withErrors([
-                'token' => 'Password reset is unavailable in static auth mode.',
+                'token' => 'The recovery token is invalid or expired.',
             ])->withInput([
                 'token' => $token,
             ]);
@@ -132,5 +141,26 @@ final class AuthController extends Controller
             'errors' => session('errors', []),
             'old' => session('_old_input', []),
         ], $extra);
+    }
+
+    /**
+     * @param array<string, mixed> $vars
+     */
+    private function resolveResetToken(ServerRequestInterface $request, array $vars = []): string
+    {
+        $token = (string) ($vars['token'] ?? '');
+
+        if ($token !== '') {
+            return trim($token);
+        }
+
+        $path = (string) $request->getUri()->getPath();
+        $segments = array_values(array_filter(explode('/', trim($path, '/')), static fn (string $segment): bool => $segment !== ''));
+
+        if ($segments === []) {
+            return '';
+        }
+
+        return rawurldecode((string) end($segments));
     }
 }

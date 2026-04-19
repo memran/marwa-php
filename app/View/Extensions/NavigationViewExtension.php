@@ -6,7 +6,7 @@ namespace App\View\Extensions;
 
 use Marwa\Framework\Contracts\ViewExtensionInterface;
 use Marwa\Framework\Navigation\MenuRegistry;
-use Marwa\Framework\Views\Extension\AbstractViewExtension;
+use Marwa\Framework\View\Extension\AbstractViewExtension;
 
 final class NavigationViewExtension extends AbstractViewExtension implements ViewExtensionInterface
 {

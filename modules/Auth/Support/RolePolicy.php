@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Support;
 
+use App\Modules\Auth\Models\Role;
+
 final class RolePolicy
 {
     public const ROLE_SUPER_ADMIN = 'super_admin';
@@ -126,23 +128,18 @@ final class RolePolicy
         }
 
         try {
-            $connectionManager = app(\Marwa\DB\Connection\ConnectionManager::class);
-        } catch (\Throwable) {
-            return;
-        }
-
-        try {
-            $pdo = $connectionManager->getPdo();
-            $stmt = $pdo->query('SELECT slug, level FROM roles WHERE level > 0');
-            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $rows = Role::newQuery()->getBaseBuilder()
+                ->select('slug', 'level')
+                ->where('level', '>', 0)
+                ->get();
 
             $levels = [];
             foreach ($rows as $row) {
-                $levels[$row['slug']] = (int) $row['level'];
+                $levels[(string) $row['slug']] = (int) $row['level'];
             }
 
             self::$roleLevels = $levels;
-        } catch (\Exception $e) {
+        } catch (\Throwable) {
         }
     }
 

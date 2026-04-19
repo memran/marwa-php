@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Models;
 
+use Marwa\DB\Facades\DB;
 use Marwa\Framework\Database\Model;
 
 final class Role extends Model
@@ -29,14 +30,20 @@ final class Role extends Model
             return [];
         }
 
-        $pdo = app(\Marwa\DB\Connection\ConnectionManager::class)->getPdo();
-        $stmt = $pdo->prepare(
-            'SELECT p.* FROM permissions p 
-             INNER JOIN role_permission rp ON p.id = rp.permission_id 
-             WHERE rp.role_id = ?'
-        );
-        $stmt->execute([$this->getKey()]);
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $permissionIds = DB::table('role_permission')
+            ->where('role_id', '=', (int) $this->getKey())
+            ->pluck('permission_id')
+            ->toArray();
+
+        if ($permissionIds === []) {
+            return [];
+        }
+
+        $rows = Permission::newQuery()->getBaseBuilder()
+            ->whereIn('id', array_map('intval', $permissionIds))
+            ->orderBy('group', 'asc')
+            ->orderBy('name', 'asc')
+            ->get();
 
         return array_map(
             static fn (array $row): \App\Modules\Auth\Models\Permission => 

@@ -540,13 +540,47 @@ TWIG
         $this->app = null;
     }
 
-    public function testRolesCanBeCreatedUpdatedDeletedAndAssignedToUsers(): void
+    public function testAdminPasswordResetLinkCanBeCreatedAndConsumed(): void
     {
         $this->app = new Application($this->basePath);
         $this->app->make(AppBootstrapper::class)->bootstrap();
         $this->migrateAuthAndUserModules($this->app);
         $this->seedAuthAndUsers();
         (new AuthManager())->logout();
+        $kernel = $this->app->make(HttpKernel::class);
+
+        $loginPage = $kernel->handle($this->request('GET', '/admin/login'));
+        self::assertSame(200, $loginPage->getStatusCode());
+
+        $csrf = $this->app->security()->csrfToken();
+
+        $link = (new AuthManager())->createPasswordResetLink('admin@marwa.test');
+        self::assertNotNull($link);
+        self::assertStringStartsWith('/admin/reset-password/', $link);
+
+        $token = basename($link);
+
+        $forgotPage = $kernel->handle($this->request('GET', '/admin/forgot-password'));
+        self::assertSame(200, $forgotPage->getStatusCode());
+        self::assertStringContainsString('Request a recovery link.', (string) $forgotPage->getBody());
+
+        $resetPage = $kernel->handle($this->request('GET', '/admin/reset-password/' . $token));
+        self::assertSame(200, $resetPage->getStatusCode());
+        self::assertStringContainsString('Set a new password.', (string) $resetPage->getBody());
+        self::assertStringContainsString($token, (string) $resetPage->getBody());
+
+        self::assertTrue((new AuthManager())->resetPassword($token, 'ResetPassword123!'));
+
+        $this->connections = null;
+        $this->app = null;
+    }
+
+    public function testRolesCanBeCreatedUpdatedDeletedAndAssignedToUsers(): void
+    {
+        $this->app = new Application($this->basePath);
+        $this->app->make(AppBootstrapper::class)->bootstrap();
+        $this->migrateAuthAndUserModules($this->app);
+        $this->seedAuthAndUsers();
         $kernel = $this->app->make(HttpKernel::class);
 
         $loginPage = $kernel->handle($this->request('GET', '/admin/login'));

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Auth\Support;
 
 use App\Modules\Activity\Support\ActivityRecorder;
+use App\Modules\Auth\Models\PasswordResetToken;
+use App\Modules\Auth\Models\Role;
 use App\Modules\Users\Models\User;
 use Marwa\Framework\Authorization\AuthManager as FrameworkAuthManager;
 
@@ -130,14 +132,61 @@ final class AuthManager
         $session->invalidate();
     }
 
-    public function createPasswordResetLink(string $email, int $ttlMinutes = 30): null
+    public function createPasswordResetLink(string $email, int $ttlMinutes = 30): ?string
     {
-        return null;
+        $email = trim($email);
+
+        if ($email === '') {
+            return null;
+        }
+
+        $user = $this->findPersistedUserByEmail($email);
+        if (!$user instanceof User) {
+            return null;
+        }
+
+        $this->purgeExpiredPasswordResetTokens();
+        $this->purgePasswordResetTokensForUser((int) $user->getKey());
+
+        $token = bin2hex(random_bytes(32));
+        $tokenHash = hash('sha256', $token);
+        $expiresAt = date('Y-m-d H:i:s', time() + (max(1, $ttlMinutes) * 60));
+
+        PasswordResetToken::create([
+            'user_id' => $user->getKey(),
+            'token_hash' => $tokenHash,
+            'expires_at' => $expiresAt,
+        ]);
+
+        return '/admin/reset-password/' . rawurlencode($token);
     }
 
     public function resetPassword(string $token, string $password): bool
     {
-        return false;
+        $token = trim($token);
+
+        if ($token === '' || $password === '') {
+            return false;
+        }
+
+        $record = $this->findPasswordResetToken($token);
+        if (!$record instanceof PasswordResetToken) {
+            return false;
+        }
+
+        $user = User::find((int) $record->getAttribute('user_id'));
+        if (!$user instanceof User || !(bool) $user->getAttribute('is_active')) {
+            return false;
+        }
+
+        $user->fill([
+            'password' => password_hash($password, PASSWORD_DEFAULT),
+        ]);
+        $user->save();
+
+        $record->delete();
+
+        return true;
     }
 
     private function configuredEmail(): string
@@ -251,12 +300,56 @@ final class AuthManager
         }
 
         try {
-            $role = \App\Modules\Auth\Models\Role::findBySlug('admin');
+            $role = Role::findBySlug('admin');
         } catch (\Throwable) {
             return null;
         }
 
-        return $role instanceof \App\Modules\Auth\Models\Role ? (int) $role->getKey() : null;
+        return $role instanceof Role ? (int) $role->getKey() : null;
+    }
+
+    private function findPasswordResetToken(string $token): ?PasswordResetToken
+    {
+        if (!app()->has(\Marwa\DB\Connection\ConnectionManager::class)) {
+            return null;
+        }
+
+        $tokenHash = hash('sha256', $token);
+
+        try {
+            $row = PasswordResetToken::newQuery()->getBaseBuilder()
+                ->where('token_hash', '=', $tokenHash)
+                ->where('expires_at', '>=', date('Y-m-d H:i:s'))
+                ->first();
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return $row === null
+            ? null
+            : PasswordResetToken::newInstance(is_array($row) ? $row : (array) $row, true);
+    }
+
+    private function purgePasswordResetTokensForUser(int $userId): void
+    {
+        if (!app()->has(\Marwa\DB\Connection\ConnectionManager::class)) {
+            return;
+        }
+
+        PasswordResetToken::newQuery()->getBaseBuilder()
+            ->where('user_id', '=', $userId)
+            ->delete();
+    }
+
+    private function purgeExpiredPasswordResetTokens(): void
+    {
+        if (!app()->has(\Marwa\DB\Connection\ConnectionManager::class)) {
+            return;
+        }
+
+        PasswordResetToken::newQuery()->getBaseBuilder()
+            ->where('expires_at', '<', date('Y-m-d H:i:s'))
+            ->delete();
     }
 
     private function frameworkAuth(): ?FrameworkAuthManager

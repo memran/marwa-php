@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Http\Middleware;
 
+use App\Modules\Auth\Support\AuthManager;
 use Marwa\Router\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -23,7 +24,7 @@ final class RequirePermission implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        if (!gate()->allows($permission)) {
+        if (!$this->currentUserHasPermission($permission)) {
             return Response::json([
                 'error' => 'Forbidden',
                 'message' => "You don't have permission to access this resource.",
@@ -53,6 +54,13 @@ final class RequirePermission implements MiddlewareInterface
     {
         return new MinimumLevelMiddleware($level);
     }
+
+    private function currentUserHasPermission(string $permission): bool
+    {
+        $user = app(AuthManager::class)->user();
+
+        return $user !== null && $user->hasPermission($permission);
+    }
 }
 
 final class AnyPermissionMiddleware implements MiddlewareInterface
@@ -70,7 +78,7 @@ final class AnyPermissionMiddleware implements MiddlewareInterface
         }
 
         foreach ($permissionList as $permission) {
-            if (gate()->allows($permission)) {
+            if (app(AuthManager::class)->user()?->hasPermission($permission) === true) {
                 return $handler->handle($request);
             }
         }

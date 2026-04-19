@@ -4,19 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Support;
 
+use App\Modules\Users\Models\User;
 use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Models\Permission;
-use Marwa\DB\Connection\ConnectionManager;
+use Marwa\DB\Facades\DB;
 
 final class RoleRepository
 {
-    private ConnectionManager $cm;
-
-    public function __construct()
-    {
-        $this->cm = app(ConnectionManager::class);
-    }
-
     public function all(): array
     {
         $rows = Role::newQuery()->getBaseBuilder()
@@ -83,11 +77,10 @@ final class RoleRepository
 
     public function countUsers(int $roleId): int
     {
-        $pdo = $this->cm->getPdo();
-        $stmt = $pdo->prepare('SELECT COUNT(*) FROM users WHERE role_id = ? AND deleted_at IS NULL');
-        $stmt->execute([$roleId]);
-
-        return (int) $stmt->fetchColumn();
+        return (int) User::newQuery()->getBaseBuilder()
+            ->where('role_id', '=', $roleId)
+            ->whereNull('deleted_at')
+            ->count();
     }
 
     public function hasSlug(string $slug, ?int $ignoreId = null): bool
@@ -104,15 +97,20 @@ final class RoleRepository
 
     public function getPermissions(int $roleId): array
     {
-        $pdo = $this->cm->getPdo();
-        $stmt = $pdo->prepare(
-            'SELECT p.* FROM permissions p 
-             INNER JOIN role_permission rp ON p.id = rp.permission_id 
-             WHERE rp.role_id = ? 
-             ORDER BY p."group", p.name'
-        );
-        $stmt->execute([$roleId]);
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $permissionIds = DB::table('role_permission')
+            ->where('role_id', '=', $roleId)
+            ->pluck('permission_id')
+            ->toArray();
+
+        if ($permissionIds === []) {
+            return [];
+        }
+
+        $rows = Permission::newQuery()->getBaseBuilder()
+            ->whereIn('id', array_map('intval', $permissionIds))
+            ->orderBy('group', 'asc')
+            ->orderBy('name', 'asc')
+            ->get();
 
         return array_map(
             static fn (array $row): Permission => Permission::newInstance($row, true),
@@ -122,17 +120,19 @@ final class RoleRepository
 
     public function syncPermissions(int $roleId, array $permissionIds): bool
     {
-        $pdo = $this->cm->getPdo();
-
-        $pdo->prepare('DELETE FROM role_permission WHERE role_id = ?')->execute([$roleId]);
+        DB::table('role_permission')
+            ->where('role_id', '=', $roleId)
+            ->delete();
 
         if (empty($permissionIds)) {
             return true;
         }
 
-        $stmt = $pdo->prepare('INSERT INTO role_permission (role_id, permission_id) VALUES (?, ?)');
         foreach ($permissionIds as $permissionId) {
-            $stmt->execute([$roleId, $permissionId]);
+            DB::table('role_permission')->insert([
+                'role_id' => $roleId,
+                'permission_id' => (int) $permissionId,
+            ]);
         }
 
         return true;

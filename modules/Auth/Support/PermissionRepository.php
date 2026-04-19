@@ -5,17 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Auth\Support;
 
 use App\Modules\Auth\Models\Permission;
-use Marwa\DB\Connection\ConnectionManager;
+use Marwa\DB\Facades\DB;
 
 final class PermissionRepository
 {
-    private ConnectionManager $cm;
-
-    public function __construct()
-    {
-        $this->cm = app(ConnectionManager::class);
-    }
-
     public function all(): array
     {
         $rows = Permission::newQuery()->getBaseBuilder()
@@ -107,14 +100,20 @@ final class PermissionRepository
 
     public function getByRoleId(int $roleId): array
     {
-        $pdo = $this->cm->getPdo();
-        $stmt = $pdo->prepare(
-            'SELECT p.* FROM permissions p 
-             INNER JOIN role_permission rp ON p.id = rp.permission_id 
-             WHERE rp.role_id = ?'
-        );
-        $stmt->execute([$roleId]);
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $permissionIds = DB::table('role_permission')
+            ->where('role_id', '=', $roleId)
+            ->pluck('permission_id')
+            ->toArray();
+
+        if ($permissionIds === []) {
+            return [];
+        }
+
+        $rows = Permission::newQuery()->getBaseBuilder()
+            ->whereIn('id', array_map('intval', $permissionIds))
+            ->orderBy('group', 'asc')
+            ->orderBy('name', 'asc')
+            ->get();
 
         return array_map(
             static fn (array $row): Permission => Permission::newInstance($row, true),
