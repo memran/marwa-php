@@ -10,6 +10,9 @@ final class Permission extends Model
 {
     protected static ?string $table = 'permissions';
 
+    /**
+     * @var list<string>
+     */
     protected static array $fillable = [
         'name',
         'slug',
@@ -35,6 +38,9 @@ final class Permission extends Model
         return $row === null ? null : self::newInstance(is_array($row) ? $row : (array) $row, true);
     }
 
+    /**
+     * @return list<self>
+     */
     public static function all(): array
     {
         $rows = self::newQuery()->getBaseBuilder()
@@ -51,6 +57,9 @@ final class Permission extends Model
         );
     }
 
+    /**
+     * @return list<self>
+     */
     public static function byGroup(string $group): array
     {
         $rows = self::newQuery()->getBaseBuilder()

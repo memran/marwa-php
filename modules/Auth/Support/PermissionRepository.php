@@ -9,6 +9,9 @@ use Marwa\DB\Facades\DB;
 
 final class PermissionRepository
 {
+    /**
+     * @return list<Permission>
+     */
     public function all(): array
     {
         $rows = Permission::newQuery()->getBaseBuilder()
@@ -43,11 +46,17 @@ final class PermissionRepository
         return $row === null ? null : Permission::newInstance(is_array($row) ? $row : (array) $row, true);
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function create(array $data): Permission
     {
         return Permission::create($data);
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function update(int $id, array $data): bool
     {
         $permission = $this->findById($id);
@@ -82,6 +91,9 @@ final class PermissionRepository
         return $permission->delete();
     }
 
+    /**
+     * @return list<Permission>
+     */
     public function byGroup(string $group): array
     {
         $rows = Permission::newQuery()->getBaseBuilder()
@@ -98,6 +110,9 @@ final class PermissionRepository
         );
     }
 
+    /**
+     * @return list<Permission>
+     */
     public function getByRoleId(int $roleId): array
     {
         $permissionIds = DB::table('role_permission')
@@ -121,6 +136,9 @@ final class PermissionRepository
         );
     }
 
+    /**
+     * @return array<string, list<Permission>>
+     */
     public function grouped(): array
     {
         $all = $this->all();
@@ -137,6 +155,9 @@ final class PermissionRepository
         return $groups;
     }
 
+    /**
+     * @return list<string>
+     */
     public function getAllSlugs(int $roleId): array
     {
         $permissions = $this->getByRoleId($roleId);

@@ -6,8 +6,8 @@ namespace App\Http\Middleware;
 
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Auth\Support\RolePolicy;
+use App\Support\PermissionGate;
 use Marwa\Framework\Navigation\MenuRegistry;
-use Marwa\Framework\Authorization\Contracts\GateInterface;
 use Marwa\Framework\Views\View;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -34,7 +34,7 @@ final class AdminThemeMiddleware implements MiddlewareInterface
         $view->share('is_authenticated', $auth->check());
 
         $user = $auth->user();
-        $gate = app(GateInterface::class);
+        $gate = app(PermissionGate::class);
 
         $isAdmin = false;
         $isSuperAdmin = false;

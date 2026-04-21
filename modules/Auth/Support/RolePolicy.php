@@ -22,6 +22,9 @@ final class RolePolicy
         self::ROLE_VIEWER,
     ];
 
+    /**
+     * @var array<string, int>
+     */
     private static array $defaultHierarchy = [
         self::ROLE_SUPER_ADMIN => 5,
         self::ROLE_ADMIN => 5,
@@ -30,6 +33,9 @@ final class RolePolicy
         self::ROLE_VIEWER => 1,
     ];
 
+    /**
+     * @var array<string, int>|null
+     */
     private static ?array $roleLevels = null;
 
     public static function hasRole(?string $userRole, string $requiredRole): bool
@@ -72,6 +78,9 @@ final class RolePolicy
         return self::hasRole($userRole, self::ROLE_VIEWER);
     }
 
+    /**
+     * @param list<string> $roles
+     */
     public static function hasAnyRole(?string $userRole, array $roles): bool
     {
         foreach ($roles as $role) {
@@ -98,6 +107,9 @@ final class RolePolicy
         return self::$roleLevels[$role] ?? self::$defaultHierarchy[$role] ?? 0;
     }
 
+    /**
+     * @param array<string, int>|null $levels
+     */
     public static function setRoleLevels(?array $levels): void
     {
         self::$roleLevels = $levels;

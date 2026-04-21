@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Dashboard\Http\Controllers;
 
 use App\Modules\Dashboard\Support\WidgetRegistry;
-use Marwa\Framework\Authorization\AuthManager as FrameworkAuthManager;
+use App\Modules\Auth\Support\AuthManager;
+use App\Support\PermissionGate;
 use Marwa\Framework\Controllers\Controller;
 use Marwa\Framework\Views\View;
 use PDO;
@@ -22,7 +23,7 @@ final class DashboardController extends Controller
 
     public function index(): ResponseInterface
     {
-        if (gate()->denies('dashboard.view')) {
+        if ($this->gate()->denies('dashboard.view')) {
             return $this->forbidden();
         }
 
@@ -42,7 +43,7 @@ final class DashboardController extends Controller
 
     public function widgets(): ResponseInterface
     {
-        if (gate()->denies('dashboard.view')) {
+        if ($this->gate()->denies('dashboard.view')) {
             return $this->forbidden();
         }
 
@@ -57,7 +58,7 @@ final class DashboardController extends Controller
 
     public function saveWidgets(): ResponseInterface
     {
-        if (gate()->denies('dashboard.view')) {
+        if ($this->gate()->denies('dashboard.view')) {
             return $this->forbidden();
         }
 
@@ -75,7 +76,7 @@ final class DashboardController extends Controller
 
     public function reset(): ResponseInterface
     {
-        if (gate()->denies('dashboard.view')) {
+        if ($this->gate()->denies('dashboard.view')) {
             return $this->forbidden();
         }
 
@@ -92,7 +93,7 @@ final class DashboardController extends Controller
 
     public function widgetContent(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        if (gate()->denies('dashboard.view')) {
+        if ($this->gate()->denies('dashboard.view')) {
             return $this->forbidden();
         }
 
@@ -113,7 +114,7 @@ final class DashboardController extends Controller
 
     public function refreshWidget(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        if (gate()->denies('dashboard.view')) {
+        if ($this->gate()->denies('dashboard.view')) {
             return $this->forbidden();
         }
 
@@ -133,14 +134,12 @@ final class DashboardController extends Controller
 
     private function getUserId(): ?int
     {
-        if (!app()->has(FrameworkAuthManager::class)) {
-            return null;
-        }
+        return app(AuthManager::class)->user()?->getId();
+    }
 
-        /** @var FrameworkAuthManager $auth */
-        $auth = app(FrameworkAuthManager::class);
-
-        return $auth->id();
+    private function gate(): PermissionGate
+    {
+        return app(PermissionGate::class);
     }
 
     private function getUserWidgets(?int $userId): array

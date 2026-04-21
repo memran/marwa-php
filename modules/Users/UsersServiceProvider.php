@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Users;
 
 use App\Modules\Users\Models\User;
-use Marwa\Framework\Authorization\Contracts\GateInterface;
 use Marwa\Framework\Navigation\MenuRegistry;
 use Marwa\Module\Contracts\ModuleServiceProviderInterface;
+use App\Support\PermissionGate;
 
 
 final class UsersServiceProvider implements ModuleServiceProviderInterface
@@ -27,7 +27,7 @@ final class UsersServiceProvider implements ModuleServiceProviderInterface
             'icon' => 'users',
         ]);
 
-        $gate = $app->make(GateInterface::class);
+        $gate = $app->make(PermissionGate::class);
         $gate->policy(User::class);
     }
 

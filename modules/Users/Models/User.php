@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Users\Models;
 
+use App\Contracts\PermissionAwareUser;
 use App\Modules\Auth\Models\Permission;
 use App\Modules\Auth\Models\Role;
 use Marwa\Framework\Database\Model;
 
-final class User extends Model
+final class User extends Model implements PermissionAwareUser
 {
     protected static ?string $table = 'users';
 

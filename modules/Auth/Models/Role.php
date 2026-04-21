@@ -11,6 +11,9 @@ final class Role extends Model
 {
     protected static ?string $table = 'roles';
 
+    /**
+     * @var list<string>
+     */
     protected static array $fillable = [
         'name',
         'slug',
@@ -24,6 +27,9 @@ final class Role extends Model
         'is_system' => 'bool',
     ];
 
+    /**
+     * @return list<Permission>
+     */
     public function permissions(): array
     {
         if (!app()->has(\Marwa\DB\Connection\ConnectionManager::class)) {
@@ -46,8 +52,7 @@ final class Role extends Model
             ->get();
 
         return array_map(
-            static fn (array $row): \App\Modules\Auth\Models\Permission => 
-                \App\Modules\Auth\Models\Permission::newInstance($row, true),
+            static fn (array $row): Permission => Permission::newInstance($row, true),
             $rows
         );
     }

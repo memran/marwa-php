@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Backend;
 
 use App\Modules\Activity\Support\ActivityRecorder;
+use App\Modules\Auth\Support\AuthManager;
 use App\Modules\DashboardStatus\DashboardStatusCards;
 use App\Modules\Dashboard\Support\WidgetRegistry;
-use Marwa\Framework\Authorization\AuthManager as FrameworkAuthManager;
+use App\Support\PermissionGate;
 use Marwa\Framework\Controllers\Controller;
 use Marwa\Framework\Views\View;
 use Psr\Http\Message\ResponseInterface;
@@ -22,6 +23,12 @@ final class DashboardController extends Controller
 
     public function index(): ResponseInterface
     {
+        $gate = $this->gate();
+
+        if (!$gate->allows('dashboard.view')) {
+            return $this->redirect('/admin/login');
+        }
+
         $userId = $this->getUserId();
         $widgets = $this->getUserWidgets($userId);
 
@@ -37,6 +44,12 @@ final class DashboardController extends Controller
 
     public function widgets(): ResponseInterface
     {
+        $gate = $this->gate();
+
+        if (!$gate->allows('dashboard.view')) {
+            return $this->json(['error' => 'Forbidden'], 403);
+        }
+
         $userId = $this->getUserId();
         $widgets = $this->getUserWidgets($userId);
 
@@ -48,6 +61,12 @@ final class DashboardController extends Controller
 
     public function saveWidgets(): ResponseInterface
     {
+        $gate = $this->gate();
+
+        if (!$gate->allows('dashboard.view')) {
+            return $this->json(['error' => 'Forbidden'], 403);
+        }
+
         $userId = $this->getUserId();
         $widgets = request('widgets', []);
 
@@ -62,6 +81,12 @@ final class DashboardController extends Controller
 
     public function reset(): ResponseInterface
     {
+        $gate = $this->gate();
+
+        if (!$gate->allows('dashboard.view')) {
+            return $this->json(['error' => 'Forbidden'], 403);
+        }
+
         $userId = $this->getUserId();
 
         if ($userId !== null) {
@@ -75,6 +100,12 @@ final class DashboardController extends Controller
 
     public function widgetContent(string $id): ResponseInterface
     {
+        $gate = $this->gate();
+
+        if (!$gate->allows('dashboard.view')) {
+            return $this->json(['error' => 'Forbidden'], 403);
+        }
+
         $widget = $this->widgetRegistry->get($id);
 
         if (!$widget) {
@@ -91,6 +122,12 @@ final class DashboardController extends Controller
 
     public function refreshWidget(string $id): ResponseInterface
     {
+        $gate = $this->gate();
+
+        if (!$gate->allows('dashboard.view')) {
+            return $this->json(['error' => 'Forbidden'], 403);
+        }
+
         $widget = $this->widgetRegistry->get($id);
 
         if (!$widget) {
@@ -108,14 +145,12 @@ final class DashboardController extends Controller
 
     private function getUserId(): ?int
     {
-        if (!app()->has(FrameworkAuthManager::class)) {
-            return null;
-        }
+        return app(AuthManager::class)->user()?->getId();
+    }
 
-        /** @var FrameworkAuthManager $auth */
-        $auth = app(FrameworkAuthManager::class);
-
-        return $auth->id();
+    private function gate(): PermissionGate
+    {
+        return app(PermissionGate::class);
     }
 
     /**

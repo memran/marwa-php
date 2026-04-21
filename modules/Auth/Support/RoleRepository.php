@@ -11,6 +11,9 @@ use Marwa\DB\Facades\DB;
 
 final class RoleRepository
 {
+    /**
+     * @return list<Role>
+     */
     public function all(): array
     {
         $rows = Role::newQuery()->getBaseBuilder()
@@ -44,11 +47,17 @@ final class RoleRepository
         return $row === null ? null : Role::newInstance(is_array($row) ? $row : (array) $row, true);
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function create(array $data): Role
     {
         return Role::create($data);
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function update(int $id, array $data): bool
     {
         $role = $this->findById($id);
@@ -95,6 +104,9 @@ final class RoleRepository
         return $builder->count() > 0;
     }
 
+    /**
+     * @return list<Permission>
+     */
     public function getPermissions(int $roleId): array
     {
         $permissionIds = DB::table('role_permission')
@@ -118,6 +130,9 @@ final class RoleRepository
         );
     }
 
+    /**
+     * @param list<int|string> $permissionIds
+     */
     public function syncPermissions(int $roleId, array $permissionIds): bool
     {
         DB::table('role_permission')

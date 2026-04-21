@@ -14,7 +14,8 @@ use Psr\Http\Server\RequestHandlerInterface;
 final class RequirePermission implements MiddlewareInterface
 {
     public function __construct(private readonly ?string $permission = null)
-    {}
+    {
+    }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -40,6 +41,9 @@ final class RequirePermission implements MiddlewareInterface
         return new self($permission);
     }
 
+    /**
+     * @param list<string> $permissions
+     */
     public static function forAnyPermission(array $permissions): AnyPermissionMiddleware
     {
         return new AnyPermissionMiddleware(implode(',', $permissions));
@@ -60,88 +64,5 @@ final class RequirePermission implements MiddlewareInterface
         $user = app(AuthManager::class)->user();
 
         return $user !== null && $user->hasPermission($permission);
-    }
-}
-
-final class AnyPermissionMiddleware implements MiddlewareInterface
-{
-    public function __construct(private readonly ?string $permissions = null)
-    {}
-
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
-    {
-        $permissions = $this->permissions ?? $request->getAttribute('required_permissions', '');
-        $permissionList = array_filter(array_map('trim', explode(',', $permissions)));
-
-        if (empty($permissionList)) {
-            return $handler->handle($request);
-        }
-
-        foreach ($permissionList as $permission) {
-            if (app(AuthManager::class)->user()?->hasPermission($permission) === true) {
-                return $handler->handle($request);
-            }
-        }
-
-        return Response::json([
-            'error' => 'Forbidden',
-            'message' => 'You do not have any of the required permissions.',
-            'required_permissions' => $permissionList,
-        ], 403);
-    }
-}
-
-final class RequireRole implements MiddlewareInterface
-{
-    public function __construct(private readonly ?string $role = null)
-    {}
-
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
-    {
-        $role = $this->role ?? $request->getAttribute('required_role');
-
-        if ($role === null) {
-            return $handler->handle($request);
-        }
-
-        $currentRole = app(\App\Modules\Auth\Support\AuthManager::class)->user()?->role();
-
-        if ($currentRole === null || !\App\Modules\Auth\Support\RolePolicy::hasRole((string) $currentRole->getAttribute('slug'), $role)) {
-            return Response::json([
-                'error' => 'Forbidden',
-                'message' => "You don't have the required role: {$role}",
-                'required_role' => $role,
-            ], 403);
-        }
-
-        return $handler->handle($request);
-    }
-}
-
-final class MinimumLevelMiddleware implements MiddlewareInterface
-{
-    public function __construct(private readonly ?int $level = null)
-    {}
-
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
-    {
-        $level = $this->level ?? (int) $request->getAttribute('minimum_level', 0);
-
-        if ($level <= 0) {
-            return $handler->handle($request);
-        }
-
-        $currentRole = app(\App\Modules\Auth\Support\AuthManager::class)->user()?->role();
-        $currentLevel = $currentRole !== null ? \App\Modules\Auth\Support\RolePolicy::getRoleLevel((string) $currentRole->getAttribute('slug')) : 0;
-
-        if ($currentLevel < $level) {
-            return Response::json([
-                'error' => 'Forbidden',
-                'message' => "You don't have the required access level.",
-                'required_level' => $level,
-            ], 403);
-        }
-
-        return $handler->handle($request);
     }
 }

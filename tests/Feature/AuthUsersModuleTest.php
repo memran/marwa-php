@@ -9,6 +9,7 @@ use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Models\Permission;
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Auth\Database\Seeders\RolesPermissionsSeeder;
+use App\Modules\Auth\Support\RoleRepository;
 use App\Modules\Users\Database\Seeders\AdminUserSeeder;
 use Marwa\DB\Connection\ConnectionManager;
 use Marwa\DB\Schema\MigrationRepository;
@@ -744,6 +745,76 @@ TWIG
         $this->app = null;
     }
 
+    public function testDashboardRouteRejectsAuthenticatedUsersWithoutDashboardPermission(): void
+    {
+        $this->app = new Application($this->basePath);
+        $this->app->make(AppBootstrapper::class)->bootstrap();
+        $this->migrateAuthAndUserModules($this->app);
+        $this->seedAuthAndUsers();
+        (new AuthManager())->logout();
+        $kernel = $this->app->make(HttpKernel::class);
+
+        $csrf = $this->app->security()->csrfToken();
+        $login = $kernel->handle($this->request('POST', '/admin/login', [
+            '_token' => $csrf,
+            'email' => 'admin@marwa.test',
+            'password' => 'ExampleAdminPassword123!',
+        ]));
+        self::assertSame(302, $login->getStatusCode());
+        self::assertTrue((new AuthManager())->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+
+        $usersPermission = Permission::findBySlug('users.view');
+        self::assertInstanceOf(Permission::class, $usersPermission);
+
+        $role = Role::create([
+            'name' => 'Limited Support',
+            'slug' => 'limited_support',
+            'level' => 2,
+            'description' => 'Can view users but not dashboard.',
+            'is_system' => 0,
+        ]);
+
+        $roleRepo = new RoleRepository();
+        $roleRepo->syncPermissions((int) $role->getKey(), [(int) $usersPermission->getKey()]);
+
+        $user = User::create([
+            'name' => 'Limited User',
+            'email' => 'limited@marwa.test',
+            'password' => password_hash('LimitedUserPassword123!', PASSWORD_DEFAULT),
+            'role_id' => (int) $role->getKey(),
+            'is_active' => true,
+        ]);
+
+        self::assertInstanceOf(User::class, $user);
+        $this->app->container()->addShared(
+            AuthManager::class,
+            new class($user) {
+                public function __construct(private readonly User $user)
+                {
+                }
+
+                public function check(): bool
+                {
+                    return true;
+                }
+
+                public function user(): User
+                {
+                    return $this->user;
+                }
+            },
+            true
+        );
+
+        $dashboard = $kernel->handle($this->request('GET', '/admin/dashboard'));
+        self::assertSame(403, $dashboard->getStatusCode());
+        self::assertStringContainsString('Forbidden', (string) $dashboard->getBody());
+        self::assertStringContainsString('dashboard.view', (string) $dashboard->getBody());
+
+        $this->connections = null;
+        $this->app = null;
+    }
+
     /**
      * @param array<string, mixed> $body
      */
@@ -844,10 +915,10 @@ TWIG
     private function seedAuthAndUsers(): void
     {
         if (!class_exists(RolesPermissionsSeeder::class, false)) {
-            require_once __DIR__ . '/../../modules/Auth/Database/Seeders/RolesPermissionsSeeder.php';
+            require_once __DIR__ . '/../../modules/Auth/database/Seeders/RolesPermissionsSeeder.php';
         }
         if (!class_exists(AdminUserSeeder::class, false)) {
-            require_once __DIR__ . '/../../modules/Users/Database/Seeders/AdminUserSeeder.php';
+            require_once __DIR__ . '/../../modules/Users/database/Seeders/AdminUserSeeder.php';
         }
         (new RolesPermissionsSeeder())->run();
         (new AdminUserSeeder())->run();

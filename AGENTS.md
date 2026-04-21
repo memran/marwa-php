@@ -114,16 +114,17 @@
 - `composer analyse` runs PHPStan for this starter.
 - `php marwa` runs the Marwa CLI for local manual checks.
 
-## Style
+## PHP Coding Policy
 
-- Use `declare(strict_types=1);`.
-- Follow PSR-1, PSR-12, and PSR-4.
-- Use 4-space indentation.
-- Prefer typed properties and explicit return types.
-- Use PascalCase for classes and conventional suffixes like `*Interface`, `*Exception`, and `*ServiceProvider`.
-- Prefer small, single-purpose classes and keep controllers, middleware, and support classes focused.
-- Use constants or enums for finite states when that improves clarity.
-- Keep files small: max 200 lines per class, 20 lines per method
+- Every PHP file must declare `strict_types=1`.
+- Follow PSR-1, PSR-12, and PSR-4 consistently.
+- Keep classes small and single-purpose; prefer thin controllers, middleware, and services.
+- Use typed properties, typed parameters, and explicit return types wherever possible.
+- Prefer framework helpers and existing project services over custom utility code.
+- Use guard clauses and early returns instead of deep nesting.
+- Keep public APIs minimal and stable.
+- Do not add abstractions unless they remove real duplication or clarify a genuine boundary.
+- Keep files under about 200 lines and methods under about 20 lines when practical.
 
 ## Engineering Principles
 
@@ -137,14 +138,38 @@
 - Treat reusable cross-app behavior as a framework concern and starter-specific behavior as an app concern.
 - donot run raw sql query.Use ORM or Query Builder
 
-## Testing
+## Testing Policy
 
-- Add starter tests in `tests/` using `*Test.php`.
-- Test starter behavior only: routes, bootstrapping, custom middleware, starter commands, config integration, and module wiring.
-- Do not add tests for framework internals already covered by `vendor/memran/marwa-framework/`.
-- Prefer behavior-level assertions using real requests and responses where practical.
-- Every new public starter service method should have app-level test coverage when it owns behavior not already guaranteed by the framework.
-- Run `composer test`, then `composer analyse`.
+- Write tests for behavior, not implementation details.
+- Put app-specific tests under `tests/Unit` and `tests/Feature`.
+- Prefer feature tests for route, middleware, controller, and module wiring behavior.
+- Use unit tests for pure logic, validation rules, repositories, and small services.
+- Cover both success and failure paths for any non-trivial logic.
+- Assert real outcomes: response status, view data, redirects, flash data, and database state.
+- Keep test names descriptive and behavior-focused.
+- Use shared fixtures or helpers sparingly; avoid building a heavy test framework inside `tests/`.
+- Add tests whenever you introduce a new public app-specific method or change user-visible behavior.
+- Run `composer test` before merging test-related work.
+
+## Static Analysis Policy
+
+- Code must pass PHPStan level 6 without suppressing real issues.
+- Treat undefined properties, mixed return values, and implicit nullability as defects to fix, not ignore.
+- Use precise types for collections, arrays, and domain objects where possible.
+- Add PHPDoc only when native types are insufficient, especially for array shapes or templated collections.
+- Avoid broad `mixed` usage; narrow it at the boundary immediately.
+- Keep ignored errors rare and well-justified, and only for framework or tool limitations.
+- Prefer refactoring code to satisfy analysis instead of adding new ignores.
+- Run `composer analyse` before merging analysis-related work.
+
+## Review Checklist
+
+- Is the class doing one job only?
+- Are inputs validated and outputs typed?
+- Is the code covered by the right kind of test?
+- Does it pass `composer test` and `composer analyse` locally?
+- Does it reuse existing Marwa framework features instead of re-implementing them?
+- Is the change minimal, readable, and easy to extend?
 
 ## Documentation
 

@@ -21,10 +21,6 @@ final class RolesPermissionsSeeder implements Seeder
         $roleRepo = app(RoleRepository::class);
         $permRepo = app(PermissionRepository::class);
 
-        if (count($roleRepo->all()) > 0) {
-            return;
-        }
-
         $roles = [
             ['name' => 'Super Admin', 'slug' => 'super_admin', 'level' => 5, 'description' => 'Full system access', 'is_system' => 1],
             ['name' => 'Admin', 'slug' => 'admin', 'level' => 5, 'description' => 'Administrative access', 'is_system' => 1],
@@ -55,13 +51,13 @@ final class RolesPermissionsSeeder implements Seeder
 
         $createdRoles = [];
         foreach ($roles as $roleData) {
-            $role = $roleRepo->create($roleData);
+            $role = $this->upsertRole($roleRepo, $roleData);
             $createdRoles[$roleData['slug']] = $role->getKey();
         }
 
         $createdPerms = [];
         foreach ($permissions as $permData) {
-            $perm = $permRepo->create($permData);
+            $perm = $this->upsertPermission($permRepo, $permData);
             $createdPerms[$permData['slug']] = $perm->getKey();
         }
 
@@ -89,5 +85,37 @@ final class RolesPermissionsSeeder implements Seeder
                 $roleRepo->syncPermissions($createdRoles[$roleSlug], $permIds);
             }
         }
+    }
+
+    /**
+     * @param array{name:string,slug:string,level:int,description:string,is_system:int} $roleData
+     */
+    private function upsertRole(RoleRepository $roleRepo, array $roleData): Role
+    {
+        $role = $roleRepo->findBySlug($roleData['slug']);
+        if ($role instanceof Role) {
+            $role->fill($roleData);
+            $role->save();
+
+            return $role;
+        }
+
+        return $roleRepo->create($roleData);
+    }
+
+    /**
+     * @param array{name:string,slug:string,group:string,description?:string} $permData
+     */
+    private function upsertPermission(PermissionRepository $permRepo, array $permData): Permission
+    {
+        $permission = $permRepo->findBySlug($permData['slug']);
+        if ($permission instanceof Permission) {
+            $permission->fill($permData);
+            $permission->save();
+
+            return $permission;
+        }
+
+        return $permRepo->create($permData);
     }
 }

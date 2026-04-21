@@ -7,9 +7,12 @@ parameters:
         - tests
     bootstrapFiles:
         - vendor/autoload.php
+        - phpstan-stubs/framework.php
     reportUnmatchedIgnoredErrors: true
     ignoreErrors:
         - identifier: staticMethod.notFound
           path: routes/web.php
         - identifier: staticMethod.notFound
           path: routes/api.php
+        - identifier: staticMethod.notFound
+          path: modules/Auth/routes/http.php

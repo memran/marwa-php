@@ -88,6 +88,9 @@ final class AuthController extends Controller
         return $this->redirect('/admin/forgot-password');
     }
 
+    /**
+     * @param array<string, string> $vars
+     */
     public function resetPassword(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
         $token = $this->resolveResetToken($request, $vars);
@@ -99,6 +102,9 @@ final class AuthController extends Controller
         ]));
     }
 
+    /**
+     * @param array<string, string> $vars
+     */
     public function updatePassword(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
         $validated = $this->validate([
