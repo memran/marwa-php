@@ -9,7 +9,6 @@ use App\Modules\Auth\Http\Middleware\RequireAdminAuthentication;
 use Marwa\Framework\Facades\Router;
 
 Router::get('/', [HomeController::class, 'index'])->name('home')->register();
-Router::get('/admin', static fn (): \Psr\Http\Message\ResponseInterface => \Marwa\Router\Response::redirect('/admin/dashboard', 302))->register();
 
 Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class]], static function ($routes): void {
     $routes->get('/', static fn (): \Psr\Http\Message\ResponseInterface => \Marwa\Router\Response::redirect('/admin/dashboard', 302))

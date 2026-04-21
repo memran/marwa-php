@@ -1,22 +1,16 @@
 {% extends "layout.twig" %}
 
-{% block title %}MarwaPHP Framework{% endblock %}
-
 {% block content %}
-<section class="grid items-center gap-12 lg:grid-cols-[1.2fr_0.8fr]">
-  <div>
+<div class="grid gap-10 px-4 py-10 lg:grid-cols-3 lg:items-start lg:px-10">
+  <div class="space-y-5 lg:col-span-2">
     {% include '@Shared/components/welcome/hero.twig' %}
     {% include '@Shared/components/welcome/pillars.twig' %}
-    {% include '@Shared/components/welcome/boot-flow.twig' %}
   </div>
 
-  <aside class="animate-slide-in">
-    <div class="mb-5">
-      {% include '@Shared/components/welcome/runtime-snapshot.twig' %}
-    </div>
-    <div class="mt-5">
-      {% include '@Shared/components/welcome/architecture-strip.twig' %}
-    </div>
-  </aside>
-</section>
+  <div class="space-y-5 lg:col-span-1 lg:pt-10">
+    {% include '@Shared/components/welcome/architecture-strip.twig' %}
+    {% include '@Shared/components/welcome/boot-flow.twig' %}
+    {% include '@Shared/components/welcome/runtime-snapshot.twig' %}
+  </div>
+</div>
 {% endblock %}

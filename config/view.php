@@ -8,7 +8,7 @@ return [
     'debug' => (bool) env('APP_DEBUG', false),
     'extension' => '.twig',
     'cache' => [
-        'enabled' => !in_array((string) env('APP_ENV', 'production'), ['local', 'development'], true),
+        'enabled' => false,
     ],
     'extensions' => [
         App\View\Extensions\SecurityViewExtension::class,
