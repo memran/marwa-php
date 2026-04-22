@@ -24,8 +24,7 @@ final class AdminUserSeeder implements Seeder
         $password = (string) env('ADMIN_BOOTSTRAP_PASSWORD', 'ExampleAdminPassword123!');
 
         $adminRole = $this->ensureRole('Admin', 'admin', 5, 'Administrative access', 1);
-        $this->ensureRole('Manager', 'manager', 4, 'Team management', 0);
-        $this->ensureRole('Staff', 'staff', 2, 'Operational access', 0);
+        $this->ensureRole('User', 'user', 1, 'Basic user access', 1);
 
         $roleId = (int) $adminRole->getKey();
 
