@@ -126,6 +126,14 @@ final class NotificationsController extends Controller
         $result = $this->repository->delete($id, $user->getKey());
 
         if ($result) {
+            app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+                'notification.deleted',
+                'Deleted notification.',
+                $this->auth->user() instanceof User ? $this->auth->user() : null,
+                'notification',
+                $id,
+                ['state' => ['id' => $id]]
+            );
             session()->flash('notifications.notice', 'Notification deleted successfully.');
             return $this->redirect('/admin/notifications');
         }
@@ -158,8 +166,27 @@ final class NotificationsController extends Controller
 
         if ($targetUserId !== null) {
             $this->service->send((int) $targetUserId, $type, $title, $message, $actionUrl);
+            app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+                'notification.created',
+                'Created notification.',
+                $this->auth->user() instanceof User ? $this->auth->user() : null,
+                'notification',
+                null,
+                ['state' => ['type' => $type, 'title' => $title]]
+            );
         } else {
-            $this->service->sendToAdmins($type, $title, $message, $actionUrl);
+            $created = $this->service->sendToAdmins($type, $title, $message, $actionUrl);
+
+            if ($created > 0) {
+                app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+                    'notification.created',
+                    'Created notification.',
+                    $this->auth->user() instanceof User ? $this->auth->user() : null,
+                    'notification',
+                    null,
+                    ['state' => ['type' => $type, 'title' => $title, 'count' => $created]]
+                );
+            }
         }
 
         return $this->json(['success' => true, 'message' => 'Notification sent']);

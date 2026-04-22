@@ -23,7 +23,7 @@ final class ActivityController extends Controller
         $state = $search->state();
         $activities = $recorder->paginated($state['query'], $state['page']);
 
-        return $this->view('@activity/index', [
+        return $this->view('@user_activity/index', [
             'activities' => $activities,
             'query' => $state['query'],
             'pagination' => $pagination->viewData($activities, '/admin/activity', [

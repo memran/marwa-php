@@ -13,6 +13,7 @@ return [
     'extensions' => [
         App\View\Extensions\SecurityViewExtension::class,
         App\View\Extensions\NavigationViewExtension::class,
+        App\View\Extensions\UserAgentViewExtension::class,
         Marwa\View\Extension\AlpineExtension::class,
         Marwa\View\Extension\DateExtension::class,
         Marwa\View\Extension\HtmlExtension::class,

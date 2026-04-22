@@ -120,6 +120,10 @@ final class User extends Model implements PermissionAwareUser
 
     public function hasPermission(string $permission): bool
     {
+        if ($this->hasRole('admin')) {
+            return true;
+        }
+
         return in_array($permission, $this->getPermissions(), true);
     }
 

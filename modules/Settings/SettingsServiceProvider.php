@@ -43,6 +43,7 @@ final class SettingsServiceProvider implements ModuleServiceProviderInterface
                 'parent' => 'admin.system',
                 'order' => 10,
                 'icon' => 'settings',
+                'permission' => 'settings.view',
             ]);
         }
     }

@@ -39,49 +39,98 @@
 </div>
 
 <nav class="grid gap-1" aria-label="Primary">
-  {% set menuTree = mainMenu is defined and mainMenu is not empty ? mainMenu : menu_tree() %}
-  {% for section in menuTree %}
-    {% if section.children is not empty %}
-      <span class="{{ section_header }} {% if not loop.first %}mt-2{% endif %}">{{ section.label }}</span>
+  {% set can_dashboard = can_dashboard|default(false) %}
+  {% set can_notifications = can_notifications|default(false) %}
+  {% set can_users = can_users|default(false) %}
+  {% set can_roles = can_roles|default(false) %}
+  {% set can_permissions = can_permissions|default(false) %}
+  {% set can_activity = can_activity|default(false) %}
+  {% set can_settings = can_settings|default(false) %}
+  {% set can_database = can_database|default(false) %}
+  {% set has_user_space = can_dashboard or can_notifications %}
+  {% set has_management = can_users or can_roles or can_permissions or can_activity %}
+  {% set has_system = can_settings or can_database %}
 
-      {% for item in section.children %}
-        <div class="grid gap-1">
-          <a class="{{ nav_link_base }} rounded-2xl border border-transparent {% if currentPath starts with item.url %}{{ nav_link_active }} border-cyan-300/20 bg-cyan-400/10 shadow-[0_8px_24px_rgba(8,145,178,0.08)]{% else %}{{ nav_link_inactive }} hover:border-white/10 hover:bg-white/5{% endif %}" href="{{ item.url }}" {% if currentPath starts with item.url %}aria-current="page"{% endif %}>
-            <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
-              {% if item.icon is not empty %}
-                {% include 'components/icon.twig' with { name: item.icon, class: 'h-4 w-4 shrink-0' } only %}
-              {% else %}
-                <span class="h-2 w-2 rounded-full bg-slate-400"></span>
-              {% endif %}
-            </span>
-            <span class="truncate">{{ item.label }}</span>
-            {% if item.name == 'notifications' and unread_notification_count|default(0) > 0 %}
-              <span class="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[0.65rem] font-bold text-white">
-                {{ unread_notification_count > 9 ? '9+' : unread_notification_count }}
-              </span>
-            {% endif %}
-          </a>
-
-          {% if item.children is not empty %}
-            <div class="ml-4 grid gap-2 border-l border-cyan-300/15 pl-4 py-1">
-              {% for child in item.children %}
-                <a class="{{ nav_link_base }} rounded-xl border border-white/5 bg-white/[0.03] py-2.5 text-[0.78rem] shadow-[0_1px_0_rgba(255,255,255,0.02)] {% if currentPath starts with child.url %}{{ nav_link_active }} border-cyan-300/20 bg-cyan-400/10{% else %}{{ nav_link_inactive }} hover:border-white/10 hover:bg-white/5{% endif %}" href="{{ child.url }}" {% if currentPath starts with child.url %}aria-current="page"{% endif %}>
-                  <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg">
-                    {% if child.icon is not empty %}
-                      {% include 'components/icon.twig' with { name: child.icon, class: 'h-3.5 w-3.5 shrink-0' } only %}
-                    {% else %}
-                      <span class="h-1.5 w-1.5 rounded-full bg-cyan-300/70"></span>
-                    {% endif %}
-                  </span>
-                  <span class="truncate">{{ child.label }}</span>
-                </a>
-              {% endfor %}
-            </div>
-          {% endif %}
-        </div>
-      {% endfor %}
+  {% if has_user_space %}
+    <span class="{{ section_header }}">User Space</span>
+    {% if can_dashboard %}
+      <a class="{{ nav_link_base }} rounded-2xl border border-transparent {% if currentPath starts with '/admin/dashboard' %}{{ nav_link_active }} border-cyan-300/20 bg-cyan-400/10 shadow-[0_8px_24px_rgba(8,145,178,0.08)]{% else %}{{ nav_link_inactive }} hover:border-white/10 hover:bg-white/5{% endif %}" href="/admin/dashboard" {% if currentPath starts with '/admin/dashboard' %}aria-current="page"{% endif %}>
+        <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
+          {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-4 w-4 shrink-0' } only %}
+        </span>
+        <span class="truncate">Dashboard</span>
+      </a>
     {% endif %}
-  {% endfor %}
+    {% if can_notifications %}
+      <a class="{{ nav_link_base }} rounded-2xl border border-transparent {% if currentPath starts with '/admin/notifications' %}{{ nav_link_active }} border-cyan-300/20 bg-cyan-400/10 shadow-[0_8px_24px_rgba(8,145,178,0.08)]{% else %}{{ nav_link_inactive }} hover:border-white/10 hover:bg-white/5{% endif %}" href="/admin/notifications" {% if currentPath starts with '/admin/notifications' %}aria-current="page"{% endif %}>
+        <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
+          {% include 'components/icon.twig' with { name: 'bell', class: 'h-4 w-4 shrink-0' } only %}
+        </span>
+        <span class="truncate">Notifications</span>
+        {% if unread_notification_count|default(0) > 0 %}
+          <span class="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[0.65rem] font-bold text-white">
+            {{ unread_notification_count > 9 ? '9+' : unread_notification_count }}
+          </span>
+        {% endif %}
+      </a>
+    {% endif %}
+  {% endif %}
+
+  {% if has_management %}
+    <span class="{{ section_header }} {% if has_user_space %}mt-2{% endif %}">Management</span>
+    {% if can_users %}
+      <a class="{{ nav_link_base }} rounded-2xl border border-transparent {% if currentPath starts with '/admin/users' %}{{ nav_link_active }} border-cyan-300/20 bg-cyan-400/10 shadow-[0_8px_24px_rgba(8,145,178,0.08)]{% else %}{{ nav_link_inactive }} hover:border-white/10 hover:bg-white/5{% endif %}" href="/admin/users" {% if currentPath starts with '/admin/users' %}aria-current="page"{% endif %}>
+        <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
+          {% include 'components/icon.twig' with { name: 'users', class: 'h-4 w-4 shrink-0' } only %}
+        </span>
+        <span class="truncate">Users</span>
+      </a>
+    {% endif %}
+    {% if can_roles %}
+      <a class="{{ nav_link_base }} rounded-2xl border border-transparent {% if currentPath starts with '/admin/roles' %}{{ nav_link_active }} border-cyan-300/20 bg-cyan-400/10 shadow-[0_8px_24px_rgba(8,145,178,0.08)]{% else %}{{ nav_link_inactive }} hover:border-white/10 hover:bg-white/5{% endif %}" href="/admin/roles" {% if currentPath starts with '/admin/roles' %}aria-current="page"{% endif %}>
+        <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
+          {% include 'components/icon.twig' with { name: 'shield', class: 'h-4 w-4 shrink-0' } only %}
+        </span>
+        <span class="truncate">Roles</span>
+      </a>
+    {% endif %}
+    {% if can_permissions %}
+      <a class="{{ nav_link_base }} rounded-2xl border border-transparent {% if currentPath starts with '/admin/permissions' %}{{ nav_link_active }} border-cyan-300/20 bg-cyan-400/10 shadow-[0_8px_24px_rgba(8,145,178,0.08)]{% else %}{{ nav_link_inactive }} hover:border-white/10 hover:bg-white/5{% endif %}" href="/admin/permissions" {% if currentPath starts with '/admin/permissions' %}aria-current="page"{% endif %}>
+        <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
+          {% include 'components/icon.twig' with { name: 'key-round', class: 'h-4 w-4 shrink-0' } only %}
+        </span>
+        <span class="truncate">Permissions</span>
+      </a>
+    {% endif %}
+    {% if can_activity %}
+      <a class="{{ nav_link_base }} rounded-2xl border border-transparent {% if currentPath starts with '/admin/activity' %}{{ nav_link_active }} border-cyan-300/20 bg-cyan-400/10 shadow-[0_8px_24px_rgba(8,145,178,0.08)]{% else %}{{ nav_link_inactive }} hover:border-white/10 hover:bg-white/5{% endif %}" href="/admin/activity" {% if currentPath starts with '/admin/activity' %}aria-current="page"{% endif %}>
+        <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
+          {% include 'components/icon.twig' with { name: 'activity', class: 'h-4 w-4 shrink-0' } only %}
+        </span>
+        <span class="truncate">Activity</span>
+      </a>
+    {% endif %}
+  {% endif %}
+
+  {% if has_system %}
+    <span class="{{ section_header }} {% if has_user_space or has_management %}mt-2{% endif %}">System</span>
+    {% if can_settings %}
+      <a class="{{ nav_link_base }} rounded-2xl border border-transparent {% if currentPath starts with '/admin/settings' %}{{ nav_link_active }} border-cyan-300/20 bg-cyan-400/10 shadow-[0_8px_24px_rgba(8,145,178,0.08)]{% else %}{{ nav_link_inactive }} hover:border-white/10 hover:bg-white/5{% endif %}" href="/admin/settings" {% if currentPath starts with '/admin/settings' %}aria-current="page"{% endif %}>
+        <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
+          {% include 'components/icon.twig' with { name: 'settings', class: 'h-4 w-4 shrink-0' } only %}
+        </span>
+        <span class="truncate">Settings</span>
+      </a>
+    {% endif %}
+    {% if can_database %}
+      <a class="{{ nav_link_base }} rounded-2xl border border-transparent {% if currentPath starts with '/admin/database' %}{{ nav_link_active }} border-cyan-300/20 bg-cyan-400/10 shadow-[0_8px_24px_rgba(8,145,178,0.08)]{% else %}{{ nav_link_inactive }} hover:border-white/10 hover:bg-white/5{% endif %}" href="/admin/database" {% if currentPath starts with '/admin/database' %}aria-current="page"{% endif %}>
+        <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
+          {% include 'components/icon.twig' with { name: 'database', class: 'h-4 w-4 shrink-0' } only %}
+        </span>
+        <span class="truncate">Database</span>
+      </a>
+    {% endif %}
+  {% endif %}
 
   {# Footer #}
   <div class="mt-2 pt-2 border-t border-white/10">

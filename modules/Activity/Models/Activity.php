@@ -18,6 +18,8 @@ final class Activity extends Model
         'description',
         'actor_name',
         'actor_email',
+        'ip_address',
+        'user_agent',
         'subject_type',
         'subject_id',
         'details',

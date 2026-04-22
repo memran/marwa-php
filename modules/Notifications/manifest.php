@@ -23,5 +23,6 @@ return [
     ],
     'migrations' => [
         'database/migrations/2026_04_14_000002_create_notifications_table.php',
+        'database/migrations/2026_04_14_000003_insert_notifications_permissions.php',
     ],
 ];

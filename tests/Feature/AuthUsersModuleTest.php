@@ -7,10 +7,11 @@ namespace Tests\Feature;
 use App\Modules\Users\Models\User;
 use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Models\Permission;
+use App\Modules\Notifications\Models\Notification;
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Auth\Database\Seeders\RolesPermissionsSeeder;
 use App\Modules\Auth\Support\RoleRepository;
-use App\Modules\Users\Database\Seeders\AdminUserSeeder;
+use Database\Seeders\AdminUserSeeder;
 use Marwa\DB\Connection\ConnectionManager;
 use Marwa\DB\Schema\MigrationRepository;
 use Marwa\Framework\Application;
@@ -392,6 +393,17 @@ TWIG
         self::assertSame(302, $create->getStatusCode());
         self::assertStringEndsWith('/admin/users', $create->getHeaderLine('Location'));
 
+        $createWithoutConfirmation = $kernel->handle($this->request('POST', '/admin/users', [
+            '_token' => $csrf,
+            'name' => 'Operations Lead 2',
+            'email' => 'ops2@example.test',
+            'role' => 'manager',
+            'is_active' => '1',
+            'password' => 'Secret123!',
+        ]));
+        self::assertSame(302, $createWithoutConfirmation->getStatusCode());
+        self::assertStringEndsWith('/admin/users', $createWithoutConfirmation->getHeaderLine('Location'));
+
         $duplicateCreate = $kernel->handle($this->request('POST', '/admin/users', [
             '_token' => $csrf,
             'name' => 'Operations Lead Copy',
@@ -459,12 +471,28 @@ TWIG
             '_token' => $csrf,
             'name' => 'Operations Manager',
             'email' => 'ops@example.test',
-            'role' => 'staff',
+            'role_id' => $this->roleId('manager'),
             'password' => '',
             'password_confirmation' => '',
         ]));
         self::assertSame(302, $update->getStatusCode());
         self::assertStringContainsString('/admin/users', $update->getHeaderLine('Location'));
+        self::assertSame(0, (int) User::findBy('email', 'ops@example.test')->getAttribute('is_active'));
+
+        $persisted->forceFill(['is_active' => true])->saveOrFail();
+
+        $disable = $kernel->handle($this->request('POST', '/admin/users/' . $persisted->getKey(), [
+            '_token' => $csrf,
+            'name' => 'Operations Manager',
+            'email' => 'ops@example.test',
+            'role_id' => $this->roleId('manager'),
+            'is_active' => '0',
+            'password' => '',
+            'password_confirmation' => '',
+        ]));
+        self::assertSame(302, $disable->getStatusCode());
+        self::assertStringContainsString('/admin/users', $disable->getHeaderLine('Location'));
+        self::assertSame(0, (int) User::findBy('email', 'ops@example.test')->getAttribute('is_active'));
 
         $delete = $kernel->handle($this->request('POST', '/admin/users/' . $created->getKey() . '/delete', [
             '_token' => $csrf,
@@ -495,6 +523,8 @@ TWIG
         self::assertStringContainsString('Recent activity', (string) $activityPage->getBody());
         self::assertStringContainsString('auth.login', (string) $activityPage->getBody());
         self::assertStringContainsString('Signed in to the admin console.', (string) $activityPage->getBody());
+        self::assertStringContainsString('user.disabled', (string) $activityPage->getBody());
+        self::assertStringContainsString('Disabled user account.', (string) $activityPage->getBody());
         self::assertStringContainsString('user.deleted', (string) $activityPage->getBody());
         self::assertStringContainsString('Soft deleted user account.', (string) $activityPage->getBody());
         self::assertStringContainsString('user.restored', (string) $activityPage->getBody());
@@ -666,6 +696,12 @@ TWIG
         self::assertSame('/admin/roles', $delete->getHeaderLine('Location'));
         self::assertNull(Role::findBySlug('support_agent'));
 
+        $activityPage = $kernel->handle($this->request('GET', '/admin/activity'));
+        self::assertSame(200, $activityPage->getStatusCode());
+        self::assertStringContainsString('role.created', (string) $activityPage->getBody());
+        self::assertStringContainsString('role.updated', (string) $activityPage->getBody());
+        self::assertStringContainsString('role.deleted', (string) $activityPage->getBody());
+
         $this->connections = null;
         $this->app = null;
     }
@@ -730,6 +766,13 @@ TWIG
         self::assertInstanceOf(Permission::class, $updatedPermission);
         self::assertSame('View Audit Reports', $updatedPermission->getAttribute('name'));
 
+        $filteredPermissionsPage = $kernel->handle($this->request('GET', '/admin/permissions?q=reports'));
+        self::assertSame(200, $filteredPermissionsPage->getStatusCode());
+        self::assertStringContainsString('View Audit Reports', (string) $filteredPermissionsPage->getBody());
+        self::assertStringContainsString('reports.view', (string) $filteredPermissionsPage->getBody());
+        self::assertStringContainsString('Apply filters', (string) $filteredPermissionsPage->getBody());
+        self::assertStringContainsString('name="group"', (string) $filteredPermissionsPage->getBody());
+
         $editPage = $kernel->handle($this->request('GET', '/admin/permissions/' . $updatedPermission->getKey() . '/edit'));
         self::assertSame(200, $editPage->getStatusCode());
         self::assertStringContainsString('Edit Permission', (string) $editPage->getBody());
@@ -740,6 +783,272 @@ TWIG
         self::assertSame(302, $delete->getStatusCode());
         self::assertSame('/admin/permissions', $delete->getHeaderLine('Location'));
         self::assertNull(Permission::findBySlug('reports.view'));
+
+        $activityPage = $kernel->handle($this->request('GET', '/admin/activity'));
+        self::assertSame(200, $activityPage->getStatusCode());
+        self::assertStringContainsString('permission.created', (string) $activityPage->getBody());
+        self::assertStringContainsString('permission.updated', (string) $activityPage->getBody());
+        self::assertStringContainsString('permission.deleted', (string) $activityPage->getBody());
+
+        $this->connections = null;
+        $this->app = null;
+    }
+
+    public function testSystemRoleUpdateUsesReservedDatabaseSlugs(): void
+    {
+        $this->app = new Application($this->basePath);
+        $this->app->make(AppBootstrapper::class)->bootstrap();
+        $this->migrateAuthAndUserModules($this->app);
+        $this->seedAuthAndUsers();
+        $kernel = $this->app->make(HttpKernel::class);
+
+        $csrf = $this->app->security()->csrfToken();
+        $login = $kernel->handle($this->request('POST', '/admin/login', [
+            '_token' => $csrf,
+            'email' => 'admin@marwa.test',
+            'password' => 'ExampleAdminPassword123!',
+        ]));
+        self::assertSame(302, $login->getStatusCode());
+
+        $systemRole = Role::findBySlug('user');
+        self::assertInstanceOf(Role::class, $systemRole);
+
+        $update = $kernel->handle($this->request('POST', '/admin/roles/' . $systemRole->getKey(), [
+            '_token' => $csrf,
+            'name' => 'User',
+            'slug' => 'user',
+            'level' => (int) $systemRole->getAttribute('level'),
+            'description' => 'Regular user access with limited permissions',
+            'permissions' => [],
+        ]));
+
+        self::assertSame(302, $update->getStatusCode());
+        self::assertSame('/admin/roles', $update->getHeaderLine('Location'));
+        self::assertSame('user', Role::findBySlug('user')?->getAttribute('slug'));
+
+        $this->connections = null;
+        $this->app = null;
+    }
+
+    public function testActiveUserCanAuthenticateWithPersistedCredentials(): void
+    {
+        $this->app = new Application($this->basePath);
+        $this->app->make(AppBootstrapper::class)->bootstrap();
+        $this->migrateAuthAndUserModules($this->app);
+        $this->seedAuthAndUsers();
+        (new AuthManager())->logout();
+        $kernel = $this->app->make(HttpKernel::class);
+
+        $userRole = Role::findBySlug('user');
+        self::assertInstanceOf(Role::class, $userRole);
+
+        $user = User::create([
+            'name' => 'Portal User',
+            'email' => 'portal.user@example.test',
+            'password' => password_hash('PortalUserPassword123!', PASSWORD_DEFAULT),
+            'role_id' => (int) $userRole->getKey(),
+            'is_active' => true,
+        ]);
+
+        self::assertInstanceOf(User::class, $user);
+
+        $login = $kernel->handle($this->request('POST', '/admin/login', [
+            '_token' => $this->app->security()->csrfToken(),
+            'email' => 'portal.user@example.test',
+            'password' => 'PortalUserPassword123!',
+        ]));
+
+        self::assertSame(302, $login->getStatusCode());
+        self::assertSame('/admin/', $login->getHeaderLine('Location'));
+        self::assertTrue((new AuthManager())->check());
+        self::assertSame('portal.user@example.test', (new AuthManager())->user()?->getAttribute('email'));
+
+        $this->connections = null;
+        $this->app = null;
+    }
+
+    public function testLimitedUserSeesOnlyPermittedMenuItems(): void
+    {
+        $this->app = new Application($this->basePath);
+        $this->app->make(AppBootstrapper::class)->bootstrap();
+        $this->migrateAuthAndUserModules($this->app);
+        $this->seedAuthAndUsers();
+        (new AuthManager())->logout();
+        $kernel = $this->app->make(HttpKernel::class);
+
+        $dashboardPermission = Permission::findBySlug('dashboard.view');
+        $activityPermission = Permission::findBySlug('activity.view');
+
+        self::assertInstanceOf(Permission::class, $dashboardPermission);
+        self::assertInstanceOf(Permission::class, $activityPermission);
+
+        $role = Role::create([
+            'name' => 'Limited Dashboard',
+            'slug' => 'limited_dashboard',
+            'level' => 2,
+            'description' => 'Can view dashboard and activity only.',
+            'is_system' => 0,
+        ]);
+
+        $roleRepo = new RoleRepository();
+        $roleRepo->syncPermissions((int) $role->getKey(), [
+            (int) $dashboardPermission->getKey(),
+            (int) $activityPermission->getKey(),
+        ]);
+
+        User::create([
+            'name' => 'Limited Viewer',
+            'email' => 'limited.viewer@example.test',
+            'password' => password_hash('LimitedViewerPassword123!', PASSWORD_DEFAULT),
+            'role_id' => (int) $role->getKey(),
+            'is_active' => true,
+        ]);
+
+        $csrf = $this->app->security()->csrfToken();
+        $login = $kernel->handle($this->request('POST', '/admin/login', [
+            '_token' => $csrf,
+            'email' => 'limited.viewer@example.test',
+            'password' => 'LimitedViewerPassword123!',
+        ]));
+        self::assertSame(302, $login->getStatusCode());
+        self::assertTrue((new AuthManager())->attempt('limited.viewer@example.test', 'LimitedViewerPassword123!'));
+
+        $dashboard = $kernel->handle($this->request('GET', '/admin/dashboard'));
+        self::assertSame(200, $dashboard->getStatusCode());
+        $body = (string) $dashboard->getBody();
+        self::assertStringContainsString('/admin/dashboard', $body);
+        self::assertStringContainsString('/admin/activity', $body);
+        self::assertStringNotContainsString('/admin/users', $body);
+        self::assertStringNotContainsString('/admin/roles', $body);
+        self::assertStringNotContainsString('/admin/permissions', $body);
+        self::assertStringNotContainsString('/admin/settings', $body);
+        self::assertStringNotContainsString('/admin/database', $body);
+
+        $this->connections = null;
+        $this->app = null;
+    }
+
+    public function testNotificationsCanBeCreatedAndDeletedAndRecordActivity(): void
+    {
+        $this->app = new Application($this->basePath);
+        $this->app->make(AppBootstrapper::class)->bootstrap();
+        $this->migrateAuthAndUserModules($this->app);
+        $this->seedAuthAndUsers();
+        $kernel = $this->app->make(HttpKernel::class);
+
+        $csrf = $this->app->security()->csrfToken();
+        $login = $kernel->handle($this->request('POST', '/admin/login', [
+            '_token' => $csrf,
+            'email' => 'admin@marwa.test',
+            'password' => 'ExampleAdminPassword123!',
+        ]));
+        self::assertSame(302, $login->getStatusCode());
+        self::assertTrue((new AuthManager())->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+        $csrf = $this->app->security()->csrfToken();
+
+        $adminUser = (new AuthManager())->user();
+        self::assertInstanceOf(User::class, $adminUser);
+
+        $create = $kernel->handle($this->request('POST', '/admin/notifications', [
+            '_token' => $csrf,
+            'type' => Notification::TYPE_INFO,
+            'title' => 'Feature audit notice',
+            'message' => 'Notifications are being audited.',
+            'user_id' => (int) $adminUser->getKey(),
+        ]));
+        self::assertSame(200, $create->getStatusCode());
+        $createPayload = json_decode((string) $create->getBody(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertTrue($createPayload['success']);
+
+        $notification = Notification::findBy('title', 'Feature audit notice');
+        self::assertInstanceOf(Notification::class, $notification);
+
+        $delete = $kernel->handle($this->request('POST', '/admin/notifications/' . $notification->getKey() . '/delete', [
+            '_token' => $csrf,
+        ]));
+        self::assertSame(302, $delete->getStatusCode());
+        self::assertSame('/admin/notifications', $delete->getHeaderLine('Location'));
+
+        $activityPage = $kernel->handle($this->request('GET', '/admin/activity'));
+        self::assertSame(200, $activityPage->getStatusCode());
+        self::assertStringContainsString('notification.created', (string) $activityPage->getBody());
+        self::assertStringContainsString('notification.deleted', (string) $activityPage->getBody());
+
+        $this->connections = null;
+        $this->app = null;
+    }
+
+    public function testNotificationLatestIsScopedToAuthenticatedUser(): void
+    {
+        $this->app = new Application($this->basePath);
+        $this->app->make(AppBootstrapper::class)->bootstrap();
+        $this->migrateAuthAndUserModules($this->app);
+        $this->seedAuthAndUsers();
+        (new AuthManager())->logout();
+        $kernel = $this->app->make(HttpKernel::class);
+
+        $notificationPermission = Permission::findBySlug('notifications.view');
+        self::assertInstanceOf(Permission::class, $notificationPermission);
+
+        $role = Role::create([
+            'name' => 'Notification Viewer',
+            'slug' => 'notification_viewer',
+            'level' => 2,
+            'description' => 'Can view notifications only.',
+            'is_system' => 0,
+        ]);
+
+        $roleRepo = new RoleRepository();
+        $roleRepo->syncPermissions((int) $role->getKey(), [(int) $notificationPermission->getKey()]);
+
+        $viewer = User::create([
+            'name' => 'Notification Viewer',
+            'email' => 'viewer@example.test',
+            'password' => password_hash('NotificationViewer123!', PASSWORD_DEFAULT),
+            'role_id' => (int) $role->getKey(),
+            'is_active' => true,
+        ]);
+
+        $otherUser = User::create([
+            'name' => 'Other Viewer',
+            'email' => 'other.viewer@example.test',
+            'password' => password_hash('OtherViewer123!', PASSWORD_DEFAULT),
+            'role_id' => (int) $role->getKey(),
+            'is_active' => true,
+        ]);
+
+        Notification::create([
+            'user_id' => (int) $viewer->getKey(),
+            'type' => Notification::TYPE_INFO,
+            'title' => 'Viewer only',
+            'message' => 'Visible to the logged-in user.',
+            'is_read' => 0,
+            'action_url' => null,
+        ]);
+
+        Notification::create([
+            'user_id' => (int) $otherUser->getKey(),
+            'type' => Notification::TYPE_INFO,
+            'title' => 'Other user only',
+            'message' => 'Should not appear in viewer inbox.',
+            'is_read' => 0,
+            'action_url' => null,
+        ]);
+
+        $csrf = $this->app->security()->csrfToken();
+        $login = $kernel->handle($this->request('POST', '/admin/login', [
+            '_token' => $csrf,
+            'email' => 'viewer@example.test',
+            'password' => 'NotificationViewer123!',
+        ]));
+        self::assertSame(302, $login->getStatusCode());
+        self::assertTrue((new AuthManager())->attempt('viewer@example.test', 'NotificationViewer123!'));
+
+        $latest = $kernel->handle($this->request('GET', '/admin/notifications/latest'));
+        self::assertSame(200, $latest->getStatusCode());
+        $payload = json_decode((string) $latest->getBody(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('Viewer only', $payload['notifications'][0]['title'] ?? null);
+        self::assertNotContains('Other user only', array_column($payload['notifications'], 'title'));
 
         $this->connections = null;
         $this->app = null;
@@ -904,6 +1213,7 @@ TWIG
 
         foreach ([
             $this->basePath . '/modules/Auth/database/migrations',
+            $this->basePath . '/modules/Dashboard/database/migrations',
             $this->basePath . '/modules/Users/database/migrations',
             $this->basePath . '/modules/Activity/database/migrations',
             $this->basePath . '/modules/Notifications/database/migrations',
@@ -914,14 +1224,27 @@ TWIG
 
     private function seedAuthAndUsers(): void
     {
+        $authSeeder = $this->basePath . '/modules/Auth/database/Seeders/RolesPermissionsSeeder.php';
+        $userSeeder = $this->basePath . '/modules/Users/database/Seeders/AdminUserSeeder.php';
+
         if (!class_exists(RolesPermissionsSeeder::class, false)) {
-            require_once __DIR__ . '/../../modules/Auth/database/Seeders/RolesPermissionsSeeder.php';
+            require_once $authSeeder;
         }
         if (!class_exists(AdminUserSeeder::class, false)) {
-            require_once __DIR__ . '/../../modules/Users/database/Seeders/AdminUserSeeder.php';
+            require_once $userSeeder;
         }
         (new RolesPermissionsSeeder())->run();
         (new AdminUserSeeder())->run();
+
+        if (Role::findBySlug('manager') === null) {
+            Role::create([
+                'name' => 'Manager',
+                'slug' => 'manager',
+                'level' => 3,
+                'description' => 'Operations manager',
+                'is_system' => 0,
+            ]);
+        }
     }
 
     private function resetDatabaseStatics(): void

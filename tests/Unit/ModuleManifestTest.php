@@ -20,6 +20,7 @@ final class ModuleManifestTest extends TestCase
 
         self::assertSame('resources/views', $activity['paths']['views']);
         self::assertSame(['auth'], $activity['requires']);
+        self::assertSame('database/migrations/2026_04_23_000001_add_request_metadata_to_activities_table.php', $activity['migrations'][1]);
         self::assertSame('resources/views', $auth['paths']['views']);
         self::assertSame('database/migrations', $auth['paths']['database/migrations']);
         self::assertSame('database/seeders', $auth['paths']['database/seeders']);
@@ -30,10 +31,11 @@ final class ModuleManifestTest extends TestCase
         self::assertSame('resources/views', $users['paths']['views']);
         self::assertSame('database/migrations', $users['paths']['database/migrations']);
         self::assertSame('database/seeders', $users['paths']['database/seeders']);
-        self::assertSame(['auth', 'activity'], $users['requires']);
+        self::assertSame(['auth', 'user-activity'], $users['requires']);
         self::assertSame(['auth'], $settings['requires']);
         self::assertSame('database/migrations', $settings['paths']['database/migrations']);
-        self::assertSame('database/migrations/2026_04_10_000002_create_password_reset_tokens_table.php', $auth['migrations'][0]);
+        self::assertSame('database/migrations/2026_04_01_000001_create_roles_table.php', $auth['migrations'][0]);
+        self::assertContains('database/migrations/2026_04_10_000002_create_password_reset_tokens_table.php', $auth['migrations']);
         self::assertSame('database/migrations/2026_04_10_000001_create_users_table.php', $users['migrations'][0]);
         self::assertSame('database/migrations/2026_04_14_000001_create_settings_table.php', $settings['migrations'][0]);
     }

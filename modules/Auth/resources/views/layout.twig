@@ -20,9 +20,11 @@
   <link rel="stylesheet" href="{{ theme_asset('css/app.css') }}">
 </head>
 <body class="auth-theme min-h-screen bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
-  <div class="relative isolate min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.10),_transparent_36%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.08),_transparent_32%),linear-gradient(180deg,#f8fafc_0%,#e2e8f0_48%,#cbd5e1_100%)] dark:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_36%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.12),_transparent_32%),linear-gradient(180deg,#020617_0%,#0f172a_48%,#020617_100%)]">
-    <div class="pointer-events-none absolute left-[-8rem] top-10 -z-10 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl dark:bg-cyan-500/15"></div>
-    <div class="pointer-events-none absolute right-[-10rem] top-32 -z-10 h-96 w-96 rounded-full bg-emerald-400/10 blur-3xl dark:bg-emerald-400/15"></div>
+  <div class="relative isolate min-h-screen overflow-hidden bg-[radial-gradient(circle_at_15%_20%,rgba(34,211,238,0.22),transparent_26%),radial-gradient(circle_at_85%_14%,rgba(16,185,129,0.18),transparent_24%),radial-gradient(circle_at_50%_110%,rgba(59,130,246,0.18),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#e2e8f0_45%,#cbd5e1_100%)] dark:bg-[radial-gradient(circle_at_15%_20%,rgba(34,211,238,0.22),transparent_26%),radial-gradient(circle_at_85%_14%,rgba(16,185,129,0.16),transparent_24%),radial-gradient(circle_at_50%_110%,rgba(59,130,246,0.14),transparent_34%),linear-gradient(180deg,#020617_0%,#0b1220_48%,#020617_100%)]">
+    <div class="pointer-events-none absolute inset-0 opacity-40 dark:opacity-50" style="background-image: linear-gradient(rgba(148,163,184,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.12) 1px, transparent 1px); background-size: 4rem 4rem;"></div>
+    <div class="pointer-events-none absolute left-[-6rem] top-12 h-72 w-72 rounded-full bg-cyan-300/20 blur-3xl dark:bg-cyan-500/18"></div>
+    <div class="pointer-events-none absolute right-[-8rem] top-36 h-96 w-96 rounded-full bg-emerald-300/18 blur-3xl dark:bg-emerald-400/16"></div>
+    <div class="pointer-events-none absolute bottom-[-7rem] left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-sky-300/15 blur-3xl dark:bg-sky-500/10"></div>
 
     <button
       type="button"
@@ -45,8 +47,8 @@
     </button>
 
     <div class="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
-      <aside class="hidden border-r border-slate-200/80 p-8 lg:flex lg:flex-col lg:justify-center dark:border-slate-300/60">
-        <div class="max-w-xl space-y-8 rounded-[2rem] border border-slate-200/80 bg-white/75 p-8 shadow-[0_30px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-slate-300/50 dark:bg-white/80 dark:shadow-[0_30px_80px_rgba(15,23,42,0.12)]">
+      <aside class="hidden border-r border-slate-200/70 p-8 lg:flex lg:flex-col lg:justify-center dark:border-white/10">
+        <div class="max-w-xl space-y-8 rounded-[2rem] border border-white/50 bg-white/70 p-8 shadow-[0_35px_90px_rgba(15,23,42,0.10)] backdrop-blur-2xl dark:border-white/10 dark:bg-slate-950/45 dark:shadow-[0_35px_90px_rgba(2,6,23,0.38)]">
           <div class="space-y-3">
             <span class="inline-flex w-fit items-center rounded-full border border-cyan-200 bg-cyan-50 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-cyan-700 dark:border-cyan-500/20 dark:bg-cyan-500/10 dark:text-cyan-100">Operations console</span>
             <h1 class="text-4xl font-black tracking-tight text-slate-900 xl:text-5xl dark:text-white">Controlled access for internal teams.</h1>
@@ -56,15 +58,15 @@
           </div>
 
           <div class="grid gap-3 sm:grid-cols-3">
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-300/40 dark:bg-white/70">
+            <div class="rounded-2xl border border-slate-200/80 bg-white/85 p-4 shadow-[0_8px_30px_rgba(15,23,42,0.05)] dark:border-white/10 dark:bg-white/10">
               <span class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-500">Security</span>
               <span class="mt-2 block text-lg font-bold text-slate-900 dark:text-slate-900">Session</span>
             </div>
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-300/40 dark:bg-white/70">
+            <div class="rounded-2xl border border-slate-200/80 bg-white/85 p-4 shadow-[0_8px_30px_rgba(15,23,42,0.05)] dark:border-white/10 dark:bg-white/10">
               <span class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-500">Recovery</span>
               <span class="mt-2 block text-lg font-bold text-slate-900 dark:text-slate-900">Token</span>
             </div>
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-300/40 dark:bg-white/70">
+            <div class="rounded-2xl border border-slate-200/80 bg-white/85 p-4 shadow-[0_8px_30px_rgba(15,23,42,0.05)] dark:border-white/10 dark:bg-white/10">
               <span class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-500">Access</span>
               <span class="mt-2 block text-lg font-bold text-slate-900 dark:text-slate-900">Admin only</span>
             </div>
@@ -73,7 +75,7 @@
       </aside>
 
       <main class="flex items-center justify-center px-4 py-10 sm:px-6 lg:px-10">
-        <section class="w-full max-w-xl rounded-[2rem] border border-slate-200/80 bg-white/75 p-6 shadow-[0_30px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:p-8 dark:border-slate-300/50 dark:bg-white/80 dark:shadow-[0_30px_80px_rgba(15,23,42,0.12)]">
+        <section class="w-full max-w-xl rounded-[2rem] border border-white/50 bg-white/78 p-6 shadow-[0_35px_90px_rgba(15,23,42,0.10)] backdrop-blur-2xl sm:p-8 dark:border-white/10 dark:bg-slate-950/45 dark:shadow-[0_35px_90px_rgba(2,6,23,0.38)]">
           {% block content %}{% endblock %}
         </section>
       </main>

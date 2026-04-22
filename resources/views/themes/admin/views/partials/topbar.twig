@@ -1,4 +1,4 @@
-<div class="flex items-center justify-between gap-3 px-4 py-3 sm:px-5 lg:px-6">
+<div class="flex items-center justify-between gap-3 px-4 py-2.5 sm:px-5 lg:px-6">
   <div class="flex items-center gap-3">
     <!-- Mobile Burger Menu Button -->
     <button 
@@ -10,11 +10,21 @@
       {% include 'components/icon.twig' with { name: 'menu', class: 'h-5 w-5' } only %}
     </button>
 
-    <div class="space-y-1">
-      <p class="inline-flex w-fit items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.18em] text-cyan-100">
+    <div class="flex flex-col gap-0.5">
+      <p class="inline-flex w-fit items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-2.5 py-0.5 text-[0.62rem] font-extrabold uppercase tracking-[0.18em] text-cyan-100">
         Operations console
       </p>
-      <h1 class="text-xl font-black tracking-tight text-white">Dashboard</h1>
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-0.5">
+        <h1 class="text-lg font-black tracking-tight text-white sm:text-xl">Dashboard</h1>
+        <strong class="ml-4">
+        {% if user_name|default('') %}
+          <span class="text-xs text-slate-400">Welcome, {{ user_name }}</span>
+        {% endif %}
+        {% if server_datetime|default('') %}
+          <span class="text-xs text-slate-500">Server: {{ server_datetime }}</span>
+        {% endif %}
+        </strong>
+      </div>
     </div>
   </div>
 

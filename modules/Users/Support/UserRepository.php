@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Users\Support;
 
-use App\Modules\Activity\Support\ActivityRecorder;
 use App\Modules\Auth\Support\AuthManager;
 use App\Support\AdminSearch;
 use App\Modules\Users\Models\User;
@@ -159,10 +158,6 @@ final class UserRepository
             'password' => password_hash($password, PASSWORD_DEFAULT),
         ]);
 
-        $this->activityRecorder()->recordActorAction(
-            ...$this->activityArguments($this->activity->createdPayload($user, $afterState), $actor)
-        );
-
         return $user;
     }
 
@@ -171,7 +166,6 @@ final class UserRepository
      */
     public function updateUser(User $user, array $afterState, ?string $password = null, ?User $actor = null): void
     {
-        $beforeState = $this->activity->userSnapshot($user);
         $payload = $afterState;
         $passwordChanged = $password !== null && $password !== '';
 
@@ -180,25 +174,16 @@ final class UserRepository
         }
 
         $payload['email'] = $this->normalizeEmail((string) $payload['email']);
+        User::newQuery()->getBaseBuilder()
+            ->where('id', '=', $user->getKey())
+            ->update($payload);
 
-        $user->fill($payload);
-        $user->save();
-
-        $this->activityRecorder()->recordActorAction(
-            ...$this->activityArguments(
-                $this->activity->updatedPayload($user, $beforeState, $afterState, $passwordChanged),
-                $actor
-            )
-        );
+        $user->refresh();
     }
 
     public function deleteUser(User $user, ?User $actor = null): void
     {
-        $payload = $this->activity->deletedPayload($user);
         $user->deleteOrFail();
-        $this->activityRecorder()->recordActorAction(
-            ...$this->activityArguments($payload, $actor)
-        );
     }
 
     public function restoreUser(User $user, ?User $actor = null): bool
@@ -206,10 +191,6 @@ final class UserRepository
         if (!$user->restore()) {
             return false;
         }
-
-        $this->activityRecorder()->recordActorAction(
-            ...$this->activityArguments($this->activity->restoredPayload($user), $actor)
-        );
 
         return true;
     }
@@ -265,24 +246,4 @@ final class UserRepository
         return Str::lower(trim($email));
     }
 
-    /**
-     * @param array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>} $payload
-     * @return array{0:string,1:string,2:?User,3:class-string<User>,4:int,5:array<string,mixed>}
-     */
-    private function activityArguments(array $payload, ?User $actor): array
-    {
-        return [
-            $payload['action'],
-            $payload['description'],
-            $actor,
-            $payload['subjectType'],
-            $payload['subjectId'],
-            $payload['details'],
-        ];
-    }
-
-    private function activityRecorder(): ActivityRecorder
-    {
-        return app(ActivityRecorder::class);
-    }
 }

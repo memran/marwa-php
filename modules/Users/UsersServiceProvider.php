@@ -25,6 +25,7 @@ final class UsersServiceProvider implements ModuleServiceProviderInterface
             'parent' => 'admin.management',
             'order' => 10,
             'icon' => 'users',
+            'permission' => 'users.view',
         ]);
 
         $gate = $app->make(PermissionGate::class);

@@ -11,6 +11,22 @@ final class DashboardStatusCards
      */
     public function cards(): array
     {
+        return array_values($this->definitions());
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function card(string $id): ?array
+    {
+        return $this->definitions()[$id] ?? null;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    private function definitions(): array
+    {
         $basePath = base_path();
         $phpVersion = PHP_VERSION;
         $phpScore = $this->phpScore(PHP_VERSION_ID);
@@ -26,7 +42,7 @@ final class DashboardStatusCards
         $themeScore = $theme === 'admin' ? 90 : 78;
 
         return [
-            $this->card(
+            'app_status' => $this->buildCard(
                 'Application',
                 (string) config('settings.lifecycle.app.name', config('app.name', 'MarwaPHP')),
                 sprintf('%s environment', ucfirst($environment)),
@@ -35,7 +51,7 @@ final class DashboardStatusCards
                 $debugMode ? 68 : 92,
                 4
             ),
-            $this->card(
+            'runtime_info' => $this->buildCard(
                 'Runtime',
                 $phpVersion,
                 php_sapi_name() ?: 'CLI',
@@ -44,7 +60,7 @@ final class DashboardStatusCards
                 $phpScore,
                 4
             ),
-            $this->card(
+            'memory_usage' => $this->buildCard(
                 'Memory limit',
                 $memoryLimit,
                 'Configured ceiling',
@@ -53,7 +69,7 @@ final class DashboardStatusCards
                 $memoryScore,
                 4
             ),
-            $this->card(
+            'disk_space' => $this->buildCard(
                 'Disk free',
                 $diskFree,
                 'Available for logs and cache',
@@ -62,7 +78,7 @@ final class DashboardStatusCards
                 $diskScore,
                 4
             ),
-            $this->card(
+            'load_average' => $this->buildCard(
                 'Load average',
                 $loadAverage,
                 '1 minute sample',
@@ -71,7 +87,7 @@ final class DashboardStatusCards
                 $loadScore,
                 3
             ),
-            $this->card(
+            'theme_info' => $this->buildCard(
                 'Admin theme',
                 $theme,
                 'Active workspace skin',
@@ -86,7 +102,7 @@ final class DashboardStatusCards
     /**
      * @return array<string, mixed>
      */
-    private function card(
+    private function buildCard(
         string $label,
         string $value,
         string $meta,

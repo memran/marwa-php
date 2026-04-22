@@ -19,6 +19,7 @@ final class ActivityServiceProvider implements ModuleServiceProviderInterface
                 'parent' => 'admin.management',
                 'order' => 40,
                 'icon' => 'activity',
+                'permission' => 'activity.view',
             ]);
         }
     }

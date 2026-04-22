@@ -8,35 +8,31 @@ use App\Modules\Auth\Models\Role;
 
 final class RolePolicy
 {
-    public const ROLE_SUPER_ADMIN = 'super_admin';
     public const ROLE_ADMIN = 'admin';
-    public const ROLE_MANAGER = 'manager';
-    public const ROLE_STAFF = 'staff';
-    public const ROLE_VIEWER = 'viewer';
+    public const ROLE_USER = 'user';
 
     public const ROLES = [
-        self::ROLE_SUPER_ADMIN,
         self::ROLE_ADMIN,
-        self::ROLE_MANAGER,
-        self::ROLE_STAFF,
-        self::ROLE_VIEWER,
+        self::ROLE_USER,
     ];
 
     /**
      * @var array<string, int>
      */
     private static array $defaultHierarchy = [
-        self::ROLE_SUPER_ADMIN => 5,
-        self::ROLE_ADMIN => 5,
-        self::ROLE_MANAGER => 4,
-        self::ROLE_STAFF => 2,
-        self::ROLE_VIEWER => 1,
+        self::ROLE_ADMIN => 10,
+        self::ROLE_USER => 1,
     ];
 
     /**
      * @var array<string, int>|null
      */
     private static ?array $roleLevels = null;
+
+    /**
+     * @var int|null
+     */
+    private static ?int $highestRoleLevel = null;
 
     public static function hasRole(?string $userRole, string $requiredRole): bool
     {
@@ -47,15 +43,18 @@ final class RolePolicy
         $userRole = strtolower(trim($userRole));
         $requiredRole = strtolower(trim($requiredRole));
 
+        if ($requiredRole === '') {
+            return false;
+        }
+
         $userLevel = self::getRoleLevel($userRole);
         $requiredLevel = self::getRoleLevel($requiredRole);
 
-        return $userLevel >= $requiredLevel;
-    }
+        if ($userLevel <= 0 || $requiredLevel <= 0) {
+            return false;
+        }
 
-    public static function isSuperAdmin(?string $userRole): bool
-    {
-        return self::hasRole($userRole, self::ROLE_SUPER_ADMIN);
+        return $userLevel >= $requiredLevel;
     }
 
     public static function isAdmin(?string $userRole): bool
@@ -63,19 +62,9 @@ final class RolePolicy
         return self::hasRole($userRole, self::ROLE_ADMIN);
     }
 
-    public static function isManager(?string $userRole): bool
+    public static function isUser(?string $userRole): bool
     {
-        return self::hasRole($userRole, self::ROLE_MANAGER);
-    }
-
-    public static function isStaff(?string $userRole): bool
-    {
-        return self::hasRole($userRole, self::ROLE_STAFF);
-    }
-
-    public static function isViewer(?string $userRole): bool
-    {
-        return self::hasRole($userRole, self::ROLE_VIEWER);
+        return $userRole === self::ROLE_USER;
     }
 
     /**
@@ -83,8 +72,12 @@ final class RolePolicy
      */
     public static function hasAnyRole(?string $userRole, array $roles): bool
     {
+        if ($userRole === self::ROLE_ADMIN) {
+            return true;
+        }
+
         foreach ($roles as $role) {
-            if (self::hasRole($userRole, $role)) {
+            if ($userRole === $role) {
                 return true;
             }
         }
@@ -107,12 +100,24 @@ final class RolePolicy
         return self::$roleLevels[$role] ?? self::$defaultHierarchy[$role] ?? 0;
     }
 
+    public static function isSuperAdmin(?string $userRole): bool
+    {
+        if ($userRole === null) {
+            return false;
+        }
+
+        $userLevel = self::getRoleLevel($userRole);
+
+        return $userLevel > 0 && $userLevel >= self::getHighestRoleLevel();
+    }
+
     /**
      * @param array<string, int>|null $levels
      */
     public static function setRoleLevels(?array $levels): void
     {
         self::$roleLevels = $levels;
+        self::$highestRoleLevel = null;
     }
 
     public static function canAccess(string $userRole, string $requiredRole): bool
@@ -123,11 +128,8 @@ final class RolePolicy
     public static function getRoleName(string $slug): string
     {
         $names = [
-            'super_admin' => 'Super Admin',
             'admin' => 'Admin',
-            'manager' => 'Manager',
-            'staff' => 'Staff',
-            'viewer' => 'Viewer',
+            'user' => 'User',
         ];
 
         return $names[strtolower($slug)] ?? ucfirst($slug);
@@ -151,6 +153,7 @@ final class RolePolicy
             }
 
             self::$roleLevels = $levels;
+            self::$highestRoleLevel = $levels === [] ? null : max($levels);
         } catch (\Throwable) {
         }
     }
@@ -158,5 +161,23 @@ final class RolePolicy
     public static function resetToDefaults(): void
     {
         self::$roleLevels = null;
+        self::$highestRoleLevel = null;
+    }
+
+    private static function getHighestRoleLevel(): int
+    {
+        if (self::$highestRoleLevel !== null) {
+            return self::$highestRoleLevel;
+        }
+
+        if (self::$roleLevels !== null && self::$roleLevels !== []) {
+            self::$highestRoleLevel = max(self::$roleLevels);
+
+            return self::$highestRoleLevel;
+        }
+
+        self::$highestRoleLevel = max(self::$defaultHierarchy);
+
+        return self::$highestRoleLevel;
     }
 }

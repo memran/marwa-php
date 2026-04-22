@@ -156,6 +156,42 @@ final class UserActivityService
     }
 
     /**
+     * @param array{name:string,email:string,role_id:int,is_active:int} $beforeState
+     * @param array{name:string,email:string,role_id:int,is_active:int} $afterState
+     * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
+     */
+    public function statusChangedPayload(User $user, array $beforeState, array $afterState): array
+    {
+        $afterStatus = $afterState['is_active'] === 1 ? 'Active' : 'Disabled';
+        $beforeStatus = $beforeState['is_active'] === 1 ? 'Active' : 'Disabled';
+
+        $action = $afterState['is_active'] === 1 ? 'user.enabled' : 'user.disabled';
+        $verb = $afterState['is_active'] === 1 ? 'Enabled' : 'Disabled';
+
+        return [
+            'action' => $action,
+            'description' => $verb . ' user ' . $afterState['email'] . '.',
+            'subjectType' => User::class,
+            'subjectId' => (int) $user->getKey(),
+            'details' => [
+                'summary' => $verb . ' user account.',
+                'changes' => [
+                    'Status' => [
+                        'before' => $beforeStatus,
+                        'after' => $afterStatus,
+                    ],
+                ],
+                'before' => [
+                    'Status' => $beforeStatus,
+                ],
+                'after' => [
+                    'Status' => $afterStatus,
+                ],
+            ],
+        ];
+    }
+
+    /**
      * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
      */
     public function deletedPayload(User $user): array

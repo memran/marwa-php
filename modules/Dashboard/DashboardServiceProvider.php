@@ -9,6 +9,7 @@ use League\Container\Container;
 use Marwa\Framework\Navigation\MenuRegistry;
 use Marwa\Framework\Supports\Runtime;
 use Marwa\Framework\Views\View;
+use Marwa\Module\Contracts\ModuleRegistryInterface;
 use Marwa\Module\Contracts\ModuleServiceProviderInterface;
 
 final class DashboardServiceProvider implements ModuleServiceProviderInterface
@@ -30,11 +31,20 @@ final class DashboardServiceProvider implements ModuleServiceProviderInterface
                 'parent' => 'admin.user-space',
                 'order' => 10,
                 'icon' => 'layout-dashboard',
+                'permission' => 'dashboard.view',
             ]);
         }
 
-        $this->container->addShared(WidgetRegistry::class, function () {
-            return new WidgetRegistry();
+        $this->container->addShared(WidgetRegistry::class, function () use ($app) {
+            $moduleRegistry = null;
+
+            try {
+                $moduleRegistry = $app->make(ModuleRegistryInterface::class);
+            } catch (\Throwable) {
+                $moduleRegistry = null;
+            }
+
+            return new WidgetRegistry($moduleRegistry);
         });
     }
 

@@ -35,13 +35,17 @@ final class AdminSessionManager
 
         $email = trim((string) session(self::SESSION_USER_EMAIL, ''));
 
-        if ($email === '' || !$this->loginTracker->matchesConfiguredEmail($email)) {
+        if ($email === '') {
             return null;
         }
 
         $persistedUser = $this->users->findPersistedUserByEmail($email);
         if ($persistedUser instanceof User) {
             return $persistedUser;
+        }
+
+        if (!$this->loginTracker->matchesConfiguredEmail($email)) {
+            return null;
         }
 
         $fallbackUser = User::newInstance([
@@ -60,6 +64,36 @@ final class AdminSessionManager
     {
         $email = trim($email);
         $this->lastFailureReason = null;
+
+        $user = $this->users->findPersistedUserByEmail($email);
+
+        if ($user instanceof User) {
+            $hash = $user->getPasswordHash();
+
+            if ($hash !== null && password_verify($password, $hash)) {
+                $this->loginTracker->clearLoginFailures($email);
+                session()->regenerate(true);
+                session()->set(self::SESSION_AUTHENTICATED, true);
+                session()->set(self::SESSION_USER_NAME, (string) $user->getAttribute('name'));
+                session()->set(self::SESSION_USER_EMAIL, (string) $user->getAttribute('email'));
+
+                (new ActivityRecorder())->recordActorAction(
+                    'auth.login',
+                    'Signed in to the admin console.',
+                    $user,
+                    'auth',
+                    null,
+                    [
+                        'summary' => 'Signed in to the admin console.',
+                        'state' => [
+                            'Email' => $email,
+                        ],
+                    ]
+                );
+
+                return true;
+            }
+        }
 
         if ($this->loginTracker->matchesConfiguredEmail($email) && $this->loginTracker->matchesConfiguredPassword($password)) {
             $this->loginTracker->clearLoginFailures($email);

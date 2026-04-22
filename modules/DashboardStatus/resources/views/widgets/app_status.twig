@@ -1,0 +1,21 @@
+{% set card = card|default({}) %}
+{% set status = card.status|default('Active') %}
+{% set value = card.value|default('MarwaPHP') %}
+
+<div class="space-y-4">
+  <div class="h-1.5 rounded-full bg-gradient-to-r from-cyan-300 via-emerald-300 to-cyan-300"></div>
+  <div class="flex items-start justify-between gap-3">
+    <div class="flex items-start gap-3">
+      <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-400/20 bg-emerald-400/10 text-emerald-100">
+        {% include 'components/icon.twig' with { name: 'server', class: 'h-5 w-5' } only %}
+      </span>
+      <div class="space-y-1">
+        <p class="dashboard-widget-label text-[0.65rem] font-extrabold uppercase tracking-[0.18em] text-emerald-100/75">{{ card.label|default('Application') }}</p>
+        <div class="dashboard-widget-value text-2xl font-black tracking-tight text-white">{{ value }}</div>
+      </div>
+    </div>
+    <span class="dashboard-widget-status inline-flex items-center rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-emerald-200">
+      {{ status }}
+    </span>
+  </div>
+</div>

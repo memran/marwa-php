@@ -19,6 +19,7 @@ final class RolesServiceProvider implements ModuleServiceProviderInterface
                 'parent' => 'admin.management',
                 'order' => 25,
                 'icon' => 'shield',
+                'permission' => 'roles.view',
             ]);
 
             $app->make(MenuRegistry::class)->add([
@@ -28,6 +29,7 @@ final class RolesServiceProvider implements ModuleServiceProviderInterface
                 'parent' => 'admin.management',
                 'order' => 30,
                 'icon' => 'key-round',
+                'permission' => 'permissions.view',
             ]);
         }
     }

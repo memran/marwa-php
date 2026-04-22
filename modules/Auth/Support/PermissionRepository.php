@@ -5,27 +5,22 @@ declare(strict_types=1);
 namespace App\Modules\Auth\Support;
 
 use App\Modules\Auth\Models\Permission;
+use App\Support\AdminSearch;
 use Marwa\DB\Facades\DB;
+use Marwa\DB\Query\Builder;
 
 final class PermissionRepository
 {
+    public function __construct(
+        private readonly AdminSearch $search = new AdminSearch(),
+    ) {}
+
     /**
      * @return list<Permission>
      */
     public function all(): array
     {
-        $rows = Permission::newQuery()->getBaseBuilder()
-            ->orderBy('group', 'asc')
-            ->orderBy('name', 'asc')
-            ->get();
-
-        return array_map(
-            static fn (array|object $row): Permission => Permission::newInstance(
-                is_array($row) ? $row : (array) $row,
-                true
-            ),
-            $rows
-        );
+        return $this->hydrate($this->query()->get());
     }
 
     public function findById(int $id): ?Permission
@@ -96,18 +91,7 @@ final class PermissionRepository
      */
     public function byGroup(string $group): array
     {
-        $rows = Permission::newQuery()->getBaseBuilder()
-            ->where('group', '=', $group)
-            ->orderBy('name', 'asc')
-            ->get();
-
-        return array_map(
-            static fn (array|object $row): Permission => Permission::newInstance(
-                is_array($row) ? $row : (array) $row,
-                true
-            ),
-            $rows
-        );
+        return $this->hydrate($this->query($group)->get());
     }
 
     /**
@@ -141,7 +125,15 @@ final class PermissionRepository
      */
     public function grouped(): array
     {
-        $all = $this->all();
+        return $this->groupedFiltered();
+    }
+
+    /**
+     * @return array<string, list<Permission>>
+     */
+    public function groupedFiltered(string $query = '', string $group = ''): array
+    {
+        $all = $this->hydrate($this->query($group, $query)->get());
         $groups = [];
 
         foreach ($all as $permission) {
@@ -158,12 +150,54 @@ final class PermissionRepository
     /**
      * @return list<string>
      */
+    public function groupNames(): array
+    {
+        return array_keys($this->grouped());
+    }
+
+    /**
+     * @return list<string>
+     */
     public function getAllSlugs(int $roleId): array
     {
         $permissions = $this->getByRoleId($roleId);
         return array_map(
             static fn (Permission $p): string => $p->getAttribute('slug'),
             $permissions
+        );
+    }
+
+    private function query(string $group = '', string $query = ''): Builder
+    {
+        $builder = Permission::newQuery()->getBaseBuilder()
+            ->orderBy('group', 'asc')
+            ->orderBy('name', 'asc');
+
+        $group = trim($group);
+        if ($group !== '') {
+            $builder->where('group', '=', $group);
+        }
+
+        $query = trim($query);
+        if ($query !== '') {
+            $this->search->applyLikeFilters($builder, $query, ['name', 'slug', 'description', 'group']);
+        }
+
+        return $builder;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>|object> $rows
+     * @return list<Permission>
+     */
+    private function hydrate(array $rows): array
+    {
+        return array_map(
+            static fn (array|object $row): Permission => Permission::newInstance(
+                is_array($row) ? $row : (array) $row,
+                true
+            ),
+            $rows
         );
     }
 }

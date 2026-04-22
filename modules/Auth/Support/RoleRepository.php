@@ -105,6 +105,24 @@ final class RoleRepository
     }
 
     /**
+     * @return list<string>
+     */
+    public function systemSlugs(): array
+    {
+        $rows = Role::newQuery()->getBaseBuilder()
+            ->where('is_system', '=', 1)
+            ->orderBy('level', 'desc')
+            ->orderBy('slug', 'asc')
+            ->pluck('slug')
+            ->toArray();
+
+        return array_values(array_filter(
+            array_map(static fn (mixed $slug): string => (string) $slug, $rows),
+            static fn (string $slug): bool => $slug !== ''
+        ));
+    }
+
+    /**
      * @return list<Permission>
      */
     public function getPermissions(int $roleId): array

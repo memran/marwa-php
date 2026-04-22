@@ -11,16 +11,16 @@
   <section class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
     <div class="max-w-3xl space-y-3">
       <span class="inline-flex w-fit items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-cyan-100">Identity management</span>
-      <h1 class="text-3xl font-black tracking-tight text-white sm:text-4xl">{{ title }}</h1>
-      <p class="max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">Keep the form compact and readable for long working sessions.</p>
+      <h1 class="users-form-title text-3xl font-black tracking-tight text-white sm:text-4xl">{{ title }}</h1>
+      <p class="users-form-subtitle max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">Keep the form compact and readable for long working sessions.</p>
     </div>
 
     <div class="flex flex-wrap gap-3">
-      <a class="{{ button_ghost }}" href="/admin/users">Back to users</a>
+      <a class="users-form-ghost {{ button_ghost }}" href="/admin/users">Back to users</a>
     </div>
   </section>
 
-  <section class="mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-6">
+  <section class="users-form-shell mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-6">
     {% if errors is defined and errors is not empty %}
       <div class="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-rose-100">
         <p class="text-sm font-semibold">Please review the form</p>
@@ -62,39 +62,39 @@
       {% set is_active_checked = form.is_active is defined ? form.is_active : true %}
 
       <div class="grid gap-2">
-        <label class="text-sm font-semibold text-slate-200" for="is_active">Status</label>
+        <label class="dashboard-status-label text-sm font-semibold text-slate-200" for="is_active">Status</label>
         <div class="grid gap-3 sm:grid-cols-2">
-          <label class="group flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 transition {% if is_active_checked %}border-cyan-300/30 bg-cyan-400/10 text-cyan-50{% else %}border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:bg-white/5{% endif %}">
-            <input type="radio" name="is_active" value="1" {% if is_active_checked %}checked{% endif %} class="form-radio h-4 w-4 border-white/20 bg-white/5 text-cyan-400 focus:ring-cyan-400/20">
-            <span class="flex h-8 w-8 items-center justify-center rounded-full border {% if is_active_checked %}border-cyan-300/40 bg-cyan-400/15{% else %}border-white/10 bg-white/5{% endif %}">
+          <label class="dashboard-status-option dashboard-status-option-active group flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 transition {% if is_active_checked %}border-cyan-300/30 bg-cyan-400/10 text-cyan-50{% else %}border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:bg-white/5{% endif %}">
+            <input type="radio" name="is_active" value="1" {% if is_active_checked %}checked{% endif %} class="dashboard-status-radio dashboard-status-radio-active h-4 w-4">
+            <span class="dashboard-status-badge flex h-8 w-8 items-center justify-center rounded-full border {% if is_active_checked %}border-cyan-300/40 bg-cyan-400/15{% else %}border-white/10 bg-white/5{% endif %}">
               {% include 'components/icon.twig' with { name: 'user-check', class: 'h-3.5 w-3.5' } only %}
             </span>
             <span class="grid gap-0.5">
-              <span class="text-sm font-semibold">Active account</span>
-              <span class="text-xs text-slate-400">Can sign in and access the admin area.</span>
+              <span class="dashboard-status-title text-sm font-semibold">Active account</span>
+              <span class="dashboard-status-helper text-xs text-slate-400">Can sign in and access the admin area.</span>
             </span>
           </label>
 
-          <label class="group flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 transition {% if not is_active_checked %}border-rose-300/30 bg-rose-500/10 text-rose-50{% else %}border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:bg-white/5{% endif %}">
-            <input type="radio" name="is_active" value="0" {% if not is_active_checked %}checked{% endif %} class="form-radio h-4 w-4 border-white/20 bg-white/5 text-rose-400 focus:ring-rose-400/20">
-            <span class="flex h-8 w-8 items-center justify-center rounded-full border {% if not is_active_checked %}border-rose-300/40 bg-rose-500/15{% else %}border-white/10 bg-white/5{% endif %}">
+          <label class="dashboard-status-option dashboard-status-option-inactive group flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 transition {% if not is_active_checked %}border-rose-300/30 bg-rose-500/10 text-rose-50{% else %}border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:bg-white/5{% endif %}">
+            <input type="radio" name="is_active" value="0" {% if not is_active_checked %}checked{% endif %} class="dashboard-status-radio dashboard-status-radio-inactive h-4 w-4">
+            <span class="dashboard-status-badge flex h-8 w-8 items-center justify-center rounded-full border {% if not is_active_checked %}border-rose-300/40 bg-rose-500/15{% else %}border-white/10 bg-white/5{% endif %}">
               {% include 'components/icon.twig' with { name: 'user-x', class: 'h-3.5 w-3.5' } only %}
             </span>
             <span class="grid gap-0.5">
-              <span class="text-sm font-semibold">Inactive account</span>
-              <span class="text-xs text-slate-400">Hidden from sign-in until enabled again.</span>
+              <span class="dashboard-status-title text-sm font-semibold">Inactive account</span>
+              <span class="dashboard-status-helper text-xs text-slate-400">Hidden from sign-in until enabled again.</span>
             </span>
           </label>
         </div>
         {% if errors.is_active is defined %}
           <p class="text-sm text-rose-300">{{ errors.is_active|first }}</p>
         {% else %}
-          <p class="text-sm text-slate-400">Inactive users cannot sign in.</p>
+          <p class="dashboard-status-helper text-sm text-slate-400">Inactive users cannot sign in.</p>
         {% endif %}
       </div>
 
       <div class="grid gap-2">
-        <label class="text-sm font-semibold text-slate-200" for="password">{{ mode == 'create' ? 'Password' : 'Password (optional)' }}</label>
+        <label class="users-form-label text-sm font-semibold text-slate-200" for="password">{{ mode == 'create' ? 'Password' : 'Password (optional)' }}</label>
         <input
           class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
           id="password"
@@ -103,13 +103,13 @@
           autocomplete="new-password"
           placeholder="Minimum 8 characters"
         >
-        <p class="text-sm text-slate-400">
+        <p class="users-form-help text-sm text-slate-400">
           Password policy: Minimum 8 characters, mixed case recommended.
         </p>
         <div class="flex flex-wrap items-center gap-3">
-        <button class="{{ button_secondary }}" type="button" id="generate_password">Generate password</button>
-        <button class="{{ button_ghost }}" type="button" id="copy_password">Copy password</button>
-          <label class="inline-flex cursor-pointer items-center gap-3 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-slate-300 transition hover:bg-white/5">
+        <button class="users-form-secondary {{ button_secondary }}" type="button" id="generate_password">Generate password</button>
+        <button class="users-form-ghost {{ button_ghost }}" type="button" id="copy_password">Copy password</button>
+          <label class="users-form-toggle inline-flex cursor-pointer items-center gap-3 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-slate-300 transition hover:bg-white/5">
             <input type="checkbox" id="show_password" class="form-checkbox h-4 w-4 rounded border-white/20 bg-white/5 text-cyan-400 focus:ring-cyan-400/20">
             <span>Show password</span>
           </label>
@@ -122,7 +122,7 @@
       </div>
 
       <div class="grid gap-2">
-        <label class="text-sm font-semibold text-slate-200" for="password_confirmation">Confirm password</label>
+        <label class="users-form-label text-sm font-semibold text-slate-200" for="password_confirmation">Confirm password</label>
         <input
           class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
           id="password_confirmation"
@@ -147,14 +147,19 @@
       const generate = document.getElementById('generate_password');
       const copy = document.getElementById('copy_password');
       const toggle = document.getElementById('show_password');
+      const form = password?.closest('form');
 
-      if (!password || !confirmation || !generate || !copy || !toggle) {
+      if (!password || !confirmation || !generate || !copy || !toggle || !form) {
         return;
       }
 
       const setType = (type) => {
         password.type = type;
         confirmation.type = type;
+      };
+
+      const syncConfirmation = () => {
+        confirmation.value = password.value;
       };
 
       const setClipboard = async (value) => {
@@ -171,6 +176,10 @@
       toggle.addEventListener('change', () => {
         setType(toggle.checked ? 'text' : 'password');
       });
+
+      password.addEventListener('input', syncConfirmation);
+      password.addEventListener('change', syncConfirmation);
+      form.addEventListener('submit', syncConfirmation);
 
       generate.addEventListener('click', () => {
         const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*';

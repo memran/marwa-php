@@ -93,7 +93,7 @@ final class RoleFormData
      * @param array{name:string,slug:string,level:int,description:string,permissions:array<int,int>} $payload
      * @return array<string, array<int, string>>
      */
-    public function validate(array $payload, bool $isSystem = false): array
+    public function validate(array $payload, ?Role $role = null): array
     {
         $errors = [];
 
@@ -109,8 +109,9 @@ final class RoleFormData
             $errors['level'][] = 'The level must be at least 1.';
         }
 
-        if ($isSystem) {
-            $reserved = ['super_admin', 'admin', 'manager', 'staff', 'viewer'];
+        if ($role instanceof Role && (bool) $role->getAttribute('is_system')) {
+            $reserved = $this->roles->systemSlugs();
+
             if (!in_array($payload['slug'], $reserved, true)) {
                 $errors['slug'][] = 'System roles must keep a reserved slug.';
             }

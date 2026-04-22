@@ -69,7 +69,7 @@ The admin sidebar also exposes a raw SQL database console at `/admin/database` f
 The starter also ships an admin-only Settings module at `/admin/settings`. It stores predefined `category -> key -> value` records in the database, caches them for fast reads, reloads them at bootstrap, and mirrors selected values into runtime config so they are globally readable through `config('settings.category.key')` and relevant core config keys.
 Soft-deleted users stay visible in the Users module with a `Trashed` badge and a restore action.
 User creation now rejects duplicate emails, and delete actions ask for a browser confirmation before submitting.
-The Activity module records admin login, logout, and user CRUD events through direct `ActivityRecorder` calls in the starter workflows, then shows them in the dashboard feed and on the activity page.
+The Activity module records admin login, logout, and the starter's module write actions through direct `ActivityRecorder` calls in the starter workflows, then shows them in the dashboard feed and on the activity page.
 To run module-local seeders manually, use `php marwa module:seed`.
 If you want to add a new module using the same conventions as `Users`, see [docs/module-authoring.md](docs/module-authoring.md).
 

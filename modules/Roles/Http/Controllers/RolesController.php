@@ -59,6 +59,14 @@ final class RolesController extends Controller
         ]);
         $this->syncPermissions($role->getKey(), $payload['permissions']);
         RolePolicy::loadFromDatabase();
+        app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+            'role.created',
+            'Created role.',
+            app(\App\Modules\Auth\Support\AuthManager::class)->user(),
+            'role',
+            (int) $role->getKey(),
+            ['state' => $payload]
+        );
         session()->flash('roles.notice', 'Role created successfully.');
 
         return $this->redirect('/admin/roles');
@@ -90,7 +98,7 @@ final class RolesController extends Controller
         }
 
         $payload = $this->roleForms()->payload();
-        $errors = $this->roleForms()->validate($payload, (bool) $role->getAttribute('is_system'));
+        $errors = $this->roleForms()->validate($payload, $role);
 
         if ($errors !== []) {
             $this->withErrors($errors)->withInput($this->roleForms()->oldInput($payload));
@@ -110,7 +118,14 @@ final class RolesController extends Controller
         ]);
         $this->syncPermissions($id, $payload['permissions']);
         RolePolicy::loadFromDatabase();
-
+        app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+            'role.updated',
+            'Updated role.',
+            app(\App\Modules\Auth\Support\AuthManager::class)->user(),
+            'role',
+            $id,
+            ['state' => $payload]
+        );
         session()->flash('roles.notice', 'Role updated successfully.');
 
         return $this->redirect('/admin/roles');
@@ -135,6 +150,14 @@ final class RolesController extends Controller
 
         $this->roleRepo()->delete($id);
         RolePolicy::loadFromDatabase();
+        app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+            'role.deleted',
+            'Deleted role.',
+            app(\App\Modules\Auth\Support\AuthManager::class)->user(),
+            'role',
+            $id,
+            ['state' => (array) $role->toArray()]
+        );
         session()->flash('roles.notice', 'Role deleted successfully.');
 
         return $this->redirect('/admin/roles');
@@ -168,4 +191,5 @@ final class RolesController extends Controller
     {
         return app(PermissionRepository::class);
     }
+
 }

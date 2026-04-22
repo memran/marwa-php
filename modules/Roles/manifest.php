@@ -14,8 +14,12 @@ return [
     ],
     'paths' => [
         'views' => 'resources/views',
+        'database/migrations' => 'database/migrations',
     ],
     'routes' => [
         'http' => 'routes/http.php',
+    ],
+    'migrations' => [
+        'database/migrations/2026_04_15_000001_insert_roles_permissions.php',
     ],
 ];

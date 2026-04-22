@@ -7,6 +7,7 @@ namespace App\Modules\Activity\Support;
 use App\Modules\Activity\Models\Activity;
 use App\Support\AdminSearch;
 use App\Modules\Users\Models\User;
+use Psr\Http\Message\ServerRequestInterface;
 
 final class ActivityRecorder
 {
@@ -24,6 +25,8 @@ final class ActivityRecorder
             'description' => trim($description),
             'actor_name' => $this->stringValue($context['actor_name'] ?? null),
             'actor_email' => $this->stringValue($context['actor_email'] ?? null),
+            'ip_address' => $this->stringValue($context['ip_address'] ?? null),
+            'user_agent' => $this->stringValue($context['user_agent'] ?? null),
             'subject_type' => $this->stringValue($context['subject_type'] ?? null),
             'subject_id' => $this->integerValue($context['subject_id'] ?? null),
             'details' => $this->encodeDetails($context['details'] ?? null),
@@ -57,6 +60,8 @@ final class ActivityRecorder
                 'description',
                 'actor_name',
                 'actor_email',
+                'ip_address',
+                'user_agent',
                 'subject_type',
                 'details',
             ]);
@@ -88,6 +93,8 @@ final class ActivityRecorder
                 'description',
                 'actor_name',
                 'actor_email',
+                'ip_address',
+                'user_agent',
                 'subject_type',
                 'details',
             ]);
@@ -123,7 +130,7 @@ final class ActivityRecorder
             'subject_type' => $subjectType,
             'subject_id' => $subjectId,
             'details' => $details,
-        ] + $this->actorContext($actor));
+        ] + $this->actorContext($actor) + $this->requestContext());
     }
 
     /**
@@ -134,6 +141,34 @@ final class ActivityRecorder
         return [
             'actor_name' => $actor instanceof User ? $actor->getAttribute('name') : null,
             'actor_email' => $actor instanceof User ? $actor->getAttribute('email') : null,
+        ];
+    }
+
+    /**
+     * @return array{ip_address: mixed, user_agent: mixed}
+     */
+    private function requestContext(): array
+    {
+        try {
+            if (!app()->has(ServerRequestInterface::class)) {
+                return [
+                    'ip_address' => null,
+                    'user_agent' => null,
+                ];
+            }
+
+            /** @var ServerRequestInterface $request */
+            $request = app(ServerRequestInterface::class);
+        } catch (\Throwable) {
+            return [
+                'ip_address' => null,
+                'user_agent' => null,
+            ];
+        }
+
+        return [
+            'ip_address' => (string) ($request->getServerParams()['REMOTE_ADDR'] ?? null),
+            'user_agent' => $request->getHeaderLine('User-Agent'),
         ];
     }
 

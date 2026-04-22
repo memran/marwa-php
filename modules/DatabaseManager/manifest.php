@@ -15,8 +15,12 @@ return [
     'paths' => [
         'views' => 'resources/views',
         'commands' => 'Console/Commands',
+        'database/migrations' => 'database/migrations',
     ],
     'routes' => [
         'http' => 'routes/http.php',
+    ],
+    'migrations' => [
+        'database/migrations/2026_04_15_000001_insert_database_manager_permissions.php',
     ],
 ];

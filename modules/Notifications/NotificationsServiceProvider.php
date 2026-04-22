@@ -34,6 +34,7 @@ final class NotificationsServiceProvider implements ModuleServiceProviderInterfa
                 'parent' => 'admin.user-space',
                 'order' => 20,
                 'icon' => 'bell',
+                'permission' => 'notifications.view',
             ]);
         }
     }

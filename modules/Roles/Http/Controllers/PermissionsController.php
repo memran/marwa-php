@@ -15,8 +15,22 @@ final class PermissionsController extends Controller
 {
     public function index(): ResponseInterface
     {
+        $request = $this->request();
+        $query = trim((string) ($request->getQueryParams()['q'] ?? ''));
+        $group = trim((string) ($request->getQueryParams()['group'] ?? ''));
+        $repository = app(PermissionRepository::class);
+        $permissions = $repository->groupedFiltered($query, $group);
+        $visiblePermissions = array_sum(array_map(static fn (array $items): int => count($items), $permissions));
+        $groupCount = count($permissions);
+
         return $this->view('@roles/permissions', [
-            'permissions' => app(PermissionRepository::class)->grouped(),
+            'permissions' => $permissions,
+            'group_options' => $repository->groupNames(),
+            'query' => $query,
+            'group' => $group,
+            'visible_permissions' => $visiblePermissions,
+            'group_count' => $groupCount,
+            'total_permissions' => count($repository->all()),
             'create_url' => '/admin/permissions/create',
         ]);
     }
@@ -53,7 +67,14 @@ final class PermissionsController extends Controller
             'group' => $payload['group'],
             'description' => $payload['description'],
         ]);
-
+        app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+            'permission.created',
+            'Created permission.',
+            app(\App\Modules\Auth\Support\AuthManager::class)->user(),
+            'permission',
+            null,
+            ['state' => $payload]
+        );
         session()->flash('permissions.notice', 'Permission created successfully.');
 
         return $this->redirect('/admin/permissions');
@@ -102,7 +123,14 @@ final class PermissionsController extends Controller
             'group' => $payload['group'],
             'description' => $payload['description'],
         ]);
-
+        app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+            'permission.updated',
+            'Updated permission.',
+            app(\App\Modules\Auth\Support\AuthManager::class)->user(),
+            'permission',
+            $id,
+            ['state' => $payload]
+        );
         session()->flash('permissions.notice', 'Permission updated successfully.');
 
         return $this->redirect('/admin/permissions');
@@ -117,6 +145,14 @@ final class PermissionsController extends Controller
         }
 
         $this->permRepo()->delete($id);
+        app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+            'permission.deleted',
+            'Deleted permission.',
+            app(\App\Modules\Auth\Support\AuthManager::class)->user(),
+            'permission',
+            $id,
+            ['state' => ['id' => $id]]
+        );
         session()->flash('permissions.notice', 'Permission deleted successfully.');
 
         return $this->redirect('/admin/permissions');
@@ -136,4 +172,5 @@ final class PermissionsController extends Controller
     {
         return $this->permRepo()->findById($id);
     }
+
 }

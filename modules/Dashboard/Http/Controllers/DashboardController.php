@@ -70,6 +70,14 @@ final class DashboardController extends Controller
         }
 
         $this->saveUserWidgets($userId, $widgets);
+        app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+            'dashboard.saved',
+            'Saved dashboard widgets.',
+            app(\App\Modules\Auth\Support\AuthManager::class)->user() instanceof \App\Modules\Users\Models\User ? app(\App\Modules\Auth\Support\AuthManager::class)->user() : null,
+            'dashboard',
+            null,
+            ['state' => ['widgets' => array_map(static fn (array $widget): string => (string) ($widget['widget_id'] ?? ''), $widgets)]]
+        );
 
         return $this->json(['success' => true, 'message' => 'Dashboard saved']);
     }
@@ -88,6 +96,14 @@ final class DashboardController extends Controller
             $stmt->execute(['user_id' => $userId]);
         }
 
+        app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+            'dashboard.reset',
+            'Reset dashboard widgets.',
+            app(\App\Modules\Auth\Support\AuthManager::class)->user() instanceof \App\Modules\Users\Models\User ? app(\App\Modules\Auth\Support\AuthManager::class)->user() : null,
+            'dashboard',
+            null,
+            ['state' => ['reset' => true]]
+        );
         return $this->json(['success' => true, 'message' => 'Dashboard reset to default']);
     }
 
@@ -214,18 +230,22 @@ final class DashboardController extends Controller
 
     private function renderWidget(string $id): string
     {
-        $viewFile = dirname(__DIR__, 2) . '/resources/views/widgets/' . $id . '.twig';
+        $widget = $this->widgetRegistry->get($id);
 
-        if (!file_exists($viewFile)) {
+        if (!$widget) {
             return '<div class="p-4 text-slate-400 dark:text-slate-500">Widget template not found</div>';
         }
 
         try {
             $view = app()->make(View::class);
+            $namespace = (string) ($widget['namespace'] ?? 'dashboard');
+            $viewName = (string) ($widget['view'] ?? ('widgets/' . $id));
+            $card = $this->widgetCard($id) ?? ($widget['card'] ?? []);
 
-            $data = ['card' => $this->widgetCard($id)];
-
-            return $view->render('@dashboard/widgets/' . $id, $data);
+            return $view->render('@' . $namespace . '/' . $viewName, [
+                'card' => is_array($card) ? $card : [],
+                'widget' => $widget,
+            ]);
         } catch (\Throwable $e) {
             return '<div class="p-4 text-slate-400 dark:text-slate-500">Error: ' . $e->getMessage() . '</div>';
         }
@@ -247,33 +267,18 @@ final class DashboardController extends Controller
      */
     private function widgetCard(string $id): ?array
     {
-        if ($id === 'theme_info') {
-            return [
-                'label' => 'Admin theme',
-                'value' => (string) config('settings.lifecycle.theme.admin', config('view.adminTheme', 'admin')),
-                'meta' => 'Active workspace skin',
-                'tone' => 'primary',
-                'status' => 'Loaded',
-                'metric_percent' => 66,
-                'metric_width' => '66%',
-                'metric_bars' => ['84%', '70%', '56%', '42%'],
-            ];
+        $widget = $this->widgetRegistry->get($id);
+        $widgetCard = $widget['card'] ?? null;
+
+        if (is_array($widgetCard) && $widgetCard !== []) {
+            return $widgetCard;
         }
 
         if (!class_exists(\App\Modules\DashboardStatus\DashboardStatusCards::class)) {
             return null;
         }
 
-        $cards = app(\App\Modules\DashboardStatus\DashboardStatusCards::class)->cards();
-        $cardMap = [
-            'app_status' => 0,
-            'runtime_info' => 1,
-            'memory_usage' => 2,
-            'disk_space' => 3,
-            'load_average' => 4,
-        ];
-
-        return $cards[$cardMap[$id] ?? 0] ?? null;
+        return app(\App\Modules\DashboardStatus\DashboardStatusCards::class)->card($id);
     }
 
     /**

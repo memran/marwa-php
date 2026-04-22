@@ -428,6 +428,10 @@ TWIG
         self::assertStringContainsString('alerts@example.test', (string) $updatedPage->getBody());
         self::assertStringNotContainsString('name="settings[logging][enabled]" value="1" checked', (string) $updatedPage->getBody());
 
+        $activityPage = $kernel->handle($this->request('GET', '/admin/activity'));
+        self::assertSame(200, $activityPage->getStatusCode());
+        self::assertStringContainsString('settings.updated', (string) $activityPage->getBody());
+
         $maintenancePayload = $this->settingsPayload([
             'app' => [
                 'maintenance_mode' => true,

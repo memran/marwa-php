@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\Modules\Activity\Models\Activity;
 use App\Modules\Users\Models\User;
 use App\Modules\Users\Support\UserRepository;
 use Marwa\DB\Connection\ConnectionManager;
 use Marwa\Framework\Application;
 use Marwa\Framework\Bootstrappers\AppBootstrapper;
+use Marwa\Router\Http\RequestFactory;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ServerRequestInterface;
 
 final class UserRepositoryActivityEventTest extends TestCase
 {
@@ -93,7 +94,7 @@ PHP
         parent::tearDown();
     }
 
-    public function testUserRepositoryRecordsCrudActivityDirectly(): void
+    public function testUserRepositoryCrudOperationsPersistWithoutDirectActivityWrites(): void
     {
         $app = new Application($this->basePath);
         $app->make(AppBootstrapper::class)->bootstrap();
@@ -131,21 +132,6 @@ CREATE TABLE users (
 SQL);
 
         $pdo->exec(<<<'SQL'
-        CREATE TABLE activities (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    action TEXT NOT NULL,
-    description TEXT NOT NULL,
-    actor_name TEXT NULL,
-    actor_email TEXT NULL,
-    subject_type TEXT NULL,
-    subject_id INTEGER NULL,
-    details TEXT NULL,
-    created_at TEXT NULL,
-    updated_at TEXT NULL
-)
-SQL);
-
-        $pdo->exec(<<<'SQL'
 INSERT INTO roles (name, slug, level, description, is_system, created_at, updated_at) VALUES
 ('Admin', 'admin', 5, 'System administrator', 1, datetime('now'), datetime('now')),
 ('Manager', 'manager', 3, 'Operations manager', 0, datetime('now'), datetime('now')),
@@ -154,6 +140,16 @@ SQL);
 
         /** @var UserRepository $users */
         $users = $app->make(UserRepository::class);
+        $app->add(ServerRequestInterface::class, RequestFactory::fromArrays(
+            [
+                'REQUEST_METHOD' => 'POST',
+                'REQUEST_URI' => '/admin/users',
+                'HTTP_HOST' => 'example.test',
+                'REMOTE_ADDR' => '203.0.113.10',
+                'HTTP_USER_AGENT' => 'PHPUnit Browser/1.0',
+            ],
+            []
+        ));
         $actor = User::newInstance([
             'id' => 999,
             'name' => 'Administrator',
@@ -181,20 +177,11 @@ SQL);
 
         self::assertInstanceOf(User::class, $trashed);
         self::assertTrue($users->restoreUser($trashed, $actor));
+        $restored = User::findBy('email', 'ops@example.test');
 
-        $rows = Activity::query()->getBaseBuilder()->orderBy('id', 'asc')->get();
-        $actions = array_map(static fn (array $row): string => (string) $row['action'], $rows);
-        $descriptions = array_map(static fn (array $row): string => (string) $row['description'], $rows);
-        $details = array_map(static fn (array $row): string => (string) $row['details'], $rows);
-
-        self::assertSame(['user.created', 'user.updated', 'user.deleted', 'user.restored'], $actions);
-        self::assertContains('Created user ops@example.test.', $descriptions);
-        self::assertContains('Updated user ops@example.test.', $descriptions);
-        self::assertContains('Deleted user ops@example.test.', $descriptions);
-        self::assertContains('Restored user ops@example.test.', $descriptions);
-        self::assertStringContainsString('Created user account.', $details[0]);
-        self::assertStringContainsString('Changed fields:', $details[1]);
-        self::assertStringContainsString('Soft deleted user account.', $details[2]);
-        self::assertStringContainsString('Restored user account.', $details[3]);
+        self::assertInstanceOf(User::class, $restored);
+        self::assertNull($restored->getAttribute('deleted_at'));
+        self::assertSame('Operations Manager', (string) $restored->getAttribute('name'));
+        self::assertSame(0, (int) $restored->getAttribute('is_active'));
     }
 }

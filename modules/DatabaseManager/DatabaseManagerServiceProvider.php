@@ -21,6 +21,7 @@ final class DatabaseManagerServiceProvider implements ModuleServiceProviderInter
                 'parent' => 'admin.system',
                 'order' => 10,
                 'icon' => 'database',
+                'permission' => 'database.view',
                 'visible' => static fn (): bool => (bool) env(
                     'DATABASE_MANAGER_ENABLED',
                     !in_array((string) env('APP_ENV', 'production'), ['production', 'staging'], true)

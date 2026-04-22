@@ -23,6 +23,7 @@ final class UsersController extends Controller
         protected readonly AdminSearch $search,
         protected readonly AdminPagination $pagination,
         protected readonly AuthManager $auth,
+        protected readonly \App\Modules\Users\Support\UserActivityService $activity,
     ) {}
 
     public function index(): ResponseInterface
@@ -78,6 +79,14 @@ final class UsersController extends Controller
         }
 
         $this->users->createUser($afterState, (string) $validated['password'], $this->auth->user());
+        app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+            'user.created',
+            'Created user.',
+            $this->auth->user(),
+            'user',
+            null,
+            ['state' => $afterState]
+        );
         $this->flash('users.notice', 'User created successfully.');
 
         return $this->redirect('/admin/users');
@@ -122,14 +131,17 @@ final class UsersController extends Controller
             return $this->response('User not found.', 404);
         }
 
-        $validated = $this->validate($this->rules->update());
+        $validated = $this->validate($this->rules->update(), [], [], $request);
         $beforeState = $this->users->userSnapshot($user);
+        $currentActive = (int) (bool) $user->getAttribute('is_active');
 
         $afterState = [
             'name' => trim((string) $validated['name']),
             'email' => $this->users->normalizeEmail((string) $validated['email']),
             'role_id' => (int) $validated['role_id'],
-            'is_active' => array_key_exists('is_active', $validated) ? (int) (bool) $validated['is_active'] : 0,
+            'is_active' => array_key_exists('is_active', $validated)
+                ? (int) (bool) $validated['is_active']
+                : $currentActive,
         ];
         $password = array_key_exists('password', $validated) && $validated['password'] !== null
             ? (string) $validated['password']
@@ -169,6 +181,19 @@ final class UsersController extends Controller
         }
 
         $this->users->updateUser($user, $afterState, $password, $this->auth->user());
+
+        $payload = $afterState['is_active'] !== $beforeState['is_active']
+            ? $this->activity->statusChangedPayload($user, $beforeState, $afterState)
+            : $this->activity->updatedPayload($user, $beforeState, $afterState, $passwordChanged);
+
+        app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+            $payload['action'],
+            $payload['description'],
+            $this->auth->user(),
+            $payload['subjectType'],
+            $payload['subjectId'],
+            $payload['details']
+        );
         $this->flash('users.notice', 'User updated successfully.');
 
         return $this->redirect('/admin/users');
@@ -193,6 +218,14 @@ final class UsersController extends Controller
         }
 
         if ($this->users->restoreUser($user, $this->auth->user())) {
+            app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+                'user.restored',
+                'Restored user account.',
+                $this->auth->user(),
+                'user',
+                (int) $user->getKey(),
+                ['state' => $this->users->userSnapshot($user)]
+            );
             $this->flash('users.notice', 'User restored successfully.');
         } else {
             $this->flash('users.notice', 'Unable to restore the selected user.');
@@ -222,6 +255,14 @@ final class UsersController extends Controller
         }
 
         $this->users->deleteUser($user, $this->auth->user());
+        app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+            'user.deleted',
+            'Soft deleted user account.',
+            $this->auth->user(),
+            'user',
+            (int) $user->getKey(),
+            ['state' => $this->users->userSnapshot($user)]
+        );
         $this->flash('users.notice', 'User deleted successfully.');
 
         return $this->redirect('/admin/users');
