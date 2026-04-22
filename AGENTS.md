@@ -112,7 +112,9 @@
 - `composer install` installs dependencies.
 - `composer test` runs the starter PHPUnit suite.
 - `composer analyse` runs PHPStan for this starter.
-- `php marwa` runs the Marwa CLI for local manual checks.
+- `php marwa list` runs the Marwa CLI for local manual checks.
+- `npm run build` runs node build for tailwindcss and alpinejs
+- `npm run dev` run node dev server
 
 ## PHP Coding Policy
 
@@ -193,3 +195,4 @@
 - App-specific tests pass and framework tests are not duplicated here.
 - README and AGENTS reflect the actual repository behavior.
 - Any framework-level friction is called out clearly in the final response.
+- PHPUnit and phpstan(Level 6) tests are green

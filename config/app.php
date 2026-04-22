@@ -5,7 +5,7 @@ declare(strict_types=1);
 return [
     'name' => env('APP_NAME', 'MarwaPHP'),
     'providers' => [
-        Marwa\Framework\Providers\KernalServiceProvider::class,
+        Marwa\Framework\Providers\KernelServiceProvider::class,
         App\Providers\AdminNavigationServiceProvider::class,
     ],
     'middlewares' => [

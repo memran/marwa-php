@@ -11,6 +11,6 @@ use Marwa\Framework\Facades\Router;
 Router::get('/', [HomeController::class, 'index'])->name('home')->register();
 
 Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class]], static function ($routes): void {
-    $routes->get('/', static fn (): \Psr\Http\Message\ResponseInterface => \Marwa\Router\Response::redirect('/admin/dashboard', 302))
+    $routes->get('/', static fn(): \Psr\Http\Message\ResponseInterface => \Marwa\Router\Response::redirect('/admin/dashboard', 302))
         ->register();
 });

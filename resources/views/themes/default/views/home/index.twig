@@ -1,16 +1,17 @@
 {% extends "layout.twig" %}
 
 {% block content %}
-<div class="grid gap-10 px-4 py-10 lg:grid-cols-3 lg:items-start lg:px-10">
-  <div class="space-y-5 lg:col-span-2">
+<div class="grid w-full gap-10 px-4 py-10 lg:grid-cols-3 lg:items-start lg:px-10">
+  <div class="col-span-2 min-w-0 space-y-5">
     {% include '@Shared/components/welcome/hero.twig' %}
     {% include '@Shared/components/welcome/pillars.twig' %}
+    {% include '@Shared/components/welcome/runtime-snapshot.twig' %}
   </div>
 
-  <div class="space-y-5 lg:col-span-1 lg:pt-10">
+  <div class="col-span-1 min-w-0 space-y-5 lg:pt-10">
     {% include '@Shared/components/welcome/architecture-strip.twig' %}
     {% include '@Shared/components/welcome/boot-flow.twig' %}
-    {% include '@Shared/components/welcome/runtime-snapshot.twig' %}
+    
   </div>
 </div>
 {% endblock %}

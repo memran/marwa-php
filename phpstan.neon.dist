@@ -7,7 +7,6 @@ parameters:
         - tests
     bootstrapFiles:
         - vendor/autoload.php
-        - phpstan-stubs/framework.php
     reportUnmatchedIgnoredErrors: true
     ignoreErrors:
         - identifier: staticMethod.notFound

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7a5148152af3e6809a1fb3e03dae788d",
+    "content-hash": "5ecb0f30599896ecb024d83bdc377155",
     "packages": [
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -1316,16 +1316,16 @@
         },
         {
             "name": "memran/marwa-error-handler",
-            "version": "v1.1.0",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/memran/marwa-error-handler.git",
-                "reference": "4ff5685c6fd8d0708aff7bd2a0edb0122bf9a931"
+                "reference": "160e9e84918cdc3a0ff884c2bfa8332ed3973742"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/memran/marwa-error-handler/zipball/4ff5685c6fd8d0708aff7bd2a0edb0122bf9a931",
-                "reference": "4ff5685c6fd8d0708aff7bd2a0edb0122bf9a931",
+                "url": "https://api.github.com/repos/memran/marwa-error-handler/zipball/160e9e84918cdc3a0ff884c2bfa8332ed3973742",
+                "reference": "160e9e84918cdc3a0ff884c2bfa8332ed3973742",
                 "shasum": ""
             },
             "require": {
@@ -1357,9 +1357,9 @@
             ],
             "support": {
                 "issues": "https://github.com/memran/marwa-error-handler/issues",
-                "source": "https://github.com/memran/marwa-error-handler/tree/v1.1.0"
+                "source": "https://github.com/memran/marwa-error-handler/tree/v1.2.0"
             },
-            "time": "2026-03-29T11:46:43+00:00"
+            "time": "2026-04-22T13:24:09+00:00"
         },
         {
             "name": "memran/marwa-event",
@@ -1411,16 +1411,16 @@
         },
         {
             "name": "memran/marwa-framework",
-            "version": "v1.4.7",
+            "version": "v1.4.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/memran/marwa-framework.git",
-                "reference": "c6d4b07b482e0b0a926e79f91394ce34d58847ea"
+                "reference": "e61d1d134270eb2b660d46aa8b937d69ba8a45f8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/memran/marwa-framework/zipball/c6d4b07b482e0b0a926e79f91394ce34d58847ea",
-                "reference": "c6d4b07b482e0b0a926e79f91394ce34d58847ea",
+                "url": "https://api.github.com/repos/memran/marwa-framework/zipball/e61d1d134270eb2b660d46aa8b937d69ba8a45f8",
+                "reference": "e61d1d134270eb2b660d46aa8b937d69ba8a45f8",
                 "shasum": ""
             },
             "require": {
@@ -1504,9 +1504,9 @@
             ],
             "support": {
                 "issues": "https://github.com/memran/marwa-framework/issues",
-                "source": "https://github.com/memran/marwa-framework/tree/v1.4.7"
+                "source": "https://github.com/memran/marwa-framework/tree/v1.4.9"
             },
-            "time": "2026-04-18T14:28:48+00:00"
+            "time": "2026-04-22T14:13:30+00:00"
         },
         {
             "name": "memran/marwa-logger",
