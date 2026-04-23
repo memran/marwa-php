@@ -70,6 +70,23 @@ The starter also ships an admin-only Settings module at `/admin/settings`. It st
 Soft-deleted users stay visible in the Users module with a `Trashed` badge and a restore action.
 User creation now rejects duplicate emails, and delete actions ask for a browser confirmation before submitting.
 The Activity module records admin login, logout, and the starter's module write actions through direct `ActivityRecorder` calls in the starter workflows, then shows them in the dashboard feed and on the activity page.
+The `BackgroundJobs` module scans module manifests for scheduled `tasks` and registers them with the framework scheduler, so modules can contribute cron-style work without adding a second queue engine.
+The `schedule_jobs` table now lives in `modules/BackgroundJobs/database/migrations/`, and the queue jobs table lives in `modules/Queue/database/migrations/`. Run `php marwa module:migrate` so both module-owned tables are created on a fresh install.
+For the admin task screen, the database schedule store is the default because it keeps task state queryable. By default it follows the main app database connection, so you can leave `SCHEDULE_DB_CONNECTION` unset unless you want a separate database. Keep `SCHEDULE_DRIVER=database` unless you explicitly want the file store.
+To drive the scheduler every second from cron, run the framework command with a one-minute loop:
+
+```bash
+php marwa schedule:run --for=60 --sleep=1
+```
+
+The queue backend is also database-first now. The starter uses the global queue contract, stores jobs in `queue_jobs`, and exposes a `Queue` admin module for job status and retries. To process queued jobs from cron or a supervisor, run:
+
+```bash
+php marwa queue:work --for=60 --sleep=1
+```
+
+If you want the file queue back for local experiments, set `QUEUE_DRIVER=file` in `.env`.
+
 To run module-local seeders manually, use `php marwa module:seed`.
 If you want to add a new module using the same conventions as `Users`, see [docs/module-authoring.md](docs/module-authoring.md).
 

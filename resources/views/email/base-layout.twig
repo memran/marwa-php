@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subject|default('Email') }}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #334155;
+        }
+        .email-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .email-card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .email-header {
+            padding: 32px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .email-header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .email-header p {
+            margin: 8px 0 0;
+            font-size: 14px;
+            color: #64748b;
+        }
+        .email-body {
+            padding: 32px;
+        }
+        .email-body p {
+            margin: 0 0 16px;
+        }
+        .email-body p:last-child {
+            margin-bottom: 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #0f172a;
+            color: #ffffff !important;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+        .button:hover {
+            background-color: #1e293b;
+        }
+        .link-text {
+            font-size: 13px;
+            word-break: break-all;
+            color: #3b82f6;
+        }
+        .notice {
+            padding: 16px;
+            background-color: #fef3c7;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #92400e;
+            margin-top: 24px;
+        }
+        .notice strong {
+            font-weight: 600;
+        }
+        .email-footer {
+            padding: 24px 32px;
+            text-align: center;
+            background-color: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+        .email-footer p {
+            margin: 0;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        @media only screen and (max-width: 480px) {
+            .email-wrapper {
+                padding: 20px 10px;
+            }
+            .email-header,
+            .email-body,
+            .email-footer {
+                padding: 24px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <div class="email-card">
+            <div class="email-header">
+                <h1>{{ app_name }}</h1>
+                {% if header_subtitle is defined %}
+                <p>{{ header_subtitle }}</p>
+                {% endif %}
+            </div>
+            <div class="email-body">
+                {% block content %}{% endblock %}
+            </div>
+            <div class="email-footer">
+                <p>{{ footer_text|default('This is an automated message from ' ~ app_name ~ '.') }}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

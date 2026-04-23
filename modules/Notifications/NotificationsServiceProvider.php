@@ -7,6 +7,7 @@ namespace App\Modules\Notifications;
 use App\Modules\Notifications\Support\NotificationRepository;
 use App\Modules\Notifications\Support\NotificationService;
 use League\Container\Container;
+use Marwa\Framework\Adapters\ViewAdapter;
 use Marwa\Framework\Navigation\MenuRegistry;
 use Marwa\Module\Contracts\ModuleServiceProviderInterface;
 

@@ -6,6 +6,7 @@ namespace App\Modules\Notifications\Http\Controllers;
 
 use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Support\AuthManager;
+use App\Modules\Activity\Support\ActivityRecorder;
 use App\Modules\Notifications\Models\Notification;
 use App\Modules\Notifications\Support\NotificationRepository;
 use App\Modules\Notifications\Support\NotificationService;
@@ -123,16 +124,26 @@ final class NotificationsController extends Controller
         }
 
         $id = (int) ($vars['id'] ?? 0);
+        $notification = $this->repository->findById($id, $user->getKey());
         $result = $this->repository->delete($id, $user->getKey());
 
-        if ($result) {
-            app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+        if ($result && $notification instanceof Notification) {
+            app(ActivityRecorder::class)->recordActorAction(
                 'notification.deleted',
                 'Deleted notification.',
-                $this->auth->user() instanceof User ? $this->auth->user() : null,
+                $user,
                 'notification',
-                $id,
-                ['state' => ['id' => $id]]
+                (int) $notification->getKey(),
+                [
+                    'state' => [
+                        'user_id' => $notification->getAttribute('user_id'),
+                        'type' => $notification->getAttribute('type'),
+                        'title' => $notification->getAttribute('title'),
+                        'message' => $notification->getAttribute('message'),
+                        'action_url' => $notification->getAttribute('action_url'),
+                        'is_read' => $notification->getAttribute('is_read'),
+                    ],
+                ]
             );
             session()->flash('notifications.notice', 'Notification deleted successfully.');
             return $this->redirect('/admin/notifications');
@@ -166,27 +177,8 @@ final class NotificationsController extends Controller
 
         if ($targetUserId !== null) {
             $this->service->send((int) $targetUserId, $type, $title, $message, $actionUrl);
-            app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
-                'notification.created',
-                'Created notification.',
-                $this->auth->user() instanceof User ? $this->auth->user() : null,
-                'notification',
-                null,
-                ['state' => ['type' => $type, 'title' => $title]]
-            );
         } else {
-            $created = $this->service->sendToAdmins($type, $title, $message, $actionUrl);
-
-            if ($created > 0) {
-                app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
-                    'notification.created',
-                    'Created notification.',
-                    $this->auth->user() instanceof User ? $this->auth->user() : null,
-                    'notification',
-                    null,
-                    ['state' => ['type' => $type, 'title' => $title, 'count' => $created]]
-                );
-            }
+            $this->service->sendToAdmins($type, $title, $message, $actionUrl);
         }
 
         return $this->json(['success' => true, 'message' => 'Notification sent']);

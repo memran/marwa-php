@@ -55,10 +55,37 @@ Every module should define a clear manifest with:
 - `paths`
 - `routes`
 - `migrations` when the module ships migrations
+- `tasks` when the module contributes scheduled work
 
 Follow the shape already used by `Users`, `Auth`, and `Activity`.
 
 Important: when a module has migrations, add explicit file paths to the manifest `migrations` list. Do not rely only on `paths['database/migrations']`. This starter can cache module metadata, and cached installs need explicit migration entries to discover module migrations reliably.
+
+Scheduled tasks should stay thin and framework-backed. This starter ships a `BackgroundJobs` module that registers module-declared tasks into the framework scheduler during module boot.
+If you want the admin screen to show persistent status and logs, prefer the framework's database schedule store and create the table with `php marwa schedule:table`. The starter defaults to the database scheduler backend now.
+
+Example:
+
+```php
+return [
+    'slug' => 'reports',
+    'tasks' => [
+        'cleanup_exports' => [
+            'type' => 'command',
+            'command' => 'reports:cleanup',
+            'schedule' => ['everySeconds' => 300],
+            'withoutOverlapping' => true,
+            'description' => 'Remove expired report exports',
+        ],
+    ],
+];
+```
+
+Supported task types are:
+
+- `command` for console commands
+- `queue` for framework queue jobs
+- `call` for app callables or handler classes
 
 ## Service Provider Conventions
 

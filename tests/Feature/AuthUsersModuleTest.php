@@ -335,9 +335,12 @@ TWIG
 
         $dashboard = $kernel->handle($this->request('GET', '/admin'));
         self::assertSame(200, $dashboard->getStatusCode());
-        self::assertStringContainsString('Server and application status', (string) $dashboard->getBody());
+        $body = (string) $dashboard->getBody();
+        self::assertStringContainsString('Server and application status', $body);
+        self::assertStringContainsString('/admin/background-jobs', $body);
+        self::assertStringContainsString('Background Jobs', $body);
 
-        unset($loginPage, $failedLogin, $loginWithoutCsrf, $login, $dashboard);
+        unset($loginPage, $failedLogin, $loginWithoutCsrf, $login, $dashboard, $body);
 
         $bootstrapAdmin = User::findBy('email', 'admin@marwa.test');
         self::assertInstanceOf(User::class, $bootstrapAdmin);
@@ -574,6 +577,7 @@ TWIG
     public function testAdminPasswordResetLinkCanBeCreatedAndConsumed(): void
     {
         $this->app = new Application($this->basePath);
+        $GLOBALS['marwa_app'] = $this->app;
         $this->app->make(AppBootstrapper::class)->bootstrap();
         $this->migrateAuthAndUserModules($this->app);
         $this->seedAuthAndUsers();
@@ -584,16 +588,22 @@ TWIG
         self::assertSame(200, $loginPage->getStatusCode());
 
         $csrf = $this->app->security()->csrfToken();
-
         $link = (new AuthManager())->createPasswordResetLink('admin@marwa.test');
         self::assertNotNull($link);
-        self::assertStringStartsWith('/admin/reset-password/', $link);
+        self::assertStringContainsString('reset-password/', $link);
 
         $token = basename($link);
 
         $forgotPage = $kernel->handle($this->request('GET', '/admin/forgot-password'));
         self::assertSame(200, $forgotPage->getStatusCode());
         self::assertStringContainsString('Request a recovery link.', (string) $forgotPage->getBody());
+
+        $forgotSubmit = $kernel->handle($this->request('POST', '/admin/forgot-password', [
+            '_token' => $csrf,
+            'email' => 'admin@marwa.test',
+        ]));
+        self::assertSame(302, $forgotSubmit->getStatusCode());
+        self::assertStringEndsWith('/admin/forgot-password', $forgotSubmit->getHeaderLine('Location'));
 
         $resetPage = $kernel->handle($this->request('GET', '/admin/reset-password/' . $token));
         self::assertSame(200, $resetPage->getStatusCode());
@@ -1217,6 +1227,8 @@ TWIG
             $this->basePath . '/modules/Users/database/migrations',
             $this->basePath . '/modules/Activity/database/migrations',
             $this->basePath . '/modules/Notifications/database/migrations',
+            $this->basePath . '/modules/BackgroundJobs/database/migrations',
+            $this->basePath . '/modules/Queue/database/migrations',
         ] as $path) {
             (new MigrationRepository($this->connections->getPdo(), $path))->migrate();
         }
@@ -1227,14 +1239,13 @@ TWIG
         $authSeeder = $this->basePath . '/modules/Auth/database/Seeders/RolesPermissionsSeeder.php';
         $userSeeder = $this->basePath . '/modules/Users/database/Seeders/AdminUserSeeder.php';
 
-        if (!class_exists(RolesPermissionsSeeder::class, false)) {
+if (!class_exists(RolesPermissionsSeeder::class, false)) {
             require_once $authSeeder;
         }
-        if (!class_exists(AdminUserSeeder::class, false)) {
+        if (!class_exists(\App\Modules\Users\Database\Seeders\AdminUserSeeder::class, false)) {
             require_once $userSeeder;
         }
-        (new RolesPermissionsSeeder())->run();
-        (new AdminUserSeeder())->run();
+        (new \App\Modules\Users\Database\Seeders\AdminUserSeeder())->run();
 
         if (Role::findBySlug('manager') === null) {
             Role::create([

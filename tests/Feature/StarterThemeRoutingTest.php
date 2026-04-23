@@ -300,7 +300,7 @@ TWIG
         foreach ([
             'auth',
             'users',
-            'activity',
+            'user-activity',
             'notifications',
             'settings',
         ] as $slug) {
@@ -314,7 +314,7 @@ TWIG
         foreach ([
             'auth' => 'App\\Modules\\Auth\\AuthServiceProvider',
             'users' => 'App\\Modules\\Users\\UsersServiceProvider',
-            'activity' => 'App\\Modules\\Activity\\ActivityServiceProvider',
+            'user-activity' => 'App\\Modules\\Activity\\ActivityServiceProvider',
             'notifications' => 'App\\Modules\\Notifications\\NotificationsServiceProvider',
             'settings' => 'App\\Modules\\Settings\\SettingsServiceProvider',
         ] as $slug => $provider) {

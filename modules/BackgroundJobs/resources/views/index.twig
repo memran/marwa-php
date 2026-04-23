@@ -1,0 +1,135 @@
+{% extends "layout.twig" %}
+
+{% block title %}Background Jobs{% endblock %}
+
+{% block content %}
+{% set overview = overview ?? {} %}
+{% set stats = overview.stats ?? {} %}
+{% set jobs = overview.jobs ?? [] %}
+<div class="space-y-6">
+    <section class="rounded-3xl border border-slate-200/70 bg-white px-6 py-5 shadow-sm ring-1 ring-slate-100 dark:border-slate-800 dark:bg-slate-900/60 dark:ring-white/5">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div class="space-y-2">
+                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Operations</p>
+                <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">Background Jobs</h1>
+                <p class="max-w-3xl text-sm text-slate-600 dark:text-slate-400">
+                    The framework scheduler owns execution and state. This screen reads the database scheduler store and shows the latest job status.
+                </p>
+            </div>
+            <div class="rounded-2xl bg-slate-950 px-4 py-3 text-sm text-slate-100 shadow-sm dark:bg-slate-900">
+                <div class="text-[11px] uppercase tracking-[0.25em] text-slate-400">Cron</div>
+                <div class="mt-1 font-mono text-xs sm:text-sm">{{ overview.cron ?? 'php marwa schedule:run --for=60 --sleep=1' }}</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div class="col-span-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+            <div class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Total</div>
+            <div class="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">{{ stats.total ?? 0 }}</div>
+        </div>
+        <div class="col-span-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+            <div class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Failed</div>
+            <div class="mt-1 text-2xl font-semibold text-red-600 dark:text-red-400">{{ stats.failed ?? 0 }}</div>
+        </div>
+        <div class="col-span-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+            <div class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Success</div>
+            <div class="mt-1 text-2xl font-semibold text-emerald-600 dark:text-emerald-400">{{ stats.success ?? 0 }}</div>
+        </div>
+        <div class="col-span-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+            <div class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Idle</div>
+            <div class="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">{{ stats.idle ?? 0 }}</div>
+        </div>
+        <div class="col-span-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+            <div class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Running</div>
+            <div class="mt-1 text-2xl font-semibold text-sky-600 dark:text-sky-400">{{ stats.running ?? 0 }}</div>
+        </div>
+    </section>
+
+    <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+        <div class="border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Task Status</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Backed by {{ overview.backend_label ?? 'the database scheduler store' }}.</p>
+                </div>
+                <div class="text-sm text-slate-500 dark:text-slate-400">
+                    {% if overview.driver == 'database' %}
+                        Table: <span class="font-mono text-slate-700 dark:text-slate-300">{{ overview.table ?? 'schedule_jobs' }}</span>
+                    {% else %}
+                        Path: <span class="font-mono text-slate-700 dark:text-slate-300">{{ overview.state_path ?? 'storage/framework/schedule' }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+                <thead class="bg-slate-50 text-left text-xs uppercase tracking-[0.2em] text-slate-500 dark:bg-slate-950/40 dark:text-slate-400">
+                    <tr>
+                        <th class="px-6 py-3">Task</th>
+                        <th class="px-6 py-3">Schedule</th>
+                        <th class="px-6 py-3">Status</th>
+                        <th class="px-6 py-3">Updated</th>
+                        <th class="px-6 py-3">Log</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+                    {% for job in jobs %}
+                        <tr class="align-top">
+                            <td class="px-6 py-4">
+                                <a class="font-semibold text-slate-900 underline decoration-slate-300 underline-offset-4 hover:text-sky-700 dark:text-white dark:decoration-slate-700 dark:hover:text-sky-400" href="/admin/background-jobs/{{ job.route_id|url_encode }}">{{ job.title }}</a>
+                                <div class="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">{{ job.module }}</div>
+                                <div class="mt-2 text-sm text-slate-600 dark:text-slate-400">{{ job.description ?: 'No description available.' }}</div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                                    {{ job.type }}
+                                </span>
+                                <div class="mt-2">{{ job.schedule }}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ring-1 {{ job.status_class }}">
+                                    {{ job.status }}
+                                </span>
+                                <div class="mt-2">
+                                    <span class="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ring-1 {{ job.result_class }}">
+                                        {{ job.result_label }}
+                                    </span>
+                                </div>
+                                <dl class="mt-3 space-y-1 text-xs text-slate-500 dark:text-slate-400">
+                                    <div><dt class="inline font-semibold">Ran:</dt> <dd class="inline">{{ job.last_ran_at ?: 'Never' }}</dd></div>
+                                    <div><dt class="inline font-semibold">Finished:</dt> <dd class="inline">{{ job.last_finished_at ?: 'Never' }}</dd></div>
+                                    <div><dt class="inline font-semibold">Failed:</dt> <dd class="inline">{{ job.last_failed_at ?: 'Never' }}</dd></div>
+                                </dl>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                {% if job.updated_at %}
+                                    {{ job.updated_at }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                {% if job.last_message %}
+                                    <div class="max-w-md rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700 dark:bg-slate-950/60 dark:text-slate-300">
+                                        {{ job.last_message }}
+                                    </div>
+                                {% else %}
+                                    <span class="text-slate-400 dark:text-slate-500">No logs yet.</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+                                No scheduled tasks were found. Add `tasks` to a module manifest and reload the app.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

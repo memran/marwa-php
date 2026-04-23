@@ -16,6 +16,12 @@ return [
         Marwa\Framework\Adapters\Event\RequestHandled::class => [
             App\Modules\Activity\Listeners\RecordModuleActivityListener::class,
         ],
+        App\Modules\Notifications\Events\NotificationCreated::class => [
+            App\Modules\Activity\Listeners\RecordNotificationActivityListener::class,
+        ],
+        App\Modules\Notifications\Events\NotificationDeleted::class => [
+            App\Modules\Activity\Listeners\RecordNotificationDeletedActivityListener::class,
+        ],
     ],
     'paths' => [
         'views' => 'resources/views',

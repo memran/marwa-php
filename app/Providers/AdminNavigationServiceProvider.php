@@ -46,6 +46,13 @@ final class AdminNavigationServiceProvider extends ServiceProviderAdapter implem
                 'visible' => true,
             ],
             [
+                'name' => 'admin.api',
+                'label' => 'API',
+                'url' => '#',
+                'order' => 25,
+                'visible' => true,
+            ],
+            [
                 'name' => 'admin.system',
                 'label' => 'System',
                 'url' => '#',

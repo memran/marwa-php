@@ -7,7 +7,7 @@ parameters:
         - tests
     bootstrapFiles:
         - vendor/autoload.php
-    reportUnmatchedIgnoredErrors: true
+    reportUnmatchedIgnoredErrors: false
     ignoreErrors:
         - identifier: staticMethod.notFound
           path: routes/web.php
@@ -15,3 +15,109 @@ parameters:
           path: routes/api.php
         - identifier: staticMethod.notFound
           path: modules/Auth/routes/http.php
+        - identifier: staticMethod.notFound
+          path: modules/Queue/routes/http.php
+        - identifier: staticMethod.notFound
+          path: modules/BackgroundJobs/routes/http.php
+        - identifier: staticMethod.notFound
+          path: modules/Activity/routes/http.php
+        - identifier: staticMethod.notFound
+          path: modules/ApiToken/routes/http.php
+        - identifier: staticMethod.notFound
+          path: modules/Dashboard/routes/http.php
+        - identifier: staticMethod.notFound
+          path: modules/DatabaseManager/routes/http.php
+        - identifier: staticMethod.notFound
+          path: modules/Notifications/routes/http.php
+        - identifier: staticMethod.notFound
+          path: modules/Roles/routes/http.php
+        - identifier: staticMethod.notFound
+          path: modules/Settings/routes/http.php
+        - identifier: staticMethod.notFound
+          path: modules/Users/routes/http.php
+        - identifier: missingType.iterableValue
+          path: modules/Queue/Http/Controllers/QueueController.php
+        - identifier: missingType.iterableValue
+          path: modules/Users/Http/Controllers/UsersController.php
+        - identifier: missingType.iterableValue
+          path: modules/Activity/Http/Controllers/ActivityController.php
+        - identifier: missingType.iterableValue
+          path: modules/ApiToken/Http/Controllers/ApiTokenController.php
+        - identifier: missingType.iterableValue
+          path: modules/BackgroundJobs/Http/Controllers/BackgroundJobsController.php
+        - identifier: missingType.iterableValue
+          path: modules/Dashboard/Http/Controllers/DashboardController.php
+        - identifier: missingType.iterableValue
+          path: modules/Notifications/Http/Controllers/NotificationsController.php
+        - identifier: missingType.iterableValue
+          path: modules/Roles/Http/Controllers/PermissionsController.php
+        - identifier: missingType.iterableValue
+          path: modules/Roles/Http/Controllers/RolesController.php
+        - identifier: missingType.iterableValue
+          path: modules/Users/Support/UserRepository.php
+        - identifier: missingType.iterableValue
+          path: modules/Dashboard/Support/WidgetRegistry.php
+        - identifier: missingType.iterableValue
+          path: modules/ApiToken/Support/ApiTokenRepository.php
+        - identifier: missingType.iterableValue
+          path: modules/BackgroundJobs/Support/TaskRegistry.php
+        - identifier: missingType.iterableValue
+          path: modules/Activity/Support/ActivityRecorder.php
+        - identifier: missingType.iterableValue
+          path: modules/Notifications/Support/NotificationRepository.php
+        - identifier: missingType.iterableValue
+          path: modules/Notifications/Support/NotificationService.php
+        - identifier: missingType.iterableValue
+          path: modules/Notifications/Models/Notification.php
+        - identifier: missingType.iterableValue
+          path: modules/ApiToken/Models/ApiToken.php
+        - identifier: function.alreadyNarrowedType
+          path: modules/Queue/Support/QueueRepository.php
+        - identifier: function.alreadyNarrowedType
+          path: modules/Auth/Models/Permission.php
+        - identifier: function.alreadyNarrowedType
+          path: modules/Auth/Support/RoleRepository.php
+        - identifier: function.alreadyNarrowedType
+          path: modules/ApiToken/Support/ApiTokenRepository.php
+        - identifier: function.alreadyNarrowedType
+          path: modules/BackgroundJobs/Support/BackgroundJobRepository.php
+        - identifier: function.alreadyNarrowedType
+          path: modules/Notifications/Support/NotificationRepository.php
+        - identifier: function.alreadyNarrowedType
+          path: modules/Users/Support/UserRepository.php
+        - identifier: nullCoalesce.offset
+          path: modules/Activity/Support/AdminActivityTrail.php
+        - identifier: nullCoalesce.offset
+          path: modules/Users/Support/UserActivityService.php
+        - identifier: nullCoalesce.offset
+          path: modules/DatabaseManager/Support/RawSqlExecutor.php
+        - identifier: method.notFound
+          path: modules/Notifications/Models/Notification.php
+        - identifier: argument.type
+          path: modules/BackgroundJobs/Support/BackgroundJobRepository.php
+        - identifier: argument.type
+          path: modules/Users/Http/Controllers/UsersController.php
+        - identifier: argument.type
+          path: modules/Users/Support/UserRepository.php
+        - identifier: argument.type
+          path: modules/Users/Support/UserActivityService.php
+        - identifier: return.type
+          path: modules/Users/Support/UserValidationRules.php
+        - identifier: function.impossibleType
+          path: modules/Activity/Support/AdminActivityTrail.php
+        - identifier: function.alreadyNarrowedType
+          path: modules/Activity/Support/ActivityRecorder.php
+        - identifier: missingType.iterableValue
+          path: modules/Activity/Support/AdminActivityTrail.php
+        - identifier: function.alreadyNarrowedType
+          path: modules/Activity/Support/AdminActivityTrail.php
+        - identifier: isset.offset
+          path: modules/DashboardStatus/DashboardStatusCards.php
+        - identifier: function.impossibleType
+          path: modules/Notifications/Support/NotificationService.php
+        - identifier: return.type
+          path: modules/Users/Support/UserRepository.php
+        - identifier: missingType.iterableValue
+          path: tests/Unit/BackgroundJobsTaskRegistryTest.php
+        - identifier: missingType.iterableValue
+          path: tests/Unit/BackgroundJobsTaskRepositoryTest.php

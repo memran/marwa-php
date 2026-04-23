@@ -9,14 +9,14 @@ use App\Modules\Users\Models\User;
 final class AuthManager
 {
     private ?AdminSessionManager $sessionManager;
-    private ?PasswordResetService $passwordResetService;
+    private ?PasswordResetMailer $passwordResetMailer;
 
     public function __construct(
         ?AdminSessionManager $sessionManager = null,
-        ?PasswordResetService $passwordResetService = null
+        ?PasswordResetMailer $passwordResetMailer = null
     ) {
         $this->sessionManager = $sessionManager;
-        $this->passwordResetService = $passwordResetService;
+        $this->passwordResetMailer = $passwordResetMailer;
     }
 
     public function check(): bool
@@ -46,12 +46,12 @@ final class AuthManager
 
     public function createPasswordResetLink(string $email, int $ttlMinutes = 30): ?string
     {
-        return $this->passwordResetService()->createPasswordResetLink($email, $ttlMinutes);
+        return $this->passwordResetMailer()->createPasswordResetLink($email, $ttlMinutes);
     }
 
     public function resetPassword(string $token, string $password): bool
     {
-        return $this->passwordResetService()->resetPassword($token, $password);
+        return $this->passwordResetMailer()->resetPassword($token, $password);
     }
 
     private function sessionManager(): AdminSessionManager
@@ -59,8 +59,8 @@ final class AuthManager
         return $this->sessionManager ??= app(AdminSessionManager::class);
     }
 
-    private function passwordResetService(): PasswordResetService
+    private function passwordResetMailer(): PasswordResetMailer
     {
-        return $this->passwordResetService ??= app(PasswordResetService::class);
+        return $this->passwordResetMailer ??= app(PasswordResetMailer::class);
     }
 }

@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace App\Modules\Auth\Http\Controllers;
 
 use App\Modules\Auth\Support\AuthManager;
+use App\Modules\Auth\Support\PasswordResetMailer;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 final class AuthController extends Controller
 {
-    public function __construct(private readonly AuthManager $auth)
-    {
+    public function __construct(
+        private readonly AuthManager $auth,
+        private readonly PasswordResetMailer $passwordResetMailer,
+    ) {
     }
 
     public function login(): ResponseInterface
@@ -59,7 +62,6 @@ final class AuthController extends Controller
     {
         return $this->view('@auth/forgot-password', $this->sharedViewData([
             'notice' => session('auth.notice'),
-            'recovery_link' => session('auth.recovery_link'),
         ]));
     }
 
@@ -70,9 +72,9 @@ final class AuthController extends Controller
         ]);
 
         $email = trim((string) ($validated['email'] ?? ''));
-        $recoveryLink = $this->auth->createPasswordResetLink($email);
+        $sent = $this->passwordResetMailer->sendPasswordResetEmail($email);
 
-        if ($recoveryLink === null) {
+        if (!$sent) {
             $this->withErrors([
                 'email' => 'We could not prepare a recovery link for that address.',
             ])->withInput([
@@ -82,8 +84,7 @@ final class AuthController extends Controller
             return $this->redirect('/admin/forgot-password');
         }
 
-        $this->flash('auth.notice', 'Recovery link created successfully.');
-        $this->flash('auth.recovery_link', $recoveryLink);
+        $this->flash('auth.notice', 'Recovery link sent. Check your email inbox.');
 
         return $this->redirect('/admin/forgot-password');
     }

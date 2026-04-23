@@ -14,7 +14,7 @@ This directory contains the app-specific overrides that sit on top of Marwa Fram
 - `logger.php` - framework logger defaults, log storage, filters, and channel/level/prefix settings
 - `mail.php` - mail transport and sender defaults
 - `notification.php` - notification channels and defaults
-- `queue.php` - queue path and retry settings
+- `queue.php` - queue driver, file/database storage settings, and retry settings
 - `schedule.php` - scheduler driver and lock paths
 - `security.php` - CSRF, throttle, and risk-report settings
 - `session.php` - session storage, lifetime, and cookie defaults

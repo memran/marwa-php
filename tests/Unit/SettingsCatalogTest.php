@@ -48,11 +48,6 @@ final class SettingsCatalogTest extends TestCase
                 'layout_mode' => 'compact',
                 'sidebar_state' => 'collapsed',
             ],
-            'api' => [
-                'rate_limit' => '120',
-                'allowed_origins' => "https://a.test\nhttps://b.test",
-                'api_key_required' => '1',
-            ],
             'cache' => [
                 'driver' => 'memory',
                 'ttl' => '1800',
@@ -73,7 +68,6 @@ final class SettingsCatalogTest extends TestCase
         self::assertTrue($result['values']['app']['debug']);
         self::assertSame(25, $result['values']['system']['pagination_limit']);
         self::assertSame('keep-secret', $result['values']['email']['smtp_pass']);
-        self::assertSame(['https://a.test', 'https://b.test'], $result['values']['api']['allowed_origins']);
         self::assertSame(15.5, $result['values']['payment']['tax_rate']);
     }
 }

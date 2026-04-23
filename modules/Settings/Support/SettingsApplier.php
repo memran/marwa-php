@@ -45,13 +45,13 @@ final class SettingsApplier
         $items['mail']['smtp']['username'] = $values['email']['smtp_user'] ?? ($items['mail']['smtp']['username'] ?? null);
         $items['mail']['smtp']['password'] = $values['email']['smtp_pass'] ?? ($items['mail']['smtp']['password'] ?? null);
         $items['mail']['from']['address'] = $values['email']['from_email'] ?? ($items['mail']['from']['address'] ?? 'no-reply@example.com');
+        $items['mail']['from']['name'] = $values['email']['from_name'] ?? ($items['mail']['from']['name'] ?? 'MarwaPHP');
         $items['cache']['enabled'] = (bool) ($values['cache']['enabled'] ?? ($items['cache']['enabled'] ?? true));
         $items['cache']['driver'] = $values['cache']['driver'] ?? ($items['cache']['driver'] ?? 'memory');
         $items['logger']['enable'] = (bool) ($values['logging']['enabled'] ?? ($items['logger']['enable'] ?? false));
         $items['logger']['level'] = $values['logging']['level'] ?? ($items['logger']['level'] ?? ($items['logger']['storage']['level'] ?? 'debug'));
         $items['logger']['storage']['level'] = $items['logger']['level'];
         $items['logger']['storage']['retention_days'] = (int) ($values['logging']['retention_days'] ?? ($items['logger']['storage']['retention_days'] ?? 30));
-        $items['security']['trustedOrigins'] = $values['api']['allowed_origins'] ?? ($items['security']['trustedOrigins'] ?? []);
         $items['pagination']['default_per_page'] = (int) ($values['system']['pagination_limit'] ?? 10);
         $items['system']['max_upload_size'] = $values['system']['max_upload_size'] ?? ($items['system']['max_upload_size'] ?? '10M');
         $items['system']['date_format'] = $values['system']['date_format'] ?? ($items['system']['date_format'] ?? 'Y-m-d');
@@ -75,7 +75,6 @@ final class SettingsApplier
         $items['settings']['lifecycle']['security']['password_policy'] = $items['security']['password_policy'];
         $items['settings']['lifecycle']['security']['login_attempt_limit'] = $items['security']['login_attempt_limit'];
         $items['settings']['lifecycle']['security']['two_factor_enabled'] = $items['security']['2fa_enabled'];
-        $items['settings']['lifecycle']['security']['trusted_origins'] = $items['security']['trustedOrigins'];
         $items['settings']['lifecycle']['theme']['frontend'] = $items['view']['activeTheme'];
         $items['settings']['lifecycle']['theme']['admin'] = $items['view']['adminTheme'];
         $items['settings']['lifecycle']['logging']['enabled'] = $items['logger']['enable'];

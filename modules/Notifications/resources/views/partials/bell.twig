@@ -7,7 +7,7 @@
   >
     {% include 'components/icon.twig' with { name: 'bell', class: 'h-5 w-5' } only %}
     <span 
-      x-show="unreadCount > 0" 
+      :class="unreadCount > 0 ? 'animate-ping' : ''"
       class="absolute -right-1 -top-1 flex items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[0.65rem] font-bold text-white min-w-[1.25rem]"
       x-text="unreadCount > 9 ? '9+' : unreadCount"
     >
@@ -89,7 +89,7 @@ function notificationBell() {
     isOpen: false,
     loaded: false,
     loading: true,
-    unreadCount: 0,
+    unreadCount: {{ unread_notification_count|default(0) }},
     notifications: [],
     iconAsset: window.themeAsset ? window.themeAsset('assets/icons/lucide.svg') : '',
 

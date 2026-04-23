@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Notifications\Support;
 
+use App\Modules\Notifications\Events\NotificationCreated;
 use App\Modules\Auth\Models\Role;
 use App\Modules\Notifications\Models\Notification;
 
@@ -20,7 +21,7 @@ final class NotificationService
         string $message,
         ?string $actionUrl = null
     ): Notification {
-        return $this->repository->create([
+        $notification = $this->repository->create([
             'user_id' => $userId,
             'type' => $type,
             'title' => $title,
@@ -28,6 +29,10 @@ final class NotificationService
             'action_url' => $actionUrl,
             'is_read' => 0,
         ]);
+
+        event(new NotificationCreated($notification));
+
+        return $notification;
     }
 
     public function sendToAdmins(

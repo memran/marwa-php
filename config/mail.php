@@ -9,7 +9,7 @@ return [
     'driver' => env('MAIL_DRIVER', 'smtp'),
     'charset' => env('MAIL_CHARSET', 'UTF-8'),
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'no-reply@example.com'),
+        'address' => env('MAIL_FROM_ADDRESS', 'noreply@mygoti.net'),
         'name' => env('MAIL_FROM_NAME', $appName !== '' ? $appName : 'MarwaPHP'),
     ],
     'smtp' => [

@@ -345,9 +345,6 @@ TWIG
             'email' => [
                 'from_email' => 'alerts@example.test',
             ],
-            'api' => [
-                'allowed_origins' => ['https://a.example.test', 'https://b.example.test'],
-            ],
             'logging' => [
                 'enabled' => false,
                 'level' => 'error',
@@ -364,7 +361,6 @@ TWIG
         self::assertSame('Operations Console', config('settings.app.name'));
         self::assertSame('Operations Console', config('settings.lifecycle.app.name'));
         self::assertSame('alerts@example.test', config('mail.from.address'));
-        self::assertSame(['https://a.example.test', 'https://b.example.test'], config('security.trustedOrigins'));
         self::assertSame('error', config('logger.storage.level'));
         self::assertSame(7, config('pagination.default_per_page'));
         self::assertSame(7, config('settings.lifecycle.pagination.default_per_page'));

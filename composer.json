@@ -26,7 +26,7 @@
   "require": {
     "php": ">=8.2",
     "ext-json": "*",
-    "memran/marwa-error-handler": "v1.2.0",
+    "memran/marwa-error-handler": "^1.2.0",
     "memran/marwa-framework": "^1.4"
   },
   "require-dev": {
@@ -72,7 +72,10 @@
       "php": "8.2.30"
     },
     "sort-packages": true,
-    "optimize-autoloader": true
+    "optimize-autoloader": true,
+    "audit": {
+      "block-insecure": false
+    }
   },
   "minimum-stability": "stable",
   "prefer-stable": true,

@@ -1,0 +1,79 @@
+{% extends "layout.twig" %}
+
+{% block title %}API Tokens | MarwaPHP Admin{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">API Tokens</h1>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Manage API tokens for external service access.</p>
+    </div>
+    <a href="/admin/api-tokens/create" class="inline-flex items-center gap-2 rounded-full border border-slate-900/10 bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:border-white/10 dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Create Token
+    </a>
+  </div>
+
+  {% if tokens is empty %}
+  <div class="rounded-xl border border-slate-200 bg-white p-12 dark:border-slate-700 dark:bg-slate-800">
+    <div class="text-center">
+      <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 7a2 2 0 100-4 2 2 0 000 4zm-7 3a7 7 0 0114 0H8z"/>
+      </svg>
+      <h3 class="mt-4 text-sm font-semibold text-slate-900 dark:text-white">No API tokens</h3>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Get started by creating a new API token.</p>
+    </div>
+  </div>
+  {% else %}
+  <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/50">
+            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Name</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Token</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Rate Limit</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Allowed IPs</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Last Used</th>
+            <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+          {% for token in tokens %}
+          <tr>
+            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">{{ token.getAttribute('name') }}</td>
+            <td class="whitespace-nowrap px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-300">{{ token.getTokenPrefix() }}...</td>
+            <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ token.getRateLimit() }}/min</td>
+            <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+              {% if token.hasIpRestriction() %}
+                <span class="text-xs font-mono">{{ token.getAllowedIps()|join(', ') }}</span>
+              {% else %}
+                <span class="text-slate-500">Any</span>
+              {% endif %}
+            </td>
+            <td class="whitespace-nowrap px-6 py-4">
+              {% if token.isActive() %}
+                <span class="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">Active</span>
+              {% else %}
+                <span class="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900/30 dark:text-red-400">Revoked</span>
+              {% endif %}
+            </td>
+            <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
+              {% if token.getAttribute('last_used_at') %}{{ token.getAttribute('last_used_at') }}{% else %}Never{% endif %}
+            </td>
+            <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+              <a href="/admin/api-tokens/show/{{ token.getKey() }}" class="text-cyan-600 hover:text-cyan-900 dark:text-cyan-400 dark:hover:text-cyan-300">View</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

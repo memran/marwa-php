@@ -36,14 +36,6 @@ final class AdminThemeMiddleware implements MiddlewareInterface
 
         $user = $auth->user();
         $gate = app(PermissionGate::class);
-        $canDashboard = $gate->allows('dashboard.view');
-        $canNotifications = $gate->allows('notifications.view');
-        $canUsers = $gate->allows('users.view');
-        $canRoles = $gate->allows('roles.view');
-        $canPermissions = $gate->allows('permissions.view');
-        $canActivity = $gate->allows('activity.view');
-        $canSettings = $gate->allows('settings.view');
-        $canDatabase = $databaseManagerEnabled && $gate->allows('database.view');
 
         $isAdmin = false;
         $isSuperAdmin = false;
@@ -63,35 +55,6 @@ final class AdminThemeMiddleware implements MiddlewareInterface
         $view->share('is_admin_user', $isAdmin);
         $view->share('is_super_admin', $isSuperAdmin);
         $view->share('gate', $gate);
-        $view->share('can_dashboard', $canDashboard);
-        $view->share('can_notifications', $canNotifications);
-        $view->share('can_users', $canUsers);
-        $view->share('can_roles', $canRoles);
-        $view->share('can_permissions', $canPermissions);
-        $view->share('can_activity', $canActivity);
-        $view->share('can_settings', $canSettings);
-        $view->share('can_database', $canDatabase);
-        $view->share('database_manager_enabled', $databaseManagerEnabled);
-        $view->share('_system_date_format', (string) config('settings.lifecycle.system.date_format', 'Y-m-d'));
-        $view->share('_system_time_format', (string) config('settings.lifecycle.system.time_format', 'H:i'));
-        $view->share(
-            'server_datetime',
-            date(
-                ((string) config('settings.lifecycle.system.date_format', 'Y-m-d')) . ' ' . ((string) config('settings.lifecycle.system.time_format', 'H:i'))
-            )
-        );
-        $view->share('_system_max_upload_size', (string) config('settings.lifecycle.system.max_upload_size', '10M'));
-        $view->share('_security_password_policy', (string) config('settings.lifecycle.security.password_policy', ''));
-        $view->share('_security_login_attempt_limit', (int) config('settings.lifecycle.security.login_attempt_limit', 5));
-        $view->share('_security_two_factor_enabled', (bool) config('settings.lifecycle.security.two_factor_enabled', false));
-
-        $view->share('can', function(string $permission) use ($gate): bool {
-            return $gate->allows($permission);
-        });
-
-        $view->share('role_is', function(string $role) use ($userRole): bool {
-            return RolePolicy::hasRole(is_string($userRole) ? $userRole : null, $role);
-        });
 
         $menuTree = [];
         try {

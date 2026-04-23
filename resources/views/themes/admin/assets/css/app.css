@@ -160,7 +160,13 @@
   html[data-admin-theme="light"] body.admin-theme .bg-slate-950,
   html[data-admin-theme="light"] body.admin-theme .bg-slate-950\/40,
   html[data-admin-theme="light"] body.admin-theme .bg-slate-950\/50,
-  html[data-admin-theme="light"] body.admin-theme .bg-slate-950\/55 {
+  html[data-admin-theme="light"] body.admin-theme .bg-slate-950\/55,
+  html[data-admin-theme="light"] body.admin-theme .bg-slate-950\/30,
+  html[data-admin-theme="light"] body.admin-theme .bg-slate-950\/60,
+  html[data-admin-theme="light"] body.admin-theme .bg-slate-900,
+  html[data-admin-theme="light"] body.admin-theme .bg-slate-900\/60,
+  html[data-admin-theme="light"] body.admin-theme .bg-slate-800,
+  html[data-admin-theme="light"] body.admin-theme .bg-slate-800\/50 {
     background-color: rgba(248, 250, 252, 0.88) !important;
   }
 
@@ -189,6 +195,11 @@
   }
 
   html[data-admin-theme="light"] body.admin-theme .border-white\/10 {
+    border-color: rgba(148, 163, 184, 0.18) !important;
+  }
+
+  html[data-admin-theme="light"] body.admin-theme .border-slate-700,
+  html[data-admin-theme="light"] body.admin-theme .border-slate-800 {
     border-color: rgba(148, 163, 184, 0.18) !important;
   }
 

@@ -1,0 +1,145 @@
+{% extends "layout.twig" %}
+
+{% block title %}{{ token.getAttribute('name') }} | MarwaPHP Admin{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <a href="/admin/api-tokens" class="inline-flex items-center gap-1 text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Back
+      </a>
+      <h1 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">API Token Details</h1>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">View and manage your API token.</p>
+    </div>
+  </div>
+
+  {% if success %}
+  <div class="rounded-lg bg-green-50 p-4 dark:bg-green-900/20">
+    <div class="flex">
+      <svg class="h-5 w-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <div class="ml-3">
+        <p class="text-sm font-medium text-green-800 dark:text-green-200">{{ success }}</p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if display_token %}
+  <div class="rounded-lg bg-amber-50 p-4 dark:bg-amber-900/20">
+    <div class="flex items-start">
+      <svg class="h-5 w-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+      <div class="ml-3 w-full">
+        <p class="text-sm font-medium text-amber-800 dark:text-amber-200">Make sure to copy your token now. You won't be able to see it again!</p>
+        <div class="mt-2 flex items-center gap-2">
+          <code class="flex-1 rounded bg-white px-3 py-2 text-sm font-mono text-amber-900 dark:bg-amber-950 dark:text-amber-100 break-all">{{ display_token }}</code>
+          <button
+            type="button"
+            data-token="{{ display_token }}"
+            onclick="navigator.clipboard.writeText(this.dataset.token).then(() => { const label = this.querySelector('[data-copy-label]'); if (!label) return; const original = label.textContent; label.textContent = 'Copied'; clearTimeout(this._copyTimer); this._copyTimer = setTimeout(() => { label.textContent = original; }, 1600); })"
+            class="shrink-0 inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-100 px-3 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-200 dark:border-amber-700 dark:bg-amber-900 dark:text-amber-200 dark:hover:bg-amber-800"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+            <span data-copy-label>Copy</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+    <div class="border-b border-slate-200 px-6 py-4 dark:border-slate-700">
+      <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Token Information</h2>
+    </div>
+    <div class="divide-y divide-slate-200 dark:divide-slate-700">
+      <div class="grid grid-cols-3 gap-4 px-6 py-4">
+        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Name</span>
+        <span class="col-span-2 text-sm text-slate-900 dark:text-white">{{ token.getAttribute('name') }}</span>
+      </div>
+      <div class="grid grid-cols-3 gap-4 px-6 py-4">
+        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Token</span>
+        <code class="col-span-2 text-sm font-mono text-slate-600 dark:text-slate-300">{{ token.getTokenPrefix() }}...</code>
+      </div>
+      <div class="grid grid-cols-3 gap-4 px-6 py-4">
+        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Rate Limit</span>
+        <span class="col-span-2 text-sm text-slate-900 dark:text-white">{{ token.getRateLimit() }} requests/minute</span>
+      </div>
+      <div class="grid grid-cols-3 gap-4 px-6 py-4">
+        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Allowed IPs</span>
+        <span class="col-span-2 text-sm text-slate-900 dark:text-white">
+          {% if token.hasIpRestriction() %}
+            <code class="text-xs">{{ token.getAllowedIps()|join(', ') }}</code>
+          {% else %}
+            <span class="text-slate-500">Any IP address</span>
+          {% endif %}
+        </span>
+      </div>
+      <div class="grid grid-cols-3 gap-4 px-6 py-4">
+        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Status</span>
+        <div class="col-span-2">
+          {% if token.isActive() %}
+            <span class="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
+              <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+              Active
+            </span>
+          {% else %}
+            <span class="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900/30 dark:text-red-400">
+              <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
+              Revoked
+            </span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-4 px-6 py-4">
+        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Created</span>
+        <span class="col-span-2 text-sm text-slate-900 dark:text-white">{{ token.getAttribute('created_at') }}</span>
+      </div>
+      <div class="grid grid-cols-3 gap-4 px-6 py-4">
+        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Last Used</span>
+        <span class="col-span-2 text-sm text-slate-900 dark:text-white">
+          {% if token.getAttribute('last_used_at') %}
+            {{ token.getAttribute('last_used_at') }}
+          {% else %}
+            <span class="text-slate-500">Never</span>
+          {% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-between border-t border-slate-200 pt-6 dark:border-slate-700">
+    <form method="post" action="/admin/api-tokens/show/{{ token.getKey() }}/toggle">
+      {{ csrf_field() }}
+      {% if token.isActive() %}
+      <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-red-300 bg-white px-5 py-3 text-sm font-semibold text-red-700 transition hover:bg-red-50 dark:border-red-700 dark:bg-slate-800 dark:text-red-400 dark:hover:bg-red-900/20">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+        </svg>
+        Revoke Token
+      </button>
+      {% else %}
+      <button type="submit" class="inline-flex items-center gap-2 rounded-full border border-green-300 bg-white px-5 py-3 text-sm font-semibold text-green-700 transition hover:bg-green-50 dark:border-green-700 dark:bg-slate-800 dark:text-green-400 dark:hover:bg-green-900/20">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Reactivate Token
+      </button>
+      {% endif %}
+    </form>
+
+    <a href="/admin/api-tokens" class="inline-flex items-center gap-2 rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800">
+      Close
+    </a>
+  </div>
+</div>
+{% endblock %}

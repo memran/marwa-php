@@ -89,7 +89,7 @@ final class UserAgentViewExtension extends AbstractViewExtension implements View
             return '';
         }
 
-        return trim((string) ($matches[1] ?? ''));
+        return trim($matches[1]);
     }
 
     private function osLabel(string $value): string

@@ -56,6 +56,7 @@ final class SettingsCatalog
                     'smtp_user' => ['label' => 'SMTP user', 'input' => 'text', 'type' => 'string', 'default' => (string) env('MAIL_USERNAME', '')],
                     'smtp_pass' => ['label' => 'SMTP password', 'input' => 'password', 'type' => 'string', 'default' => (string) env('MAIL_PASSWORD', ''), 'sensitive' => true, 'help' => 'Leave blank to keep the current stored value.'],
                     'from_email' => ['label' => 'From email', 'input' => 'email', 'type' => 'email', 'default' => (string) env('MAIL_FROM_ADDRESS', 'no-reply@example.com')],
+                    'from_name' => ['label' => 'From name', 'input' => 'text', 'type' => 'string', 'default' => (string) env('MAIL_FROM_NAME', 'MarwaPHP')],
                 ],
             ],
             'ui' => [
@@ -67,15 +68,6 @@ final class SettingsCatalog
                     'logo_url' => ['label' => 'Logo URL', 'input' => 'url', 'type' => 'url', 'default' => ''],
                     'layout_mode' => ['label' => 'Layout mode', 'input' => 'select', 'type' => 'string', 'default' => 'compact', 'options' => ['compact' => 'compact', 'comfortable' => 'comfortable']],
                     'sidebar_state' => ['label' => 'Sidebar state', 'input' => 'select', 'type' => 'string', 'default' => 'expanded', 'options' => ['expanded' => 'expanded', 'collapsed' => 'collapsed']],
-                ],
-            ],
-            'api' => [
-                'label' => 'API',
-                'description' => 'API defaults that can be consumed globally by starter middleware and endpoints.',
-                'fields' => [
-                    'rate_limit' => ['label' => 'Rate limit', 'input' => 'number', 'type' => 'int', 'default' => 60, 'min' => 1],
-                    'allowed_origins' => ['label' => 'Allowed origins', 'input' => 'textarea', 'type' => 'list', 'default' => [], 'help' => 'One origin per line.'],
-                    'api_key_required' => ['label' => 'API key required', 'input' => 'checkbox', 'type' => 'bool', 'default' => false],
                 ],
             ],
             'cache' => [
