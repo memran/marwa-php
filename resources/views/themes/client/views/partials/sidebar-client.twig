@@ -1,0 +1,133 @@
+{% set currentPath = _current_path|default('') %}
+{% set nav_link_base = 'inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition' %}
+{% set nav_link_active = 'bg-cyan-400/10 text-cyan-100 border-l-2 border-cyan-400' %}
+{% set nav_link_inactive = 'text-slate-300 hover:bg-white/5 hover:text-white' %}
+{% set section_header = 'px-3 py-2 text-[0.65rem] font-semibold uppercase tracking-wider text-slate-500' %}
+
+{# Client Logo #}
+<div class="flex items-center gap-3 mb-6">
+  <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-emerald-400">
+    <span class="text-lg font-bold text-white">C</span>
+  </div>
+  <div class="grid gap-0.5">
+    <span class="text-sm font-bold text-white">Client Portal</span>
+    <span class="text-xs text-slate-500">{{ user_name|default('Guest') }}</span>
+  </div>
+</div>
+
+<nav class="grid gap-1" aria-label="Client Navigation">
+  {# Primary Section - Always Visible #}
+  <span class="{{ section_header }}">Primary</span>
+  
+  {% if can('client.dashboard') %}
+  <a class="{{ nav_link_base }} {% if currentPath starts with '/client/dashboard' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" 
+     href="/client/dashboard"
+     {% if currentPath starts with '/client/dashboard' %}aria-current="page"{% endif %}>
+    <span class="inline-flex h-5 w-5 items-center justify-center">
+      {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-5 w-5' } only %}
+    </span>
+    <span>Dashboard</span>
+  </a>
+  {% endif %}
+  
+  {% if can('client.tasks') %}
+  <a class="{{ nav_link_base }} {% if currentPath starts with '/client/tasks' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" 
+     href="/client/tasks"
+     {% if currentPath starts with '/client/tasks' %}aria-current="page"{% endif %}>
+    <span class="inline-flex h-5 w-5 items-center justify-center">
+      {% include 'components/icon.twig' with { name: 'clipboard-check', class: 'h-5 w-5' } only %}
+    </span>
+    <span>Tasks</span>
+  </a>
+  {% endif %}
+  
+  {% if can('client.documents') %}
+  <a class="{{ nav_link_base }} {% if currentPath starts with '/client/documents' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" 
+     href="/client/documents"
+     {% if currentPath starts with '/client/documents' %}aria-current="page"{% endif %}>
+    <span class="inline-flex h-5 w-5 items-center justify-center">
+      {% include 'components/icon.twig' with { name: 'file-text', class: 'h-5 w-5' } only %}
+    </span>
+    <span>Documents</span>
+  </a>
+  {% endif %}
+
+  {# Communication Section #}
+  <span class="{{ section_header }} mt-4">Communication</span>
+  
+  {% if can('client.notifications') %}
+  <a class="{{ nav_link_base }} {% if currentPath starts with '/client/notifications' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" 
+     href="/client/notifications"
+     {% if currentPath starts with '/client/notifications' %}aria-current="page"{% endif %}>
+    <span class="relative inline-flex h-5 w-5 items-center justify-center">
+      {% include 'components/icon.twig' with { name: 'bell', class: 'h-5 w-5' } only %}
+      {% if unread_notification_count|default(0) > 0 %}
+        <span class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[0.6rem] font-bold text-white">
+          {{ unread_notification_count > 9 ? '9+' : unread_notification_count }}
+        </span>
+      {% endif %}
+    </span>
+    <span>Notifications</span>
+  </a>
+  {% endif %}
+  
+  {% if can('client.projects') %}
+  <a class="{{ nav_link_base }} {% if currentPath starts with '/client/projects' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" 
+     href="/client/projects"
+     {% if currentPath starts with '/client/projects' %}aria-current="page"{% endif %}>
+    <span class="inline-flex h-5 w-5 items-center justify-center">
+      {% include 'components/icon.twig' with { name: 'folder-open', class: 'h-5 w-5' } only %}
+    </span>
+    <span>Projects</span>
+  </a>
+  {% endif %}
+
+  {# Admin Only Section #}
+  {% if can('client.team') %}
+  <span class="{{ section_header }} mt-4">Administration</span>
+  
+  <a class="{{ nav_link_base }} {% if currentPath starts with '/client/team' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" 
+     href="/client/team"
+     {% if currentPath starts with '/client/team' %}aria-current="page"{% endif %}>
+    <span class="inline-flex h-5 w-5 items-center justify-center">
+      {% include 'components/icon.twig' with { name: 'users', class: 'h-5 w-5' } only %}
+    </span>
+    <span>Team</span>
+  </a>
+  {% endif %}
+
+  {# Personal Section #}
+  <span class="{{ section_header }} mt-4">Personal</span>
+  
+  {% if can('client.profile') %}
+  <a class="{{ nav_link_base }} {% if currentPath starts with '/client/profile' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" 
+     href="/client/profile"
+     {% if currentPath starts with '/client/profile' %}aria-current="page"{% endif %}>
+    <span class="inline-flex h-5 w-5 items-center justify-center">
+      {% include 'components/icon.twig' with { name: 'user', class: 'h-5 w-5' } only %}
+    </span>
+    <span>Profile</span>
+  </a>
+  {% endif %}
+  
+  {% if can('client.settings') %}
+  <a class="{{ nav_link_base }} {% if currentPath starts with '/client/settings' %}{{ nav_link_active }}{% else %}{{ nav_link_inactive }}{% endif %}" 
+     href="/client/settings"
+     {% if currentPath starts with '/client/settings' %}aria-current="page"{% endif %}>
+    <span class="inline-flex h-5 w-5 items-center justify-center">
+      {% include 'components/icon.twig' with { name: 'settings', class: 'h-5 w-5' } only %}
+    </span>
+    <span>Settings</span>
+  </a>
+  {% endif %}
+
+  {# Logout - Always Visible #}
+  <div class="mt-4 pt-4 border-t border-white/10">
+    <a class="{{ nav_link_base }} {{ nav_link_inactive }}" href="/client/logout">
+      <span class="inline-flex h-5 w-5 items-center justify-center">
+        {% include 'components/icon.twig' with { name: 'log-out', class: 'h-5 w-5' } only %}
+      </span>
+      <span>Logout</span>
+    </a>
+  </div>
+</nav>
