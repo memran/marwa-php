@@ -140,7 +140,7 @@ SQL);
             $connections,
             null,
             'default',
-            __DIR__ . '/../../modules/Users/database/seeders',
+            __DIR__ . '/../../modules/Users/Database/Seeders',
             'App\Modules\Users\Database\Seeders'
         );
 

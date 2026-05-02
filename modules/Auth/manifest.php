@@ -26,6 +26,6 @@ return [
         'database/migrations/2026_04_10_000002_create_password_reset_tokens_table.php',
     ],
     'seeders' => [
-        'database/seeders/RolesPermissionsSeeder.php',
+        'Database/Seeders/RolesPermissionsSeeder.php',
     ],
 ];

@@ -14,11 +14,6 @@ final class PermissionGate
      */
     private $currentUserResolver = null;
 
-    public function policy(string $modelClass): void
-    {
-        // Policy registration is a compatibility no-op for the starter.
-    }
-
     public function withCurrentUserResolver(callable $resolver): self
     {
         $gate = clone $this;

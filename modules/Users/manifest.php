@@ -28,6 +28,6 @@ return [
         'database/migrations/2026_04_14_000001_add_role_id_to_users.php',
     ],
     'seeders' => [
-        'database/seeders/AdminUserSeeder.php',
+        'Database/Seeders/AdminUserSeeder.php',
     ],
 ];

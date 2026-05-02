@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Support;
 
+use Marwa\DB\Connection\ConnectionManager;
 use Marwa\DB\Facades\DB;
 
 final class PermissionMigrationHelper
@@ -14,6 +15,10 @@ final class PermissionMigrationHelper
      */
     public static function insertPermissions(array $permissions, array $assignToRoles = ['admin']): void
     {
+        if (!self::tablesAreReady(['roles', 'permissions', 'role_permission'])) {
+            return;
+        }
+
         $roleIds = DB::table('roles')
             ->whereIn('slug', $assignToRoles)
             ->pluck('id')
@@ -53,6 +58,10 @@ final class PermissionMigrationHelper
      */
     public static function removePermissions(array $slugs): void
     {
+        if (!self::tablesAreReady(['permissions', 'role_permission'])) {
+            return;
+        }
+
         $permissionIds = DB::table('permissions')
             ->whereIn('slug', $slugs)
             ->pluck('id')
@@ -62,5 +71,25 @@ final class PermissionMigrationHelper
             DB::table('role_permission')->whereIn('permission_id', $permissionIds)->delete();
             DB::table('permissions')->whereIn('id', $permissionIds)->delete();
         }
+    }
+
+    /**
+     * @param list<string> $tables
+     */
+    private static function tablesAreReady(array $tables): bool
+    {
+        if (!app()->has(ConnectionManager::class)) {
+            return false;
+        }
+
+        foreach ($tables as $table) {
+            try {
+                DB::table($table)->count();
+            } catch (\Throwable) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
