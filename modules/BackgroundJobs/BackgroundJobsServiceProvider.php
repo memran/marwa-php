@@ -5,13 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\BackgroundJobs;
 
 use App\Modules\BackgroundJobs\Support\BackgroundJobRepository;
-use App\Modules\BackgroundJobs\Support\TaskRegistry;
 use League\Container\Container;
-use Marwa\Framework\Application;
 use Marwa\Framework\Navigation\MenuRegistry;
 use Marwa\Framework\Supports\Runtime;
 use Marwa\Framework\Views\View;
-use Marwa\Module\Contracts\ModuleRegistryInterface;
 use Marwa\Module\Contracts\ModuleServiceProviderInterface;
 
 final class BackgroundJobsServiceProvider implements ModuleServiceProviderInterface
@@ -25,25 +22,8 @@ final class BackgroundJobsServiceProvider implements ModuleServiceProviderInterf
 
     public function register($app): void
     {
-        $moduleRegistry = null;
-
-        try {
-            /** @var ModuleRegistryInterface $resolved */
-            $resolved = $app->make(ModuleRegistryInterface::class);
-            $moduleRegistry = $resolved;
-        } catch (\Throwable) {
-            $moduleRegistry = null;
-        }
-
-        $this->container->addShared(TaskRegistry::class, function () use ($moduleRegistry) {
-            return new TaskRegistry($moduleRegistry);
-        });
-
         $this->container->addShared(BackgroundJobRepository::class, function () use ($app) {
-            return new BackgroundJobRepository(
-                $this->container->get(TaskRegistry::class),
-                $app
-            );
+            return new BackgroundJobRepository($app);
         });
 
         if ($app->has(MenuRegistry::class)) {
@@ -61,12 +41,6 @@ final class BackgroundJobsServiceProvider implements ModuleServiceProviderInterf
 
     public function boot($app): void
     {
-        if (!$app instanceof Application) {
-            return;
-        }
-
-        $this->container->get(TaskRegistry::class)->registerTo($app);
-
         if (Runtime::isWeb() && $app->has(View::class)) {
             $app->view()->addNamespace('background_jobs', __DIR__ . '/resources/views');
         }

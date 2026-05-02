@@ -1222,13 +1222,12 @@ TWIG
         $this->connections = $app->make(ConnectionManager::class);
 
         foreach ([
+            $this->basePath . '/database/migrations',
             $this->basePath . '/modules/Auth/database/migrations',
             $this->basePath . '/modules/Dashboard/database/migrations',
             $this->basePath . '/modules/Users/database/migrations',
             $this->basePath . '/modules/Activity/database/migrations',
             $this->basePath . '/modules/Notifications/database/migrations',
-            $this->basePath . '/modules/BackgroundJobs/database/migrations',
-            $this->basePath . '/modules/Queue/database/migrations',
         ] as $path) {
             (new MigrationRepository($this->connections->getPdo(), $path))->migrate();
         }

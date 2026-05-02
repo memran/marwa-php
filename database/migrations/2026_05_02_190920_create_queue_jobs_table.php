@@ -24,10 +24,6 @@ return new class extends AbstractMigration {
 
             $table->index(['queue', 'available_at', 'reserved_at', 'completed_at', 'failed_at'], 'queue_status');
             $table->index(['reserved_at', 'reserved_by'], 'reserved');
-            $table->index('name');
-            $table->index('queue');
-            $table->index('available_at');
-            $table->index('updated_at');
         });
     }
 

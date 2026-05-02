@@ -14,8 +14,9 @@ This directory contains the app-specific overrides that sit on top of Marwa Fram
 - `logger.php` - framework logger defaults, log storage, filters, and channel/level/prefix settings
 - `mail.php` - mail transport and sender defaults
 - `notification.php` - notification channels and defaults
-- `queue.php` - queue driver, file/database storage settings, and retry settings
-- `schedule.php` - scheduler driver and lock paths
+- `module.php` - module enablement and manifest cache; cache stays off in local development so module changes are always re-scanned
+- `queue.php` - queue driver, file/database storage settings, and retry settings; generate the shared queue table with `php marwa queue:table`
+- `schedule.php` - scheduler driver and lock paths; generate the shared scheduler table with `php marwa schedule:table`
 - `security.php` - CSRF, throttle, and risk-report settings
 - `session.php` - session storage, lifetime, and cookie defaults
 - `storage.php` - storage disk defaults

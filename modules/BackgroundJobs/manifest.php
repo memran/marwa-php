@@ -14,8 +14,6 @@ return [
     ],
     'paths' => [
         'views' => 'resources/views',
-        'commands' => 'Console/Commands',
-        'database/migrations' => 'database/migrations',
     ],
     'permissions' => [
         'background_jobs.view' => 'View Background Jobs',
@@ -31,19 +29,7 @@ return [
     'routes' => [
         'http' => 'routes/http.php',
     ],
-    'tasks' => [
-        'heartbeat' => [
-            'type' => 'command',
-            'command' => 'background-jobs:heartbeat',
-            'schedule' => [
-                'everyMinute' => true,
-            ],
-            'withoutOverlapping' => true,
-            'description' => 'Writes a heartbeat line so you can verify the scheduler is running.',
-        ],
-    ],
-    'migrations' => [
-        'database/migrations/2026_04_23_132004_create_schedule_jobs_table.php',
-        'database/migrations/2026_04_23_000001_insert_background_jobs_permissions.php',
+    'seeders' => [
+        'database/seeders/BackgroundJobsPermissionsSeeder.php',
     ],
 ];

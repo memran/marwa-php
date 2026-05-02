@@ -13,7 +13,7 @@
                 <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Operations</p>
                 <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">Background Jobs</h1>
                 <p class="max-w-3xl text-sm text-slate-600 dark:text-slate-400">
-                    The framework scheduler owns execution and state. This screen reads the database scheduler store and shows the latest job status.
+                    The framework scheduler owns execution and state. This screen reads the scheduler store and shows the latest job status.
                 </p>
             </div>
             <div class="rounded-2xl bg-slate-950 px-4 py-3 text-sm text-slate-100 shadow-sm dark:bg-slate-900">
@@ -78,13 +78,13 @@
                     {% for job in jobs %}
                         <tr class="align-top">
                             <td class="px-6 py-4">
-                                <a class="font-semibold text-slate-900 underline decoration-slate-300 underline-offset-4 hover:text-sky-700 dark:text-white dark:decoration-slate-700 dark:hover:text-sky-400" href="/admin/background-jobs/{{ job.route_id|url_encode }}">{{ job.title }}</a>
-                                <div class="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">{{ job.module }}</div>
+                                <a class="font-semibold text-slate-900 underline decoration-slate-300 underline-offset-4 hover:text-sky-700 dark:text-white dark:decoration-slate-700 dark:hover:text-sky-400" href="/admin/background-jobs/{{ job.route_id }}">{{ job.title }}</a>
+                                <div class="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Framework scheduler</div>
                                 <div class="mt-2 text-sm text-slate-600 dark:text-slate-400">{{ job.description ?: 'No description available.' }}</div>
                             </td>
                             <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
                                 <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                                    {{ job.type }}
+                                    {{ job.kind }}
                                 </span>
                                 <div class="mt-2">{{ job.schedule }}</div>
                             </td>
@@ -123,7 +123,7 @@
                     {% else %}
                         <tr>
                             <td colspan="5" class="px-6 py-12 text-center text-sm text-slate-500 dark:text-slate-400">
-                                No scheduled tasks were found. Add `tasks` to a module manifest and reload the app.
+                                No scheduled tasks were found. Register them from an app provider and reload the app.
                             </td>
                         </tr>
                     {% endfor %}

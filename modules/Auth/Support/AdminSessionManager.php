@@ -153,6 +153,6 @@ final class AdminSessionManager
         $session->forget(self::SESSION_AUTHENTICATED);
         $session->forget(self::SESSION_USER_NAME);
         $session->forget(self::SESSION_USER_EMAIL);
-        $session->invalidate();
+        $session->close();
     }
 }

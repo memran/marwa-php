@@ -18,7 +18,7 @@
             </div>
             <div class="rounded-2xl bg-slate-950 px-4 py-3 text-sm text-slate-100 shadow-sm dark:bg-slate-900">
                 <div class="text-[11px] uppercase tracking-[0.25em] text-slate-400">Worker</div>
-                <div class="mt-1 font-mono text-xs sm:text-sm">{{ overview.cron ?? 'php marwa queue:work --for=60 --sleep=1' }}</div>
+                <div class="mt-1 font-mono text-xs sm:text-sm">{{ overview.cron ?? 'php marwa queue:work --max-time=60 --sleep=1' }}</div>
             </div>
         </div>
     </section>

@@ -72,11 +72,11 @@ final class BackgroundJobsController extends Controller
 
     private function decodeRegistryId(string $routeId): string
     {
-        return str_replace('__', '.', $routeId);
+        return rawurldecode($routeId);
     }
 
     private function encodeRegistryId(string $registryId): string
     {
-        return str_replace('.', '__', $registryId);
+        return rawurlencode($registryId);
     }
 }

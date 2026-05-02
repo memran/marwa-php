@@ -7,15 +7,11 @@ namespace App\Modules\BackgroundJobs\Support;
 use Marwa\DB\Facades\DB;
 use Marwa\Framework\Application;
 use Marwa\Framework\Contracts\ScheduleStoreResolverInterface;
-use Marwa\Framework\Scheduling\Scheduler;
 use Marwa\Framework\Scheduling\Task;
 
 final class BackgroundJobRepository
 {
-    public function __construct(
-        private readonly TaskRegistry $taskRegistry,
-        private readonly Application $app,
-    ) {}
+    public function __construct(private readonly Application $app) {}
 
     /**
      * @return array<string, mixed>
@@ -23,7 +19,7 @@ final class BackgroundJobRepository
     public function overview(): array
     {
         $configuration = $this->schedulerConfiguration();
-        $definitions = $this->taskRegistry->all();
+        $definitions = $this->taskDefinitions();
         $records = $this->recordsByName($configuration);
         $jobs = [];
 
@@ -32,9 +28,7 @@ final class BackgroundJobRepository
             $jobs[] = $this->mergeTaskState($definition, $state);
         }
 
-        usort($jobs, static function (array $left, array $right): int {
-            return [$left['module'], $left['name']] <=> [$right['module'], $right['name']];
-        });
+        usort($jobs, static fn (array $left, array $right): int => strcmp((string) $left['name'], (string) $right['name']));
 
         return [
             'driver' => $configuration['driver'],
@@ -52,7 +46,7 @@ final class BackgroundJobRepository
      */
     public function find(string $registryId): ?array
     {
-        $definition = $this->taskRegistry->get($registryId);
+        $definition = $this->taskDefinitions()[$registryId] ?? null;
 
         if ($definition === null) {
             return null;
@@ -69,7 +63,7 @@ final class BackgroundJobRepository
      */
     public function runNow(string $registryId): array
     {
-        $task = $this->taskRegistry->makeTask($this->app, $registryId);
+        $task = $this->taskById($registryId);
 
         if (!$task instanceof Task) {
             return [
@@ -80,9 +74,10 @@ final class BackgroundJobRepository
 
         $time = new \DateTimeImmutable();
         $configuration = $this->schedulerConfiguration();
+
         try {
             return $this->runWithSchedulerStore($task, $configuration, $time);
-        } catch (\Throwable $exception) {
+        } catch (\Throwable) {
             try {
                 $task->run($this->app, $time);
             } catch (\Throwable $taskException) {
@@ -186,7 +181,6 @@ final class BackgroundJobRepository
     }
 
     /**
-     * @param array<string, mixed> $configuration
      * @return array<string, array<string, mixed>>
      */
     private function recordsByName(array $configuration): array
@@ -195,6 +189,86 @@ final class BackgroundJobRepository
             'database' => $this->databaseRecords($configuration),
             default => $this->fileRecords($configuration),
         };
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function schedulerConfiguration(): array
+    {
+        /** @var \Marwa\Framework\Supports\Config $config */
+        $config = $this->app->make(\Marwa\Framework\Supports\Config::class);
+        $config->loadIfExists('schedule.php');
+
+        return \Marwa\Framework\Config\ScheduleConfig::merge($this->app, $config->getArray('schedule', []));
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    private function taskDefinitions(): array
+    {
+        $definitions = [];
+
+        foreach ($this->schedulerTasks() as $task) {
+            $name = trim($task->name());
+            if ($name === '') {
+                continue;
+            }
+
+            $description = $task->description();
+            $definitions[$name] = [
+                'registry_id' => $name,
+                'route_id' => rawurlencode($name),
+                'name' => $name,
+                'title' => $name,
+                'description' => is_string($description) ? trim($description) : '',
+                'kind' => 'Framework scheduler',
+                'schedule' => $this->scheduleLabel($task->intervalSeconds()),
+                'without_overlapping' => $task->shouldPreventOverlaps(),
+            ];
+        }
+
+        ksort($definitions, SORT_STRING);
+
+        return $definitions;
+    }
+
+    /**
+     * @return list<Task>
+     */
+    private function schedulerTasks(): array
+    {
+        try {
+            $scheduler = $this->app->schedule();
+        } catch (\Throwable) {
+            return [];
+        }
+
+        if (!method_exists($scheduler, 'tasks')) {
+            return [];
+        }
+
+        $tasks = [];
+
+        foreach ($scheduler->tasks() as $task) {
+            if ($task instanceof Task) {
+                $tasks[] = $task;
+            }
+        }
+
+        return $tasks;
+    }
+
+    private function taskById(string $registryId): ?Task
+    {
+        foreach ($this->schedulerTasks() as $task) {
+            if ($task->name() === $registryId) {
+                return $task;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -290,17 +364,14 @@ final class BackgroundJobRepository
      */
     private function mergeTaskState(array $definition, array $state): array
     {
-        $schedule = $definition['schedule'] ?? [];
-
         return [
             'registry_id' => $definition['registry_id'] ?? $definition['name'],
             'route_id' => $definition['route_id'] ?? $definition['registry_id'] ?? $definition['name'],
-            'module' => $definition['module'] ?? 'module',
             'name' => $definition['name'] ?? '',
-            'title' => $definition['name'] ?? '',
+            'title' => $definition['title'] ?? $definition['name'] ?? '',
             'description' => $definition['description'] ?? '',
-            'type' => $definition['type'] ?? 'call',
-            'schedule' => $this->scheduleLabel(is_array($schedule) ? $schedule : []),
+            'kind' => $definition['kind'] ?? 'scheduled',
+            'schedule' => $definition['schedule'] ?? 'Every minute',
             'status' => $state['status'] ?? 'idle',
             'status_class' => $this->statusClass((string) ($state['status'] ?? 'idle')),
             'result_label' => $this->resultLabel((string) ($state['status'] ?? 'idle')),
@@ -316,7 +387,6 @@ final class BackgroundJobRepository
     }
 
     /**
-     * @param array<string, mixed> $row
      * @return array<string, mixed>
      */
     private function normalizeRecord(array $row): array
@@ -334,7 +404,7 @@ final class BackgroundJobRepository
     }
 
     /**
-     * @param array<string, mixed> $jobs
+     * @param array<int, array<string, mixed>> $jobs
      * @return array<string, int>
      */
     private function stats(array $jobs): array
@@ -356,37 +426,36 @@ final class BackgroundJobRepository
         return $stats;
     }
 
-    /**
-     * @param array<string, mixed> $schedule
-     */
-    private function scheduleLabel(array $schedule): string
-    {
-        if (isset($schedule['everySeconds'])) {
-            return sprintf('Every %d seconds', max(1, (int) $schedule['everySeconds']));
-        }
-
-        if (isset($schedule['seconds'])) {
-            return sprintf('Every %d seconds', max(1, (int) $schedule['seconds']));
-        }
-
-        if (($schedule['method'] ?? null) === 'hourly' || !empty($schedule['hourly'])) {
-            return 'Hourly';
-        }
-
-        if (($schedule['method'] ?? null) === 'daily' || !empty($schedule['daily'])) {
-            return 'Daily';
-        }
-
-        return 'Every minute';
-    }
-
     private function backendLabel(string $driver): string
     {
-        return match ($driver) {
-            'database' => 'Database store',
-            'cache' => 'Cache store',
-            default => 'File store',
-        };
+        return $driver === 'database' ? 'Database scheduler' : 'File scheduler';
+    }
+
+    private function scheduleLabel(int $intervalSeconds): string
+    {
+        if ($intervalSeconds === 1) {
+            return 'Every second';
+        }
+
+        if ($intervalSeconds % 86400 === 0) {
+            $days = (int) ($intervalSeconds / 86400);
+
+            return $days === 1 ? 'Daily' : sprintf('Every %d days', $days);
+        }
+
+        if ($intervalSeconds % 3600 === 0) {
+            $hours = (int) ($intervalSeconds / 3600);
+
+            return $hours === 1 ? 'Hourly' : sprintf('Every %d hours', $hours);
+        }
+
+        if ($intervalSeconds % 60 === 0) {
+            $minutes = (int) ($intervalSeconds / 60);
+
+            return $minutes === 1 ? 'Every minute' : sprintf('Every %d minutes', $minutes);
+        }
+
+        return sprintf('Every %d seconds', $intervalSeconds);
     }
 
     private function statusClass(string $status): string
@@ -403,11 +472,11 @@ final class BackgroundJobRepository
     private function resultLabel(string $status): string
     {
         return match ($status) {
-            'success' => 'Execution recorded',
-            'running' => 'Still running',
-            'failed' => 'Execution failed',
-            'skipped' => 'Execution skipped',
-            default => 'Waiting to run',
+            'success' => 'Success notification sent',
+            'failed' => 'Failure notification sent',
+            'running' => 'Notification pending',
+            'skipped' => 'Skipped notification',
+            default => 'Waiting for notification',
         };
     }
 
@@ -415,11 +484,19 @@ final class BackgroundJobRepository
     {
         return match ($status) {
             'success' => 'text-emerald-700 bg-emerald-50 ring-emerald-200',
-            'running' => 'text-sky-700 bg-sky-50 ring-sky-200',
             'failed' => 'text-red-700 bg-red-50 ring-red-200',
+            'running' => 'text-sky-700 bg-sky-50 ring-sky-200',
             'skipped' => 'text-amber-700 bg-amber-50 ring-amber-200',
             default => 'text-slate-700 bg-slate-50 ring-slate-200',
         };
+    }
+
+    private function storeResolver(): ScheduleStoreResolverInterface
+    {
+        /** @var ScheduleStoreResolverInterface $resolver */
+        $resolver = $this->app->make(ScheduleStoreResolverInterface::class);
+
+        return $resolver;
     }
 
     private function stringValue(mixed $value): ?string
@@ -431,21 +508,5 @@ final class BackgroundJobRepository
         $value = trim($value);
 
         return $value === '' ? null : $value;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function schedulerConfiguration(): array
-    {
-        /** @var Scheduler $scheduler */
-        $scheduler = $this->app->make(Scheduler::class);
-
-        return $scheduler->configuration();
-    }
-
-    private function storeResolver(): ScheduleStoreResolverInterface
-    {
-        return $this->app->make(ScheduleStoreResolverInterface::class);
     }
 }

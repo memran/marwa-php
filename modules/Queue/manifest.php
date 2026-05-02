@@ -15,8 +15,6 @@ return [
     ],
     'paths' => [
         'views' => 'resources/views',
-        'commands' => 'Console/Commands',
-        'database/migrations' => 'database/migrations',
         'database/seeders' => 'database/seeders',
     ],
     'permissions' => [
@@ -33,10 +31,6 @@ return [
     ],
     'routes' => [
         'http' => 'routes/http.php',
-    ],
-    'migrations' => [
-        'database/migrations/2026_04_23_132005_create_queue_jobs_table.php',
-        'database/migrations/2026_04_23_000001_insert_queue_permissions.php',
     ],
     'seeders' => [
         'database/seeders/QueuePermissionsSeeder.php',

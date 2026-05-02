@@ -28,7 +28,7 @@ final class QueueRepository
             'table' => $configuration['driver'] === 'database' ? $this->table() : null,
             'jobs' => $jobs,
             'stats' => $this->stats($jobs),
-            'cron' => 'php marwa queue:work --for=60 --sleep=1',
+            'cron' => 'php marwa queue:work --max-time=60 --sleep=1',
         ];
     }
 

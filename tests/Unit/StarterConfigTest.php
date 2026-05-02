@@ -200,7 +200,7 @@ final class StarterConfigTest extends TestCase
         }
     }
 
-    public function testModuleConfigUsesStarterModuleCachePath(): void
+    public function testModuleConfigUsesStarterModuleCachePathInProduction(): void
     {
         $basePath = sys_get_temp_dir() . '/marwa-config-' . bin2hex(random_bytes(6));
         mkdir($basePath, 0777, true);
@@ -208,12 +208,17 @@ final class StarterConfigTest extends TestCase
         $GLOBALS['marwa_app'] = $app;
 
         foreach ([
+            'APP_ENV',
             'MODULES_ENABLED',
             'APP_MODULE_CACHE',
         ] as $key) {
             unset($_ENV[$key], $_SERVER[$key]);
             putenv($key);
         }
+
+        putenv('APP_ENV=production');
+        $_ENV['APP_ENV'] = 'production';
+        $_SERVER['APP_ENV'] = 'production';
 
         try {
             $config = require __DIR__ . '/../../config/module.php';
@@ -227,8 +232,38 @@ final class StarterConfigTest extends TestCase
         } finally {
             unset($GLOBALS['marwa_app']);
             foreach ([
+                'APP_ENV',
                 'MODULES_ENABLED',
                 'APP_MODULE_CACHE',
+            ] as $key) {
+                unset($_ENV[$key], $_SERVER[$key]);
+                putenv($key);
+            }
+            @rmdir($basePath);
+        }
+    }
+
+    public function testModuleConfigDisablesCacheInLocalDevelopment(): void
+    {
+        $basePath = sys_get_temp_dir() . '/marwa-config-' . bin2hex(random_bytes(6));
+        mkdir($basePath, 0777, true);
+        $app = new Application($basePath);
+        $GLOBALS['marwa_app'] = $app;
+
+        putenv('APP_ENV=local');
+        $_ENV['APP_ENV'] = 'local';
+        $_SERVER['APP_ENV'] = 'local';
+
+        try {
+            $config = require __DIR__ . '/../../config/module.php';
+
+            self::assertIsArray($config);
+            self::assertTrue($config['enabled']);
+            self::assertNull($config['cache']);
+        } finally {
+            unset($GLOBALS['marwa_app']);
+            foreach ([
+                'APP_ENV',
             ] as $key) {
                 unset($_ENV[$key], $_SERVER[$key]);
                 putenv($key);

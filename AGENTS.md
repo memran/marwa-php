@@ -37,7 +37,7 @@
 - Keep the Database Manager disabled by default in `production` and `staging`; enable it explicitly with `DATABASE_MANAGER_ENABLED=1` only for controlled environments.
 - Starter maintenance and 404 pages live under `resources/views/themes/default/views/` so the framework can resolve them through `config/app.php`.
 - `modules/` stays optional and self-contained.
-- Module migrations and seeders must run through the framework CLI commands, not from HTTP requests. Use `php marwa migrate`, `php marwa module:migrate`, and `php marwa module:seed` during setup. Admin login is session-backed and uses `ADMIN_BOOTSTRAP_EMAIL` / `ADMIN_BOOTSTRAP_PASSWORD` from `.env`; the starter admin seed lives at `modules/Users/database/seeders/AdminUserSeeder.php`, and the admin sidebar exposes the Users CRUD section at `/admin/users` plus the Activity feed at `/admin/activity`.
+- Module migrations and seeders must run through the framework CLI commands, not from HTTP requests. Use `php marwa migrate`, `php marwa module:migrate`, and `php marwa module:seed` during setup. Queue and scheduler tables are framework-owned exceptions and are generated with `php marwa queue:table` and `php marwa schedule:table` into shared `database/migrations/`. Admin login is session-backed and uses `ADMIN_BOOTSTRAP_EMAIL` / `ADMIN_BOOTSTRAP_PASSWORD` from `.env`; the starter admin seed lives at `modules/Users/database/seeders/AdminUserSeeder.php`, and the admin sidebar exposes the Users CRUD section at `/admin/users` plus the Activity feed at `/admin/activity`.
 - `tests/` contains only app-specific PHPUnit coverage.
 
 ## Structure Reference
@@ -51,7 +51,7 @@
 
 - Use `modules/Users/` as the reference shape for new starter modules.
 - Keep each module self-contained under `modules/<Name>/` and feature-based.
-- The default module folder layout may include `manifest.php`, a service provider, `routes/http.php`, `Http/Controllers/`, `Models/`, `resources/views/`, `database/migrations/`, `database/seeders/`, `Support/`, and, when truly needed, `config/`, `Policies/`, `Actions/`, `Entities/`, `Widgets/`, and small services.
+- The default module folder layout may include `manifest.php`, a service provider, `routes/http.php`, `Http/Controllers/`, `Models/`, `resources/views/`, `database/migrations/`, `database/seeders/`, `Support/`, and, when truly needed, `config/`, `Policies/`, `Actions/`, `Entities/`, `Widgets/`, and small services. Keep queue and scheduler table migrations in shared `database/migrations/` when the framework already provides generator commands for them.
 - Keep controllers thin. Put validation rules, query coordination, form shaping, and other app-specific logic into focused support classes only when it materially reduces duplication.
 - Prefer framework-native features first: router groups, controllers, middleware, Twig views, model APIs, events, config, and helper functions. Do not recreate these as starter-local infrastructure.
 - Do not add wrapper layers around framework services just to normalize style. Add app code only when the behavior is specific to this starter or module.
@@ -95,7 +95,7 @@
 ## Database
 
 - Use framework and `marwa-db` configuration, models, migrations, and seeders instead of custom database abstractions.
-- Keep application migrations under `database/migrations` and module migrations under each module’s `database/migrations`, with explicit manifest `migrations` entries for module caches.
+- Keep application migrations under `database/migrations` and module migrations under each module’s `database/migrations`, with explicit manifest `migrations` entries for module caches. Exception: queue and scheduler tables are framework-owned and should be generated into shared `database/migrations/` with `php marwa queue:table` and `php marwa schedule:table`, while the Queue and Background Jobs modules stay UI-only.
 - Use `config/database.php` for starter-owned overrides such as the SQLite-first starter setup, migration path, and seeder path.
 - Prefer framework database commands and migration/seeder conventions before adding starter-local database workflow code.
 - Keep starter database behavior app-specific; if a DB workaround would help multiple Marwa apps, surface it as a framework gap.
@@ -196,3 +196,13 @@
 - README and AGENTS reflect the actual repository behavior.
 - Any framework-level friction is called out clearly in the final response.
 - PHPUnit and phpstan(Level 6) tests are green
+
+## graphify
+
+This project has a graphify knowledge graph at graphify-out/.
+
+Rules:
+- Before answering architecture or codebase questions, read graphify-out/GRAPH_REPORT.md for god nodes and community structure
+- If graphify-out/wiki/index.md exists, navigate it instead of reading raw files
+- For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` over grep — these traverse the graph's EXTRACTED + INFERRED edges instead of scanning files
+- After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost)

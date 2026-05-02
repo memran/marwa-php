@@ -11,10 +11,10 @@
                 <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Background Job</p>
                 <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">{{ job.title ?? job.name ?? 'Task' }}</h1>
                 <p class="max-w-3xl text-sm text-slate-600 dark:text-slate-400">{{ job.description ?: 'No description available.' }}</p>
-                <p class="text-xs uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Database scheduler backed</p>
+                <p class="text-xs uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Framework scheduler backed</p>
             </div>
             <div class="flex flex-wrap gap-3">
-                <form method="post" action="/admin/background-jobs/{{ job.route_id|url_encode }}/run">
+                <form method="post" action="/admin/background-jobs/{{ job.route_id }}/run">
                     {{ csrf_field() }}
                     <button type="submit" class="inline-flex items-center rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200">
                         Run Now
@@ -48,7 +48,7 @@
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
             <div class="text-xs uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Backend</div>
-            <div class="mt-2 text-base font-semibold text-slate-900 dark:text-white">{{ job.type }}</div>
+            <div class="mt-2 text-base font-semibold text-slate-900 dark:text-white">Framework scheduler</div>
         </div>
     </section>
 

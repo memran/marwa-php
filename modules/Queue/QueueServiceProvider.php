@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Queue;
 
-use App\Modules\Notifications\Support\NotificationService;
-use App\Modules\Queue\Support\QueueJobProcessor;
-use App\Modules\Queue\Support\QueueCompletionNotifier;
-use App\Modules\Queue\Support\QueueCompletionNotifierInterface;
 use App\Modules\Queue\Support\QueueRepository;
 use League\Container\Container;
 use Marwa\Framework\Navigation\MenuRegistry;
@@ -26,17 +22,6 @@ final class QueueServiceProvider implements ModuleServiceProviderInterface
     {
         $this->container->addShared(QueueRepository::class, function () use ($app) {
             return new QueueRepository($app);
-        });
-
-        $this->container->addShared(QueueCompletionNotifierInterface::class, function () {
-            return new QueueCompletionNotifier($this->container->get(NotificationService::class));
-        });
-
-        $this->container->addShared(QueueJobProcessor::class, function () use ($app) {
-            return new QueueJobProcessor(
-                $app,
-                $this->container->get(QueueCompletionNotifierInterface::class)
-            );
         });
 
         if ($app->has(MenuRegistry::class)) {
