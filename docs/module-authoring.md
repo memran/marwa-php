@@ -61,7 +61,7 @@ Follow the shape already used by `Users`, `Auth`, and `Activity`.
 
 Important: when a module has migrations, add explicit file paths to the manifest `migrations` list. Do not rely only on `paths['database/migrations']`. This starter can cache module metadata, and cached installs need explicit migration entries to discover module migrations reliably.
 
-Scheduled tasks should stay thin and framework-backed. This starter ships a `BackgroundJobs` module that registers module-declared tasks into the framework scheduler during module boot.
+Scheduled tasks should stay thin and framework-backed. This starter ships a `BackgroundJobs` module that registers module-declared tasks into the framework scheduler during module boot, including a demo heartbeat task that can be used to verify the scheduler is working.
 If you want the admin screen to show persistent status and logs, prefer the framework's database schedule store and create the table with `php marwa schedule:table`. The starter defaults to the database scheduler backend now.
 
 Example:

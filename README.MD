@@ -70,7 +70,7 @@ The starter also ships an admin-only Settings module at `/admin/settings`. It st
 Soft-deleted users stay visible in the Users module with a `Trashed` badge and a restore action.
 User creation now rejects duplicate emails, and delete actions ask for a browser confirmation before submitting.
 The Activity module records admin login, logout, and the starter's module write actions through direct `ActivityRecorder` calls in the starter workflows, then shows them in the dashboard feed and on the activity page.
-The `BackgroundJobs` module is UI-only. The shared `schedule_jobs` table lives in `database/migrations/` via `php marwa schedule:table`.
+The `BackgroundJobs` module is UI-only for configuration, but it also registers a small demo heartbeat task so you can confirm the framework scheduler is running. The shared `schedule_jobs` table lives in `database/migrations/` via `php marwa schedule:table`.
 The `Queue` module is also UI-only. The shared queue jobs table lives in `database/migrations/` via `php marwa queue:table`.
 For the admin task screen, the database schedule store is the default because it keeps task state queryable. By default it follows the main app database connection, so you can leave `SCHEDULE_DB_CONNECTION` unset unless you want a separate database. Keep `SCHEDULE_DRIVER=database` unless you explicitly want the file store.
 To drive the scheduler every second from cron, run the framework command with a one-minute loop:

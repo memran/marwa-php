@@ -37,7 +37,6 @@ final class PasswordResetMail extends Mailable
         ]);
 
         return $mailer
-            ->from(config('mail.from.address'), config('mail.from.name'))
             ->to($userEmail, $userName)
             ->subject("Password reset request - {$appName}")
             ->html($htmlTemplate, $textTemplate)

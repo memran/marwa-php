@@ -8,6 +8,7 @@ use App\Modules\BackgroundJobs\Support\BackgroundJobRepository;
 use League\Container\Container;
 use Marwa\Framework\Navigation\MenuRegistry;
 use Marwa\Framework\Supports\Runtime;
+use Marwa\Framework\Scheduling\Task;
 use Marwa\Framework\Views\View;
 use Marwa\Module\Contracts\ModuleServiceProviderInterface;
 
@@ -41,6 +42,17 @@ final class BackgroundJobsServiceProvider implements ModuleServiceProviderInterf
 
     public function boot($app): void
     {
+        $app->registerTask(
+            (new Task(
+                'demo:scheduler-heartbeat',
+                static function (): string {
+                    return 'Scheduler demo ran';
+                }
+            ))
+                ->description('Demo scheduler heartbeat used to verify the framework scheduler is working.')
+                ->everySecond()
+        );
+
         if (Runtime::isWeb() && $app->has(View::class)) {
             $app->view()->addNamespace('background_jobs', __DIR__ . '/resources/views');
         }

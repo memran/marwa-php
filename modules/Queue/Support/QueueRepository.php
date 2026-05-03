@@ -62,14 +62,11 @@ final class QueueRepository
             return false;
         }
 
-        $row = $this->rowToArray($row);
         $now = time();
-        $attempts = max(0, (int) ($row['attempts'] ?? 0)) + 1;
 
         $affected = DB::table($this->table(), $this->connection())
             ->where('id', '=', $jobId)
             ->update([
-                'attempts' => $attempts,
                 'available_at' => $now,
                 'reserved_at' => null,
                 'reserved_by' => null,

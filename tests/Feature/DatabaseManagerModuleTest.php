@@ -97,7 +97,7 @@ PHP
         $connections = $app->make(\Marwa\DB\Connection\ConnectionManager::class);
         (new \Marwa\DB\Schema\MigrationRepository($connections->getPdo(), $this->basePath . '/modules/Auth/database/migrations'))->migrate();
         if (!class_exists(RolesPermissionsSeeder::class, false)) {
-            require_once __DIR__ . '/../../modules/Auth/Database/Seeders/RolesPermissionsSeeder.php';
+            require_once __DIR__ . '/../../modules/Auth/database/Seeders/RolesPermissionsSeeder.php';
         }
         (new RolesPermissionsSeeder())->run();
 
