@@ -9,6 +9,9 @@ cd /var/www/html
 echo "Running migrations..."
 php marwa migrate --no-interaction || echo "Migrations failed, continuing..."
 
+echo "Running seeders..."
+php marwa db:seed --no-interaction || echo "Seeders failed, continuing..."
+
 echo "Starting queue worker in background..."
 php marwa queue:work --daemon &
 QUEUE_PID=$!
