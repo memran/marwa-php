@@ -12,7 +12,9 @@ final class PermissionGateTest extends TestCase
 {
     public function testGateDeniesWhenNoUserIsResolved(): void
     {
-        $gate = new PermissionGate();
+        $gate = (new PermissionGate())->withCurrentUserResolver(
+            static fn (): ?PermissionAwareUser => null
+        );
 
         self::assertFalse($gate->allows('dashboard.view'));
         self::assertTrue($gate->denies('dashboard.view'));
