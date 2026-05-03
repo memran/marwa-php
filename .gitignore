@@ -13,4 +13,4 @@ node_modules/
 !/storage/.gitignore
 !/storage/logs/
 !/storage/sessions/
-graphify-out/
+graphify-out/database/database.sqlite
