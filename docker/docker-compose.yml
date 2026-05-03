@@ -7,12 +7,7 @@ services:
       - ../:/var/www/html
       - ./docker.env:/var/www/html/.env:ro
       - ./php-fpm/custom.ini:/usr/local/etc/php/conf.d/custom.ini
-    command: >
-      sh -c "
-        chown -R www-data:www-data /var/www/html/storage &&
-        chmod -R 775 /var/www/html/storage &&
-        php-fpm
-      "
+    # Entrypoint handles: migrations, queue worker, scheduler, and php-fpm
     networks:
       - appnet
     depends_on:

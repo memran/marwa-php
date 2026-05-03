@@ -29,6 +29,7 @@ services:
       - ./docker.env:/var/www/html/.env:ro
     expose:
       - "9000"
+    # Entrypoint handles: migrations, queue worker, scheduler, and php-fpm
     depends_on:
       mariadb:
         condition: service_healthy
