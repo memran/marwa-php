@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-    'enable' => (bool) env('LOG_ENABLED', true),
+    'enable' => (bool) env('LOG_ENABLED', false),
     'filter' => [],
     'storage' => [
         'driver' => env('LOG_CHANNEL', 'file'),
