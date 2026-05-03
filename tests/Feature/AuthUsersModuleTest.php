@@ -9,7 +9,7 @@ use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Models\Permission;
 use App\Modules\Notifications\Models\Notification;
 use App\Modules\Auth\Support\AuthManager;
-use App\Modules\Auth\Database\Seeders\RolesPermissionsSeeder;
+use App\Modules\Auth\database\seeders\RolesPermissionsSeeder;
 use App\Modules\Auth\Support\RoleRepository;
 use Database\Seeders\AdminUserSeeder;
 use Marwa\DB\Connection\ConnectionManager;
@@ -1241,10 +1241,10 @@ TWIG
         if (!class_exists(RolesPermissionsSeeder::class, false)) {
             require_once $authSeeder;
         }
-        if (!class_exists(\App\Modules\Users\Database\Seeders\AdminUserSeeder::class, false)) {
+        if (!class_exists(\App\Modules\Users\database\Seeders\AdminUserSeeder::class, false)) {
             require_once $userSeeder;
         }
-        (new \App\Modules\Users\Database\Seeders\AdminUserSeeder())->run();
+        (new \App\Modules\Users\database\Seeders\AdminUserSeeder())->run();
 
         if (Role::findBySlug('manager') === null) {
             Role::create([

@@ -14,3 +14,4 @@ node_modules/
 !/storage/logs/
 !/storage/sessions/
 graphify-out/database/database.sqlite
+graphify-out/

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Users\Database\Seeders;
+namespace App\Modules\Users\database\Seeders;
 
 use App\Modules\Auth\Models\Role;
 use App\Modules\Users\Models\User;
 use Marwa\DB\Seeder\Seeder;
 
-if (!class_exists(\App\Modules\Users\Database\Seeders\AdminUserSeeder::class, false)) {
+if (!class_exists(\App\Modules\Users\database\Seeders\AdminUserSeeder::class, false)) {
     final class AdminUserSeeder implements Seeder
     {
         public function run(): void

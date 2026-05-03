@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Modules\Auth\Support\AuthManager;
-use App\Modules\Auth\Database\Seeders\RolesPermissionsSeeder;
+use App\Modules\Auth\database\seeders\RolesPermissionsSeeder;
 use Marwa\Framework\Adapters\Logger\LoggerAdapter;
 use App\Modules\Settings\Support\SettingsCatalog;
 use Marwa\DB\Connection\ConnectionManager;
