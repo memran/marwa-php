@@ -35,49 +35,124 @@ The post-create script generates `.env` from `.env.example` and builds assets wh
 - Node.js 20+ for Tailwind development and production builds
 - Optional: Docker and Docker Compose
 
-## Docker Compose
+## Docker Deployment
 
-The repository includes two Docker Compose variants:
+The starter provides production-ready Docker configurations for containerized deployment. Both setups include PHP-FPM, MariaDB, and a web server, with an automated entrypoint that handles migrations, seeders, queue workers, and the scheduler.
 
-- `docker/docker-compose.yml` for PHP-FPM + Nginx + MariaDB
-- `docker/docker-compose.fpm.yml` for PHP-FPM + Caddy + MariaDB
+### Available Stacks
 
-Both compose files boot a MariaDB service that creates the `marwa` database and `marwa` user automatically on first start. The app container uses an entrypoint script that automatically runs migrations, seeders, starts the queue worker and scheduler in the background, then launches PHP-FPM. The app container is prewired for the Docker host name `mariadb` and uses `docker/docker.env` as its container-local `.env`.
+| Stack | Compose File | Web Server | Use Case |
+|-------|--------------|------------|---------|
+| Standard | `docker/docker-compose.yml` | Nginx | Production-like setup |
+| Alternative | `docker/docker-compose.fpm.yml` | Caddy | Simpler config, auto-TLS |
 
-The app runtime reads the standard `DB_*` values:
+### Quick Start
 
-- `DB_CONNECTION=mysql`
-- `DB_HOST=mariadb`
-- `DB_PORT=3306`
-- `DB_NAME=marwa`
-- `DB_USER=marwa`
-- `DB_PASSWORD=super-secret`
-
-The MariaDB container still uses `MARIADB_*` values for its first-boot initialization.
-
-Admin login uses the bootstrap credentials from `.env`:
-
-- `ADMIN_BOOTSTRAP_EMAIL`
-- `ADMIN_BOOTSTRAP_PASSWORD`
-
-That login is session-backed and will use the seeded admin user record when the database is available, while still falling back safely during early bootstrap.
-CSRF protection is enabled by default for unsafe HTTP methods, and the starter Auth and Users forms submit framework-managed CSRF tokens.
-The starter admin seeder now lives in `modules/Users/database/seeders/AdminUserSeeder.php` and should be run through `php marwa module:seed` during setup.
-The admin theme now uses Tailwind utilities directly in the Twig templates, the framework Alpine bridge for its mobile sidebar toggle, and a Lucide sprite-backed icon partial in the sidebar and user status badges.
-The admin sidebar includes Users and Activity sections that link to the module CRUD screens and activity feed under `/admin/users` and `/admin/activity`.
-The admin sidebar also exposes a raw SQL database console at `/admin/database` for admin users only when `DATABASE_MANAGER_ENABLED=1` or the app is running outside `production`/`staging`. It runs single-statement raw SQL directly against the configured connection, paginates result sets in the UI, shows query errors clearly, and requires explicit confirmation before destructive queries such as `UPDATE` or `DELETE`.
-The starter also ships an admin-only Settings module at `/admin/settings`. It stores predefined `category -> key -> value` records in the database, caches them for fast reads, reloads them at bootstrap, and mirrors selected values into runtime config so they are globally readable through `config('settings.category.key')` and relevant core config keys.
-Soft-deleted users stay visible in the Users module with a `Trashed` badge and a restore action.
-User creation now rejects duplicate emails, and delete actions ask for a browser confirmation before submitting.
-The Activity module records admin login, logout, and the starter's module write actions through direct `ActivityRecorder` calls in the starter workflows, then shows them in the dashboard feed and on the activity page.
-The `BackgroundJobs` module is UI-only for configuration. The shared `schedule_jobs` table lives in `database/migrations/` via `php marwa schedule:table`.
-The `Queue` module is also UI-only. The shared queue jobs table lives in `database/migrations/` via `php marwa queue:table`.
-For the admin task screen, the database schedule store is the default because it keeps task state queryable. By default it follows the main app database connection, so you can leave `SCHEDULE_DB_CONNECTION` unset unless you want a separate database. Keep `SCHEDULE_DRIVER=database` unless you explicitly want the file store.
-To drive the scheduler every second from cron, run the framework command with a one-minute loop:
+**1. Set up environment:**
 
 ```bash
-php marwa schedule:run --for=60 --sleep=1
+cd docker
+cp docker.env.example docker.env
 ```
+
+Edit `docker.env` with your preferred credentials (the example contains placeholders).
+
+**2. Choose your stack and start:**
+
+```bash
+# Option A: Nginx + PHP-FPM
+docker compose -f docker-compose.yml up -d --build
+
+# Option B: Caddy + PHP-FPM
+docker compose -f docker-compose.fpm.yml up -d --build
+```
+
+**3. Access the application:**
+
+- Nginx stack: http://localhost:8080
+- Caddy stack: http://localhost:80
+
+### What Happens on Startup
+
+The app container runs an entrypoint script that automates the entire bootstrap:
+
+1. **Waits for database** - Ensures MariaDB is healthy before proceeding
+2. **Runs migrations** - Executes `php marwa migrate --no-interaction`
+3. **Seeds database** - Executes `php marwa db:seed --no-interaction`
+4. **Starts queue worker** - Launches `php marwa queue:work --daemon` in background
+5. **Starts scheduler** - Launches `php marwa schedule:work` in background
+6. **Sets permissions** - Configures storage directory permissions
+7. **Launches PHP-FPM** - Starts the PHP process manager
+
+### Configuration
+
+**Database Connection (App):**
+
+The app reads standard `DB_*` environment variables:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=mariadb
+DB_PORT=3306
+DB_NAME=marwa
+DB_USER=marwa
+DB_PASSWORD=super-secret
+```
+
+**MariaDB Initialization:**
+
+The MariaDB container uses `MARIADB_*` variables for first-boot setup:
+
+```env
+MARIADB_ROOT_PASSWORD=super-secret
+MARIADB_DATABASE=marwa
+MARIADB_USER=marwa
+MARIADB_PASSWORD=super-secret
+```
+
+**Admin Credentials:**
+
+Set the bootstrap admin account in `docker.env`:
+
+```env
+ADMIN_BOOTSTRAP_EMAIL=admin@example.com
+ADMIN_BOOTSTRAP_PASSWORD=YourSecurePassword123!
+```
+
+### Common Operations
+
+**View logs:**
+```bash
+docker compose -f docker-compose.yml logs -f
+```
+
+**Restart services:**
+```bash
+docker compose -f docker-compose.yml restart
+```
+
+**Stop the stack:**
+```bash
+docker compose -f docker-compose.yml down
+```
+
+**Reset database (if you change credentials):**
+```bash
+docker compose -f docker-compose.yml down -v
+```
+
+**Rebuild after changes:**
+```bash
+docker compose -f docker-compose.yml up -d --build
+```
+
+### Development vs Production
+
+- **Development:** Set `APP_ENV=local` and `APP_DEBUG=1` in `docker.env`
+- **Production:** Set `APP_ENV=production` and `APP_DEBUG=0` in `docker.env`
+- **Staging:** Set `APP_ENV=staging` in `docker.env`
+
+The Database Manager module is disabled by default in production/staging. Enable it with `DATABASE_MANAGER_ENABLED=1` only for controlled environments.
 
 The queue backend is also database-first now. The starter uses the global queue contract, stores jobs in `queue_jobs`, and exposes a `Queue` admin module for job status and retries. To process queued jobs from cron or a supervisor, run:
 
