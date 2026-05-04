@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Auth\database\seeders;
+namespace App\Modules\Auth\database\Seeders;
 
 use App\Modules\Auth\Support\RoleRepository;
 use App\Modules\Auth\Support\PermissionRepository;
 use Marwa\DB\Seeder\Seeder;
 
-if (!class_exists(\App\Modules\Auth\database\seeders\RolesPermissionsSeeder::class, false)) {
+if (!class_exists(\App\Modules\Auth\database\Seeders\RolesPermissionsSeeder::class, false)) {
     final class RolesPermissionsSeeder implements Seeder
     {
         public function run(): void
