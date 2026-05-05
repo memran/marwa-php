@@ -151,6 +151,14 @@
         <span class="truncate">Database</span>
       </a>
     {% endif %}
+    {% if is_admin %}
+      <a class="{{ nav_link_base }} rounded-2xl border border-transparent {% if currentPath starts with '/admin/security/risk' %}{{ nav_link_active }} border-cyan-300/20 bg-cyan-400/10 shadow-[0_8px_24px_rgba(8,145,178,0.08)]{% else %}{{ nav_link_inactive }} hover:border-white/10 hover:bg-white/5{% endif %}" href="/admin/security/risk" {% if currentPath starts with '/admin/security/risk' %}aria-current="page"{% endif %}>
+        <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
+          {% include 'components/icon.twig' with { name: 'shield-alert', class: 'h-4 w-4 shrink-0' } only %}
+        </span>
+        <span class="truncate">Risk Report</span>
+      </a>
+    {% endif %}
   {% endif %}
 
   {# Footer #}
