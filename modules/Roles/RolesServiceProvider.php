@@ -12,7 +12,9 @@ final class RolesServiceProvider implements ModuleServiceProviderInterface
     public function register($app): void
     {
         if ($app->has(MenuRegistry::class)) {
-            $app->make(MenuRegistry::class)->add([
+            $menuRegistry = $app->make(MenuRegistry::class);
+
+            $menuRegistry->add([
                 'name' => 'roles',
                 'label' => 'Roles',
                 'url' => '/admin/roles',
@@ -22,7 +24,7 @@ final class RolesServiceProvider implements ModuleServiceProviderInterface
                 'permission' => 'roles.view',
             ]);
 
-            $app->make(MenuRegistry::class)->add([
+            $menuRegistry->add([
                 'name' => 'permissions',
                 'label' => 'Permissions',
                 'url' => '/admin/permissions',

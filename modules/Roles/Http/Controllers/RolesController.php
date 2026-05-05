@@ -41,12 +41,12 @@ final class RolesController extends Controller
         $errors = $this->roleForms()->validate($payload);
 
         if ($errors !== []) {
-            $this->withErrors($errors)->withInput($this->roleForms()->oldInput($payload));
+            $this->withErrors($errors)->withInput($payload);
             return $this->redirect('/admin/roles/create');
         }
 
         if ($this->roleRepo()->hasSlug($payload['slug'])) {
-            $this->withErrors(['slug' => ['The slug has already been taken.']])->withInput($this->roleForms()->oldInput($payload));
+            $this->withErrors(['slug' => ['The slug has already been taken.']])->withInput($payload);
             return $this->redirect('/admin/roles/create');
         }
 
@@ -57,7 +57,7 @@ final class RolesController extends Controller
             'description' => $payload['description'],
             'is_system' => 0,
         ]);
-        $this->syncPermissions($role->getKey(), $payload['permissions']);
+        $this->roleRepo()->syncPermissions((int) $role->getKey(), $payload['permissions']);
         RolePolicy::loadFromDatabase();
         app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
             'role.created',
@@ -101,12 +101,12 @@ final class RolesController extends Controller
         $errors = $this->roleForms()->validate($payload, $role);
 
         if ($errors !== []) {
-            $this->withErrors($errors)->withInput($this->roleForms()->oldInput($payload));
+            $this->withErrors($errors)->withInput($payload);
             return $this->redirect('/admin/roles/' . $id . '/edit');
         }
 
         if ($this->roleRepo()->hasSlug($payload['slug'], $id)) {
-            $this->withErrors(['slug' => ['The slug has already been taken.']])->withInput($this->roleForms()->oldInput($payload));
+            $this->withErrors(['slug' => ['The slug has already been taken.']])->withInput($payload);
             return $this->redirect('/admin/roles/' . $id . '/edit');
         }
 
@@ -116,7 +116,7 @@ final class RolesController extends Controller
             'level' => $payload['level'],
             'description' => $payload['description'],
         ]);
-        $this->syncPermissions($id, $payload['permissions']);
+        $this->roleRepo()->syncPermissions($id, $payload['permissions']);
         RolePolicy::loadFromDatabase();
         app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
             'role.updated',
@@ -170,11 +170,6 @@ final class RolesController extends Controller
         return $this->view('@roles/permissions', [
             'permissions' => $permissions,
         ]);
-    }
-
-    private function syncPermissions(int $roleId, array $permissionIds): void
-    {
-        $this->roleRepo()->syncPermissions($roleId, $permissionIds);
     }
 
     private function roleForms(): RoleFormData

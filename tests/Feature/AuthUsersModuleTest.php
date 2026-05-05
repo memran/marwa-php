@@ -9,7 +9,7 @@ use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Models\Permission;
 use App\Modules\Notifications\Models\Notification;
 use App\Modules\Auth\Support\AuthManager;
-use App\Modules\Auth\database\seeders\RolesPermissionsSeeder;
+use App\Modules\Auth\database\Seeders\RolesPermissionsSeeder;
 use App\Modules\Auth\Support\RoleRepository;
 use Database\Seeders\AdminUserSeeder;
 use Marwa\DB\Connection\ConnectionManager;

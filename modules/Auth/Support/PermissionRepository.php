@@ -155,18 +155,6 @@ final class PermissionRepository
         return array_keys($this->grouped());
     }
 
-    /**
-     * @return list<string>
-     */
-    public function getAllSlugs(int $roleId): array
-    {
-        $permissions = $this->getByRoleId($roleId);
-        return array_map(
-            static fn (Permission $p): string => $p->getAttribute('slug'),
-            $permissions
-        );
-    }
-
     private function query(string $group = '', string $query = ''): Builder
     {
         $builder = Permission::newQuery()->getBaseBuilder()

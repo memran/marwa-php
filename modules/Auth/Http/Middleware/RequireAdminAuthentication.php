@@ -23,8 +23,6 @@ final class RequireAdminAuthentication implements MiddlewareInterface
             return Response::redirect('/admin/login');
         }
 
-        $this->auth->user();
-
         return $handler->handle($request);
     }
 }

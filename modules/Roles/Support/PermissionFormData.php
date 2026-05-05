@@ -11,6 +11,7 @@ final class PermissionFormData
 {
     public function __construct(
         private readonly PermissionRepository $permissions,
+        private readonly Slugger $slugger,
     ) {}
 
     /**
@@ -20,7 +21,7 @@ final class PermissionFormData
     public function formViewData(array $extra): array
     {
         $permission = $extra['permission'] ?? null;
-        $groupOptions = array_keys($this->permissions->grouped());
+        $groupOptions = $this->permissions->groupNames();
         $group = $permission instanceof Permission ? (string) $permission->getAttribute('group') : '';
 
         if ($group === '' && $groupOptions !== []) {
@@ -63,7 +64,7 @@ final class PermissionFormData
         $description = trim((string) request('description', ''));
 
         if ($slug === '') {
-            $slug = $this->slugify($name);
+            $slug = $this->slugger->slugify($name, 'custom-permission');
         }
 
         return [
@@ -97,21 +98,4 @@ final class PermissionFormData
         return $errors;
     }
 
-    /**
-     * @param array{name:string,slug:string,group:string,description:string} $payload
-     * @return array<string, mixed>
-     */
-    public function oldInput(array $payload): array
-    {
-        return $payload;
-    }
-
-    private function slugify(string $value): string
-    {
-        $value = strtolower(trim($value));
-        $value = preg_replace('/[^a-z0-9]+/', '-', $value) ?? '';
-        $value = trim($value, '-');
-
-        return $value === '' ? 'custom-permission' : $value;
-    }
 }

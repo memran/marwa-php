@@ -171,42 +171,4 @@ final class RoleRepository
         return true;
     }
 
-    /**
-     * @return array<int, array{value:int,label:string}>
-     */
-    public function levelOptions(): array
-    {
-        return [
-            ['value' => 1, 'label' => 'Viewer'],
-            ['value' => 2, 'label' => 'Staff'],
-            ['value' => 3, 'label' => 'Custom'],
-            ['value' => 4, 'label' => 'Manager'],
-            ['value' => 5, 'label' => 'Admin'],
-        ];
-    }
-
-    public function findByUserRole(string $userRole): ?Role
-    {
-        $roleSlug = strtolower(trim($userRole));
-
-        $role = $this->findBySlug($roleSlug);
-        if ($role !== null) {
-            return $role;
-        }
-
-        $fallbackRoles = [
-            'super_admin' => 'super_admin',
-            'admin' => 'admin',
-            'user' => 'admin',
-            'manager' => 'manager',
-            'staff' => 'staff',
-            'viewer' => 'viewer',
-        ];
-
-        if (isset($fallbackRoles[$roleSlug])) {
-            return $this->findBySlug($fallbackRoles[$roleSlug]);
-        }
-
-        return $this->findBySlug('staff');
-    }
 }

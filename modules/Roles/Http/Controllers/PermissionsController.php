@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Roles\Http\Controllers;
 
-use App\Modules\Auth\Models\Permission;
 use App\Modules\Auth\Support\PermissionRepository;
 use App\Modules\Roles\Support\PermissionFormData;
 use Marwa\Framework\Controllers\Controller;
@@ -52,12 +51,12 @@ final class PermissionsController extends Controller
         $errors = $this->forms()->validate($payload);
 
         if ($errors !== []) {
-            $this->withErrors($errors)->withInput($this->forms()->oldInput($payload));
+            $this->withErrors($errors)->withInput($payload);
             return $this->redirect('/admin/permissions/create');
         }
 
         if ($this->permRepo()->findBySlug($payload['slug']) !== null) {
-            $this->withErrors(['slug' => ['The slug has already been taken.']])->withInput($this->forms()->oldInput($payload));
+            $this->withErrors(['slug' => ['The slug has already been taken.']])->withInput($payload);
             return $this->redirect('/admin/permissions/create');
         }
 
@@ -82,7 +81,7 @@ final class PermissionsController extends Controller
 
     public function edit(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        $permission = $this->permission((int) ($vars['id'] ?? 0));
+        $permission = $this->permRepo()->findById((int) ($vars['id'] ?? 0));
         if ($permission === null) {
             return $this->redirect('/admin/permissions');
         }
@@ -99,7 +98,7 @@ final class PermissionsController extends Controller
     public function update(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
         $id = (int) ($vars['id'] ?? 0);
-        $permission = $this->permission($id);
+        $permission = $this->permRepo()->findById($id);
         if ($permission === null) {
             return $this->json(['error' => 'Permission not found'], 404);
         }
@@ -108,12 +107,12 @@ final class PermissionsController extends Controller
         $errors = $this->forms()->validate($payload);
 
         if ($errors !== []) {
-            $this->withErrors($errors)->withInput($this->forms()->oldInput($payload));
+            $this->withErrors($errors)->withInput($payload);
             return $this->redirect('/admin/permissions/' . $id . '/edit');
         }
 
         if ($this->permRepo()->hasSlug($payload['slug'], $id)) {
-            $this->withErrors(['slug' => ['The slug has already been taken.']])->withInput($this->forms()->oldInput($payload));
+            $this->withErrors(['slug' => ['The slug has already been taken.']])->withInput($payload);
             return $this->redirect('/admin/permissions/' . $id . '/edit');
         }
 
@@ -139,7 +138,7 @@ final class PermissionsController extends Controller
     public function destroy(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
         $id = (int) ($vars['id'] ?? 0);
-        $permission = $this->permission($id);
+        $permission = $this->permRepo()->findById($id);
         if ($permission === null) {
             return $this->json(['error' => 'Permission not found'], 404);
         }
@@ -166,11 +165,6 @@ final class PermissionsController extends Controller
     private function permRepo(): PermissionRepository
     {
         return app(PermissionRepository::class);
-    }
-
-    private function permission(int $id): ?Permission
-    {
-        return $this->permRepo()->findById($id);
     }
 
 }

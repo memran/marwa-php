@@ -13,6 +13,7 @@ final class RoleFormData
     public function __construct(
         private readonly RoleRepository $roles,
         private readonly PermissionRepository $permissions,
+        private readonly Slugger $slugger,
     ) {}
 
     /**
@@ -73,7 +74,7 @@ final class RoleFormData
         $permissions = request('permissions', []);
 
         if ($slug === '') {
-            $slug = $this->slugify($name);
+            $slug = $this->slugger->slugify($name, 'custom-role');
         }
 
         if (!is_array($permissions)) {
@@ -120,27 +121,4 @@ final class RoleFormData
         return $errors;
     }
 
-    /**
-     * @param array{name:string,slug:string,level:int,description:string,permissions:array<int,int>} $payload
-     * @return array<string, mixed>
-     */
-    public function oldInput(array $payload): array
-    {
-        return [
-            'name' => $payload['name'],
-            'slug' => $payload['slug'],
-            'level' => $payload['level'],
-            'description' => $payload['description'],
-            'permissions' => $payload['permissions'],
-        ];
-    }
-
-    private function slugify(string $value): string
-    {
-        $value = strtolower(trim($value));
-        $value = preg_replace('/[^a-z0-9]+/', '-', $value) ?? '';
-        $value = trim($value, '-');
-
-        return $value === '' ? 'custom-role' : $value;
-    }
 }
