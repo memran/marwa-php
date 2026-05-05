@@ -153,6 +153,7 @@ docker compose -f docker-compose.yml up -d --build
 - **Staging:** Set `APP_ENV=staging` in `docker.env`
 
 The Database Manager module is disabled by default in production/staging. Enable it with `DATABASE_MANAGER_ENABLED=1` only for controlled environments.
+The Database Backup module lets admins schedule backups, store archives on a configured disk, and restore from stored or uploaded ZIP/TAR archives. Restore is destructive and replaces all current data.
 
 The queue backend is also database-first now. The starter uses the global queue contract, stores jobs in `queue_jobs`, and exposes a `Queue` admin module for job status and retries. To process queued jobs from cron or a supervisor, run:
 
