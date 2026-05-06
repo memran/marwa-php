@@ -95,6 +95,7 @@ final class WidgetRegistry
         $size = $widget['size'] ?? 'small';
         $view = $widget['view'] ?? 'widgets/' . $id;
         $card = $widget['card'] ?? null;
+        $permission = $widget['permission'] ?? null;
 
         return [
             'id' => $id,
@@ -107,6 +108,7 @@ final class WidgetRegistry
             'namespace' => $widget['namespace'] ?? $this->moduleNamespace($moduleSlug),
             'view' => is_string($view) && trim($view) !== '' ? $view : 'widgets/' . $id,
             'card' => is_array($card) ? $card : [],
+            'permission' => is_string($permission) ? $permission : null,
         ];
     }
 
@@ -154,5 +156,20 @@ final class WidgetRegistry
             'medium' => 'Medium (2 columns)',
             'large' => 'Large (full width)',
         ];
+    }
+
+    public function filterByPermission(callable $permissionChecker): array
+    {
+        $widgets = $this->all();
+
+        return array_filter($widgets, function (array $widget) use ($permissionChecker): bool {
+            $permission = $widget['permission'] ?? null;
+
+            if ($permission === null) {
+                return true;
+            }
+
+            return $permissionChecker($permission);
+        });
     }
 }

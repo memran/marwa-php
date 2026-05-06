@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Dashboard\Http\Controllers;
 
-use App\Modules\Dashboard\Support\WidgetRegistry;
 use App\Modules\Auth\Support\AuthManager;
+use App\Modules\Users\Models\User;
+use App\Modules\Dashboard\Support\WidgetRegistry;
 use App\Support\PermissionGate;
 use Marwa\Framework\Controllers\Controller;
 use Marwa\Framework\Views\View;
@@ -19,11 +20,13 @@ final class DashboardController extends Controller
 
     public function __construct(
         private readonly WidgetRegistry $widgetRegistry,
+        private readonly AuthManager $auth,
+        private readonly PermissionGate $gate,
     ) {}
 
     public function index(): ResponseInterface
     {
-        if ($this->gate()->denies('dashboard.view')) {
+        if ($this->gate->denies('dashboard.view')) {
             return $this->forbidden();
         }
 
@@ -33,27 +36,33 @@ final class DashboardController extends Controller
             $this->getUserWidgets($userId)
         );
 
+        $sizeOptions = $this->widgetRegistry->getSizeOptions();
+
         return $this->view('@dashboard/index', [
             'widgets' => $widgets,
-            'available_widgets' => $this->widgetRegistry->all(),
-            'size_options' => $this->widgetRegistry->getSizeOptions(),
+            'available_widgets' => $this->filteredWidgets($this->widgetRegistry->all()),
+            'size_options' => $sizeOptions,
             'is_edit_mode' => false,
         ]);
     }
 
     public function widgets(): ResponseInterface
     {
-        if ($this->gate()->denies('dashboard.view')) {
+        if ($this->gate->denies('dashboard.view')) {
             return $this->forbidden();
         }
 
-        $userId = $this->getUserId();
-        $widgets = $this->getUserWidgets($userId);
-
         return $this->json([
-            'widgets' => $widgets,
-            'available_widgets' => $this->widgetRegistry->all(),
+            'widgets' => $this->getUserWidgets($this->getUserId()),
+            'available_widgets' => $this->filteredWidgets($this->widgetRegistry->all()),
         ]);
+    }
+
+    private function filteredWidgets(array $widgets): array
+    {
+        return $this->widgetRegistry->filterByPermission(
+            fn (string $permission): bool => $this->gate->allows($permission)
+        );
     }
 
     public function saveWidgets(): ResponseInterface
