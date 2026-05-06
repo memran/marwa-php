@@ -87,6 +87,11 @@ final class SecurityRiskReportTest extends TestCase
         $app = new Application($this->basePath);
         $app->make(AppBootstrapper::class)->bootstrap();
 
+        file_put_contents(
+            $this->basePath . '/.env',
+            "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=admin\nTIMEZONE=UTC\n"
+        );
+
         $adminRole = Role::findBySlug('admin');
         self::assertInstanceOf(Role::class, $adminRole);
 
