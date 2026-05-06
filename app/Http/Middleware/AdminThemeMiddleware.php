@@ -41,9 +41,11 @@ final class AdminThemeMiddleware implements MiddlewareInterface
         $isSuperAdmin = false;
         $userRole = null;
         $userName = null;
+        $userEmail = null;
 
         if ($user instanceof User) {
             $userName = trim((string) $user->getAttribute('name')) ?: null;
+            $userEmail = trim((string) $user->getAttribute('email')) ?: null;
             $role = $user->role();
             $userRole = $role?->getAttribute('slug');
             $isAdmin = RolePolicy::isAdmin(is_string($userRole) ? $userRole : null);
@@ -52,6 +54,7 @@ final class AdminThemeMiddleware implements MiddlewareInterface
 
         $view->share('user_role', $userRole);
         $view->share('user_name', $userName);
+        $view->share('user_email', $userEmail);
         $view->share('is_admin_user', $isAdmin);
         $view->share('is_super_admin', $isSuperAdmin);
         $view->share('gate', $gate);

@@ -6,9 +6,20 @@ use App\Http\Middleware\AdminThemeMiddleware;
 use App\Modules\Auth\Http\Middleware\RequireAdminAuthentication;
 use App\Modules\Auth\Http\Middleware\RequirePermission;
 use App\Modules\Users\Http\Controllers\UsersController;
+use App\Modules\Users\Http\Controllers\ProfileController;
 use Marwa\Framework\Facades\Router;
 
 Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class]], static function ($routes): void {
+    $routes->get('/profile', [ProfileController::class, 'index'])
+        ->name('admin.profile.index')
+        ->register();
+    $routes->get('/profile/edit', [ProfileController::class, 'edit'])
+        ->name('admin.profile.edit')
+        ->register();
+    $routes->post('/profile', [ProfileController::class, 'update'])
+        ->name('admin.profile.update')
+        ->register();
+
     $routes->get('/users', [UsersController::class, 'index'])
         ->middleware(new RequirePermission('users.view'))
         ->name('admin.users.index')

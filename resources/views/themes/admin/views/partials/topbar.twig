@@ -43,5 +43,52 @@
       {% include 'components/icon.twig' with { name: 'moon', class: 'h-4 w-4 shrink-0 dark:hidden' } only %}
       {% include 'components/icon.twig' with { name: 'sun', class: 'h-4 w-4 shrink-0 hidden dark:block' } only %}
     </button>
+
+    {% if is_authenticated|default(false) %}
+      <div class="relative" x-data="{ profileOpen: false }">
+        <button
+          type="button"
+          class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 p-2 text-slate-200 transition hover:bg-white/10 hover:text-white"
+          @click="profileOpen = !profileOpen"
+          @click.outside="profileOpen = false"
+          aria-label="Profile menu"
+          title="Profile"
+        >
+          {% include 'components/icon.twig' with { name: 'user', class: 'h-4 w-4 shrink-0' } only %}
+        </button>
+
+        <div
+          x-show="profileOpen"
+          x-cloak
+          x-transition:enter="transition ease-out duration-150"
+          x-transition:enter-start="opacity-0 scale-95"
+          x-transition:enter-end="opacity-100 scale-100"
+          x-transition:leave="transition ease-in duration-100"
+          x-transition:leave-start="opacity-100 scale-100"
+          x-transition:leave-end="opacity-0 scale-95"
+          class="absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-xl"
+        >
+          <div class="border-b border-white/10 px-4 py-3">
+            <p class="text-sm font-semibold text-white">{{ user_name|default('Admin') }}</p>
+            <p class="text-xs text-slate-400 truncate">{{ user_email|default('') }}</p>
+          </div>
+          <div class="py-2">
+            <a href="/admin/profile" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/5 hover:text-white">
+              {% include 'components/icon.twig' with { name: 'user', class: 'h-4 w-4 shrink-0' } only %}
+              <span>My Profile</span>
+            </a>
+          </div>
+          <div class="border-t border-white/10 py-2">
+            <form method="post" action="/admin/logout">
+              {{ csrf_field() }}
+              <button type="submit" class="flex w-full items-center gap-3 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/5 hover:text-white">
+                {% include 'components/icon.twig' with { name: 'log-out', class: 'h-4 w-4 shrink-0' } only %}
+                <span>Sign out</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% endif %}
   </div>
 </div>
