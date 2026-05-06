@@ -39,9 +39,7 @@
   overview: {% if currentPath starts with '/admin/dashboard' or currentPath starts with '/admin/activity' %}true{% else %}false{% endif %},
   identity: {% if currentPath starts with '/admin/users' or currentPath starts with '/admin/roles' or currentPath starts with '/admin/permissions' %}true{% else %}false{% endif %},
   notifications: {% if currentPath starts with '/admin/notifications' %}true{% else %}false{% endif %},
-  api: {% if currentPath starts with '/admin/api-tokens' %}true{% else %}false{% endif %},
-  operations: {% if currentPath starts with '/admin/queue' or currentPath starts with '/admin/background-jobs' %}true{% else %}false{% endif %},
-  system: {% if currentPath starts with '/admin/settings' or currentPath starts with '/admin/database' or currentPath starts with '/admin/security/risk' %}true{% else %}false{% endif %}
+  settings: {% if currentPath starts with '/admin/settings' or currentPath starts with '/admin/api-tokens' or currentPath starts with '/admin/database' or currentPath starts with '/admin/security/risk' or currentPath starts with '/admin/queue' or currentPath starts with '/admin/background-jobs' %}true{% else %}false{% endif %}
 }">
   {# Overview Section #}
   <span class="{{ section_header }}">Overview</span>
@@ -120,55 +118,42 @@
     </div>
   {% endif %}
 
-  {# API Section #}
-  {% if can('api_token.view') %}
-    <span class="{{ section_header }} mt-2">API</span>
+  {# Settings Section #}
+  {% if can('settings.view') or can('database.view') or can('api_token.view') or can('queue.view') or can('background_jobs.view') or is_admin %}
+    <span class="{{ section_header }} mt-2">Settings & API</span>
     <div class="grid gap-1">
       <button 
         type="button"
-        class="inline-flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if api %}bg-cyan-400/10 text-cyan-100 ring-1 ring-inset ring-cyan-300/20{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}"
-        @click="api = !api"
-        :aria-expanded="api"
+        class="inline-flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if settings %}bg-cyan-400/10 text-cyan-100 ring-1 ring-inset ring-cyan-300/20{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}"
+        @click="settings = !settings"
+        :aria-expanded="settings"
       >
         <span class="flex items-center gap-3">
           <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
-            {% include 'components/icon.twig' with { name: 'key', class: 'h-4 w-4 shrink-0' } only %}
+            {% include 'components/icon.twig' with { name: 'settings', class: 'h-4 w-4 shrink-0' } only %}
           </span>
-          <span class="truncate">API Keys</span>
+          <span class="truncate">Settings</span>
         </span>
-        <span class="transition-transform duration-200" :class="api ? 'rotate-180' : ''">
+        <span class="transition-transform duration-200" :class="settings ? 'rotate-180' : ''">
           {% include 'components/icon.twig' with { name: 'chevron-down', class: 'h-4 w-4 shrink-0' } only %}
         </span>
       </button>
-      <div x-show="api" x-collapse class="grid gap-1 pl-4">
-        <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/api-tokens' %}bg-cyan-400/10 text-cyan-100{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/api-tokens" {% if currentPath starts with '/admin/api-tokens' %}aria-current="page"{% endif %}>
-          <span class="truncate">API Keys</span>
-        </a>
-      </div>
-    </div>
-  {% endif %}
-
-  {# Operations Section #}
-  {% if can('queue.view') or can('background_jobs.view') %}
-    <span class="{{ section_header }} mt-2">Operations</span>
-    <div class="grid gap-1">
-      <button 
-        type="button"
-        class="inline-flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if operations %}bg-cyan-400/10 text-cyan-100 ring-1 ring-inset ring-cyan-300/20{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}"
-        @click="operations = !operations"
-        :aria-expanded="operations"
-      >
-        <span class="flex items-center gap-3">
-          <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
-            {% include 'components/icon.twig' with { name: 'inbox', class: 'h-4 w-4 shrink-0' } only %}
-          </span>
-          <span class="truncate">Jobs</span>
-        </span>
-        <span class="transition-transform duration-200" :class="operations ? 'rotate-180' : ''">
-          {% include 'components/icon.twig' with { name: 'chevron-down', class: 'h-4 w-4 shrink-0' } only %}
-        </span>
-      </button>
-      <div x-show="operations" x-collapse class="grid gap-1 pl-4">
+      <div x-show="settings" x-collapse class="grid gap-1 pl-4">
+        {% if can('settings.view') %}
+          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/settings' %}bg-cyan-400/10 text-cyan-100{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/settings" {% if currentPath starts with '/admin/settings' %}aria-current="page"{% endif %}>
+            <span class="truncate">Settings</span>
+          </a>
+        {% endif %}
+        {% if can('api_token.view') %}
+          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/api-tokens' %}bg-cyan-400/10 text-cyan-100{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/api-tokens" {% if currentPath starts with '/admin/api-tokens' %}aria-current="page"{% endif %}>
+            <span class="truncate">API Keys</span>
+          </a>
+        {% endif %}
+        {% if can('database.view') %}
+          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/database' %}bg-cyan-400/10 text-cyan-100{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/database" {% if currentPath starts with '/admin/database' %}aria-current="page"{% endif %}>
+            <span class="truncate">Database</span>
+          </a>
+        {% endif %}
         {% if can('queue.view') %}
           <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/queue' %}bg-cyan-400/10 text-cyan-100{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/queue" {% if currentPath starts with '/admin/queue' %}aria-current="page"{% endif %}>
             <span class="truncate">Queue</span>
@@ -177,41 +162,6 @@
         {% if can('background_jobs.view') %}
           <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/background-jobs' %}bg-cyan-400/10 text-cyan-100{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/background-jobs" {% if currentPath starts with '/admin/background-jobs' %}aria-current="page"{% endif %}>
             <span class="truncate">Background Jobs</span>
-          </a>
-        {% endif %}
-      </div>
-    </div>
-  {% endif %}
-
-  {# System Section #}
-  {% if can('settings.view') or can('database.view') or is_admin %}
-    <span class="{{ section_header }} mt-2">System</span>
-    <div class="grid gap-1">
-      <button 
-        type="button"
-        class="inline-flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if system %}bg-cyan-400/10 text-cyan-100 ring-1 ring-inset ring-cyan-300/20{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}"
-        @click="system = !system"
-        :aria-expanded="system"
-      >
-        <span class="flex items-center gap-3">
-          <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
-            {% include 'components/icon.twig' with { name: 'settings', class: 'h-4 w-4 shrink-0' } only %}
-          </span>
-          <span class="truncate">System</span>
-        </span>
-        <span class="transition-transform duration-200" :class="system ? 'rotate-180' : ''">
-          {% include 'components/icon.twig' with { name: 'chevron-down', class: 'h-4 w-4 shrink-0' } only %}
-        </span>
-      </button>
-      <div x-show="system" x-collapse class="grid gap-1 pl-4">
-        {% if can('settings.view') %}
-          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/settings' %}bg-cyan-400/10 text-cyan-100{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/settings" {% if currentPath starts with '/admin/settings' %}aria-current="page"{% endif %}>
-            <span class="truncate">Settings</span>
-          </a>
-        {% endif %}
-        {% if can('database.view') %}
-          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/database' %}bg-cyan-400/10 text-cyan-100{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/database" {% if currentPath starts with '/admin/database' %}aria-current="page"{% endif %}>
-            <span class="truncate">Database</span>
           </a>
         {% endif %}
         {% if is_admin %}
