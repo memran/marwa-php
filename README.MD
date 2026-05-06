@@ -155,6 +155,8 @@ docker compose -f docker-compose.yml up -d --build
 The Database Manager module is disabled by default in production/staging. Enable it with `DATABASE_MANAGER_ENABLED=1` only for controlled environments.
 The Database Backup module lets admins schedule backups, store archives on a configured disk, and restore from stored or uploaded ZIP/TAR archives. Restore is destructive and replaces all current data.
 The Security Risk report is available to admin users at `/admin/security/risk` and surfaces the framework risk log with a time-window filter and the latest signal data.
+The security risk log can be pruned with `php marwa security:risk-prune`; the starter also schedules that command to run daily at midnight using the configured retention window.
+The public welcome page now includes an admin access link, demo bootstrap credentials, and a short overview of the admin interface features.
 
 The queue backend is also database-first now. The starter uses the global queue contract, stores jobs in `queue_jobs`, and exposes a `Queue` admin module for job status and retries. To process queued jobs from cron or a supervisor, run:
 

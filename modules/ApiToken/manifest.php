@@ -29,7 +29,7 @@ return [
     ],
     'menu' => [
         'section' => 'API',
-        'label' => 'API Tokens',
+        'label' => 'API Key',
         'route' => 'admin.api-tokens.index',
         'icon' => 'key',
         'permissions' => ['api_token.view'],

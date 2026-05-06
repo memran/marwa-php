@@ -7,6 +7,7 @@ return [
     'providers' => [
         Marwa\Framework\Providers\KernelServiceProvider::class,
         App\Providers\AdminNavigationServiceProvider::class,
+        App\Providers\SecurityRiskPruneServiceProvider::class,
     ],
     'middlewares' => [
         Marwa\Framework\Middlewares\RequestIdMiddleware::class,

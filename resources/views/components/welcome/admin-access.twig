@@ -1,0 +1,56 @@
+<section class="mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-glow backdrop-blur-xl">
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div class="max-w-2xl space-y-3">
+      <p class="text-xs font-bold uppercase tracking-[0.22em] text-cyan-300">Admin access</p>
+      <h2 class="text-2xl font-black tracking-tight text-white">Open the admin console and sign in with the demo account.</h2>
+      <p class="text-sm leading-6 text-slate-300">
+        The starter ships with a session-backed admin area, seeded credentials, and a feature set that covers daily operations from user management to backup and security review.
+      </p>
+      <div class="flex flex-wrap gap-3 pt-1">
+        <a href="{{ admin_login_url }}" class="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 hover:bg-cyan-200">
+          Admin login
+        </a>
+        <a href="{{ admin_dashboard_url }}" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-100 transition hover:-translate-y-0.5 hover:bg-white/10">
+          Admin dashboard
+        </a>
+      </div>
+    </div>
+
+    <div class="grid gap-3 rounded-3xl border border-white/10 bg-slate-950/50 p-4 lg:min-w-[19rem]">
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <p class="text-xs font-bold uppercase tracking-[0.18em] text-cyan-300">Demo user</p>
+        <p class="mt-2 text-sm text-slate-300">Email</p>
+        <p class="font-mono text-sm font-semibold text-white">{{ admin_email }}</p>
+        <p class="mt-3 text-sm text-slate-300">Password</p>
+        <p class="font-mono text-sm font-semibold text-white">{{ admin_password }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+    <article class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+      <p class="text-sm font-semibold text-white">Users</p>
+      <p class="mt-1 text-sm leading-6 text-slate-400">Create, edit, soft-delete, and restore users.</p>
+    </article>
+    <article class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+      <p class="text-sm font-semibold text-white">Activity</p>
+      <p class="mt-1 text-sm leading-6 text-slate-400">Review admin logins, logouts, and CRUD activity.</p>
+    </article>
+    <article class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+      <p class="text-sm font-semibold text-white">Settings</p>
+      <p class="mt-1 text-sm leading-6 text-slate-400">Update predefined runtime settings from one screen.</p>
+    </article>
+    <article class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+      <p class="text-sm font-semibold text-white">Database Backup</p>
+      <p class="mt-1 text-sm leading-6 text-slate-400">Schedule backups and restore from ZIP or TAR archives.</p>
+    </article>
+    <article class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+      <p class="text-sm font-semibold text-white">Security Risk</p>
+      <p class="mt-1 text-sm leading-6 text-slate-400">Inspect the framework risk log with severity and context.</p>
+    </article>
+    <article class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+      <p class="text-sm font-semibold text-white">Database Manager</p>
+      <p class="mt-1 text-sm leading-6 text-slate-400">Run controlled SQL when the module is enabled.</p>
+    </article>
+  </div>
+</section>

@@ -140,6 +140,7 @@ PHP
         );
 
         $this->copyDirectory(__DIR__ . '/../../resources/views/themes/default', $this->basePath . '/resources/views/themes/default');
+        $this->copyDirectory(__DIR__ . '/../../resources/views/components', $this->basePath . '/resources/views/components');
         $this->copyDirectory(__DIR__ . '/../../resources/views/themes/admin', $this->basePath . '/resources/views/themes/admin');
         $this->copyDirectory(__DIR__ . '/../../modules', $this->basePath . '/modules');
 
@@ -150,6 +151,7 @@ PHP
 
 {% block content %}
 <section>Frontend theme: {{ _theme_name }}</section>
+{% include '@Shared/components/welcome/admin-access.twig' %}
 {% endblock %}
 TWIG
         );
@@ -265,6 +267,10 @@ TWIG
         self::assertSame(200, $frontendAgain->getStatusCode());
         self::assertSame(200, $health->getStatusCode());
         self::assertStringContainsString('Frontend theme: default', (string) $frontend->getBody());
+        self::assertStringContainsString('Open the admin console and sign in with the demo account.', (string) $frontend->getBody());
+        self::assertStringContainsString('admin@marwa.test', (string) $frontend->getBody());
+        self::assertStringContainsString('ExampleAdminPassword123!', (string) $frontend->getBody());
+        self::assertStringContainsString('/admin/login', (string) $frontend->getBody());
         self::assertStringContainsString('Request a recovery link.', (string) $forgot->getBody());
         self::assertStringContainsString('Generate a short-lived reset link for the matching admin account.', (string) $forgot->getBody());
         self::assertStringContainsString('Frontend theme: default', (string) $frontendAgain->getBody());

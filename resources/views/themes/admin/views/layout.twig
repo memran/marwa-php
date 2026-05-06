@@ -45,9 +45,6 @@
 <body class="admin-theme min-h-screen bg-slate-950 text-slate-100 antialiased" @close-mobile.window="closeMobile()">
   <div class="hidden" aria-hidden="true">{{ csrf_field() }}</div>
   <div class="admin-shell relative isolate min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_36%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.12),_transparent_32%),linear-gradient(180deg,#020617_0%,#0f172a_48%,#020617_100%)]">
-    <div class="pointer-events-none absolute left-[-8rem] top-10 -z-10 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl"></div>
-    <div class="pointer-events-none absolute right-[-10rem] top-32 -z-10 h-96 w-96 rounded-full bg-emerald-400/10 blur-3xl"></div>
-
     <!-- Mobile Overlay Backdrop -->
     <div 
       x-show="mobileOpen" 
