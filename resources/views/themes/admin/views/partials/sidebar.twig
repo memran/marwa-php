@@ -36,9 +36,8 @@
 </div>
 
 <nav class="grid gap-1" aria-label="Primary" x-data="{ 
-  overview: {% if currentPath starts with '/admin/dashboard' or currentPath starts with '/admin/activity' %}true{% else %}false{% endif %},
+  overview: {% if currentPath starts with '/admin/dashboard' or currentPath starts with '/admin/activity' or currentPath starts with '/admin/notifications' %}true{% else %}false{% endif %},
   identity: {% if currentPath starts with '/admin/users' or currentPath starts with '/admin/roles' or currentPath starts with '/admin/permissions' %}true{% else %}false{% endif %},
-  notifications: {% if currentPath starts with '/admin/notifications' %}true{% else %}false{% endif %},
   settings: {% if currentPath starts with '/admin/settings' or currentPath starts with '/admin/api-tokens' or currentPath starts with '/admin/database' or currentPath starts with '/admin/security/risk' or currentPath starts with '/admin/queue' or currentPath starts with '/admin/background-jobs' %}true{% else %}false{% endif %}
 }">
   {# Overview Section #}
@@ -58,6 +57,19 @@
           {% include 'components/icon.twig' with { name: 'activity', class: 'h-4 w-4 shrink-0' } only %}
         </span>
         <span class="truncate">Activity</span>
+      </a>
+    {% endif %}
+    {% if can('notifications.view') %}
+      <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/notifications' %}bg-cyan-400/10 text-cyan-100 ring-1 ring-inset ring-cyan-300/20{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/notifications" {% if currentPath starts with '/admin/notifications' %}aria-current="page"{% endif %}>
+        <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
+          {% include 'components/icon.twig' with { name: 'bell', class: 'h-4 w-4 shrink-0' } only %}
+        </span>
+        <span class="truncate">Notifications</span>
+        {% if unread_notification_count|default(0) > 0 %}
+          <span class="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[0.65rem] font-bold text-white">
+            {{ unread_notification_count > 9 ? '9+' : unread_notification_count }}
+          </span>
+        {% endif %}
       </a>
     {% endif %}
   </div>
@@ -99,24 +111,6 @@
       {% endif %}
     </div>
   </div>
-
-  {# Notifications Section #}
-  {% if can('notifications.view') %}
-    <span class="{{ section_header }} mt-2">Notifications</span>
-    <div class="grid gap-1">
-      <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/notifications' %}bg-cyan-400/10 text-cyan-100 ring-1 ring-inset ring-cyan-300/20{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/notifications" {% if currentPath starts with '/admin/notifications' %}aria-current="page"{% endif %}>
-        <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
-          {% include 'components/icon.twig' with { name: 'bell', class: 'h-4 w-4 shrink-0' } only %}
-        </span>
-        <span class="truncate">Notifications</span>
-        {% if unread_notification_count|default(0) > 0 %}
-          <span class="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[0.65rem] font-bold text-white">
-            {{ unread_notification_count > 9 ? '9+' : unread_notification_count }}
-          </span>
-        {% endif %}
-      </a>
-    </div>
-  {% endif %}
 
   {# Settings Section #}
   {% if can('settings.view') or can('database.view') or can('api_token.view') or can('queue.view') or can('background_jobs.view') or is_admin %}
