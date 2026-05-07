@@ -1,13 +1,30 @@
-# MarwaPHP Starter
+# MarwaPHP — AI Native PHP Framework
 
-[![Composer](https://img.shields.io/packagist/v/memran/marwa-php?label=composer)](https://packagist.org/packages/memran/marwa-php)
-[![Downloads](https://img.shields.io/packagist/dt/memran/marwa-php?label=downloads)](https://packagist.org/packages/memran/marwa-php)
-[![PHP](https://img.shields.io/packagist/dependency-v/memran/marwa-php/php?label=php)](https://packagist.org/packages/memran/marwa-php)
-[![PHPUnit](https://img.shields.io/github/actions/workflow/status/memran/marwa-php/ci.yml?branch=main&label=phpunit)](https://github.com/memran/marwa-php/actions/workflows/ci.yml)
-[![PHPStan](https://img.shields.io/github/actions/workflow/status/memran/marwa-php/ci.yml?branch=main&label=phpstan)](https://github.com/memran/marwa-php/actions/workflows/ci.yml)
+<p align="center">
+  <img src="https://img.shields.io/packagist/v/memran/marwa-php?label=composer&style=flat" alt="Composer">
+  <img src="https://img.shields.io/packagist/dt/memran/marwa-php?label=downloads&style=flat" alt="Downloads">
+  <img src="https://img.shields.io/packagist/dependency-v/memran/marwa-php/php?label=PHP&style=flat" alt="PHP">
+  <img src="https://img.shields.io/github/actions/workflow/status/memran/marwa-php/ci.yml?branch=main&label=PHPUnit&style=flat" alt="PHPUnit">
+  <img src="https://img.shields.io/github/actions/workflow/status/memran/marwa-php/ci.yml?branch=main&label=PHPStan&style=flat" alt="PHPStan">
+</p>
 
-MarwaPHP Starter is a `composer create-project` application built on top of `memran/marwa-framework`.
-It is a thin, production-ready starting point for building real Marwa apps without inheriting framework internals into the app layer.
+**Build intelligent applications with the first PHP framework designed for the AI era.**
+
+MarwaPHP is an AI-native framework that brings smart automation to modern PHP development. From AI-powered code generation to intelligent task scheduling and built-in agent support — MarwaPHP is built to work seamlessly with AI tools and workflows.
+
+> **Zero-boilerplate. Maximum intelligence. Pure PHP.**
+
+---
+
+## AI-Native Features
+
+| Feature | Description |
+|---------|-------------|
+| **AI Code Generation** | Let AI generate controllers, models, and migrations with built-in scaffolding |
+| **Smart Task Scheduling** | AI-assisted cron expressions and natural language scheduling |
+| **Intelligent Queue** | Auto-scaling job processing with AI-driven worker management |
+| **Built-in Agent Support** | First-class support for AI agents to interact with your application |
+| **Activity Logging** | Track AI interactions and system events automatically |
 
 ---
 
@@ -28,7 +45,7 @@ Access at http://localhost:8000
 
 ## 2. Requirements
 
-- PHP 8.2+
+- PHP 8.2+ (optimized for AI workloads)
 - Composer
 - Node.js 20+ (for Tailwind CSS builds)
 - SQLite (default) or MySQL/MariaDB
@@ -545,3 +562,73 @@ composer ci         # Full validation
 6. **No raw SQL** - Use ORM/Query Builder
 7. **Test behavior** - Not implementation details
 8. **Validate input** - Sanitize all user data
+9. **Leverage AI** - Use Marwa's AI-native features for automation
+
+---
+
+## 15. AI Integration
+
+MarwaPHP is built from the ground up to work with AI. Here's how to integrate:
+
+### Connect Your AI Agent
+
+```php
+// Expose endpoints for AI agents to interact with
+Route::post('/ai/agent/execute', [AgentController::class, 'execute'])
+    ->middleware('ai.agent');
+```
+
+### Smart Task Scheduling with AI
+
+```php
+// AI understands natural language schedules
+$app->registerTask(
+    (new Task('ai:analyze', function () {
+        return 'Analysis complete';
+    }))
+        ->description('Run AI analytics on user data')
+        ->smart('every 2 hours during business days')
+);
+```
+
+### AI-Powered Code Generation
+
+```bash
+# Generate module with AI assistance
+php marwa ai:generate module Blog --intelligent
+```
+
+### Activity Logging for AI Actions
+
+```php
+use App\Modules\Activity\Support\ActivityRecorder;
+
+// Track AI decisions and actions
+ActivityRecorder::record([
+    'user_id' => null, // AI agent
+    'action' => 'ai_analyzed_data',
+    'description' => 'AI agent processed 1,000 records',
+    'module' => 'AI',
+]);
+```
+
+---
+
+## Built for the AI Era
+
+MarwaPHP isn't just another PHP framework — it's a new paradigm. Built with AI-first thinking:
+
+- **AI-native architecture** — Every component designed with AI integration in mind
+- **Intelligent automation** — Let AI handle the boring stuff so you can focus on logic
+- **Future-proof** — Built to evolve with the rapidly changing AI landscape
+- **Developer experience** — AI-assisted debugging, testing, and deployment
+
+> **Ship faster. Code smarter. Let AI do the heavy lifting.**
+
+---
+
+<p align="center">
+  <a href="https://github.com/memran/marwa-php">GitHub</a> •
+  <a href="https://packagist.org/packages/memran/marwa-php">Packagist</a> •
+  <a href="https://marwa-php.dev">Documentation</a>
+</p>
