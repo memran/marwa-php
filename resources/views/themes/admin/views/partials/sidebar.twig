@@ -79,7 +79,8 @@
   <div class="grid gap-1">
     <button 
       type="button"
-      class="inline-flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if identity %}bg-cyan-400/10 text-cyan-100 ring-1 ring-inset ring-cyan-300/20{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}"
+      class="inline-flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition"
+      :class="identity ? 'bg-cyan-400/10 text-cyan-100 ring-1 ring-inset ring-cyan-300/20' : 'text-slate-300 hover:bg-white/5 hover:text-white'"
       @click="identity = !identity"
       :aria-expanded="identity"
     >
@@ -118,9 +119,10 @@
     <div class="grid gap-1">
       <button 
         type="button"
-        class="inline-flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if settings %}bg-cyan-400/10 text-cyan-100 ring-1 ring-inset ring-cyan-300/20{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}"
-        @click="settings = !settings"
-        :aria-expanded="settings"
+      class="inline-flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition"
+      :class="settings ? 'bg-cyan-400/10 text-cyan-100 ring-1 ring-inset ring-cyan-300/20' : 'text-slate-300 hover:bg-white/5 hover:text-white'"
+      @click="settings = !settings"
+      :aria-expanded="settings"
       >
         <span class="flex items-center gap-3">
           <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">

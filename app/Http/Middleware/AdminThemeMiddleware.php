@@ -29,7 +29,9 @@ final class AdminThemeMiddleware implements MiddlewareInterface
         );
 
         $view->theme($adminTheme);
-        $view->share('_current_path', $request->getUri()->getPath());
+        $currentPath = $request->getUri()->getPath();
+        $view->share('_current_path', $currentPath);
+        $view->share('currentPath', $currentPath);
 
         $auth = app(AuthManager::class);
         $view->share('is_authenticated', $auth->check());
