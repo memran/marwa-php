@@ -55,6 +55,11 @@ final class AuthUsersModuleTest extends TestCase
         $this->copyDirectory(__DIR__ . '/../../resources/views/themes/admin', $this->basePath . '/resources/views/themes/admin');
         $this->copyDirectory(__DIR__ . '/../../modules', $this->basePath . '/modules');
 
+        $widgetFile = __DIR__ . '/../../resources/views/components/ai-chat-widget.twig';
+        if (is_file($widgetFile)) {
+            copy($widgetFile, $this->basePath . '/resources/views/components/ai-chat-widget.twig');
+        }
+
         file_put_contents(
             $this->basePath . '/.env',
             "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=admin\nTIMEZONE=UTC\nDB_ENABLED=1\nDB_CONNECTION=sqlite\nDB_DATABASE={$this->basePath}/database/database.sqlite\nAPP_CONFIG_CACHE={$this->basePath}/bootstrap/cache/config.php\nAPP_ROUTE_CACHE={$this->basePath}/bootstrap/cache/routes.php\nAPP_MODULE_CACHE={$this->basePath}/storage/cache/modules.php\nADMIN_BOOTSTRAP_EMAIL=admin@marwa.test\nADMIN_BOOTSTRAP_PASSWORD=ExampleAdminPassword123!\n"
