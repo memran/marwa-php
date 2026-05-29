@@ -25,13 +25,9 @@ final class UserRepository
             return $this->adminRoleId;
         }
 
-        $ids = \App\Modules\Auth\Models\Role::newQuery()->getBaseBuilder()
-            ->select('id')
-            ->where('slug', '=', 'admin')
-            ->pluck('id')
-            ->toArray();
+        $role = \App\Modules\Auth\Models\Role::findBySlug('admin');
 
-        return $this->adminRoleId = empty($ids) ? null : (int) $ids[0];
+        return $this->adminRoleId = $role === null ? null : (int) $role->getKey();
     }
 
     /**
@@ -62,21 +58,16 @@ final class UserRepository
             return null;
         }
 
-        $builder = User::newQuery()->getBaseBuilder()
-            ->where('role_id', '=', $adminRoleId)
-            ->whereNull('deleted_at');
+        $adminUsers = array_values(array_filter(
+            User::all(),
+            static fn (User $user): bool => (int) $user->getAttribute('role_id') === $adminRoleId
+        ));
 
-        if ($builder->count() !== 1) {
+        if (count($adminUsers) !== 1) {
             return null;
         }
 
-        $row = $builder->first();
-
-        if ($row === null) {
-            return null;
-        }
-
-        return User::newInstance(is_array($row) ? $row : (array) $row, true)->getKey();
+        return $adminUsers[0]->getKey();
     }
 
     /**
@@ -109,10 +100,10 @@ final class UserRepository
             return false;
         }
 
-        return User::newQuery()->getBaseBuilder()
-            ->where('role_id', '=', $adminRoleId)
-            ->whereNull('deleted_at')
-            ->count() <= 1;
+        return count(array_filter(
+            User::all(),
+            static fn (User $candidate): bool => (int) $candidate->getAttribute('role_id') === $adminRoleId
+        )) <= 1;
     }
 
     public function findDuplicateUserByEmail(string $email, ?int $ignoreId = null): ?User
@@ -123,17 +114,17 @@ final class UserRepository
             return null;
         }
 
-        $builder = User::newQuery()->getBaseBuilder()
-            ->where('email', '=', $email)
-            ->orderBy('created_at', 'desc');
+        $duplicate = User::findByEmailIncludingTrashed($email);
 
-        if ($ignoreId !== null) {
-            $builder->where('id', '!=', $ignoreId);
+        if (!$duplicate instanceof User) {
+            return null;
         }
 
-        $row = $builder->first();
+        if ($ignoreId !== null && (int) $duplicate->getKey() === $ignoreId) {
+            return null;
+        }
 
-        return $row === null ? null : User::newInstance(is_array($row) ? $row : (array) $row, true);
+        return $duplicate;
     }
 
     public function duplicateUserMessage(User $duplicate): string

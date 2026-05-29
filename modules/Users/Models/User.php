@@ -35,14 +35,24 @@ final class User extends Model implements PermissionAwareUser
 
     protected static bool $softDeletes = true;
 
-    public static function findByEmail(string $email): ?self
+    public static function findByEmail(string $email): ?static
     {
         return self::findBy('email', $email);
     }
 
-    public static function findById(int $id): ?self
+    public static function findByEmailIncludingTrashed(string $email): ?static
+    {
+        return self::findByAttribute((string) trim($email), 'email', true);
+    }
+
+    public static function findById(int $id): ?static
     {
         return self::find($id);
+    }
+
+    public static function findBy(string $column, mixed $value): ?static
+    {
+        return self::findByAttribute($value, $column);
     }
 
     public function getId(): ?int
@@ -130,5 +140,27 @@ final class User extends Model implements PermissionAwareUser
     public function hasRole(string $role): bool
     {
         return in_array($role, $this->getRoles(), true);
+    }
+
+    private static function findByAttribute(mixed $value, string $column, bool $includeTrashed = false): ?static
+    {
+        $users = $includeTrashed
+            ? self::withTrashed()->all()
+            : self::all();
+
+        $needle = self::normalizeLookupValue($value);
+
+        foreach ($users as $user) {
+            if (self::normalizeLookupValue($user->getAttribute($column)) === $needle) {
+                return $user;
+            }
+        }
+
+        return null;
+    }
+
+    private static function normalizeLookupValue(mixed $value): string
+    {
+        return is_bool($value) ? ((int) $value === 1 ? '1' : '0') : trim((string) $value);
     }
 }
