@@ -4,127 +4,125 @@
 
 {% block content %}
   {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5' %}
-  {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
-  {% set button_secondary = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
-  {% set button_ghost = button_base ~ ' border-white/10 bg-transparent text-slate-200 hover:bg-white/5' %}
+  {% set button_primary = button_base ~ ' border-transparent bg-app-accent text-white hover:bg-app-accent-soft' %}
+  {% set button_secondary = button_base ~ ' border-app-border bg-app-surface/80 text-app-text hover:bg-app-surface-2/70' %}
+  {% set button_ghost = button_base ~ ' border-app-border bg-transparent text-app-text hover:bg-app-surface-2/60' %}
 
   <section class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
     <div class="max-w-3xl space-y-3">
-      <span class="inline-flex w-fit items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-cyan-100">Identity management</span>
-      <h1 class="users-form-title text-3xl font-black tracking-tight text-white sm:text-4xl">{{ title }}</h1>
-      <p class="users-form-subtitle max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">Keep the form compact and readable for long working sessions.</p>
+      <span class="inline-flex w-fit items-center rounded-full border border-app-accent/20 bg-app-accent/10 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-app-accent">Identity management</span>
+      <h1 class="users-form-title text-3xl font-black tracking-tight text-app-text sm:text-4xl">{{ title }}</h1>
+      <p class="users-form-subtitle max-w-2xl text-sm leading-6 text-app-muted sm:text-base">Keep the form compact and readable for long working sessions.</p>
     </div>
 
-    <div class="flex flex-wrap gap-3">
-      <a class="users-form-ghost {{ button_ghost }}" href="/admin/users">Back to users</a>
+    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+      <a class="users-form-ghost {{ button_ghost }} w-full sm:w-auto" href="/admin/users">Back to users</a>
     </div>
   </section>
 
-  <section class="users-form-shell mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-6">
+  <section class="users-form-shell mt-8 w-full max-w-4xl overflow-hidden rounded-[2rem] border border-app-border bg-gradient-to-b from-app-surface via-app-surface to-app-surface-2/70 p-5 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-6 lg:mx-auto">
     {% if errors is defined and errors is not empty %}
-      <div class="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-rose-100">
+      <div class="rounded-2xl border border-app-danger/20 bg-app-danger/10 p-4 text-app-danger">
         <p class="text-sm font-semibold">Please review the form</p>
-        <p class="mt-1 text-sm text-rose-100/80">One or more fields contain validation errors.</p>
+        <p class="mt-1 text-sm text-app-danger/80">One or more fields contain validation errors.</p>
       </div>
     {% endif %}
 
     <form class="mt-6 grid gap-5" method="post" action="{{ action }}">
       {{ csrf_field() }}
 
-      {% include "components/form-field.twig" with {
-        id: 'name',
-        label: 'Full name',
-        value: form.name|default(''),
-        placeholder: 'Jane Doe',
-        error: errors.name|default([])|first
-      } only %}
+      <div class="grid gap-5 lg:grid-cols-2">
+        {% include "components/form-field.twig" with {
+          id: 'name',
+          label: 'Full name',
+          value: form.name|default(''),
+          placeholder: 'Jane Doe',
+          error: errors.name|default([])|first
+        } only %}
 
-      {% include "components/form-field.twig" with {
-        id: 'email',
-        label: 'Email address',
-        type: 'email',
-        autocomplete: 'email',
-        value: form.email|default(''),
-        placeholder: 'jane@company.com',
-        error: errors.email|default([])|first
-      } only %}
+        {% include "components/form-field.twig" with {
+          id: 'email',
+          label: 'Email address',
+          type: 'email',
+          autocomplete: 'email',
+          value: form.email|default(''),
+          placeholder: 'jane@company.com',
+          error: errors.email|default([])|first
+        } only %}
+      </div>
 
-      {% include "components/form-field.twig" with {
-        id: 'role_id',
-        label: 'Role',
-        type: 'select',
-        value: form.role_id|default(0),
-        options: roles,
-        hint: 'Controls the access level shown in the user table.',
-        error: errors.role_id|default([])|first
-      } only %}
+      <div class="grid gap-2">
+        {% include "components/form-field.twig" with {
+          id: 'role_id',
+          label: 'Role',
+          type: 'select',
+          value: form.role_id|default(0),
+          options: roles,
+          error: errors.role_id|default([])|first
+        } only %}
+        <p class="text-xs leading-5 text-app-muted">Controls the access level shown in the user table.</p>
+      </div>
 
       {% set is_active_checked = form.is_active is defined ? form.is_active : true %}
 
       <div class="grid gap-2">
-        <label class="dashboard-status-label text-sm font-semibold text-slate-200" for="is_active">Status</label>
-        <div class="grid gap-3 sm:grid-cols-2">
-          <label class="dashboard-status-option dashboard-status-option-active group flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 transition {% if is_active_checked %}border-cyan-300/30 bg-cyan-400/10 text-cyan-50{% else %}border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:bg-white/5{% endif %}">
+        <label class="dashboard-status-label text-[0.82rem] font-semibold text-app-text" for="is_active">Status</label>
+        <div class="grid gap-2 rounded-2xl border border-app-border bg-app-surface-2/80 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] sm:grid-cols-2">
+          <label class="dashboard-status-option dashboard-status-option-active group flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition {% if is_active_checked %}border-app-success/30 bg-app-success/10 text-app-success{% else %}border-app-border bg-app-surface text-app-muted hover:border-app-accent/20 hover:bg-app-surface-2/80{% endif %}">
             <input type="radio" name="is_active" value="1" {% if is_active_checked %}checked{% endif %} class="dashboard-status-radio dashboard-status-radio-active h-4 w-4">
-            <span class="dashboard-status-badge flex h-8 w-8 items-center justify-center rounded-full border {% if is_active_checked %}border-cyan-300/40 bg-cyan-400/15{% else %}border-white/10 bg-white/5{% endif %}">
+            <span class="dashboard-status-badge flex h-8 w-8 items-center justify-center rounded-full border {% if is_active_checked %}border-app-success/40 bg-app-success/15{% else %}border-app-border bg-app-surface-2/90{% endif %}">
               {% include 'components/icon.twig' with { name: 'user-check', class: 'h-3.5 w-3.5' } only %}
             </span>
-            <span class="grid gap-0.5">
-              <span class="dashboard-status-title text-sm font-semibold">Active account</span>
-              <span class="dashboard-status-helper text-xs text-slate-400">Can sign in and access the admin area.</span>
-            </span>
+            <span class="dashboard-status-title text-sm font-semibold">Active account</span>
           </label>
 
-          <label class="dashboard-status-option dashboard-status-option-inactive group flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 transition {% if not is_active_checked %}border-rose-300/30 bg-rose-500/10 text-rose-50{% else %}border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:bg-white/5{% endif %}">
+          <label class="dashboard-status-option dashboard-status-option-inactive group flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition {% if not is_active_checked %}border-app-warning/30 bg-app-warning/10 text-app-warning{% else %}border-app-border bg-app-surface text-app-muted hover:border-app-accent/20 hover:bg-app-surface-2/80{% endif %}">
             <input type="radio" name="is_active" value="0" {% if not is_active_checked %}checked{% endif %} class="dashboard-status-radio dashboard-status-radio-inactive h-4 w-4">
-            <span class="dashboard-status-badge flex h-8 w-8 items-center justify-center rounded-full border {% if not is_active_checked %}border-rose-300/40 bg-rose-500/15{% else %}border-white/10 bg-white/5{% endif %}">
+            <span class="dashboard-status-badge flex h-8 w-8 items-center justify-center rounded-full border {% if not is_active_checked %}border-app-warning/40 bg-app-warning/15{% else %}border-app-border bg-app-surface-2/90{% endif %}">
               {% include 'components/icon.twig' with { name: 'user-x', class: 'h-3.5 w-3.5' } only %}
             </span>
-            <span class="grid gap-0.5">
-              <span class="dashboard-status-title text-sm font-semibold">Inactive account</span>
-              <span class="dashboard-status-helper text-xs text-slate-400">Hidden from sign-in until enabled again.</span>
-            </span>
+            <span class="dashboard-status-title text-sm font-semibold">Inactive account</span>
           </label>
         </div>
         {% if errors.is_active is defined %}
-          <p class="text-sm text-rose-300">{{ errors.is_active|first }}</p>
+          <p class="text-sm text-app-danger">{{ errors.is_active|first }}</p>
         {% else %}
-          <p class="dashboard-status-helper text-sm text-slate-400">Inactive users cannot sign in.</p>
+          <p class="dashboard-status-helper text-sm text-app-muted">Inactive users cannot sign in.</p>
         {% endif %}
       </div>
 
       <div class="grid gap-2">
-        <label class="users-form-label text-sm font-semibold text-slate-200" for="password">{{ mode == 'create' ? 'Password' : 'Password (optional)' }}</label>
+        <label class="users-form-label text-[0.82rem] font-semibold text-app-text" for="password">{{ mode == 'create' ? 'Password' : 'Password (optional)' }}</label>
         <input
-          class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
+          class="w-full rounded-2xl border border-app-border bg-app-surface-2/80 px-4 py-3 text-app-text placeholder:text-app-muted outline-none transition focus:border-app-accent focus:ring-4 focus:ring-app-accent/10"
           id="password"
           name="password"
           type="password"
           autocomplete="new-password"
           placeholder="Minimum 8 characters"
         >
-        <p class="users-form-help text-sm text-slate-400">
+        <p class="users-form-help text-sm text-app-muted">
           Password policy: Minimum 8 characters, mixed case recommended.
         </p>
-        <div class="flex flex-wrap items-center gap-3">
-        <button class="users-form-secondary {{ button_secondary }}" type="button" id="generate_password">Generate password</button>
-        <button class="users-form-ghost {{ button_ghost }}" type="button" id="copy_password">Copy password</button>
-          <label class="users-form-toggle inline-flex cursor-pointer items-center gap-3 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-slate-300 transition hover:bg-white/5">
-            <input type="checkbox" id="show_password" class="form-checkbox h-4 w-4 rounded border-white/20 bg-white/5 text-cyan-400 focus:ring-cyan-400/20">
+        <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <button class="users-form-secondary {{ button_secondary }} w-full sm:w-auto" type="button" id="generate_password">Generate password</button>
+        <button class="users-form-ghost {{ button_ghost }} w-full sm:w-auto" type="button" id="copy_password">Copy password</button>
+          <label class="users-form-toggle inline-flex w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-app-border bg-app-surface/60 px-4 py-2 text-sm text-app-text transition hover:bg-app-surface-2/60 sm:w-auto">
+            <input type="checkbox" id="show_password" class="form-checkbox h-4 w-4 rounded border-app-border bg-app-surface text-app-accent focus:ring-app-accent/20">
             <span>Show password</span>
           </label>
         </div>
         {% if errors.password is defined %}
-          <p class="text-sm text-rose-300">{{ errors.password|first }}</p>
+          <p class="text-sm text-app-danger">{{ errors.password|first }}</p>
         {% else %}
-          <p class="text-sm text-slate-400">{{ mode == 'create' ? 'Required for new accounts. Use Generate password for a 12-character random string.' : 'Leave blank to keep the current password. Use Generate password for a 12-character random string.' }}</p>
+          <p class="text-sm text-app-muted">{{ mode == 'create' ? 'Required for new accounts. Use Generate password for a 12-character random string.' : 'Leave blank to keep the current password. Use Generate password for a 12-character random string.' }}</p>
         {% endif %}
       </div>
 
       <div class="grid gap-2">
-        <label class="users-form-label text-sm font-semibold text-slate-200" for="password_confirmation">Confirm password</label>
+        <label class="users-form-label text-[0.82rem] font-semibold text-app-text" for="password_confirmation">Confirm password</label>
         <input
-          class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
+          class="w-full rounded-2xl border border-app-border bg-app-surface-2/80 px-4 py-3 text-app-text placeholder:text-app-muted outline-none transition focus:border-app-accent focus:ring-4 focus:ring-app-accent/10"
           id="password_confirmation"
           name="password_confirmation"
           type="password"
@@ -133,9 +131,9 @@
         >
       </div>
 
-      <div class="flex flex-wrap gap-3">
-        <button class="{{ button_primary }}" type="submit">{{ submit_label }}</button>
-        <a class="{{ button_secondary }}" href="/admin/users">Cancel</a>
+      <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <button class="{{ button_primary }} w-full sm:w-auto" type="submit">{{ submit_label }}</button>
+        <a class="{{ button_secondary }} w-full sm:w-auto" href="/admin/users">Cancel</a>
       </div>
     </form>
   </section>
