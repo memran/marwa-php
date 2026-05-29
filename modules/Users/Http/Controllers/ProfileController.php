@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Users\Http\Controllers;
 
 use App\Modules\Auth\Support\AuthManager;
+use App\Modules\Users\Models\User;
 use App\Modules\Users\Support\UserRepository;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
@@ -74,7 +75,7 @@ final class ProfileController extends Controller
             return $this->redirect('/admin/profile/edit');
         }
 
-        $email = $this->users->normalizeEmail((string) $validated['email']);
+        $email = User::normalizeEmail((string) $validated['email']);
         $duplicate = $this->users->findDuplicateUserByEmail($email, (int) $currentUser->getKey());
 
         if ($duplicate !== null) {

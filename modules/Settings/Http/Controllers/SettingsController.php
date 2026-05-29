@@ -21,7 +21,6 @@ final class SettingsController extends Controller
         return $this->view('@settings/index', [
             'categories' => $this->catalog->categories(),
             'settings' => $this->store->all(),
-            'notice' => session('settings.notice'),
             'errors' => session('settings.errors', []),
         ]);
     }

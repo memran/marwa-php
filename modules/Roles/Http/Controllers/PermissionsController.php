@@ -6,31 +6,76 @@ namespace App\Modules\Roles\Http\Controllers;
 
 use App\Modules\Auth\Support\PermissionRepository;
 use App\Modules\Roles\Support\PermissionFormData;
+use App\Support\AdminListState;
+use App\Support\AdminPagination;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 final class PermissionsController extends Controller
 {
+    public function __construct(
+        private readonly AdminListState $listState,
+        private readonly AdminPagination $pagination,
+    ) {}
+
     public function index(): ResponseInterface
     {
         $request = $this->request();
-        $query = trim((string) ($request->getQueryParams()['q'] ?? ''));
-        $group = trim((string) ($request->getQueryParams()['group'] ?? ''));
+        $params = $request->getQueryParams();
         $repository = app(PermissionRepository::class);
-        $permissions = $repository->groupedFiltered($query, $group);
-        $visiblePermissions = array_sum(array_map(static fn (array $items): int => count($items), $permissions));
-        $groupCount = count($permissions);
+        $state = $this->listState->stateFrom(
+            $params,
+            'q',
+            'group',
+            'sort',
+            'direction',
+            'page'
+        );
+        $group = isset($params['group']) ? trim((string) $params['group']) : '';
+        $sort = isset($params['sort']) ? trim((string) $params['sort']) : 'group';
+        $direction = isset($params['direction']) ? strtolower(trim((string) $params['direction'])) : 'asc';
+
+        if ($group === 'all') {
+            $group = '';
+        }
+
+        if ($sort === '' || $sort === 'created_at') {
+            $sort = 'group';
+        }
+
+        if (!in_array($direction, ['asc', 'desc'], true)) {
+            $direction = 'asc';
+        }
+
+        $permissions = $repository->paginatedGroupedFiltered(
+            $state['query'],
+            $group,
+            $state['page'],
+            null,
+            $sort,
+            $direction
+        );
+        $visiblePermissions = (int) $permissions['total'];
+        $groupCount = count($permissions['groups']);
 
         return $this->view('@roles/permissions', [
-            'permissions' => $permissions,
+            'permissions' => $permissions['groups'],
             'group_options' => $repository->groupNames(),
-            'query' => $query,
+            'query' => $state['query'],
             'group' => $group,
+            'sort' => $sort,
+            'direction' => $direction,
             'visible_permissions' => $visiblePermissions,
             'group_count' => $groupCount,
             'total_permissions' => count($repository->all()),
             'create_url' => '/admin/permissions/create',
+            'pagination' => $this->pagination->viewData($permissions, '/admin/permissions', [
+                'q' => $state['query'],
+                'group' => $group,
+                'sort' => $sort,
+                'direction' => $direction,
+            ]),
         ]);
     }
 

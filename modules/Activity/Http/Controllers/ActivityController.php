@@ -6,7 +6,7 @@ namespace App\Modules\Activity\Http\Controllers;
 
 use App\Modules\Activity\Support\ActivityRecorder;
 use App\Support\AdminPagination;
-use App\Support\AdminSearch;
+use App\Support\AdminListState;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 
@@ -16,18 +16,31 @@ final class ActivityController extends Controller
     {
         /** @var ActivityRecorder $recorder */
         $recorder = app(ActivityRecorder::class);
-        /** @var AdminSearch $search */
-        $search = app(AdminSearch::class);
+        /** @var AdminListState $listState */
+        $listState = app(AdminListState::class);
         /** @var AdminPagination $pagination */
         $pagination = app(AdminPagination::class);
-        $state = $search->state();
-        $activities = $recorder->paginated($state['query'], $state['page']);
+        $state = $listState->state();
+        $activities = $recorder->paginated(
+            $state['query'],
+            $state['page'],
+            null,
+            $state['filter'],
+            $state['sort'],
+            $state['direction']
+        );
 
         return $this->view('@user_activity/index', [
             'activities' => $activities,
             'query' => $state['query'],
+            'filter' => $state['filter'],
+            'sort' => $state['sort'],
+            'direction' => $state['direction'],
             'pagination' => $pagination->viewData($activities, '/admin/activity', [
                 'q' => $state['query'],
+                'filter' => $state['filter'],
+                'sort' => $state['sort'],
+                'direction' => $state['direction'],
             ]),
         ]);
     }

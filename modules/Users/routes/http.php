@@ -24,6 +24,18 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
         ->middleware(new RequirePermission('users.view'))
         ->name('admin.users.index')
         ->register();
+    $routes->get('/users/export', [UsersController::class, 'export'])
+        ->middleware(new RequirePermission('users.view'))
+        ->name('admin.users.export')
+        ->register();
+    $routes->post('/users/bulk-delete', [UsersController::class, 'bulkDelete'])
+        ->middleware(new RequirePermission('users.delete'))
+        ->name('admin.users.bulk_delete')
+        ->register();
+    $routes->post('/users/bulk-status', [UsersController::class, 'bulkStatus'])
+        ->middleware(new RequirePermission('users.edit'))
+        ->name('admin.users.bulk_status')
+        ->register();
     $routes->get('/users/create', [UsersController::class, 'create'])
         ->middleware(new RequirePermission('users.create'))
         ->name('admin.users.create')

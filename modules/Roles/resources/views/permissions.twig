@@ -6,6 +6,14 @@
   {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
   {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
   {% set button_secondary = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
+  {% set current_sort = sort|default('group') %}
+  {% set current_direction = direction|default('asc') %}
+  {% set sort_options = {
+    'group': 'Group',
+    'name': 'Name',
+    'slug': 'Slug',
+    'description': 'Description'
+  } %}
 
   <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
     <div class="max-w-3xl space-y-2">
@@ -21,12 +29,6 @@
       <a class="{{ button_secondary }}" href="/admin/roles">Back to roles</a>
     </div>
   </section>
-
-  {% if notice|default(false) %}
-    <div class="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-      {{ notice }}
-    </div>
-  {% endif %}
 
   <div class="mt-6 grid gap-4 sm:grid-cols-3">
     <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -47,7 +49,7 @@
   </div>
 
   <form method="get" action="/admin/permissions" class="mt-6 rounded-[1.5rem] border border-white/10 bg-white/5 p-4 shadow-[0_20px_60px_rgba(2,6,23,0.22)] backdrop-blur-xl">
-    <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px_auto] lg:items-end">
+    <div class="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_220px_180px_140px_auto] xl:items-end">
       <div class="grid gap-2">
         <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400" for="q">Search</label>
         <input
@@ -74,9 +76,34 @@
         </select>
       </div>
 
+      <div class="grid gap-2">
+        <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400" for="sort">Sort</label>
+        <select
+          id="sort"
+          name="sort"
+          class="w-full rounded-2xl border border-white/10 bg-slate-950/30 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
+        >
+          {% for value, label in sort_options %}
+            <option value="{{ value }}" {% if current_sort == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="grid gap-2">
+        <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400" for="direction">Order</label>
+        <select
+          id="direction"
+          name="direction"
+          class="w-full rounded-2xl border border-white/10 bg-slate-950/30 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
+        >
+          <option value="asc" {% if current_direction == 'asc' %}selected{% endif %}>Ascending</option>
+          <option value="desc" {% if current_direction == 'desc' %}selected{% endif %}>Descending</option>
+        </select>
+      </div>
+
       <div class="flex flex-wrap gap-2 lg:justify-end">
         <button type="submit" class="{{ button_primary }}">Apply filters</button>
-        {% if query|default('') or group|default('') %}
+        {% if query|default('') or group|default('') or current_sort != 'group' or current_direction != 'asc' %}
           <a href="/admin/permissions" class="{{ button_secondary }}">Reset</a>
         {% endif %}
       </div>
@@ -152,5 +179,27 @@
         </section>
       {% endfor %}
     </div>
+  {% endif %}
+
+  {% if pagination.links|default([])|length > 1 %}
+    <nav class="mt-8 flex flex-col gap-4 rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <p class="text-sm text-slate-400">{{ pagination.summary|default('') }}</p>
+      <div class="flex flex-wrap items-center gap-2">
+        {% set previous_page = null %}
+        {% for link in pagination.links|default([]) %}
+          {% if previous_page is not null and link.page > previous_page + 1 %}
+            <span class="px-2 text-slate-500">…</span>
+          {% endif %}
+
+          {% if link.active %}
+            <span class="inline-flex h-9 min-w-9 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-3 text-sm font-semibold text-cyan-200">{{ link.page }}</span>
+          {% else %}
+            <a class="inline-flex h-9 min-w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-medium text-slate-300 transition hover:bg-white/10" href="{{ link.url }}">{{ link.page }}</a>
+          {% endif %}
+
+          {% set previous_page = link.page %}
+        {% endfor %}
+      </div>
+    </nav>
   {% endif %}
 {% endblock %}

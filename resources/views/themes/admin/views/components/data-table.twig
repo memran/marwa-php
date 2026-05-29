@@ -1,0 +1,426 @@
+{% set table = table|default({}) %}
+{% set title = table.title|default('Records') %}
+{% set description = table.description|default('') %}
+{% set features = table.features|default({}) %}
+{% set toolbar = table.toolbar|default({}) %}
+{% set bulk = table.bulk|default({}) %}
+{% set columns = table.columns|default([]) %}
+{% set rows = table.rows|default([]) %}
+{% set pagination = table.pagination|default(null) %}
+{% set empty_state = table.empty_state|default({
+  title: 'No records',
+  message: 'Nothing matched the current filters.'
+}) %}
+
+{% set has_table = columns is not empty and rows is not empty %}
+{% set has_toolbar = features.search|default(false) or features.filter|default(false) or features.columns|default(false) or features.export|default(false) or toolbar.actions|default([]) is not empty %}
+{% set has_bulk = features.bulk|default(false) and (bulk.action_delete_url|default('') or bulk.action_status_url|default('')) %}
+{% set button_base = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl border text-sm font-semibold transition hover:-translate-y-0.5' %}
+{% set toolbar_button = button_base ~ ' h-10 px-3.5' %}
+{% set toolbar_button_primary = toolbar_button ~ ' border-transparent bg-app-accent text-white hover:bg-app-accent-soft' %}
+{% set toolbar_button_secondary = toolbar_button ~ ' border-app-border bg-app-surface/80 text-app-text hover:bg-app-surface-2/70' %}
+{% set toolbar_button_ghost = toolbar_button ~ ' border-app-border bg-transparent text-app-text hover:bg-app-surface-2/60' %}
+{% set toolbar_button_danger = toolbar_button ~ ' border-app-danger/20 bg-app-danger/10 text-app-danger hover:bg-app-danger/15' %}
+{% set row_action_base = 'inline-flex h-9 min-w-fit items-center justify-center gap-2 whitespace-nowrap rounded-full border px-3 text-xs font-semibold leading-none transition hover:-translate-y-0.5' %}
+{% set row_action_primary = row_action_base ~ ' border-transparent bg-app-accent text-white hover:bg-app-accent-soft' %}
+{% set row_action_secondary = row_action_base ~ ' border-app-border bg-app-surface/80 text-app-text hover:bg-app-surface-2/70' %}
+{% set row_action_ghost = row_action_base ~ ' border-app-border bg-transparent text-app-text hover:bg-app-surface-2/60' %}
+{% set row_action_danger = row_action_base ~ ' border-app-danger/20 bg-app-danger/10 text-app-danger hover:bg-app-danger/15' %}
+{% set bulk_control = 'h-10 rounded-2xl border border-app-border bg-app-surface/80 px-3.5 text-sm font-semibold text-app-text outline-none transition hover:bg-app-surface-2/70 focus:border-app-accent focus:ring-2 focus:ring-app-accent/20' %}
+{% set icon_button = 'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-app-border bg-app-surface-2/70 text-app-muted transition hover:bg-app-surface-2/90 hover:text-app-text' %}
+{% set tone_classes = {
+  accent: 'border-app-accent/20 bg-app-accent/10 text-app-accent',
+  success: 'border-app-success/20 bg-app-success/10 text-app-success',
+  warning: 'border-app-warning/20 bg-app-warning/10 text-app-warning',
+  danger: 'border-app-danger/20 bg-app-danger/10 text-app-danger',
+  muted: 'border-app-border bg-app-surface-2/70 text-app-muted'
+} %}
+
+<section class="mt-8 overflow-visible rounded-[2rem] border border-app-border bg-app-surface/80 p-5 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-6"{% if has_bulk %} x-data="{ selected: [], selectableCount: {{ bulk.selectable_count|default(0) }} }"{% endif %}>
+  <div class="flex flex-col gap-3 border-b border-app-border pb-5 xl:flex-row xl:items-end xl:justify-between">
+    <div>
+      <h2 class="text-2xl font-bold tracking-tight text-app-text">{{ title }}</h2>
+      {% if description %}
+        <p class="mt-1 text-sm text-app-muted">{{ description }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if has_toolbar %}
+    <div class="mt-5 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+      <div class="flex min-w-0 flex-1 flex-wrap items-center gap-3 xl:flex-nowrap">
+        {% if features.search|default(false) and toolbar.search is defined %}
+          {% set search = toolbar.search %}
+          <form class="flex h-10 w-[17rem] shrink-0 items-center gap-2 overflow-hidden rounded-[1.1rem] border border-app-border bg-app-surface/90 px-2 py-1.5 shadow-[0_24px_60px_rgba(2,6,23,0.22)] backdrop-blur-xl sm:w-[18rem] xl:w-[19rem]" method="get" action="{{ search.action|default('') }}">
+            {% for field in search.hidden_fields|default([]) %}
+              <input type="hidden" name="{{ field.name }}" value="{{ field.value }}">
+            {% endfor %}
+            <div class="flex min-w-0 flex-1 items-center gap-3">
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-app-surface-2/70 text-app-muted" aria-hidden="true">
+                {% include 'components/icon.twig' with { name: search.icon|default('search'), class: 'h-4 w-4' } only %}
+              </span>
+              <div class="min-w-0 flex-1">
+                <label class="sr-only" for="{{ search.id|default('table-search') }}">{{ search.aria_label|default('Search records') }}</label>
+                <input
+                  id="{{ search.id|default('table-search') }}"
+                  class="w-full border-0 bg-transparent px-0 py-0 text-sm text-app-text placeholder:text-app-muted outline-none ring-0 focus:ring-0"
+                  type="search"
+                  name="{{ search.name|default('q') }}"
+                  value="{{ search.value|default('') }}"
+                  placeholder="{{ search.placeholder|default('Search...') }}"
+                  autocomplete="off"
+                  spellcheck="false"
+                  aria-label="{{ search.aria_label|default('Search records') }}"
+                >
+              </div>
+            </div>
+
+            {% if search.clear_url is defined and search.value|default('') %}
+              <a class="{{ icon_button }}" href="{{ search.clear_url }}" title="{{ search.clear_label|default('Clear search') }}">
+                <span class="sr-only">{{ search.clear_label|default('Clear search') }}</span>
+                {% include 'components/icon.twig' with { name: 'x', class: 'h-4 w-4 shrink-0' } only %}
+              </a>
+            {% endif %}
+
+            <button class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-app-text text-app-surface transition hover:bg-app-accent" type="submit" title="{{ search.submit_label|default('Search') }}">
+              <span class="sr-only">{{ search.submit_label|default('Search') }}</span>
+              {% include 'components/icon.twig' with { name: 'search', class: 'h-4 w-4 shrink-0' } only %}
+            </button>
+          </form>
+        {% endif %}
+
+        {% if features.filter|default(false) and toolbar.filter is defined and toolbar.filter.items|default([]) is not empty %}
+          {% set filter = toolbar.filter %}
+          <details class="group relative z-30">
+            <summary class="{{ toolbar_button_secondary }} list-none cursor-pointer">
+              {% include 'components/icon.twig' with { name: filter.icon|default('sliders-horizontal'), class: 'h-4 w-4 shrink-0' } only %}
+              <span>{{ filter.label|default('Filter') }}</span>
+              <span class="rounded-full bg-app-surface-2/80 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.16em] text-app-muted">
+                {{ filter.current_label|default('All') }}
+              </span>
+            </summary>
+            <div class="absolute right-0 z-50 mt-3 w-56 overflow-hidden rounded-[1.25rem] border border-app-border bg-app-surface/95 p-2 shadow-[0_24px_60px_rgba(2,6,23,0.35)] backdrop-blur-xl">
+              {% for item in filter.items %}
+                <a
+                  class="flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold text-app-text transition hover:bg-app-surface-2/70 hover:text-app-text {% if item.active|default(false) %}bg-app-accent/10 text-app-accent{% endif %}"
+                  href="{{ item.href }}"
+                >
+                  <span>{{ item.label }}</span>
+                  {% if item.active|default(false) %}
+                    {% include 'components/icon.twig' with { name: 'check', class: 'h-4 w-4 shrink-0 text-app-accent' } only %}
+                  {% endif %}
+                </a>
+              {% endfor %}
+            </div>
+          </details>
+        {% endif %}
+
+        {% if features.columns|default(false) and toolbar.columns is defined and toolbar.columns.items|default([]) is not empty %}
+          {% set column_menu = toolbar.columns %}
+          <details class="group relative z-30">
+            <summary class="{{ toolbar_button_secondary }} list-none cursor-pointer">
+              {% include 'components/icon.twig' with { name: column_menu.icon|default('layout-grid'), class: 'h-4 w-4 shrink-0' } only %}
+              <span>{{ column_menu.label|default('Columns') }}</span>
+              <span class="rounded-full bg-app-surface-2/80 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.16em] text-app-muted">
+                {{ column_menu.visible_count|default(0) }} shown
+              </span>
+            </summary>
+            <form method="get" action="{{ column_menu.action|default('') }}" class="absolute right-0 z-50 mt-3 w-60 overflow-hidden rounded-[1.25rem] border border-app-border bg-app-surface/95 p-3 shadow-[0_24px_60px_rgba(2,6,23,0.35)] backdrop-blur-xl">
+              {% for field in column_menu.hidden_fields|default([]) %}
+                <input type="hidden" name="{{ field.name }}" value="{{ field.value }}">
+              {% endfor %}
+              <div class="grid gap-2">
+                <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-app-muted">{{ column_menu.legend|default('Visible columns') }}</p>
+                {% for item in column_menu.items %}
+                  <label class="flex items-center justify-between gap-3 rounded-xl border border-app-border bg-app-surface/60 px-3 py-2 text-sm text-app-text transition hover:bg-app-surface-2/70">
+                    <span>{{ item.label }}</span>
+                    <input
+                      type="checkbox"
+                      name="columns[]"
+                      value="{{ item.key }}"
+                      class="h-4 w-4 rounded border-app-border bg-app-surface text-app-accent focus:ring-app-accent/20"
+                      {% if item.checked|default(false) %}checked{% endif %}
+                    >
+                  </label>
+                {% endfor %}
+              </div>
+              <div class="mt-3 flex items-center gap-2">
+                <button type="submit" class="{{ toolbar_button_primary }} flex-1">
+                  {% include 'components/icon.twig' with { name: 'check', class: 'h-4 w-4 shrink-0' } only %}
+                  <span>{{ column_menu.submit_label|default('Apply') }}</span>
+                </button>
+                <a class="{{ toolbar_button_secondary }} flex-1" href="{{ column_menu.reset_url|default(column_menu.action|default('')) }}">
+                  {{ column_menu.reset_label|default('Reset') }}
+                </a>
+              </div>
+            </form>
+          </details>
+        {% endif %}
+
+        {% if features.export|default(false) and toolbar.export_url|default('') %}
+          <a class="{{ toolbar_button_secondary }}" href="{{ toolbar.export_url }}">
+            {% include 'components/icon.twig' with { name: toolbar.export_icon|default('download'), class: 'h-4 w-4 shrink-0' } only %}
+            <span>{{ toolbar.export_label|default('Export') }}</span>
+          </a>
+        {% endif %}
+
+        {% for action in toolbar.actions|default([]) %}
+          {% set action_permission = action.permission|default('') %}
+          {% if action_permission == '' or can(action_permission) %}
+            {% set action_button_class = action.variant|default('secondary') == 'primary'
+              ? toolbar_button_primary
+              : action.variant|default('secondary') == 'danger'
+                ? toolbar_button_danger
+                : action.variant|default('secondary') == 'ghost'
+                  ? toolbar_button_ghost
+                  : toolbar_button_secondary %}
+            {% if action.type|default('link') == 'button' %}
+              <button class="{{ action_button_class }} {{ action.class|default('') }}" type="{{ action.button_type|default('button') }}" {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}{% if action.onclick is defined and action.onclick %} onclick="{{ action.onclick }}"{% endif %}>
+                {% if action.icon is defined and action.icon %}
+                  {% include 'components/icon.twig' with { name: action.icon, class: 'h-4 w-4 shrink-0' } only %}
+                {% endif %}
+                <span>{{ action.label|default('Action') }}</span>
+              </button>
+            {% else %}
+              <a class="{{ action_button_class }} {{ action.class|default('') }}" href="{{ action.href|default('#') }}" {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}{% if action.target is defined and action.target %}target="{{ action.target }}"{% endif %}{% if action.rel is defined and action.rel %}rel="{{ action.rel }}"{% endif %}>
+                {% if action.icon is defined and action.icon %}
+                  {% include 'components/icon.twig' with { name: action.icon, class: 'h-4 w-4 shrink-0' } only %}
+                {% endif %}
+                <span>{{ action.label|default('Action') }}</span>
+              </a>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  {% if has_bulk %}
+    <form id="{{ bulk.form_id|default('bulk-table-form') }}" method="post" action="{{ bulk.action_delete_url|default(bulk.action_status_url|default('')) }}" class="hidden">
+      {{ csrf_field() }}
+      {% for field in bulk.hidden_fields|default([]) %}
+        <input type="hidden" name="{{ field.name }}" value="{{ field.value }}">
+      {% endfor %}
+    </form>
+
+    <div class="mt-5 flex flex-col gap-3 rounded-[1.35rem] border border-app-border bg-app-surface-2/60 p-3.5 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex flex-wrap items-center gap-3">
+        <label class="inline-flex items-center gap-2 text-sm font-semibold text-app-text">
+          <input
+            type="checkbox"
+            class="h-4 w-4 rounded border-app-border text-app-accent focus:ring-app-accent/20"
+            :checked="selected.length === selectableCount && selectableCount > 0"
+            @change="selected = $event.target.checked ? Array.from($root.querySelectorAll('[data-bulk-row]:not(:disabled)')).map((input) => input.value) : []"
+          >
+          <span>{{ bulk.select_all_label|default('Select all') }}</span>
+        </label>
+        <span class="rounded-full border border-app-border bg-app-surface/70 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-app-muted" x-text="selected.length + ' selected'"></span>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        {% if bulk.action_status_url|default('') and bulk.status_options|default([]) is not empty %}
+          <select form="{{ bulk.form_id|default('bulk-table-form') }}" name="bulk_status" class="{{ bulk_control }} min-w-[11rem]">
+            <option value="">{{ bulk.status_placeholder|default('Bulk status') }}</option>
+            {% for option in bulk.status_options %}
+              <option value="{{ option.value }}">{{ option.label }}</option>
+            {% endfor %}
+          </select>
+          <button
+            type="submit"
+            form="{{ bulk.form_id|default('bulk-table-form') }}"
+            formaction="{{ bulk.action_status_url }}"
+            class="{{ toolbar_button_primary }} disabled:cursor-not-allowed disabled:opacity-50"
+            :disabled="selected.length === 0"
+          >
+            {% include 'components/icon.twig' with { name: bulk.status_icon|default('refresh-cw'), class: 'h-4 w-4 shrink-0' } only %}
+            <span>{{ bulk.status_label|default('Update status') }}</span>
+          </button>
+        {% endif %}
+
+        {% if bulk.action_delete_url|default('') %}
+          <button
+            type="submit"
+            form="{{ bulk.form_id|default('bulk-table-form') }}"
+            formaction="{{ bulk.action_delete_url }}"
+            class="{{ toolbar_button_danger }} disabled:cursor-not-allowed disabled:opacity-50"
+            :disabled="selected.length === 0"
+            {% if bulk.delete_confirm|default('') %}onclick="return confirm('{{ bulk.delete_confirm|e('js') }}');"{% endif %}
+          >
+            {% include 'components/icon.twig' with { name: bulk.delete_icon|default('trash-2'), class: 'h-4 w-4 shrink-0' } only %}
+            <span>{{ bulk.delete_label|default('Delete selected') }}</span>
+          </button>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+  {% if not has_table %}
+    <div class="mt-5 rounded-2xl border border-app-accent/20 bg-app-accent/10 p-4 text-app-accent">
+      <p class="text-sm font-semibold">{{ empty_state.title }}</p>
+      <p class="mt-1 text-sm text-app-accent">{{ empty_state.message }}</p>
+    </div>
+  {% else %}
+    <div class="mt-5 overflow-hidden rounded-[1.5rem] border border-app-border bg-app-surface">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="bg-app-surface-2/70">
+            {% if has_bulk %}
+              <th class="border-b border-app-border px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-app-muted">
+                <span class="sr-only">{{ bulk.selection_header_label|default('Select rows') }}</span>
+              </th>
+            {% endif %}
+            {% for column in columns %}
+              <th class="border-b border-app-border px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-app-muted">
+                {% if features.sort|default(false) and column.sortable|default(false) and column.href is defined and column.href %}
+                  <a class="inline-flex items-center gap-1 hover:text-app-text {% if column.active|default(false) %}text-app-accent{% endif %}" href="{{ column.href }}">
+                    <span>{{ column.label }}</span>
+                    {% if column.active|default(false) %}
+                      {% include 'components/icon.twig' with { name: column.sort_direction|default('desc') == 'asc' ? 'arrow-up' : 'arrow-down', class: 'h-3.5 w-3.5 shrink-0 text-app-accent' } only %}
+                    {% endif %}
+                  </a>
+                {% else %}
+                  <span>{{ column.label }}</span>
+                {% endif %}
+              </th>
+            {% endfor %}
+            {% if features.actions|default(false) %}
+              <th class="border-b border-app-border px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-app-muted"></th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-app-border">
+          {% for row in rows %}
+            <tr class="align-top">
+              {% if has_bulk %}
+                {% set bulk_row = row.bulk|default({}) %}
+                <td class="px-3 py-3">
+                  <label class="inline-flex items-center">
+                    <span class="sr-only">{{ bulk_row.label|default('Select row') }}</span>
+                    <input
+                      form="{{ bulk.form_id|default('bulk-table-form') }}"
+                      type="checkbox"
+                      name="ids[]"
+                      value="{{ bulk_row.id|default('') }}"
+                      class="h-4 w-4 rounded border-app-border text-app-accent focus:ring-app-accent/20"
+                      x-model="selected"
+                      data-bulk-row
+                      {% if bulk_row.disabled|default(false) %}disabled{% endif %}
+                      {% if bulk_row.title is defined and bulk_row.title %}title="{{ bulk_row.title }}"{% endif %}
+                    >
+                  </label>
+                </td>
+              {% endif %}
+
+              {% for column in columns %}
+                {% set cell = row.cells[column.key]|default(null) %}
+                <td class="px-3 py-3 {% if cell is not null and cell.align is defined and cell.align == 'right' %}text-right{% endif %}">
+                  {% if cell is not null %}
+                    {% if cell.type == 'avatar_link' %}
+                      <div class="flex items-center gap-3">
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-app-border bg-app-accent/10 text-sm font-black uppercase text-app-accent ring-1 ring-app-accent/15">
+                          {{ cell.avatar|default(cell.value|default('U'))|slice(0, 1)|upper }}
+                        </div>
+                        <div class="grid gap-0.5 min-w-0">
+                          {% if cell.href is defined and cell.href %}
+                            <a class="truncate font-semibold text-app-text transition hover:text-app-accent" href="{{ cell.href }}">{{ cell.value }}</a>
+                          {% else %}
+                            <span class="truncate font-semibold text-app-text">{{ cell.value }}</span>
+                          {% endif %}
+                          {% if cell.meta is defined and cell.meta %}
+                            <span class="text-sm text-app-muted">{{ cell.meta }}</span>
+                          {% endif %}
+                        </div>
+                      </div>
+                    {% elseif cell.type == 'text' %}
+                      <span class="{% if cell.muted|default(false) %}text-app-muted{% else %}text-app-text{% endif %}">{{ cell.value }}</span>
+                    {% elseif cell.type == 'badge' %}
+                      <span class="inline-flex rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] {{ tone_classes[cell.tone|default('accent')]|default(tone_classes.accent) }}">
+                        {% if cell.icon is defined and cell.icon %}
+                          {% include 'components/icon.twig' with { name: cell.icon, class: 'h-4 w-4 shrink-0' } only %}
+                        {% endif %}
+                        <span>{{ cell.value }}</span>
+                      </span>
+                    {% elseif cell.type == 'badge_stack' %}
+                      <div class="grid gap-2">
+                        {% for badge in cell.items|default([]) %}
+                          <span class="inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] {{ tone_classes[badge.tone|default('accent')]|default(tone_classes.accent) }}">
+                            {% if badge.icon is defined and badge.icon %}
+                              {% include 'components/icon.twig' with { name: badge.icon, class: 'h-4 w-4 shrink-0' } only %}
+                            {% endif %}
+                            <span>{{ badge.value }}</span>
+                          </span>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      <span class="text-app-text">{{ cell.value|default('') }}</span>
+                    {% endif %}
+                  {% endif %}
+                </td>
+              {% endfor %}
+
+              {% if features.actions|default(false) %}
+                <td class="px-3 py-3">
+                  <div class="flex flex-wrap gap-2">
+                    {% for action in row.actions|default([]) %}
+                      {% set action_permission = action.permission|default('') %}
+                      {% if action_permission == '' or can(action_permission) %}
+                        {% set action_variant = action.variant|default('secondary') %}
+                        {% set action_class = action_variant == 'primary'
+                          ? row_action_primary
+                          : action_variant == 'danger'
+                            ? row_action_danger
+                            : action_variant == 'ghost'
+                              ? row_action_ghost
+                              : row_action_secondary %}
+
+                        {% if action.disabled|default(false) %}
+                          <button class="{{ action_class }}" type="button" disabled {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}>
+                            {% if action.icon is defined and action.icon %}
+                              {% include 'components/icon.twig' with { name: action.icon, class: 'h-4 w-4 shrink-0' } only %}
+                            {% endif %}
+                            <span>{{ action.label }}</span>
+                          </button>
+                        {% elseif action.type|default('link') == 'form_button' %}
+                          <form method="post" action="{{ action.action|default(action.href|default('#')) }}">
+                            {{ csrf_field() }}
+                            {% if action.method is defined and action.method|lower != 'post' %}
+                              <input type="hidden" name="_method" value="{{ action.method|upper }}">
+                            {% endif %}
+                            <button class="{{ action_class }}" type="submit" {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}{% if action.confirm is defined and action.confirm %} onclick="return confirm('{{ action.confirm|e('js') }}');"{% endif %}>
+                              {% if action.icon is defined and action.icon %}
+                                {% include 'components/icon.twig' with { name: action.icon, class: 'h-4 w-4 shrink-0' } only %}
+                              {% endif %}
+                              <span>{{ action.label }}</span>
+                            </button>
+                          </form>
+                        {% elseif action.type|default('link') == 'button' %}
+                          <button class="{{ action_class }}" type="{{ action.button_type|default('button') }}" {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}{% if action.onclick is defined and action.onclick %} onclick="{{ action.onclick }}"{% endif %}>
+                            {% if action.icon is defined and action.icon %}
+                              {% include 'components/icon.twig' with { name: action.icon, class: 'h-4 w-4 shrink-0' } only %}
+                            {% endif %}
+                            <span>{{ action.label }}</span>
+                          </button>
+                        {% else %}
+                          <a class="{{ action_class }}" href="{{ action.href|default('#') }}" {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}>
+                            {% if action.icon is defined and action.icon %}
+                              {% include 'components/icon.twig' with { name: action.icon, class: 'h-4 w-4 shrink-0' } only %}
+                            {% endif %}
+                            <span>{{ action.label }}</span>
+                          </a>
+                        {% endif %}
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+
+  {% if features.pagination|default(false) and pagination is not null %}
+    {% include 'components/pagination.twig' with { pagination: pagination } only %}
+  {% endif %}
+</section>

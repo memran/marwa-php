@@ -345,7 +345,15 @@ TWIG
         self::assertStringContainsString('/admin/background-jobs', $body);
         self::assertStringContainsString('Background Jobs', $body);
 
-        unset($loginPage, $failedLogin, $loginWithoutCsrf, $login, $dashboard, $body);
+        $settings = $kernel->handle($this->request('GET', '/admin/settings'));
+        self::assertSame(200, $settings->getStatusCode());
+        $settingsBody = (string) $settings->getBody();
+        self::assertStringContainsString('role="tablist"', $settingsBody);
+        self::assertStringContainsString('data-tab-target="category-app"', $settingsBody);
+        self::assertStringContainsString('Application', $settingsBody);
+        self::assertStringContainsString('Security', $settingsBody);
+
+        unset($loginPage, $failedLogin, $loginWithoutCsrf, $login, $dashboard, $body, $settings, $settingsBody);
 
         $bootstrapAdmin = User::findBy('email', 'admin@marwa.test');
         self::assertInstanceOf(User::class, $bootstrapAdmin);
@@ -369,14 +377,27 @@ TWIG
 
         $usersPage = $kernel->handle($this->request('GET', '/admin/users'));
         self::assertSame(200, $usersPage->getStatusCode());
-        self::assertStringContainsString('admin@marwa.test', (string) $usersPage->getBody());
+        $usersBody = (string) $usersPage->getBody();
+        self::assertStringContainsString('admin@marwa.test', $usersBody);
+        self::assertStringContainsString('Columns', $usersBody);
+        self::assertStringContainsString('Export', $usersBody);
+        self::assertStringContainsString('Delete selected', $usersBody);
+        self::assertStringContainsString('Update status', $usersBody);
+        self::assertStringContainsString('Select all', $usersBody);
+        self::assertStringContainsString('Create user', $usersBody);
+
+        $sortedUsersPage = $kernel->handle($this->request('GET', '/admin/users?sort=name&direction=asc'));
+        self::assertSame(200, $sortedUsersPage->getStatusCode());
+        self::assertStringContainsString('arrow-up', (string) $sortedUsersPage->getBody());
+
+        $exportPage = $kernel->handle($this->request('GET', '/admin/users/export?columns[]=name&columns[]=email'));
+        self::assertSame(200, $exportPage->getStatusCode());
+        self::assertSame('attachment; filename="users-export.csv"', $exportPage->getHeaderLine('Content-Disposition'));
+        self::assertStringContainsString("Name,Email", (string) $exportPage->getBody());
 
         $createPage = $kernel->handle($this->request('GET', '/admin/users/create'));
         self::assertSame(200, $createPage->getStatusCode());
         self::assertStringContainsString('Create user', (string) $createPage->getBody());
-        self::assertStringContainsString('Generate password', (string) $createPage->getBody());
-        self::assertStringContainsString('Copy password', (string) $createPage->getBody());
-        self::assertStringContainsString('Show password', (string) $createPage->getBody());
         self::assertStringContainsString('name="_token"', (string) $createPage->getBody());
 
         $createWithoutCsrf = $kernel->handle($this->request('POST', '/admin/users', [
@@ -502,6 +523,33 @@ TWIG
         self::assertStringContainsString('/admin/users', $disable->getHeaderLine('Location'));
         self::assertSame(0, (int) User::findBy('email', 'ops@example.test')->getAttribute('is_active'));
 
+        $bulkUser = User::create([
+            'name' => 'Bulk Target',
+            'email' => 'bulk@example.test',
+            'password' => password_hash('Secret123!', PASSWORD_DEFAULT),
+            'role_id' => $this->roleId('manager'),
+            'is_active' => true,
+        ]);
+
+        $bulkStatus = $kernel->handle($this->request('POST', '/admin/users/bulk-status', [
+            '_token' => $csrf,
+            'ids' => [$persisted->getKey(), $bulkUser->getKey()],
+            'bulk_status' => 'disabled',
+        ]));
+        self::assertSame(302, $bulkStatus->getStatusCode());
+        self::assertStringContainsString('/admin/users?', $bulkStatus->getHeaderLine('Location'));
+        self::assertSame(0, (int) User::findByEmailIncludingTrashed('bulk@example.test')->getAttribute('is_active'));
+
+        $bulkDelete = $kernel->handle($this->request('POST', '/admin/users/bulk-delete', [
+            '_token' => $csrf,
+            'ids' => [$bulkUser->getKey()],
+        ]));
+        self::assertSame(302, $bulkDelete->getStatusCode());
+        self::assertStringContainsString('/admin/users?', $bulkDelete->getHeaderLine('Location'));
+        $deletedBulkUser = User::withTrashed()->find((int) $bulkUser->getKey());
+        self::assertInstanceOf(User::class, $deletedBulkUser);
+        self::assertNotNull($deletedBulkUser->getAttribute('deleted_at'));
+
         $delete = $kernel->handle($this->request('POST', '/admin/users/' . $created->getKey() . '/delete', [
             '_token' => $csrf,
         ]));
@@ -538,7 +586,7 @@ TWIG
         self::assertStringContainsString('user.restored', (string) $activityPage->getBody());
         self::assertStringContainsString('Restored user account.', (string) $activityPage->getBody());
 
-        unset($duplicateUpdate, $duplicateEditForm, $editPage, $update, $delete, $usersPageAfterDelete, $restore, $restored, $activityPage);
+        unset($duplicateUpdate, $duplicateEditForm, $editPage, $update, $bulkStatus, $bulkDelete, $delete, $usersPageAfterDelete, $restore, $restored, $activityPage);
 
         $bootstrapAdmin = User::findBy('email', 'admin@marwa.test');
 
@@ -1139,18 +1187,90 @@ TWIG
         $this->app = null;
     }
 
+    public function testAdminLayoutRendersToastHostForFlashedMessages(): void
+    {
+        $this->app = new Application($this->basePath);
+        $this->app->make(AppBootstrapper::class)->bootstrap();
+        $this->migrateAuthAndUserModules($this->app);
+        $this->seedAuthAndUsers();
+        (new AuthManager())->logout();
+        $kernel = $this->app->make(HttpKernel::class);
+
+        $csrf = $this->app->security()->csrfToken();
+        $login = $kernel->handle($this->request('POST', '/admin/login', [
+            '_token' => $csrf,
+            'email' => 'admin@marwa.test',
+            'password' => 'ExampleAdminPassword123!',
+        ]));
+        self::assertSame(302, $login->getStatusCode());
+        self::assertTrue((new AuthManager())->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+
+        session()->flash('users.notice', 'User created successfully.');
+        session()->flash('settings.errors', [
+            '_global' => ['Choose a valid backup frequency.'],
+        ]);
+
+        $users = $kernel->handle($this->request('GET', '/admin/users'));
+        self::assertSame(200, $users->getStatusCode());
+
+        $body = (string) $users->getBody();
+        self::assertStringContainsString('data-admin-toast-host', $body);
+        self::assertStringContainsString('User created successfully.', $body);
+        self::assertStringContainsString('Choose a valid backup frequency.', $body);
+
+        $this->connections = null;
+        $this->app = null;
+    }
+
+    public function testAdminBreadcrumbsRenderOnUsersPages(): void
+    {
+        $this->app = new Application($this->basePath);
+        $this->app->make(AppBootstrapper::class)->bootstrap();
+        $this->migrateAuthAndUserModules($this->app);
+        $this->seedAuthAndUsers();
+        (new AuthManager())->logout();
+        $kernel = $this->app->make(HttpKernel::class);
+
+        $login = $kernel->handle($this->request('POST', '/admin/login', [
+            '_token' => $this->app->security()->csrfToken(),
+            'email' => 'admin@marwa.test',
+            'password' => 'ExampleAdminPassword123!',
+        ]));
+        self::assertSame(302, $login->getStatusCode());
+
+        $page = $kernel->handle($this->request('GET', '/admin/users/create'));
+        self::assertSame(200, $page->getStatusCode());
+
+        $body = (string) $page->getBody();
+        self::assertStringContainsString('aria-label="Breadcrumb"', $body);
+        self::assertStringContainsString('Dashboard', $body);
+        self::assertStringContainsString('Users', $body);
+        self::assertStringContainsString('Create user', $body);
+
+        $this->connections = null;
+        $this->app = null;
+    }
+
     /**
      * @param array<string, mixed> $body
      */
     private function request(string $method, string $uri, array $body = []): \Psr\Http\Message\ServerRequestInterface
     {
+        $query = [];
+        $path = $uri;
+
+        if (str_contains($uri, '?')) {
+            [$path, $queryString] = explode('?', $uri, 2);
+            parse_str($queryString, $query);
+        }
+
         return RequestFactory::fromArrays(
             [
                 'REQUEST_METHOD' => $method,
-                'REQUEST_URI' => $uri,
+                'REQUEST_URI' => $path,
                 'HTTP_HOST' => 'example.test',
             ],
-            [],
+            $query,
             $body
         );
     }

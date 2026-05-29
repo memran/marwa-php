@@ -142,14 +142,14 @@ final class RolePolicy
         }
 
         try {
-            $rows = Role::newQuery()->getBaseBuilder()
+            $rows = Role::query()
                 ->select('slug', 'level')
                 ->where('level', '>', 0)
                 ->get();
 
             $levels = [];
-            foreach ($rows as $row) {
-                $levels[(string) $row['slug']] = (int) $row['level'];
+            foreach ($rows as $role) {
+                $levels[(string) $role->getAttribute('slug')] = (int) $role->getAttribute('level');
             }
 
             self::$roleLevels = $levels;

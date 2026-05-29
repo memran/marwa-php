@@ -20,90 +20,90 @@
     </div>
   </section>
 
-  {% if notice is defined and notice %}
-    <div class="mt-6 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-emerald-100">
-      <p class="text-sm font-semibold">Success</p>
-      <p class="mt-1 text-sm text-emerald-100/80">{{ notice }}</p>
-    </div>
-  {% endif %}
-
-  <section class="profile-form-shell mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-6">
-    {% if errors is defined and errors is not empty %}
-      <div class="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-rose-100">
-        <p class="text-sm font-semibold">Please review the form</p>
-        <p class="mt-1 text-sm text-rose-100/80">One or more fields contain validation errors.</p>
+  {% embed 'components/card.twig' with {
+    shell_class: 'profile-form-shell mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-6',
+    body_class: 'grid gap-5'
+  } only %}
+    {% block header %}
+      <div class="border-b border-white/10 pb-5">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-white">Edit profile</h2>
+          <p class="mt-1 text-sm text-slate-400">Update your account details and password.</p>
+        </div>
       </div>
-    {% endif %}
+    {% endblock %}
 
-    <form class="mt-6 grid gap-5" method="post" action="{{ action }}">
-      {{ csrf_field() }}
+    {% block body %}
+      <form class="grid gap-5" method="post" action="{{ action }}">
+        {{ csrf_field() }}
 
-      {% include "components/form-field.twig" with {
-        id: 'name',
-        label: 'Full name',
-        value: form.name|default(user.getAttribute('name')),
-        placeholder: 'Jane Doe',
-        error: errors.name|default([])|first
-      } only %}
+        {% include "components/form-field.twig" with {
+          id: 'name',
+          label: 'Full name',
+          value: form.name|default(user.getAttribute('name')),
+          placeholder: 'Jane Doe',
+          error: errors.name|default([])|first
+        } only %}
 
-      {% include "components/form-field.twig" with {
-        id: 'email',
-        label: 'Email address',
-        type: 'email',
-        autocomplete: 'email',
-        value: form.email|default(user.getAttribute('email')),
-        placeholder: 'jane@company.com',
-        error: errors.email|default([])|first
-      } only %}
+        {% include "components/form-field.twig" with {
+          id: 'email',
+          label: 'Email address',
+          type: 'email',
+          autocomplete: 'email',
+          value: form.email|default(user.getAttribute('email')),
+          placeholder: 'jane@company.com',
+          error: errors.email|default([])|first
+        } only %}
 
-      <div class="grid gap-2">
-        <label class="text-sm font-semibold text-slate-200" for="current_password">Current password</label>
-        <input
-          class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
-          id="current_password"
-          name="current_password"
-          type="password"
-          autocomplete="current-password"
-          placeholder="Required to update password"
-        >
-        {% if errors.current_password is defined %}
-          <p class="text-sm text-rose-300">{{ errors.current_password|first }}</p>
-        {% else %}
-          <p class="text-sm text-slate-400">Required when changing password.</p>
-        {% endif %}
-      </div>
+        <div class="grid gap-2">
+          <label class="text-sm font-semibold text-slate-200" for="current_password">Current password</label>
+          <input
+            class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
+            id="current_password"
+            name="current_password"
+            type="password"
+            autocomplete="current-password"
+            placeholder="Required to update password"
+          >
+          {% if errors.current_password is defined %}
+            <p class="text-sm text-rose-300">{{ errors.current_password|first }}</p>
+          {% else %}
+            <p class="text-sm text-slate-400">Required when changing password.</p>
+          {% endif %}
+        </div>
 
-      <div class="grid gap-2">
-        <label class="text-sm font-semibold text-slate-200" for="password">New password</label>
-        <input
-          class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
-          id="password"
-          name="password"
-          type="password"
-          autocomplete="new-password"
-          placeholder="Leave blank to keep current password"
-        >
-        <p class="text-sm text-slate-400">Minimum 8 characters. Leave blank to keep the current password.</p>
-        {% if errors.password is defined %}
-          <p class="text-sm text-rose-300">{{ errors.password|first }}</p>
-        {% endif %}
-      </div>
+        <div class="grid gap-2">
+          <label class="text-sm font-semibold text-slate-200" for="password">New password</label>
+          <input
+            class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="Leave blank to keep current password"
+          >
+          <p class="text-sm text-slate-400">Minimum 8 characters. Leave blank to keep the current password.</p>
+          {% if errors.password is defined %}
+            <p class="text-sm text-rose-300">{{ errors.password|first }}</p>
+          {% endif %}
+        </div>
 
-      <div class="grid gap-2">
-        <label class="text-sm font-semibold text-slate-200" for="password_confirmation">Confirm new password</label>
-        <input
-          class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
-          id="password_confirmation"
-          name="password_confirmation"
-          type="password"
-          autocomplete="new-password"
-          placeholder="Repeat the new password"
-        >
-      </div>
+        <div class="grid gap-2">
+          <label class="text-sm font-semibold text-slate-200" for="password_confirmation">Confirm new password</label>
+          <input
+            class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
+            id="password_confirmation"
+            name="password_confirmation"
+            type="password"
+            autocomplete="new-password"
+            placeholder="Repeat the new password"
+          >
+        </div>
 
-      <div class="flex flex-wrap gap-3">
-        <button class="{{ button_primary }}" type="submit">{{ submit_label }}</button>
-      </div>
-    </form>
-  </section>
+        <div class="flex flex-wrap gap-3">
+          <button class="{{ button_primary }}" type="submit">{{ submit_label }}</button>
+        </div>
+      </form>
+    {% endblock %}
+  {% endembed %}
 {% endblock %}

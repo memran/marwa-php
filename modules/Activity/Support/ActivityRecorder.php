@@ -79,15 +79,24 @@ final class ActivityRecorder
     /**
      * @return array{data:list<Activity>,total:int,per_page:int,current_page:int,last_page:int}
      */
-    public function paginated(string $query = '', int $page = 1, ?int $perPage = null): array
+    public function paginated(
+        string $query = '',
+        int $page = 1,
+        ?int $perPage = null,
+        string $filter = 'all',
+        string $sort = 'created_at',
+        string $direction = 'desc'
+    ): array
     {
         $page = max(1, $page);
         $perPage = max(1, (int) ($perPage ?? config('settings.lifecycle.pagination.default_per_page', config('pagination.default_per_page', 20))));
         $query = trim($query);
+        $filter = trim($filter);
+        $sort = trim($sort);
+        $direction = strtolower(trim($direction)) === 'asc' ? 'asc' : 'desc';
 
         try {
-            $builder = Activity::newQuery()->getBaseBuilder()
-                ->orderBy('created_at', 'desc');
+            $builder = Activity::newQuery()->getBaseBuilder();
             $this->search->applyLikeFilters($builder, $query, [
                 'action',
                 'description',
@@ -98,6 +107,8 @@ final class ActivityRecorder
                 'subject_type',
                 'details',
             ]);
+            $this->applyFilter($builder, $filter);
+            $this->applySort($builder, $sort, $direction);
             $pageData = $builder->paginate($perPage, $page);
         } catch (\Throwable) {
             return [
@@ -195,5 +206,39 @@ final class ActivityRecorder
         }
 
         return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: null;
+    }
+
+    private function applyFilter(object $builder, string $filter): void
+    {
+        if ($filter === '' || $filter === 'all') {
+            return;
+        }
+
+        if ($filter === 'auth') {
+            $builder->where('action', 'like', 'auth.%');
+            return;
+        }
+
+        if ($filter === 'users') {
+            $builder->where('action', 'like', 'user.%');
+            return;
+        }
+
+        if ($filter === 'system') {
+            $builder->where('action', 'not like', 'auth.%')
+                ->where('action', 'not like', 'user.%');
+        }
+    }
+
+    private function applySort(object $builder, string $sort, string $direction): void
+    {
+        $column = match ($sort) {
+            'action' => 'action',
+            'actor' => 'actor_name',
+            'actor_email' => 'actor_email',
+            default => 'created_at',
+        };
+
+        $builder->orderBy($column, $direction);
     }
 }

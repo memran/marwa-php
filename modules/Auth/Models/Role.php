@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Models;
 
-use Marwa\DB\Facades\DB;
+use Marwa\DB\ORM\Relations\BelongsToMany;
 use Marwa\Framework\Database\Model;
 
 final class Role extends Model
@@ -27,62 +27,81 @@ final class Role extends Model
         'is_system' => 'bool',
     ];
 
+    public static function nameForId(?int $roleId, bool $unknown = true): string
+    {
+        if ($roleId === null) {
+            return $unknown ? 'Unknown' : '';
+        }
+
+        $role = self::find($roleId);
+
+        if ($role === null) {
+            return $unknown ? 'Unknown' : '';
+        }
+
+        return (string) $role->getAttribute('name');
+    }
+
+    public function permissionsRelation(): BelongsToMany
+    {
+        if (static::$cm === null) {
+            throw new \RuntimeException('ConnectionManager not set. Call Model::setConnectionManager().');
+        }
+
+        return new BelongsToMany(
+            static::$cm,
+            static::$connection,
+            static::class,
+            Permission::class,
+            'role_permission',
+            'role_id',
+            'permission_id'
+        );
+    }
+
     /**
      * @return list<Permission>
      */
     public function permissions(): array
     {
-        if (!app()->has(\Marwa\DB\Connection\ConnectionManager::class)) {
+        if (static::$cm === null) {
             return [];
         }
 
-        $permissionIds = DB::table('role_permission')
-            ->where('role_id', '=', (int) $this->getKey())
-            ->pluck('permission_id')
-            ->toArray();
+        if ($this->relationLoaded('permissionsRelation')) {
+            $permissions = $this->getRelation('permissionsRelation');
 
-        if ($permissionIds === []) {
+            return is_array($permissions) ? $permissions : [];
+        }
+
+        if ($this->getKey() === null) {
             return [];
         }
 
-        $rows = Permission::newQuery()->getBaseBuilder()
-            ->whereIn('id', array_map('intval', $permissionIds))
-            ->orderBy('group', 'asc')
-            ->orderBy('name', 'asc')
-            ->get();
+        $this->permissionsRelation()->eagerLoad([$this], 'permissionsRelation');
+        $permissions = $this->getRelation('permissionsRelation');
 
-        return array_map(
-            static fn (array $row): Permission => Permission::newInstance($row, true),
-            $rows
-        );
+        return is_array($permissions) ? $permissions : [];
     }
 
     public function hasPermission(string $permissionSlug): bool
     {
-        $permissions = $this->permissions();
-        foreach ($permissions as $permission) {
+        foreach ($this->permissions() as $permission) {
             if ($permission->getAttribute('slug') === $permissionSlug) {
                 return true;
             }
         }
+
         return false;
     }
 
     public static function findBySlug(string $slug): ?self
     {
-        $row = self::newQuery()->getBaseBuilder()
-            ->where('slug', '=', $slug)
-            ->first();
-
-        return $row === null ? null : self::newInstance(is_array($row) ? $row : (array) $row, true);
+        return self::findBy('slug', $slug);
     }
 
     public static function findById(int $id): ?self
     {
-        $row = self::newQuery()->getBaseBuilder()
-            ->where('id', '=', $id)
-            ->first();
-
-        return $row === null ? null : self::newInstance(is_array($row) ? $row : (array) $row, true);
+        return self::find($id);
     }
 }

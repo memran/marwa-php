@@ -8,7 +8,7 @@ final class AdminPagination
 {
     /**
      * @param array{total:int,per_page:int,current_page:int,last_page:int} $pagination
-     * @param array<string, scalar|null> $params
+     * @param array<string, scalar|list<string>|null> $params
      * @return array{
      *     summary:string,
      *     links:list<array{page:int,url:string,active:bool}>

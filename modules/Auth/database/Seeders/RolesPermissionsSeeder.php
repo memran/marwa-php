@@ -13,10 +13,6 @@ if (!class_exists(\App\Modules\Auth\database\Seeders\RolesPermissionsSeeder::cla
     {
         public function run(): void
         {
-            if (!app()->has(\Marwa\DB\Connection\ConnectionManager::class)) {
-                return;
-            }
-
             $roleRepo = app(RoleRepository::class);
             $permRepo = app(PermissionRepository::class);
 

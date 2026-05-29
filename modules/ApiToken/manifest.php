@@ -27,11 +27,4 @@ return [
     'migrations' => [
         'database/migrations/2026_04_23_000001_create_api_tokens_table.php',
     ],
-    'menu' => [
-        'section' => 'API',
-        'label' => 'API Key',
-        'route' => 'admin.api-tokens.index',
-        'icon' => 'key',
-        'permissions' => ['api_token.view'],
-    ],
 ];

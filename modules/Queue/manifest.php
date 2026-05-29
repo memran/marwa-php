@@ -22,13 +22,6 @@ return [
         'queue.retry' => 'Retry Queue Jobs',
         'queue.work' => 'Run Queue Worker',
     ],
-    'menu' => [
-        'section' => 'System',
-        'label' => 'Queue',
-        'route' => 'admin.queue.index',
-        'icon' => 'inbox',
-        'permissions' => ['queue.view'],
-    ],
     'routes' => [
         'http' => 'routes/http.php',
     ],

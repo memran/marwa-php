@@ -7,7 +7,7 @@ namespace App\Modules\Auth\Support;
 use App\Modules\Auth\Models\Permission;
 use App\Support\AdminSearch;
 use Marwa\DB\Facades\DB;
-use Marwa\DB\Query\Builder;
+use Marwa\DB\ORM\QueryBuilder;
 
 final class PermissionRepository
 {
@@ -20,25 +20,17 @@ final class PermissionRepository
      */
     public function all(): array
     {
-        return $this->hydrate($this->query()->get());
+        return $this->query()->get();
     }
 
     public function findById(int $id): ?Permission
     {
-        $row = Permission::newQuery()->getBaseBuilder()
-            ->where('id', '=', $id)
-            ->first();
-
-        return $row === null ? null : Permission::newInstance(is_array($row) ? $row : (array) $row, true);
+        return Permission::find($id);
     }
 
     public function findBySlug(string $slug): ?Permission
     {
-        $row = Permission::newQuery()->getBaseBuilder()
-            ->where('slug', '=', $slug)
-            ->first();
-
-        return $row === null ? null : Permission::newInstance(is_array($row) ? $row : (array) $row, true);
+        return Permission::findBy('slug', $slug);
     }
 
     /**
@@ -66,8 +58,7 @@ final class PermissionRepository
 
     public function hasSlug(string $slug, ?int $ignoreId = null): bool
     {
-        $builder = Permission::newQuery()->getBaseBuilder()
-            ->where('slug', '=', $slug);
+        $builder = Permission::where('slug', '=', $slug);
 
         if ($ignoreId !== null) {
             $builder->where('id', '!=', $ignoreId);
@@ -91,7 +82,9 @@ final class PermissionRepository
      */
     public function byGroup(string $group): array
     {
-        return $this->hydrate($this->query($group)->get());
+        return $this->query($group)
+            ->orderBy('name', 'asc')
+            ->get();
     }
 
     /**
@@ -108,16 +101,10 @@ final class PermissionRepository
             return [];
         }
 
-        $rows = Permission::newQuery()->getBaseBuilder()
-            ->whereIn('id', array_map('intval', $permissionIds))
+        return Permission::whereIn('id', array_map('intval', $permissionIds))
             ->orderBy('group', 'asc')
             ->orderBy('name', 'asc')
             ->get();
-
-        return array_map(
-            static fn (array $row): Permission => Permission::newInstance($row, true),
-            $rows
-        );
     }
 
     /**
@@ -133,18 +120,63 @@ final class PermissionRepository
      */
     public function groupedFiltered(string $query = '', string $group = ''): array
     {
-        $all = $this->hydrate($this->query($group, $query)->get());
         $groups = [];
 
-        foreach ($all as $permission) {
-            $group = $permission->getAttribute('group') ?? 'other';
-            if (!isset($groups[$group])) {
-                $groups[$group] = [];
-            }
-            $groups[$group][] = $permission;
+        foreach ($this->query($group, $query)
+            ->orderBy('group', 'asc')
+            ->orderBy('name', 'asc')
+            ->get() as $permission) {
+            $groupName = (string) ($permission->getAttribute('group') ?? 'other');
+            $groups[$groupName][] = $permission;
         }
 
         return $groups;
+    }
+
+    /**
+     * @return array{data:list<Permission>,total:int,per_page:int,current_page:int,last_page:int,groups:array<string,list<Permission>>}
+     */
+    public function paginatedGroupedFiltered(
+        string $query = '',
+        string $group = '',
+        int $page = 1,
+        ?int $perPage = null,
+        string $sort = 'group',
+        string $direction = 'asc'
+    ): array {
+        $page = max(1, $page);
+        $perPage = max(1, (int) ($perPage ?? config('settings.lifecycle.pagination.default_per_page', config('pagination.default_per_page', 12))));
+        $sort = trim($sort);
+        $direction = strtolower(trim($direction)) === 'desc' ? 'desc' : 'asc';
+
+        $builder = Permission::newQuery()->getBaseBuilder();
+
+        $group = trim($group);
+        if ($group !== '') {
+            $builder->where('group', '=', $group);
+        }
+
+        $query = trim($query);
+        if ($query !== '') {
+            $this->search->applyLikeFilters($builder, $query, ['name', 'slug', 'description', 'group']);
+        }
+
+        $this->applySort($builder, $sort, $direction);
+        $pageData = $builder->paginate($perPage, $page);
+        $pageData['data'] = array_map(
+            static fn (array|object $row): Permission => Permission::newInstance(is_array($row) ? $row : (array) $row, true),
+            $pageData['data']
+        );
+
+        $groups = [];
+        foreach ($pageData['data'] as $permission) {
+            $groupName = (string) ($permission->getAttribute('group') ?? 'other');
+            $groups[$groupName][] = $permission;
+        }
+
+        $pageData['groups'] = $groups;
+
+        return $pageData;
     }
 
     /**
@@ -155,11 +187,9 @@ final class PermissionRepository
         return array_keys($this->grouped());
     }
 
-    private function query(string $group = '', string $query = ''): Builder
+    private function query(string $group = '', string $query = ''): QueryBuilder
     {
-        $builder = Permission::newQuery()->getBaseBuilder()
-            ->orderBy('group', 'asc')
-            ->orderBy('name', 'asc');
+        $builder = Permission::query();
 
         $group = trim($group);
         if ($group !== '') {
@@ -174,18 +204,16 @@ final class PermissionRepository
         return $builder;
     }
 
-    /**
-     * @param array<int, array<string, mixed>|object> $rows
-     * @return list<Permission>
-     */
-    private function hydrate(array $rows): array
+    private function applySort(object $builder, string $sort, string $direction): void
     {
-        return array_map(
-            static fn (array|object $row): Permission => Permission::newInstance(
-                is_array($row) ? $row : (array) $row,
-                true
-            ),
-            $rows
-        );
+        $column = match ($sort) {
+            'name' => 'name',
+            'slug' => 'slug',
+            'description' => 'description',
+            'group' => 'group',
+            default => 'group',
+        };
+
+        $builder->orderBy($column, $direction);
     }
 }

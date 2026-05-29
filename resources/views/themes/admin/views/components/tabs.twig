@@ -1,0 +1,68 @@
+{% set tabs = tabs|default({}) %}
+{% set items = tabs.items|default([]) %}
+{% set shell_class = tabs.shell_class|default('flex flex-wrap items-center gap-2 border-b border-app-border pb-4') %}
+{% set item_class = tabs.item_class|default('inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition') %}
+{% set active_class = tabs.active_class|default('border-app-accent/20 bg-app-accent/10 text-app-accent') %}
+{% set inactive_class = tabs.inactive_class|default('border-app-border bg-app-surface/60 text-app-text hover:bg-app-surface-2/70') %}
+{% set disabled_class = tabs.disabled_class|default('cursor-not-allowed border-app-border bg-app-surface/40 text-app-muted opacity-60') %}
+{% set count_class = tabs.count_class|default('rounded-full border border-app-border bg-app-surface-2/70 px-2.5 py-0.5 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-app-muted') %}
+{% set icon_class = tabs.icon_class|default('h-4 w-4 shrink-0') %}
+{% set aria_label = tabs.aria_label|default('Tabs') %}
+
+<nav class="{{ shell_class }}" role="tablist" aria-label="{{ aria_label }}" data-tabs>
+  {% for item in items %}
+    {% set is_active = item.active|default(false) %}
+    {% set tab_class = item_class ~ ' ' ~ (is_active ? active_class : (item.disabled|default(false) ? disabled_class : inactive_class)) ~ ' ' ~ item.class|default('') %}
+
+    {% if item.disabled|default(false) %}
+      <span
+        class="{{ tab_class }}"
+        role="tab"
+        aria-selected="false"
+        aria-disabled="true"
+        {% if item.target is defined and item.target %}aria-controls="{{ item.target }}"{% endif %}
+      >
+        {% if item.icon is defined and item.icon %}
+          {% include 'components/icon.twig' with { name: item.icon, class: icon_class } only %}
+        {% endif %}
+        <span>{{ item.label }}</span>
+        {% if item.count is defined and item.count is not null %}
+          <span class="{{ count_class }}">{{ item.count }}</span>
+        {% endif %}
+      </span>
+    {% elseif item.href is defined and item.href %}
+      <a
+        class="{{ tab_class }}"
+        role="tab"
+        aria-selected="{{ is_active ? 'true' : 'false' }}"
+        {% if is_active %}aria-current="page"{% endif %}
+        href="{{ item.href }}"
+        {% if item.target is defined and item.target %}aria-controls="{{ item.target }}"{% endif %}
+      >
+        {% if item.icon is defined and item.icon %}
+          {% include 'components/icon.twig' with { name: item.icon, class: icon_class } only %}
+        {% endif %}
+        <span>{{ item.label }}</span>
+        {% if item.count is defined and item.count is not null %}
+          <span class="{{ count_class }}">{{ item.count }}</span>
+        {% endif %}
+      </a>
+    {% else %}
+      <button
+        class="{{ tab_class }}"
+        type="button"
+        role="tab"
+        aria-selected="{{ is_active ? 'true' : 'false' }}"
+        {% if item.target is defined and item.target %}data-tab-target="{{ item.target }}" aria-controls="{{ item.target }}"{% endif %}
+      >
+        {% if item.icon is defined and item.icon %}
+          {% include 'components/icon.twig' with { name: item.icon, class: icon_class } only %}
+        {% endif %}
+        <span>{{ item.label }}</span>
+        {% if item.count is defined and item.count is not null %}
+          <span class="{{ count_class }}">{{ item.count }}</span>
+        {% endif %}
+      </button>
+    {% endif %}
+  {% endfor %}
+</nav>

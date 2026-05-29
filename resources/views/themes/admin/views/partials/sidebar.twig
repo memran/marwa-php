@@ -1,22 +1,22 @@
 {% set currentPath = _current_path|default('') %}
 {% set is_admin = is_admin_user|default(false) %}
-{% set section_header = 'px-3 py-2 text-[0.65rem] font-extrabold uppercase tracking-wider text-slate-500' %}
+{% set section_header = 'px-3 py-2 text-[0.65rem] font-extrabold uppercase tracking-wider text-app-muted' %}
 
 <div class="grid gap-3">
   <!-- Mobile Close Button -->
   <div class="flex items-center justify-between lg:hidden">
     <div class="inline-flex items-center gap-3">
-      <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 text-cyan-100 shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
+      <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-app-border bg-app-accent/10 text-app-accent shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
         {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-5 w-5' } only %}
       </span>
       <div class="grid gap-0.5">
-        <span class="text-[0.82rem] font-black uppercase tracking-[0.18em] text-white">MarwaPHP</span>
-        <span class="text-xs text-slate-400">Console</span>
+        <span class="text-[0.82rem] font-black uppercase tracking-[0.18em] text-app-text">MarwaPHP</span>
+        <span class="text-xs text-app-muted">Console</span>
       </div>
     </div>
     <button 
       type="button" 
-      class="rounded-lg p-2 text-slate-400 hover:bg-white/5 hover:text-white"
+      class="rounded-lg p-2 text-app-muted hover:bg-app-surface-2/60 hover:text-app-text"
       @click="$dispatch('close-mobile')"
     >
       {% include 'components/icon.twig' with { name: 'x', class: 'h-5 w-5' } only %}
@@ -25,12 +25,12 @@
 
   <!-- Desktop Logo (hidden on mobile) -->
   <div class="hidden lg:inline-flex items-center gap-3">
-    <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 text-cyan-100 shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
+    <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-app-border bg-app-accent/10 text-app-accent shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
       {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-5 w-5' } only %}
     </span>
     <div class="grid gap-0.5">
-      <span class="text-[0.82rem] font-black uppercase tracking-[0.18em] text-white">MarwaPHP</span>
-      <span class="text-xs text-slate-400">Operations console</span>
+      <span class="text-[0.82rem] font-black uppercase tracking-[0.18em] text-app-text">MarwaPHP</span>
+      <span class="text-xs text-app-muted">Operations console</span>
     </div>
   </div>
 </div>
@@ -44,7 +44,7 @@
   <span class="{{ section_header }}">Overview</span>
   <div class="grid gap-1">
     {% if can('dashboard.view') %}
-      <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/dashboard' %}bg-cyan-400/10 text-cyan-100 ring-1 ring-inset ring-cyan-300/20{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/dashboard" {% if currentPath starts with '/admin/dashboard' %}aria-current="page"{% endif %}>
+      <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/dashboard' %}bg-app-accent/10 text-app-accent ring-1 ring-inset ring-app-accent/20{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/dashboard" {% if currentPath starts with '/admin/dashboard' %}aria-current="page"{% endif %}>
         <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
           {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-4 w-4 shrink-0' } only %}
         </span>
@@ -52,7 +52,7 @@
       </a>
     {% endif %}
     {% if can('activity.view') %}
-      <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/activity' %}bg-cyan-400/10 text-cyan-100 ring-1 ring-inset ring-cyan-300/20{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/activity" {% if currentPath starts with '/admin/activity' %}aria-current="page"{% endif %}>
+      <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/activity' %}bg-app-accent/10 text-app-accent ring-1 ring-inset ring-app-accent/20{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/activity" {% if currentPath starts with '/admin/activity' %}aria-current="page"{% endif %}>
         <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
           {% include 'components/icon.twig' with { name: 'activity', class: 'h-4 w-4 shrink-0' } only %}
         </span>
@@ -60,13 +60,13 @@
       </a>
     {% endif %}
     {% if can('notifications.view') %}
-      <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/notifications' %}bg-cyan-400/10 text-cyan-100 ring-1 ring-inset ring-cyan-300/20{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/notifications" {% if currentPath starts with '/admin/notifications' %}aria-current="page"{% endif %}>
+      <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/notifications' %}bg-app-accent/10 text-app-accent ring-1 ring-inset ring-app-accent/20{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/notifications" {% if currentPath starts with '/admin/notifications' %}aria-current="page"{% endif %}>
         <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
           {% include 'components/icon.twig' with { name: 'bell', class: 'h-4 w-4 shrink-0' } only %}
         </span>
         <span class="truncate">Notifications</span>
         {% if unread_notification_count|default(0) > 0 %}
-          <span class="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[0.65rem] font-bold text-white">
+          <span class="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-app-danger text-[0.65rem] font-bold text-white">
             {{ unread_notification_count > 9 ? '9+' : unread_notification_count }}
           </span>
         {% endif %}
@@ -80,7 +80,7 @@
     <button 
       type="button"
       class="inline-flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition"
-      :class="identity ? 'bg-cyan-400/10 text-cyan-100 ring-1 ring-inset ring-cyan-300/20' : 'text-slate-300 hover:bg-white/5 hover:text-white'"
+      :class="identity ? 'bg-app-accent/10 text-app-accent ring-1 ring-inset ring-app-accent/20' : 'text-app-muted hover:bg-app-surface-2/60 hover:text-app-text'"
       @click="identity = !identity"
       :aria-expanded="identity"
     >
@@ -96,17 +96,17 @@
     </button>
     <div x-show="identity" x-collapse class="grid gap-1 pl-4">
       {% if can('users.view') %}
-        <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/users' %}bg-cyan-400/10 text-cyan-100{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/users" {% if currentPath starts with '/admin/users' %}aria-current="page"{% endif %}>
+        <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/users' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/users" {% if currentPath starts with '/admin/users' %}aria-current="page"{% endif %}>
           <span class="truncate">Users</span>
         </a>
       {% endif %}
       {% if can('roles.view') %}
-        <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/roles' %}bg-cyan-400/10 text-cyan-100{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/roles" {% if currentPath starts with '/admin/roles' %}aria-current="page"{% endif %}>
+        <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/roles' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/roles" {% if currentPath starts with '/admin/roles' %}aria-current="page"{% endif %}>
           <span class="truncate">Roles</span>
         </a>
       {% endif %}
       {% if can('permissions.view') %}
-        <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/permissions' %}bg-cyan-400/10 text-cyan-100{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/permissions" {% if currentPath starts with '/admin/permissions' %}aria-current="page"{% endif %}>
+        <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/permissions' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/permissions" {% if currentPath starts with '/admin/permissions' %}aria-current="page"{% endif %}>
           <span class="truncate">Permissions</span>
         </a>
       {% endif %}
@@ -120,7 +120,7 @@
       <button 
         type="button"
       class="inline-flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition"
-      :class="settings ? 'bg-cyan-400/10 text-cyan-100 ring-1 ring-inset ring-cyan-300/20' : 'text-slate-300 hover:bg-white/5 hover:text-white'"
+      :class="settings ? 'bg-app-accent/10 text-app-accent ring-1 ring-inset ring-app-accent/20' : 'text-app-muted hover:bg-app-surface-2/60 hover:text-app-text'"
       @click="settings = !settings"
       :aria-expanded="settings"
       >
@@ -136,32 +136,32 @@
       </button>
       <div x-show="settings" x-collapse class="grid gap-1 pl-4">
         {% if can('settings.view') %}
-          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/settings' %}bg-cyan-400/10 text-cyan-100{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/settings" {% if currentPath starts with '/admin/settings' %}aria-current="page"{% endif %}>
+          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/settings' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/settings" {% if currentPath starts with '/admin/settings' %}aria-current="page"{% endif %}>
             <span class="truncate">Settings</span>
           </a>
         {% endif %}
         {% if can('api_token.view') %}
-          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/api-tokens' %}bg-cyan-400/10 text-cyan-100{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/api-tokens" {% if currentPath starts with '/admin/api-tokens' %}aria-current="page"{% endif %}>
+          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/api-tokens' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/api-tokens" {% if currentPath starts with '/admin/api-tokens' %}aria-current="page"{% endif %}>
             <span class="truncate">API Keys</span>
           </a>
         {% endif %}
         {% if can('database.view') %}
-          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/database' %}bg-cyan-400/10 text-cyan-100{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/database" {% if currentPath starts with '/admin/database' %}aria-current="page"{% endif %}>
+          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/database' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/database" {% if currentPath starts with '/admin/database' %}aria-current="page"{% endif %}>
             <span class="truncate">Database</span>
           </a>
         {% endif %}
         {% if can('queue.view') %}
-          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/queue' %}bg-cyan-400/10 text-cyan-100{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/queue" {% if currentPath starts with '/admin/queue' %}aria-current="page"{% endif %}>
+          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/queue' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/queue" {% if currentPath starts with '/admin/queue' %}aria-current="page"{% endif %}>
             <span class="truncate">Queue</span>
           </a>
         {% endif %}
         {% if can('background_jobs.view') %}
-          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/background-jobs' %}bg-cyan-400/10 text-cyan-100{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/background-jobs" {% if currentPath starts with '/admin/background-jobs' %}aria-current="page"{% endif %}>
+          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/background-jobs' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/background-jobs" {% if currentPath starts with '/admin/background-jobs' %}aria-current="page"{% endif %}>
             <span class="truncate">Background Jobs</span>
           </a>
         {% endif %}
         {% if is_admin %}
-          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/security/risk' %}bg-cyan-400/10 text-cyan-100{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}" href="/admin/security/risk" {% if currentPath starts with '/admin/security/risk' %}aria-current="page"{% endif %}>
+          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/security/risk' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/security/risk" {% if currentPath starts with '/admin/security/risk' %}aria-current="page"{% endif %}>
             <span class="truncate">Risk Report</span>
           </a>
         {% endif %}
@@ -170,8 +170,8 @@
   {% endif %}
 
   {# Footer #}
-  <div class="mt-2 pt-2 border-t border-white/10">
-    <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold text-slate-300 hover:bg-white/5 hover:text-white" href="/admin/logout">
+  <div class="mt-2 pt-2 border-t border-app-border">
+    <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold text-app-muted hover:bg-app-surface-2/60 hover:text-app-text" href="/admin/logout">
       {% include 'components/icon.twig' with { name: 'log-out', class: 'h-5 w-5 shrink-0' } only %}
       <span class="truncate">Logout</span>
     </a>

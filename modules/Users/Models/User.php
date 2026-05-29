@@ -8,13 +8,11 @@ use App\Contracts\PermissionAwareUser;
 use App\Modules\Auth\Models\Permission;
 use App\Modules\Auth\Models\Role;
 use Marwa\Framework\Database\Model;
+use Marwa\DB\ORM\Relations\BelongsTo;
 
 final class User extends Model implements PermissionAwareUser
 {
     protected static ?string $table = 'users';
-
-    private ?\App\Modules\Auth\Models\Role $roleCache = null;
-    private ?int $roleCacheId = null;
 
     /**
      * @var list<string>
@@ -35,19 +33,14 @@ final class User extends Model implements PermissionAwareUser
 
     protected static bool $softDeletes = true;
 
-    public static function findByEmail(string $email): ?static
+    public static function normalizeEmail(string $email): string
     {
-        return self::findBy('email', $email);
+        return strtolower(trim($email));
     }
 
     public static function findByEmailIncludingTrashed(string $email): ?static
     {
-        return self::findByAttribute((string) trim($email), 'email', true);
-    }
-
-    public static function findById(int $id): ?static
-    {
-        return self::find($id);
+        return self::findByAttribute(self::normalizeEmail($email), 'email', true);
     }
 
     public static function findBy(string $column, mixed $value): ?static
@@ -55,18 +48,26 @@ final class User extends Model implements PermissionAwareUser
         return self::findByAttribute($value, $column);
     }
 
+    public function roleRelation(): BelongsTo
+    {
+        if (static::$cm === null) {
+            throw new \RuntimeException('ConnectionManager not set. Call Model::setConnectionManager().');
+        }
+
+        return new BelongsTo(
+            static::$cm,
+            static::$connection,
+            static::class,
+            Role::class,
+            'role_id'
+        );
+    }
+
     public function getId(): ?int
     {
         $key = $this->getKey();
 
         return is_numeric($key) ? (int) $key : null;
-    }
-
-    public function getEmail(): ?string
-    {
-        $email = trim((string) $this->getAttribute('email'));
-
-        return $email !== '' ? $email : null;
     }
 
     public function getPasswordHash(): ?string
@@ -107,7 +108,7 @@ final class User extends Model implements PermissionAwareUser
 
     public function role(): ?Role
     {
-        if (!app()->has(\Marwa\DB\Connection\ConnectionManager::class)) {
+        if (static::$cm === null) {
             return null;
         }
 
@@ -116,16 +117,16 @@ final class User extends Model implements PermissionAwareUser
             return null;
         }
 
-        $roleId = (int) $roleId;
+        if ($this->relationLoaded('roleRelation')) {
+            $role = $this->getRelation('roleRelation');
 
-        if ($this->roleCacheId === $roleId) {
-            return $this->roleCache;
+            return $role instanceof Role ? $role : null;
         }
 
-        $this->roleCacheId = $roleId;
-        $this->roleCache = Role::findById($roleId);
+        $this->roleRelation()->eagerLoad([$this], 'roleRelation');
+        $role = $this->getRelation('roleRelation');
 
-        return $this->roleCache;
+        return $role instanceof Role ? $role : null;
     }
 
     public function hasPermission(string $permission): bool

@@ -8,6 +8,7 @@ use App\Modules\Auth\Support\AdminUserResolver;
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Auth\Support\PasswordResetMailer;
 use App\Modules\Auth\Support\RolePolicy;
+use App\Support\ModuleDatabaseDependency;
 use Marwa\Module\Contracts\ModuleServiceProviderInterface;
 
 final class AuthServiceProvider implements ModuleServiceProviderInterface
@@ -21,6 +22,8 @@ final class AuthServiceProvider implements ModuleServiceProviderInterface
 
     public function boot($app): void
     {
-        RolePolicy::loadFromDatabase();
+        ModuleDatabaseDependency::boot(__DIR__, $app, static function (): void {
+            RolePolicy::loadFromDatabase();
+        });
     }
 }

@@ -16,35 +16,25 @@ final class RoleRepository
      */
     public function all(): array
     {
-        $rows = Role::newQuery()->getBaseBuilder()
+        $roles = Role::query()
             ->orderBy('level', 'desc')
             ->get();
 
-        return array_map(
-            static fn (array|object $row): Role => Role::newInstance(
-                is_array($row) ? $row : (array) $row,
-                true
-            ),
-            $rows
-        );
+        if ($roles !== []) {
+            $roles[0]->permissionsRelation()->eagerLoad($roles, 'permissionsRelation');
+        }
+
+        return $roles;
     }
 
     public function findById(int $id): ?Role
     {
-        $row = Role::newQuery()->getBaseBuilder()
-            ->where('id', '=', $id)
-            ->first();
-
-        return $row === null ? null : Role::newInstance(is_array($row) ? $row : (array) $row, true);
+        return Role::find($id);
     }
 
     public function findBySlug(string $slug): ?Role
     {
-        $row = Role::newQuery()->getBaseBuilder()
-            ->where('slug', '=', $slug)
-            ->first();
-
-        return $row === null ? null : Role::newInstance(is_array($row) ? $row : (array) $row, true);
+        return Role::findBy('slug', $slug);
     }
 
     /**
@@ -86,16 +76,14 @@ final class RoleRepository
 
     public function countUsers(int $roleId): int
     {
-        return (int) User::newQuery()->getBaseBuilder()
-            ->where('role_id', '=', $roleId)
+        return (int) User::where('role_id', '=', $roleId)
             ->whereNull('deleted_at')
             ->count();
     }
 
     public function hasSlug(string $slug, ?int $ignoreId = null): bool
     {
-        $builder = Role::newQuery()->getBaseBuilder()
-            ->where('slug', '=', $slug);
+        $builder = Role::where('slug', '=', $slug);
 
         if ($ignoreId !== null) {
             $builder->where('id', '!=', $ignoreId);
@@ -109,15 +97,13 @@ final class RoleRepository
      */
     public function systemSlugs(): array
     {
-        $rows = Role::newQuery()->getBaseBuilder()
-            ->where('is_system', '=', 1)
+        $rows = Role::where('is_system', '=', 1)
             ->orderBy('level', 'desc')
             ->orderBy('slug', 'asc')
-            ->pluck('slug')
-            ->toArray();
+            ->get();
 
         return array_values(array_filter(
-            array_map(static fn (mixed $slug): string => (string) $slug, $rows),
+            array_map(static fn (Role $role): string => (string) $role->getAttribute('slug'), $rows),
             static fn (string $slug): bool => $slug !== ''
         ));
     }
@@ -127,25 +113,13 @@ final class RoleRepository
      */
     public function getPermissions(int $roleId): array
     {
-        $permissionIds = DB::table('role_permission')
-            ->where('role_id', '=', $roleId)
-            ->pluck('permission_id')
-            ->toArray();
+        $role = Role::findById($roleId);
 
-        if ($permissionIds === []) {
+        if ($role === null) {
             return [];
         }
 
-        $rows = Permission::newQuery()->getBaseBuilder()
-            ->whereIn('id', array_map('intval', $permissionIds))
-            ->orderBy('group', 'asc')
-            ->orderBy('name', 'asc')
-            ->get();
-
-        return array_map(
-            static fn (array $row): Permission => Permission::newInstance($row, true),
-            $rows
-        );
+        return $role->permissions();
     }
 
     /**

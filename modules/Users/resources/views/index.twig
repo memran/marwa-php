@@ -4,16 +4,13 @@
 
 {% block content %}
   {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5' %}
-  {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
-  {% set button_secondary = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
-  {% set button_ghost = button_base ~ ' border-white/10 bg-transparent text-slate-200 hover:bg-white/5' %}
-  {% set button_danger = button_base ~ ' border-rose-400/20 bg-rose-500/10 text-rose-100 hover:bg-rose-500/20' %}
+  {% set button_primary = 'users-create-button ' ~ button_base %}
 
   <section class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
     <div class="max-w-3xl space-y-3">
-      <span class="inline-flex w-fit items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-cyan-100">Identity management</span>
-      <h1 class="text-3xl font-black tracking-tight text-white sm:text-4xl">Users</h1>
-      <p class="max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">Minimal admin user management for the starter application.</p>
+      <span class="inline-flex w-fit items-center rounded-full border border-app-accent/20 bg-app-accent/10 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-app-accent">Identity management</span>
+      <h1 class="text-3xl font-black tracking-tight text-app-text sm:text-4xl">Users</h1>
+      <p class="max-w-2xl text-sm leading-6 text-app-muted sm:text-base">Minimal admin user management for the starter application.</p>
     </div>
 
     <div class="flex flex-wrap gap-3">
@@ -23,122 +20,5 @@
     </div>
   </section>
 
-  {% if notice is defined and notice %}
-    <div class="mt-5 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-emerald-100">
-      <p class="text-sm font-semibold">Success</p>
-      <p class="mt-1 text-sm text-emerald-100/80">{{ notice }}</p>
-    </div>
-  {% endif %}
-
-  <section class="mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-6">
-    <div class="flex flex-col gap-3 border-b border-white/10 pb-5 xl:flex-row xl:items-end xl:justify-between">
-      <div>
-        <h2 class="text-2xl font-bold tracking-tight text-white">Registered users</h2>
-        <p class="mt-1 text-sm text-slate-400">Search, edit, or deactivate access.</p>
-      </div>
-
-      {% include 'components/search-bar.twig' with {
-        action: '/admin/users',
-        value: query|default(''),
-        placeholder: 'Search users',
-        aria_label: 'Search users'
-      } only %}
-    </div>
-
-    {% if users.data is empty %}
-      <div class="mt-5 rounded-2xl border border-cyan-300/20 bg-cyan-400/10 p-4 text-cyan-100">
-        <p class="text-sm font-semibold">No users yet</p>
-        <p class="mt-1 text-sm text-cyan-100/80">Create the first account to start managing access.</p>
-      </div>
-    {% else %}
-      <div class="mt-5 overflow-hidden rounded-[1.5rem] border border-white/10">
-      <table class="w-full border-collapse">
-        <thead>
-          <tr class="bg-white/5">
-            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Name</th>
-            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Email</th>
-            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Role</th>
-            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Status</th>
-            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Last login</th>
-            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300"></th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-white/10">
-          {% for user in users.data %}
-            <tr class="align-top">
-              <td class="px-3 py-3">
-                <div class="grid gap-0.5">
-                  <a class="font-semibold text-white transition hover:text-cyan-100" href="/admin/users/{{ user.getKey() }}">{{ user.getAttribute('name') }}</a>
-                  <span class="text-sm text-slate-400">ID {{ user.getKey() }}</span>
-                </div>
-              </td>
-              <td class="px-3 py-3 text-sm text-slate-200">{{ user.getAttribute('email') }}</td>
-              <td class="px-3 py-3">
-                {% set user_role = user.role() %}
-                <span class="inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-100">
-                  {{ user_role is not null ? user_role.getAttribute('name') : 'Unknown' }}
-                </span>
-              </td>
-              <td class="px-3 py-3">
-                {% if user.getAttribute('deleted_at') %}
-                  <span class="inline-flex items-center gap-2 rounded-full border border-rose-400/20 bg-rose-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-rose-100">
-                    {% include 'components/icon.twig' with { name: 'trash-2', class: 'h-4 w-4 shrink-0' } only %}
-                    <span>Trashed</span>
-                  </span>
-                {% elseif user.getAttribute('is_active') %}
-                  <span class="inline-flex rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-emerald-100">Active</span>
-                {% else %}
-                  <span class="inline-flex rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-amber-100">Disabled</span>
-                {% endif %}
-                {% if protected_admin_id is defined and protected_admin_id is not null and user.getKey() == protected_admin_id %}
-                  <div class="mt-2">
-                    <span class="inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-amber-100">
-                      {% include 'components/icon.twig' with { name: 'shield', class: 'h-4 w-4 shrink-0' } only %}
-                      <span>Protected</span>
-                    </span>
-                  </div>
-                {% endif %}
-              </td>
-              <td class="px-3 py-3 text-sm text-slate-300">{{ user.getAttribute('last_login_at')|default('Never') }}</td>
-              <td class="px-3 py-3">
-                <div class="flex flex-wrap gap-2">
-                  {% if user.getAttribute('deleted_at') %}
-                    {% if gate.allows('users.restore') %}
-                    <form method="post" action="/admin/users/{{ user.getKey() }}/restore">
-                      {{ csrf_field() }}
-                      <button class="{{ button_secondary }}" type="submit">
-                        {% include 'components/icon.twig' with { name: 'rotate-ccw', class: 'h-4 w-4 shrink-0' } only %}
-                        <span>Restore</span>
-                      </button>
-                    </form>
-                    {% endif %}
-                  {% else %}
-                    <a class="{{ button_ghost }}" href="/admin/users/{{ user.getKey() }}">Profile</a>
-                    {% if gate.allows('users.edit') %}
-                    <a class="{{ button_secondary }}" href="/admin/users/{{ user.getKey() }}/edit">Edit</a>
-                    {% endif %}
-                  {% endif %}
-                  {% if user.getAttribute('deleted_at') %}
-                    <button class="{{ button_danger }}" type="button" disabled title="Restored users can be edited or deleted after restore.">Delete</button>
-                  {% elseif protected_admin_id is defined and protected_admin_id is not null and user.getKey() == protected_admin_id %}
-                    <button class="{{ button_danger }}" type="button" disabled title="The last admin user cannot be deleted.">Delete</button>
-                  {% elseif not gate.allows('users.delete') %}
-                    <button class="{{ button_danger }}" type="button" disabled title="You do not have permission to delete users.">Delete</button>
-                  {% else %}
-                    <form method="post" action="/admin/users/{{ user.getKey() }}/delete">
-                      {{ csrf_field() }}
-                      <button class="{{ button_danger }}" type="submit" onclick="return confirm('Delete this user?');">Delete</button>
-                    </form>
-                  {% endif %}
-                </div>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      </div>
-    {% endif %}
-
-    {% include 'components/pagination.twig' with { pagination: pagination } only %}
-  </section>
+  {% include 'components/data-table.twig' with { table: table|default({}) } only %}
 {% endblock %}

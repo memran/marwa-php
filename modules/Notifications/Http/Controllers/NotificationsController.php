@@ -46,7 +46,6 @@ final class NotificationsController extends Controller
             'filter' => $filter,
             'unread_count' => $unreadCount,
             'is_admin' => $this->isAdmin($user),
-            'notice' => session('notifications.notice'),
         ]);
     }
 

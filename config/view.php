@@ -13,11 +13,13 @@ return [
     'namespaces' => [
         'email' => resources_path('views/email'),
     ],
-'extensions' => [
+    'extensions' => [
         App\View\Extensions\SecurityViewExtension::class,
         App\View\Extensions\NavigationViewExtension::class,
         App\View\Extensions\UserAgentViewExtension::class,
         App\View\Extensions\PermissionViewExtension::class,
+        App\View\Extensions\AdminToastViewExtension::class,
+        App\View\Extensions\AdminBreadcrumbViewExtension::class,
         Marwa\View\Extension\AlpineExtension::class,
         Marwa\View\Extension\DateExtension::class,
         Marwa\View\Extension\HtmlExtension::class,

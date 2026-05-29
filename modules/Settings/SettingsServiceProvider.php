@@ -8,6 +8,7 @@ use App\Modules\Settings\Support\SettingsApplier;
 use App\Modules\Settings\Support\SettingsCatalog;
 use App\Modules\Settings\Support\SettingsRepository;
 use App\Modules\Settings\Support\SettingsStore;
+use App\Support\ModuleDatabaseDependency;
 use League\Container\Container;
 use Marwa\Framework\Navigation\MenuRegistry;
 use Marwa\Module\Contracts\ModuleServiceProviderInterface;
@@ -50,11 +51,13 @@ final class SettingsServiceProvider implements ModuleServiceProviderInterface
 
     public function boot($app): void
     {
-        /** @var SettingsStore $store */
-        $store = $app->make(SettingsStore::class);
-        /** @var SettingsApplier $applier */
-        $applier = $app->make(SettingsApplier::class);
+        ModuleDatabaseDependency::boot(__DIR__, $app, function () use ($app): void {
+            /** @var SettingsStore $store */
+            $store = $app->make(SettingsStore::class);
+            /** @var SettingsApplier $applier */
+            $applier = $app->make(SettingsApplier::class);
 
-        $applier->apply($store->all());
+            $applier->apply($store->all());
+        });
     }
 }

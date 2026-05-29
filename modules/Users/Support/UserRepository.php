@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Users\Support;
 
+use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Support\AuthManager;
 use App\Support\AdminSearch;
 use App\Modules\Users\Models\User;
 use Marwa\Support\Arr;
-use Marwa\Support\Str;
 
 final class UserRepository
 {
@@ -25,7 +25,7 @@ final class UserRepository
             return $this->adminRoleId;
         }
 
-        $role = \App\Modules\Auth\Models\Role::findBySlug('admin');
+        $role = Role::findBySlug('admin');
 
         return $this->adminRoleId = $role === null ? null : (int) $role->getKey();
     }
@@ -33,22 +33,34 @@ final class UserRepository
     /**
      * @return array{data:list<User>,total:int,per_page:int,current_page:int,last_page:int}
      */
-    public function paginatedUsers(string $query, int $page, ?int $perPage = null): array
+    public function paginatedUsers(
+        string $query,
+        int $page,
+        ?int $perPage = null,
+        string $status = 'all',
+        string $sort = 'created_at',
+        string $direction = 'desc'
+    ): array
     {
         $page = max(1, $page);
         $perPage = max(1, (int) ($perPage ?? config('settings.lifecycle.pagination.default_per_page', config('pagination.default_per_page', 10))));
-        $query = trim($query);
-        $builder = User::newQuery()->getBaseBuilder()->orderBy('created_at', 'desc');
-
-        $this->search->applyLikeFilters($builder, $query, ['name', 'email']);
-
+        $builder = $this->buildListingBuilder($query, $status, $sort, $direction);
         $pageData = $builder->paginate($perPage, $page);
-        $pageData['data'] = array_map(
-            static fn (array|object $row): User => User::newInstance(is_array($row) ? $row : (array) $row, true),
-            $pageData['data']
-        );
+        $pageData['data'] = $this->hydrateUsers($pageData['data']);
 
         return $pageData;
+    }
+
+    /**
+     * @return list<User>
+     */
+    public function listUsers(
+        string $query,
+        string $status = 'all',
+        string $sort = 'created_at',
+        string $direction = 'desc'
+    ): array {
+        return $this->hydrateUsers($this->buildListingBuilder($query, $status, $sort, $direction)->get());
     }
 
     public function protectedAdminId(): int|string|null
@@ -58,16 +70,14 @@ final class UserRepository
             return null;
         }
 
-        $adminUsers = array_values(array_filter(
-            User::all(),
-            static fn (User $user): bool => (int) $user->getAttribute('role_id') === $adminRoleId
-        ));
+        $users = User::where('role_id', '=', $adminRoleId)
+            ->whereNull('deleted_at');
 
-        if (count($adminUsers) !== 1) {
+        if ($users->count() !== 1) {
             return null;
         }
 
-        return $adminUsers[0]->getKey();
+        return $users->first()?->getKey();
     }
 
     /**
@@ -88,6 +98,40 @@ final class UserRepository
         return $user instanceof User ? $user : null;
     }
 
+    /**
+     * @param list<int> $ids
+     * @return list<User>
+     */
+    public function usersByIds(array $ids): array
+    {
+        $normalized = [];
+
+        foreach ($ids as $id) {
+            if (!is_numeric($id)) {
+                continue;
+            }
+
+            $id = (int) $id;
+            if ($id <= 0 || in_array($id, $normalized, true)) {
+                continue;
+            }
+
+            $normalized[] = $id;
+        }
+
+        $ids = $normalized;
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $users = User::whereIn('id', $ids)
+            ->whereNull('deleted_at')
+            ->get();
+
+        return array_values(array_filter($users, static fn ($user): bool => $user instanceof User));
+    }
+
     public function isLastAdminUser(User $user): bool
     {
         $role = $user->role();
@@ -100,15 +144,14 @@ final class UserRepository
             return false;
         }
 
-        return count(array_filter(
-            User::all(),
-            static fn (User $candidate): bool => (int) $candidate->getAttribute('role_id') === $adminRoleId
-        )) <= 1;
+        return User::where('role_id', '=', $adminRoleId)
+            ->whereNull('deleted_at')
+            ->count() <= 1;
     }
 
     public function findDuplicateUserByEmail(string $email, ?int $ignoreId = null): ?User
     {
-        $email = $this->normalizeEmail($email);
+        $email = User::normalizeEmail($email);
 
         if ($email === '') {
             return null;
@@ -143,7 +186,7 @@ final class UserRepository
     {
         $user = User::create([
             'name' => $afterState['name'],
-            'email' => $this->normalizeEmail($afterState['email']),
+            'email' => User::normalizeEmail($afterState['email']),
             'role_id' => $afterState['role_id'],
             'is_active' => $afterState['is_active'],
             'password' => password_hash($password, PASSWORD_DEFAULT),
@@ -158,17 +201,14 @@ final class UserRepository
     public function updateUser(User $user, array $afterState, ?string $password = null, ?User $actor = null): void
     {
         $payload = $afterState;
-        $passwordChanged = $password !== null && $password !== '';
 
-        if ($passwordChanged) {
+        if ($password !== null && $password !== '') {
             $payload['password'] = password_hash($password, PASSWORD_DEFAULT);
         }
 
-        $payload['email'] = $this->normalizeEmail((string) $payload['email']);
-        User::newQuery()->getBaseBuilder()
-            ->where('id', '=', $user->getKey())
-            ->update($payload);
-
+        $payload['email'] = User::normalizeEmail((string) $payload['email']);
+        $user->fill($payload);
+        $user->saveOrFail();
         $user->refresh();
     }
 
@@ -207,9 +247,9 @@ final class UserRepository
     {
         $currentUser = $auth->user();
         $currentEmail = $currentUser instanceof User
-            ? $this->normalizeEmail((string) $currentUser->getAttribute('email'))
+            ? User::normalizeEmail((string) $currentUser->getAttribute('email'))
             : '';
-        $targetEmail = $this->normalizeEmail((string) $user->getAttribute('email'));
+        $targetEmail = User::normalizeEmail((string) $user->getAttribute('email'));
 
         return $currentEmail !== ''
             && $currentEmail === $targetEmail
@@ -225,16 +265,74 @@ final class UserRepository
             return false;
         }
 
-        $currentEmail = $this->normalizeEmail((string) $currentUser->getAttribute('email'));
-        $targetEmail = $this->normalizeEmail((string) $user->getAttribute('email'));
+        $currentEmail = User::normalizeEmail((string) $currentUser->getAttribute('email'));
+        $targetEmail = User::normalizeEmail((string) $user->getAttribute('email'));
 
         return ($currentEmail !== '' && $currentEmail === $targetEmail)
             || $currentUser->getKey() === $user->getKey();
     }
 
-    public function normalizeEmail(string $email): string
+    private function applyStatusFilter(object $builder, string $status): void
     {
-        return Str::lower(trim($email));
+        if ($status === 'active') {
+            $builder->whereNull('deleted_at')->where('is_active', '=', 1);
+            return;
+        }
+
+        if ($status === 'disabled') {
+            $builder->whereNull('deleted_at')->where('is_active', '=', 0);
+            return;
+        }
+
+        if ($status === 'trashed') {
+            $builder->whereNotNull('deleted_at');
+        }
+    }
+
+    private function applySort(object $builder, string $sort, string $direction): void
+    {
+        $column = match ($sort) {
+            'name' => 'name',
+            'email' => 'email',
+            'role' => 'role_id',
+            'last_login' => 'last_login_at',
+            default => 'created_at',
+        };
+
+        $builder->orderBy($column, $direction);
+    }
+
+    private function buildListingBuilder(string $query, string $status, string $sort, string $direction): object
+    {
+        $builder = User::newQuery()->getBaseBuilder();
+        $query = trim($query);
+        $status = trim($status);
+        $sort = trim($sort);
+        $direction = strtolower(trim($direction)) === 'asc' ? 'asc' : 'desc';
+
+        $this->search->applyLikeFilters($builder, $query, ['name', 'email']);
+        $this->applyStatusFilter($builder, $status);
+        $this->applySort($builder, $sort, $direction);
+
+        return $builder;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>|object> $rows
+     * @return list<User>
+     */
+    private function hydrateUsers(array $rows): array
+    {
+        $users = array_map(
+            static fn (array|object $row): User => User::newInstance(is_array($row) ? $row : (array) $row, true),
+            $rows
+        );
+
+        if ($users !== []) {
+            $users[0]->roleRelation()->eagerLoad($users, 'roleRelation');
+        }
+
+        return $users;
     }
 
 }

@@ -22,12 +22,6 @@ return [
         'database_backup.manage' => 'Manage Database Backups',
         'database_backup.restore' => 'Restore Database Backups',
     ],
-    'menu' => [
-        'section' => 'System',
-        'label' => 'Database Backups',
-        'route' => 'admin.database-backups.index',
-        'icon' => 'database-zap',
-    ],
     'routes' => [
         'http' => 'routes/http.php',
     ],

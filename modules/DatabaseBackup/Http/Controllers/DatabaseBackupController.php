@@ -33,8 +33,6 @@ final class DatabaseBackupController extends Controller
             'storage_disks' => $this->service->availableStorageDisks(),
             'modes' => $this->service->scheduleModes(),
             'formats' => $this->service->archiveFormats(),
-            'notice' => session('database_backup.notice'),
-            'errors' => session('database_backup.errors', []),
         ]);
     }
 

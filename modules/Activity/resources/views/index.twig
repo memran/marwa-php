@@ -5,6 +5,13 @@
 {% block content %}
   {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5' %}
   {% set button_ghost = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
+  {% set current_sort = sort|default('created_at') %}
+  {% set current_direction = direction|default('desc') %}
+  {% set current_filter = filter|default('all') %}
+  {% set sort_base = 'q=' ~ query|default('')|url_encode ~ '&filter=' ~ current_filter|url_encode %}
+  {% set time_direction = current_sort == 'created_at' and current_direction == 'asc' ? 'desc' : 'asc' %}
+  {% set action_direction = current_sort == 'action' and current_direction == 'asc' ? 'desc' : 'asc' %}
+  {% set actor_direction = current_sort == 'actor' and current_direction == 'asc' ? 'desc' : 'asc' %}
 
   <section class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
     <div class="max-w-3xl space-y-3">
@@ -25,12 +32,51 @@
         <p class="mt-1 text-sm text-slate-400">Newest actions appear at the top.</p>
       </div>
 
-      {% include 'components/search-bar.twig' with {
-        action: '/admin/activity',
-        value: query|default(''),
-        placeholder: 'Search activity',
-        aria_label: 'Search activity'
-      } only %}
+      <div class="flex flex-wrap items-center gap-3">
+        {% include 'components/search-bar.twig' with {
+          action: '/admin/activity',
+          value: query|default(''),
+          placeholder: 'Search activity',
+          aria_label: 'Search activity',
+          action_items: [
+            {
+              type: 'button',
+              label: 'Print',
+              icon: 'printer',
+              onclick: 'window.print()',
+              title: 'Print this page'
+            }
+          ]
+        } only %}
+
+        <details class="group relative z-30">
+          <summary class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/10 list-none cursor-pointer">
+            {% include 'components/icon.twig' with { name: 'sliders-horizontal', class: 'h-4 w-4 shrink-0' } only %}
+            <span>Filter</span>
+            <span class="rounded-full bg-white/10 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.16em] text-slate-300">
+              {{ current_filter|replace({'_': ' '})|capitalize }}
+            </span>
+          </summary>
+          <div class="absolute right-0 z-50 mt-3 w-56 overflow-hidden rounded-[1.25rem] border border-white/10 bg-slate-950/95 p-2 shadow-[0_24px_60px_rgba(2,6,23,0.35)] backdrop-blur-xl">
+            {% for item in [
+              { label: 'All', value: 'all' },
+              { label: 'Auth', value: 'auth' },
+              { label: 'Users', value: 'users' },
+              { label: 'System', value: 'system' }
+            ] %}
+              <a
+                class="flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold text-slate-100 transition hover:bg-white/10 hover:text-white {% if current_filter == item.value %}bg-cyan-400/10 text-cyan-50{% endif %}"
+                href="/admin/activity?q={{ query|default('')|url_encode }}&filter={{ item.value }}&sort={{ current_sort }}&direction={{ current_direction }}"
+              >
+                <span>{{ item.label }}</span>
+                {% if current_filter == item.value %}
+                  {% include 'components/icon.twig' with { name: 'check', class: 'h-4 w-4 shrink-0 text-cyan-200' } only %}
+                {% endif %}
+              </a>
+            {% endfor %}
+          </div>
+        </details>
+      </div>
     </div>
 
     {% if activities.data is empty %}
@@ -43,12 +89,18 @@
       <table class="w-full border-collapse">
         <thead>
           <tr class="bg-white/5">
-            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Time</th>
-            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Action</th>
+            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">
+              <a class="inline-flex items-center gap-1 hover:text-white" href="/admin/activity?{{ sort_base }}&sort=created_at&direction={{ time_direction }}">Time</a>
+            </th>
+            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">
+              <a class="inline-flex items-center gap-1 hover:text-white" href="/admin/activity?{{ sort_base }}&sort=action&direction={{ action_direction }}">Action</a>
+            </th>
             <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Description</th>
             <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Details</th>
             <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Request</th>
-            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Actor</th>
+            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">
+              <a class="inline-flex items-center gap-1 hover:text-white" href="/admin/activity?{{ sort_base }}&sort=actor&direction={{ actor_direction }}">Actor</a>
+            </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-white/10">

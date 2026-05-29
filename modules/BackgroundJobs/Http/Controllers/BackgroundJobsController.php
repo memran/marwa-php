@@ -33,11 +33,8 @@ final class BackgroundJobsController extends Controller
             return $this->redirect('/admin/background-jobs');
         }
 
-        $notice = session('background_jobs.notice');
-
         return $this->view('@background_jobs/show', [
             'job' => $job,
-            'notice' => is_string($notice) ? $notice : null,
         ]);
     }
 

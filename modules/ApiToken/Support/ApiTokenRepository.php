@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\ApiToken\Support;
 
 use App\Modules\ApiToken\Models\ApiToken;
-use Marwa\DB\Connection\ConnectionManager;
 use Marwa\DB\Query\Builder;
 use PDO;
 
@@ -35,10 +34,6 @@ final class ApiTokenRepository implements ApiTokenRepositoryInterface
 
     public function findByToken(string $token): ?ApiToken
     {
-        if (!app()->has(ConnectionManager::class)) {
-            return null;
-        }
-
         $hash = $this->hashToken($token);
 
         try {
@@ -86,10 +81,6 @@ final class ApiTokenRepository implements ApiTokenRepositoryInterface
 
     public function all(): array
     {
-        if (!app()->has(ConnectionManager::class)) {
-            return [];
-        }
-
         try {
             $rows = ApiToken::newQuery()->getBaseBuilder()
                 ->orderBy('created_at', 'desc')

@@ -1,0 +1,14 @@
+{% set toasts = toasts|default([]) %}
+
+{% if toasts is not empty %}
+  <div
+    data-admin-toast-host
+    aria-live="polite"
+    aria-relevant="additions removals"
+    class="pointer-events-none fixed right-4 top-4 z-[90] flex w-full max-w-sm flex-col gap-3 sm:right-6 sm:top-6"
+  >
+    {% for toast in toasts %}
+      {% include 'components/toast.twig' with { toast: toast } only %}
+    {% endfor %}
+  </div>
+{% endif %}

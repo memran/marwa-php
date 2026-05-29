@@ -19,13 +19,6 @@ return [
         'background_jobs.view' => 'View Background Jobs',
         'background_jobs.run' => 'Run Background Jobs',
     ],
-    'menu' => [
-        'section' => 'System',
-        'label' => 'Background Jobs',
-        'route' => 'admin.background-jobs.index',
-        'icon' => 'clock-3',
-        'permissions' => ['background_jobs.view'],
-    ],
     'routes' => [
         'http' => 'routes/http.php',
     ],

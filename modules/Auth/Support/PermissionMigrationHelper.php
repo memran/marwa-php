@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Support;
 
-use Marwa\DB\Connection\ConnectionManager;
 use Marwa\DB\Facades\DB;
 
 final class PermissionMigrationHelper
@@ -78,10 +77,6 @@ final class PermissionMigrationHelper
      */
     private static function tablesAreReady(array $tables): bool
     {
-        if (!app()->has(ConnectionManager::class)) {
-            return false;
-        }
-
         foreach ($tables as $table) {
             try {
                 DB::table($table)->count();

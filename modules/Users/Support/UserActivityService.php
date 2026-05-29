@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Users\Support;
 
+use App\Modules\Auth\Models\Role;
 use App\Modules\Users\Models\User;
 
 final class UserActivityService
@@ -95,9 +96,6 @@ final class UserActivityService
      */
     public function createdPayload(User $user, array $afterState): array
     {
-        $role = \App\Modules\Auth\Models\Role::findById($afterState['role_id']);
-        $roleName = $role !== null ? (string) $role->getAttribute('name') : 'Unknown';
-
         return [
             'action' => 'user.created',
             'description' => 'Created user ' . $afterState['email'] . '.',
@@ -108,7 +106,7 @@ final class UserActivityService
                 'changes' => [
                     'name' => ['before' => null, 'after' => $afterState['name']],
                     'email' => ['before' => null, 'after' => $afterState['email']],
-                    'role' => ['before' => null, 'after' => $roleName],
+                    'role' => ['before' => null, 'after' => Role::nameForId($afterState['role_id'])],
                     'status' => ['before' => null, 'after' => $afterState['is_active'] === 1 ? 'active' : 'disabled'],
                 ],
             ],
@@ -122,14 +120,11 @@ final class UserActivityService
      */
     public function updatedPayload(User $user, array $beforeState, array $afterState, bool $passwordChanged): array
     {
-        $beforeRole = \App\Modules\Auth\Models\Role::findById($beforeState['role_id'] ?? 0);
-        $afterRole = \App\Modules\Auth\Models\Role::findById($afterState['role_id'] ?? 0);
-
         $before = [
             'name' => $beforeState['name'],
             'email' => $beforeState['email'],
             'role_id' => $beforeState['role_id'] ?? null,
-            'role_name' => $beforeRole !== null ? (string) $beforeRole->getAttribute('name') : '',
+            'role_name' => Role::nameForId($beforeState['role_id'] ?? null, false),
             'is_active' => $beforeState['is_active'],
         ];
 
@@ -137,7 +132,7 @@ final class UserActivityService
             'name' => $afterState['name'],
             'email' => $afterState['email'],
             'role_id' => $afterState['role_id'],
-            'role_name' => $afterRole !== null ? (string) $afterRole->getAttribute('name') : '',
+            'role_name' => Role::nameForId($afterState['role_id'], false),
             'is_active' => $afterState['is_active'],
         ];
 
@@ -196,16 +191,10 @@ final class UserActivityService
      */
     public function deletedPayload(User $user): array
     {
-        return [
-            'action' => 'user.deleted',
-            'description' => 'Deleted user ' . (string) $user->getAttribute('email') . '.',
-            'subjectType' => User::class,
-            'subjectId' => (int) $user->getKey(),
-            'details' => [
-                'summary' => 'Soft deleted user account.',
-                'state' => $this->userReadableState($this->userSnapshot($user)),
-            ],
-        ];
+        return $this->payload($user, 'user.deleted', 'Deleted user ' . (string) $user->getAttribute('email') . '.', [
+            'summary' => 'Soft deleted user account.',
+            'state' => $this->userReadableState($this->userSnapshot($user)),
+        ]);
     }
 
     /**
@@ -213,15 +202,24 @@ final class UserActivityService
      */
     public function restoredPayload(User $user): array
     {
+        return $this->payload($user, 'user.restored', 'Restored user ' . (string) $user->getAttribute('email') . '.', [
+            'summary' => 'Restored user account.',
+            'state' => $this->userReadableState($this->userSnapshot($user)),
+        ]);
+    }
+
+    /**
+     * @param array<string, mixed> $details
+     * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
+     */
+    private function payload(User $user, string $action, string $description, array $details): array
+    {
         return [
-            'action' => 'user.restored',
-            'description' => 'Restored user ' . (string) $user->getAttribute('email') . '.',
+            'action' => $action,
+            'description' => $description,
             'subjectType' => User::class,
             'subjectId' => (int) $user->getKey(),
-            'details' => [
-                'summary' => 'Restored user account.',
-                'state' => $this->userReadableState($this->userSnapshot($user)),
-            ],
+            'details' => $details,
         ];
     }
 

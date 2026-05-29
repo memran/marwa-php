@@ -13,10 +13,6 @@ final class NotificationSeeder implements Seeder
 {
     public function run(): void
     {
-        if (!app()->has(\Marwa\DB\Connection\ConnectionManager::class)) {
-            return;
-        }
-
         $adminRoleIds = [];
         foreach (['admin', 'super_admin'] as $slug) {
             $role = Role::findBySlug($slug);

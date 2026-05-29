@@ -13,10 +13,6 @@ final class SettingsRepository
      */
     public function all(): array
     {
-        if (!app()->has(ConnectionManager::class)) {
-            return [];
-        }
-
         try {
             $statement = app(ConnectionManager::class)->getPdo()->query(
                 'SELECT category, setting_key, setting_value FROM settings ORDER BY category ASC, setting_key ASC'
@@ -55,11 +51,12 @@ final class SettingsRepository
      */
     public function save(array $rows): void
     {
-        if (!app()->has(ConnectionManager::class)) {
-            throw new \RuntimeException('Database connection is required to persist settings.');
+        try {
+            $pdo = app(ConnectionManager::class)->getPdo();
+        } catch (\Throwable $exception) {
+            throw new \RuntimeException('Database connection is required to persist settings.', 0, $exception);
         }
 
-        $pdo = app(ConnectionManager::class)->getPdo();
         $timestamp = gmdate('Y-m-d H:i:s');
         $existing = [];
 

@@ -7,7 +7,6 @@ namespace App\Modules\Auth\Support;
 use App\Modules\Auth\Mail\PasswordResetMail;
 use App\Modules\Auth\Models\PasswordResetToken;
 use App\Modules\Users\Models\User;
-use Marwa\DB\Connection\ConnectionManager;
 
 final class PasswordResetMailer
 {
@@ -114,45 +113,26 @@ final class PasswordResetMailer
 
     private function findPasswordResetToken(string $token): ?PasswordResetToken
     {
-        if (!app()->has(ConnectionManager::class)) {
-            return null;
-        }
-
         $tokenHash = hash('sha256', $token);
 
         try {
-            $row = PasswordResetToken::newQuery()->getBaseBuilder()
-                ->where('token_hash', '=', $tokenHash)
+            return PasswordResetToken::where('token_hash', '=', $tokenHash)
                 ->where('expires_at', '>=', date('Y-m-d H:i:s'))
                 ->first();
         } catch (\Throwable) {
             return null;
         }
-
-        return $row === null
-            ? null
-            : PasswordResetToken::newInstance(is_array($row) ? $row : (array) $row, true);
     }
 
     private function purgePasswordResetTokensForUser(int $userId): void
     {
-        if (!app()->has(ConnectionManager::class)) {
-            return;
-        }
-
-        PasswordResetToken::newQuery()->getBaseBuilder()
-            ->where('user_id', '=', $userId)
+        PasswordResetToken::where('user_id', '=', $userId)
             ->delete();
     }
 
     private function purgeExpiredPasswordResetTokens(): void
     {
-        if (!app()->has(ConnectionManager::class)) {
-            return;
-        }
-
-        PasswordResetToken::newQuery()->getBaseBuilder()
-            ->where('expires_at', '<', date('Y-m-d H:i:s'))
+        PasswordResetToken::where('expires_at', '<', date('Y-m-d H:i:s'))
             ->delete();
     }
 }

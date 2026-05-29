@@ -42,9 +42,9 @@
   <script defer src="{{ theme_asset('assets/js/alpine.min.js') }}"></script>
   <link rel="stylesheet" href="{{ theme_asset('css/app.css') }}">
 </head>
-<body class="admin-theme min-h-screen bg-slate-950 text-slate-100 antialiased" @close-mobile.window="closeMobile()">
+<body class="admin-theme min-h-screen bg-app-bg text-app-text antialiased" @close-mobile.window="closeMobile()">
   <div class="hidden" aria-hidden="true">{{ csrf_field() }}</div>
-  <div class="admin-shell relative isolate min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_36%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.12),_transparent_32%),linear-gradient(180deg,#020617_0%,#0f172a_48%,#020617_100%)]">
+  <div class="admin-shell relative isolate min-h-screen overflow-hidden bg-app-bg">
     <!-- Mobile Overlay Backdrop -->
     <div 
       x-show="mobileOpen" 
@@ -65,7 +65,7 @@
       <aside 
         id="admin-sidebar" 
         aria-label="Sidebar navigation"
-        class="admin-sidebar fixed lg:sticky top-0 left-0 z-50 h-screen w-64 transform border-b border-white/10 bg-slate-950/55 backdrop-blur-xl transition-transform duration-300 lg:border-b-0 lg:border-r lg:translate-x-0"
+        class="admin-sidebar fixed lg:sticky top-0 left-0 z-50 h-screen w-64 transform border-b border-app-border bg-app-surface/80 backdrop-blur-xl transition-transform duration-300 lg:border-b-0 lg:border-r lg:translate-x-0"
         :class="mobileOpen ? 'translate-x-0' : '-translate-x-full'"
       >
         <div class="flex h-full flex-col gap-7 p-4 lg:p-5">
@@ -75,17 +75,19 @@
 
       <!-- Main Content Area -->
       <div class="flex min-w-0 flex-col">
-        <header class="admin-topbar sticky top-0 z-30 border-b border-white/10 bg-slate-950/50 backdrop-blur-xl overflow-visible">
+        <header class="admin-topbar sticky top-0 z-30 border-b border-app-border bg-app-surface/75 backdrop-blur-xl overflow-visible">
           {% include 'partials/topbar.twig' %}
         </header>
 
         <main class="admin-content flex-1 px-4 py-4 sm:px-5 lg:px-6">
+          {% include 'components/breadcrumbs.twig' with { crumbs: admin_breadcrumbs(currentPath|default('')) } only %}
           {% block content %}{% endblock %}
         </main>
       </div>
     </div>
   </div>
 
+  {% include 'components/toast-host.twig' with { toasts: admin_toasts() } only %}
   {% include '@Shared/components/ai-chat-widget.twig' %}
 </body>
 </html>

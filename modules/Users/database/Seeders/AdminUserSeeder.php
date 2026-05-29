@@ -11,12 +11,8 @@ use Marwa\DB\Seeder\Seeder;
 if (!class_exists(\App\Modules\Users\database\Seeders\AdminUserSeeder::class, false)) {
     final class AdminUserSeeder implements Seeder
     {
-        public function run(): void
-        {
-            if (!app()->has(\Marwa\DB\Connection\ConnectionManager::class)) {
-                return;
-            }
-
+    public function run(): void
+    {
             if (User::query()->count() > 0) {
                 return;
             }
@@ -24,9 +20,7 @@ if (!class_exists(\App\Modules\Users\database\Seeders\AdminUserSeeder::class, fa
             $email = trim((string) env('ADMIN_BOOTSTRAP_EMAIL', 'admin@marwa.test'));
             $password = (string) env('ADMIN_BOOTSTRAP_PASSWORD', 'ExampleAdminPassword123!');
 
-            $adminRole = Role::newQuery()->getBaseBuilder()
-                ->where('slug', '=', 'admin')
-                ->first();
+            $adminRole = Role::findBy('slug', 'admin');
 
             if ($adminRole === null) {
                 // Fallback if migrations didn't run for some reason during seed-only call
@@ -37,8 +31,6 @@ if (!class_exists(\App\Modules\Users\database\Seeders\AdminUserSeeder::class, fa
                     'description' => 'Administrative access',
                     'is_system' => 1,
                 ]);
-            } else {
-                $adminRole = Role::newInstance(is_array($adminRole) ? $adminRole : (array) $adminRole, true);
             }
 
             $roleId = (int) $adminRole->getKey();

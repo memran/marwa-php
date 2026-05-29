@@ -7,20 +7,56 @@
 }
 
 @layer base {
+  .admin-theme {
+    --app-bg: 2 6 23;
+    --app-surface: 15 23 42;
+    --app-surface-2: 30 41 59;
+    --app-border: 51 65 85;
+    --app-text: 226 232 240;
+    --app-muted: 148 163 184;
+    --app-accent: 34 211 238;
+    --app-accent-soft: 8 145 178;
+    --app-success: 74 222 128;
+    --app-warning: 251 191 36;
+    --app-danger: 248 113 113;
+  }
+
+  html[data-admin-theme="light"] body.admin-theme {
+    --app-bg: 248 250 252;
+    --app-surface: 255 255 255;
+    --app-surface-2: 241 245 249;
+    --app-border: 203 213 225;
+    --app-text: 15 23 42;
+    --app-muted: 71 85 105;
+    --app-accent: 14 165 233;
+    --app-accent-soft: 8 145 178;
+    --app-success: 22 163 74;
+    --app-warning: 217 119 6;
+    --app-danger: 225 29 72;
+  }
+
   body.admin-theme {
-    color: rgb(241 245 249);
+    background-color: rgb(var(--app-bg));
+    color: rgb(var(--app-text));
     text-rendering: optimizeLegibility;
   }
 
   html[data-admin-theme="light"] body.admin-theme {
-    background-color: rgb(241 245 249);
-    color: rgb(15 23 42);
+    background-color: rgb(var(--app-bg));
+    color: rgb(var(--app-text));
   }
 }
 
 @layer components {
+  .admin-theme .admin-shell {
+    background-image:
+      radial-gradient(circle at top, rgba(56, 189, 248, 0.16), transparent 34%),
+      radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.1), transparent 30%),
+      linear-gradient(180deg, rgb(var(--app-bg)) 0%, rgb(var(--app-surface)) 48%, rgb(var(--app-bg)) 100%);
+  }
+
   .admin-theme .admin-sidebar {
-    background-color: rgba(2, 6, 23, 0.72);
+    background-color: rgb(var(--app-surface) / 0.72);
   }
 
   .admin-theme .admin-content {
@@ -52,7 +88,7 @@
     padding: 0.62rem 0.82rem;
     font-size: 0.88rem;
     line-height: 1.35;
-    background-color: rgba(15, 23, 42, 0.62);
+    background-color: rgb(var(--app-surface) / 0.62);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
   }
 
@@ -60,11 +96,11 @@
     min-height: 6.5rem;
   }
 
-.admin-theme .admin-content input[type="checkbox"],
-.admin-theme .admin-content input[type="radio"] {
-  width: 0.95rem;
-  height: 0.95rem;
-  accent-color: rgb(34 211 238);
+  .admin-theme .admin-content input[type="checkbox"],
+  .admin-theme .admin-content input[type="radio"] {
+    width: 0.95rem;
+    height: 0.95rem;
+    accent-color: rgb(var(--app-accent));
   }
 
   .admin-theme .admin-content button,
@@ -75,6 +111,26 @@
     font-size: 0.82rem;
     line-height: 1.1;
     box-shadow: none;
+  }
+
+  .admin-theme .admin-content .users-create-button {
+    border-color: rgb(var(--app-accent) / 0.24);
+    background-image: linear-gradient(135deg, rgb(var(--app-accent)) 0%, rgb(var(--app-accent-soft)) 100%);
+    color: rgb(255 255 255);
+    box-shadow:
+      0 16px 36px rgba(2, 132, 199, 0.26),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    min-height: 2.7rem;
+    padding: 0.72rem 1.15rem;
+    font-size: 0.88rem;
+    border-radius: 9999px;
+  }
+
+  .admin-theme .admin-content .users-create-button:hover {
+    background-image: linear-gradient(135deg, rgb(34 211 238) 0%, rgb(8 145 178) 100%);
+    box-shadow:
+      0 20px 44px rgba(2, 132, 199, 0.34),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
 
   .admin-theme .admin-content table {
@@ -104,9 +160,17 @@
   }
 
   .admin-theme .admin-search {
-    max-width: 24rem;
+    max-width: 46rem;
     border-radius: 0.9rem;
     padding: 0.48rem 0.75rem;
+  }
+
+  .admin-theme .admin-users-filter > summary {
+    list-style: none;
+  }
+
+  .admin-theme .admin-users-filter > summary::-webkit-details-marker {
+    display: none;
   }
 
   .admin-theme .admin-pagination a {
@@ -114,13 +178,6 @@
     height: 2rem;
     padding: 0 0.6rem;
     border-radius: 0.75rem;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .admin-shell {
-    background-image:
-      radial-gradient(circle at top, rgba(14, 165, 233, 0.12), transparent 34%),
-      radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.09), transparent 30%),
-      linear-gradient(180deg, #f8fafc 0%, #eef2ff 48%, #f8fafc 100%);
   }
 
   /* Notification dropdown light mode */
@@ -151,154 +208,111 @@
     background-color: rgba(241, 245, 249, 0.5) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .admin-sidebar,
-  html[data-admin-theme="light"] body.admin-theme .admin-topbar {
-    background-color: rgba(255, 255, 255, 0.82);
-    border-color: rgba(148, 163, 184, 0.18);
+  html[data-admin-theme="light"] body.admin-theme :where(.bg-slate-950, .bg-slate-950\/30, .bg-slate-950\/40, .bg-slate-950\/50, .bg-slate-950\/55, .bg-slate-950\/60, .bg-slate-900, .bg-slate-900\/60, .bg-slate-800, .bg-slate-800\/50) {
+    background-color: rgb(var(--app-surface)) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .bg-slate-950,
-  html[data-admin-theme="light"] body.admin-theme .bg-slate-950\/40,
-  html[data-admin-theme="light"] body.admin-theme .bg-slate-950\/50,
-  html[data-admin-theme="light"] body.admin-theme .bg-slate-950\/55,
-  html[data-admin-theme="light"] body.admin-theme .bg-slate-950\/30,
-  html[data-admin-theme="light"] body.admin-theme .bg-slate-950\/60,
-  html[data-admin-theme="light"] body.admin-theme .bg-slate-900,
-  html[data-admin-theme="light"] body.admin-theme .bg-slate-900\/60,
-  html[data-admin-theme="light"] body.admin-theme .bg-slate-800,
-  html[data-admin-theme="light"] body.admin-theme .bg-slate-800\/50 {
-    background-color: rgba(248, 250, 252, 0.88) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.bg-white\/5) {
+    background-color: rgb(var(--app-surface-2) / 0.72) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .bg-white\/5 {
-    background-color: rgba(255, 255, 255, 0.78) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.bg-white\/10) {
+    background-color: rgb(var(--app-surface-2) / 0.82) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .bg-cyan-400\/10 {
-    background-color: rgba(8, 145, 178, 0.1) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.border-white\/5) {
+    border-color: rgb(var(--app-border) / 0.12) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .bg-emerald-400\/10 {
-    background-color: rgba(5, 150, 105, 0.1) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.border-white\/10) {
+    border-color: rgb(var(--app-border) / 0.2) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .bg-emerald-400\/15 {
-    background-color: rgba(5, 150, 105, 0.14) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.border-slate-700, .border-slate-800) {
+    border-color: rgb(var(--app-border) / 0.2) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .bg-amber-400\/10 {
-    background-color: rgba(217, 119, 6, 0.12) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.text-white, .text-slate-100, .text-slate-200) {
+    color: rgb(var(--app-text)) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .bg-rose-500\/10 {
-    background-color: rgba(225, 29, 72, 0.1) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.text-slate-300) {
+    color: rgb(var(--app-text) / 0.84) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .border-white\/10 {
-    border-color: rgba(148, 163, 184, 0.18) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.text-slate-400, .text-slate-500) {
+    color: rgb(var(--app-muted)) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .border-slate-700,
-  html[data-admin-theme="light"] body.admin-theme .border-slate-800 {
-    border-color: rgba(148, 163, 184, 0.18) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.bg-cyan-400\/10, .bg-cyan-400\/15, .border-cyan-300\/20, .border-cyan-300\/30, .border-cyan-400\/20) {
+    background-color: rgb(var(--app-accent) / 0.12) !important;
+    border-color: rgb(var(--app-accent) / 0.18) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .border-cyan-300\/20,
-  html[data-admin-theme="light"] body.admin-theme .border-cyan-300\/30,
-  html[data-admin-theme="light"] body.admin-theme .border-cyan-400\/20 {
-    border-color: rgba(8, 145, 178, 0.18) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.text-cyan-100, .text-cyan-200, .text-cyan-300, .text-cyan-100\/80) {
+    color: rgb(var(--app-accent-soft)) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .border-emerald-400\/20 {
-    border-color: rgba(5, 150, 105, 0.18) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.bg-emerald-400\/10, .bg-emerald-400\/15, .border-emerald-400\/20) {
+    background-color: rgb(var(--app-success) / 0.12) !important;
+    border-color: rgb(var(--app-success) / 0.18) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .border-amber-400\/20 {
-    border-color: rgba(217, 119, 6, 0.18) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.text-emerald-100, .text-emerald-100\/80, .text-emerald-300) {
+    color: rgb(var(--app-success)) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .border-rose-400\/20 {
-    border-color: rgba(225, 29, 72, 0.18) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.bg-amber-400\/10, .border-amber-400\/20) {
+    background-color: rgb(var(--app-warning) / 0.12) !important;
+    border-color: rgb(var(--app-warning) / 0.18) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .text-white,
-  html[data-admin-theme="light"] body.admin-theme .text-slate-100,
-  html[data-admin-theme="light"] body.admin-theme .text-slate-200 {
-    color: rgb(15 23 42) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.text-amber-100, .text-amber-100\/85, .text-amber-200) {
+    color: rgb(var(--app-warning)) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .text-slate-300 {
-    color: rgb(51 65 85) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.bg-rose-500\/10, .border-rose-400\/20) {
+    background-color: rgb(var(--app-danger) / 0.12) !important;
+    border-color: rgb(var(--app-danger) / 0.18) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .text-slate-400 {
-    color: rgb(100 116 139) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.text-rose-100, .text-rose-100\/80, .text-rose-100\/85, .text-rose-200, .text-rose-300) {
+    color: rgb(var(--app-danger)) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .text-cyan-100,
-  html[data-admin-theme="light"] body.admin-theme .text-cyan-200,
-  html[data-admin-theme="light"] body.admin-theme .text-cyan-300,
-  html[data-admin-theme="light"] body.admin-theme .text-cyan-100\/80 {
-    color: rgb(14 116 144) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.hover\:bg-white\/5:hover) {
+    background-color: rgb(var(--app-surface-2) / 0.52) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .text-emerald-100,
-  html[data-admin-theme="light"] body.admin-theme .text-emerald-100\/80,
-  html[data-admin-theme="light"] body.admin-theme .text-emerald-300 {
-    color: rgb(4 120 87) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.hover\:bg-white\/10:hover) {
+    background-color: rgb(var(--app-surface-2) / 0.72) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .text-amber-100,
-  html[data-admin-theme="light"] body.admin-theme .text-amber-100\/85,
-  html[data-admin-theme="light"] body.admin-theme .text-amber-200 {
-    color: rgb(146 64 14) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .text-rose-100,
-  html[data-admin-theme="light"] body.admin-theme .text-rose-100\/80,
-  html[data-admin-theme="light"] body.admin-theme .text-rose-100\/85,
-  html[data-admin-theme="light"] body.admin-theme .text-rose-200,
-  html[data-admin-theme="light"] body.admin-theme .text-rose-300 {
-    color: rgb(190 24 93) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .hover\:text-white:hover {
-    color: rgb(15 23 42) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .hover\:text-cyan-100:hover {
-    color: rgb(8 145 178) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .hover\:bg-white\/10:hover {
-    background-color: rgba(226, 232, 240, 0.55) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .hover\:bg-white\/5:hover {
-    background-color: rgba(226, 232, 240, 0.35) !important;
+  html[data-admin-theme="light"] body.admin-theme :where(.hover\:text-white:hover) {
+    color: rgb(var(--app-text)) !important;
   }
 
   html[data-admin-theme="light"] body.admin-theme .admin-content input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
   html[data-admin-theme="light"] body.admin-theme .admin-content select,
   html[data-admin-theme="light"] body.admin-theme .admin-content textarea {
-    background-color: rgba(255, 255, 255, 0.92);
-    color: rgb(15 23 42);
-    border-color: rgba(148, 163, 184, 0.22);
+    background-color: rgb(var(--app-surface) / 0.92);
+    color: rgb(var(--app-text));
+    border-color: rgb(var(--app-border) / 0.22);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
   }
 
   html[data-admin-theme="light"] body.admin-theme .admin-content input::placeholder,
   html[data-admin-theme="light"] body.admin-theme .admin-content textarea::placeholder {
-    color: rgb(148 163 184);
+    color: rgb(var(--app-muted));
   }
 
   html[data-admin-theme="light"] body.admin-theme .focus\:border-cyan-400:focus {
-    border-color: rgb(8 145 178) !important;
+    border-color: rgb(var(--app-accent)) !important;
   }
 
   html[data-admin-theme="light"] body.admin-theme .focus\:ring-cyan-400\/10:focus,
   html[data-admin-theme="light"] body.admin-theme .focus-within\:ring-cyan-300\/20:focus-within {
-    --tw-ring-color: rgba(8, 145, 178, 0.12) !important;
+    --tw-ring-color: rgb(var(--app-accent) / 0.12) !important;
   }
 
   html[data-admin-theme="light"] body.admin-theme .shadow-\[0_20px_50px_rgba\(2\2c 6\2c 23\2c 0\.18\)\],
@@ -311,238 +325,79 @@
     opacity: 0.55;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget {
-    background-color: rgba(255, 255, 255, 0.84) !important;
-    border-color: rgba(148, 163, 184, 0.18) !important;
-    box-shadow: 0 20px 48px rgba(148, 163, 184, 0.16) !important;
+  .admin-theme .dashboard-status-radio {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-grid;
+    place-content: center;
+    flex: 0 0 auto;
+    margin: 0;
+    border: 2px solid rgba(148, 163, 184, 0.45);
+    border-radius: 9999px;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: rgb(34 211 238);
+    transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget:hover {
-    background-color: rgba(255, 255, 255, 0.95) !important;
+  .admin-theme .dashboard-status-radio::before {
+    content: "";
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 9999px;
+    transform: scale(0);
+    transition: transform 0.15s ease;
+    background-color: currentColor;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .widget-content {
-    background-color: rgba(255, 255, 255, 0.94) !important;
-    border-color: rgba(148, 163, 184, 0.18) !important;
-    color: rgb(15 23 42) !important;
+  .admin-theme .dashboard-status-radio:checked::before {
+    transform: scale(1);
   }
 
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-white,
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-slate-100,
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-slate-200 {
-    color: rgb(15 23 42) !important;
+  .admin-theme .dashboard-status-radio:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgb(var(--app-accent) / 0.2);
   }
 
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-slate-300 {
-    color: rgb(51 65 85) !important;
+  .admin-theme .dashboard-status-radio-active {
+    color: rgb(var(--app-accent));
   }
 
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-slate-400 {
-    color: rgb(100 116 139) !important;
+  .admin-theme .dashboard-status-radio-inactive {
+    color: rgb(var(--app-danger));
   }
 
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-emerald-100,
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-violet-100,
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-amber-100,
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-cyan-100,
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-fuchsia-100 {
-    color: rgb(15 118 110) !important;
+  html[data-admin-theme="light"] body.admin-theme .dashboard-status-option:has(.dashboard-status-radio:checked) {
+    box-shadow: 0 18px 36px rgb(148 163 184 / 0.24) !important;
+    transform: translateY(-1px);
   }
 
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-emerald-100\/75,
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-violet-100\/75,
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-amber-100\/75,
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-cyan-100\/75,
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-fuchsia-100\/75 {
-    color: rgb(15 118 110) !important;
+  html[data-admin-theme="light"] body.admin-theme .dashboard-status-option:has(.dashboard-status-radio-active:checked) {
+    border-color: rgb(var(--app-accent) / 0.35) !important;
+    background-color: rgb(var(--app-accent) / 0.1) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-emerald-200,
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-violet-200,
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-amber-200,
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-cyan-200,
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .text-purple-200 {
-    color: rgb(71 85 105) !important;
+  html[data-admin-theme="light"] body.admin-theme .dashboard-status-option:has(.dashboard-status-radio-inactive:checked) {
+    border-color: rgb(var(--app-danger) / 0.35) !important;
+    background-color: rgb(var(--app-danger) / 0.08) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .dashboard-widget-label {
-    color: rgb(51 65 85) !important;
+  html[data-admin-theme="light"] body.admin-theme .dashboard-status-radio {
+    border-color: rgb(var(--app-muted) / 0.35) !important;
+    background-color: rgb(var(--app-surface)) !important;
+    color: rgb(var(--app-accent)) !important;
+    opacity: 1 !important;
+    filter: none !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .dashboard-widget-value {
-    color: rgb(15 23 42) !important;
+  html[data-admin-theme="light"] body.admin-theme .dashboard-status-radio:checked {
+    box-shadow: 0 0 0 3px rgb(var(--app-accent) / 0.18) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .dashboard-widget-status {
-    color: rgb(51 65 85) !important;
+  html[data-admin-theme="light"] body.admin-theme .dashboard-status-radio-inactive {
+    color: rgb(var(--app-danger)) !important;
   }
 
-  html[data-admin-theme="light"] body.admin-theme .dashboard-widget .dashboard-widget-kicker {
-    color: rgb(8 145 178) !important;
+  html[data-admin-theme="light"] body.admin-theme .users-form-toggle input[type="checkbox"] {
+    accent-color: rgb(var(--app-accent)) !important;
   }
-
-  html[data-admin-theme="light"] body.admin-theme .dashboard-edit-done {
-    background-color: rgba(255, 255, 255, 0.9) !important;
-    border-color: rgba(148, 163, 184, 0.24) !important;
-    color: rgb(15 23 42) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .dashboard-edit-done:hover {
-    background-color: rgba(241, 245, 249, 0.95) !important;
-    color: rgb(15 23 42) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .users-form-shell {
-    background-color: rgba(255, 255, 255, 0.92) !important;
-    border-color: rgba(148, 163, 184, 0.18) !important;
-    box-shadow: 0 24px 60px rgba(148, 163, 184, 0.16) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .users-form-title {
-    color: rgb(15 23 42) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .users-form-subtitle {
-    color: rgb(71 85 105) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .users-form-label {
-    color: rgb(15 23 42) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .users-form-help {
-    color: rgb(100 116 139) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .users-form-toggle {
-    border-color: rgba(148, 163, 184, 0.22) !important;
-    background-color: rgba(248, 250, 252, 0.95) !important;
-    color: rgb(51 65 85) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .users-form-secondary {
-    background-color: rgba(255, 255, 255, 0.94) !important;
-    border-color: rgba(148, 163, 184, 0.22) !important;
-    color: rgb(15 23 42) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .users-form-ghost {
-    background-color: transparent !important;
-    border-color: rgba(148, 163, 184, 0.22) !important;
-    color: rgb(15 23 42) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .dashboard-status-label {
-    color: rgb(15 23 42) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .dashboard-status-option {
-    color: rgb(51 65 85) !important;
-    border-color: rgba(148, 163, 184, 0.18) !important;
-    background-color: rgba(255, 255, 255, 0.8) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .dashboard-status-option:hover {
-    background-color: rgba(248, 250, 252, 0.95) !important;
-    border-color: rgba(8, 145, 178, 0.2) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .dashboard-status-option-active {
-    color: rgb(15 23 42) !important;
-    background-color: rgba(8, 145, 178, 0.08) !important;
-    border-color: rgba(8, 145, 178, 0.2) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .dashboard-status-option-inactive {
-    color: rgb(51 65 85) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .dashboard-status-title {
-    color: rgb(15 23 42) !important;
-  }
-
-  html[data-admin-theme="light"] body.admin-theme .dashboard-status-helper {
-    color: rgb(71 85 105) !important;
-  }
-
-html[data-admin-theme="light"] body.admin-theme .dashboard-status-badge {
-  border-color: rgba(148, 163, 184, 0.18) !important;
-  background-color: rgba(241, 245, 249, 0.95) !important;
-}
-
-.admin-theme .dashboard-status-radio {
-  appearance: none;
-  -webkit-appearance: none;
-  display: inline-grid;
-  place-content: center;
-  flex: 0 0 auto;
-  margin: 0;
-  border: 2px solid rgba(148, 163, 184, 0.45);
-  border-radius: 9999px;
-  background-color: rgba(255, 255, 255, 0.08);
-  color: rgb(34 211 238);
-  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
-}
-
-.admin-theme .dashboard-status-radio::before {
-  content: "";
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 9999px;
-  transform: scale(0);
-  transition: transform 0.15s ease;
-  background-color: currentColor;
-}
-
-.admin-theme .dashboard-status-radio:checked::before {
-  transform: scale(1);
-}
-
-.admin-theme .dashboard-status-radio:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.2);
-}
-
-.admin-theme .dashboard-status-radio-active {
-  color: rgb(34 211 238);
-}
-
-.admin-theme .dashboard-status-radio-inactive {
-  color: rgb(251 113 133);
-}
-
-html[data-admin-theme="light"] body.admin-theme .dashboard-status-option:has(.dashboard-status-radio:checked) {
-  box-shadow: 0 18px 36px rgba(148, 163, 184, 0.24) !important;
-  transform: translateY(-1px);
-}
-
-html[data-admin-theme="light"] body.admin-theme .dashboard-status-option:has(.dashboard-status-radio-active:checked) {
-  border-color: rgba(8, 145, 178, 0.35) !important;
-  background-color: rgba(8, 145, 178, 0.1) !important;
-}
-
-html[data-admin-theme="light"] body.admin-theme .dashboard-status-option:has(.dashboard-status-radio-inactive:checked) {
-  border-color: rgba(225, 29, 72, 0.35) !important;
-  background-color: rgba(225, 29, 72, 0.08) !important;
-}
-
-html[data-admin-theme="light"] body.admin-theme .dashboard-status-radio {
-  border-color: rgba(71, 85, 105, 0.35) !important;
-  background-color: rgb(255 255 255) !important;
-  color: rgb(8 145 178) !important;
-  opacity: 1 !important;
-  filter: none !important;
-}
-
-html[data-admin-theme="light"] body.admin-theme .dashboard-status-radio:checked {
-  box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.18) !important;
-}
-
-html[data-admin-theme="light"] body.admin-theme .dashboard-status-radio-inactive {
-  color: rgb(225 29 72) !important;
-}
-
-html[data-admin-theme="light"] body.admin-theme .users-form-toggle input[type="checkbox"] {
-  accent-color: rgb(8 145 178) !important;
-}
 }

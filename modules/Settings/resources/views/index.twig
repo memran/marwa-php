@@ -6,6 +6,16 @@
   {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
   {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
   {% set button_secondary = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
+  {% set tab_items = [] %}
+
+  {% for category, meta in categories %}
+    {% set tab_items = tab_items|merge([{
+      label: meta.label,
+      target: 'category-' ~ category,
+      active: loop.first,
+      class: 'settings-tab'
+    }]) %}
+  {% endfor %}
 
   <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
     <div class="max-w-3xl space-y-2">
@@ -24,29 +34,12 @@
     <p class="mt-1 text-sm text-amber-100/85">These values are loaded at bootstrap and can alter mail, cache, logging, theme, and other runtime behavior immediately after update.</p>
   </div>
 
-  {% if notice %}
-    <div class="mt-4 rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-3.5 text-emerald-100">
-      <p class="text-sm font-semibold">{{ notice }}</p>
-    </div>
-  {% endif %}
-
-  {% if errors._global is defined %}
-    <div class="mt-4 rounded-xl border border-rose-400/20 bg-rose-500/10 p-3.5 text-rose-100">
-      <p class="text-sm font-semibold">{{ errors._global|first }}</p>
-    </div>
-  {% endif %}
-
-  <div class="mt-6 flex flex-wrap gap-2 border-b border-white/10 pb-4" role="tablist">
-    {% for category, meta in categories %}
-      <button
-        type="button"
-        class="settings-tab rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
-        data-target="category-{{ category }}"
-      >
-        {{ meta.label }}
-      </button>
-    {% endfor %}
-  </div>
+  {% include 'components/tabs.twig' with {
+    tabs: {
+      shell_class: 'mt-6',
+      items: tab_items
+    }
+  } only %}
 
   <form class="mt-4 grid gap-5" method="post" action="/admin/settings">
     {{ csrf_field() }}
@@ -142,15 +135,17 @@
 
   <script>
     (function() {
-      const tabs = document.querySelectorAll('.settings-tab');
+      const tabs = document.querySelectorAll('[data-tabs] [data-tab-target]');
       const categories = document.querySelectorAll('.settings-category');
+      const activeClasses = ['bg-app-accent/10', 'border-app-accent/20', 'text-app-accent'];
+      const inactiveClasses = ['border-app-border', 'bg-app-surface/60', 'text-app-text', 'hover:bg-app-surface-2/70'];
 
       function switchTab(targetId) {
         tabs.forEach(tab => {
-          const isActive = tab.dataset.target === targetId;
-          tab.classList.toggle('bg-cyan-500/20', isActive);
-          tab.classList.toggle('border-cyan-400/30', isActive);
-          tab.classList.toggle('text-cyan-100', isActive);
+          const isActive = tab.dataset.tabTarget === targetId;
+          activeClasses.forEach(className => tab.classList.toggle(className, isActive));
+          inactiveClasses.forEach(className => tab.classList.toggle(className, !isActive));
+          tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
 
         categories.forEach(cat => {
@@ -162,13 +157,13 @@
       tabs.forEach(tab => {
         tab.addEventListener('click', function(e) {
           e.preventDefault();
-          switchTab(this.dataset.target);
+          switchTab(this.dataset.tabTarget);
         });
       });
 
       const firstTab = tabs[0];
       if (firstTab) {
-        switchTab(firstTab.dataset.target);
+        switchTab(firstTab.dataset.tabTarget);
       }
     })();
   </script>
