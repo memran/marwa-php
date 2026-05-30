@@ -9,6 +9,26 @@ use PHPUnit\Framework\TestCase;
 
 final class SettingsCatalogTest extends TestCase
 {
+    public function testLogoFieldUsesFileUploadControl(): void
+    {
+        $catalog = new SettingsCatalog();
+        $logoField = $catalog->categories()['ui']['fields']['logo_url'];
+
+        self::assertSame('file', $logoField['input']);
+        self::assertSame('string', $logoField['type']);
+        self::assertSame('image/*,.svg', $logoField['accept']);
+    }
+
+    public function testTimezoneFieldUsesSelectOptions(): void
+    {
+        $catalog = new SettingsCatalog();
+        $timezoneField = $catalog->categories()['app']['fields']['timezone'];
+
+        self::assertSame('select', $timezoneField['input']);
+        self::assertArrayHasKey('Asia/Dhaka', $timezoneField['options']);
+        self::assertArrayHasKey('UTC', $timezoneField['options']);
+    }
+
     public function testNormalizeSubmissionCoercesTypesAndRetainsSensitiveValues(): void
     {
         $catalog = new SettingsCatalog();
@@ -45,8 +65,6 @@ final class SettingsCatalogTest extends TestCase
             'ui' => [
                 'theme' => 'default',
                 'logo_url' => 'https://example.test/logo.svg',
-                'layout_mode' => 'compact',
-                'sidebar_state' => 'collapsed',
             ],
             'cache' => [
                 'driver' => 'memory',

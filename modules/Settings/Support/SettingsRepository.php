@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Settings\Support;
 
+use App\Modules\Settings\Models\Setting;
 use Marwa\DB\Connection\ConnectionManager;
 
 final class SettingsRepository
@@ -14,36 +15,29 @@ final class SettingsRepository
     public function all(): array
     {
         try {
-            $statement = app(ConnectionManager::class)->getPdo()->query(
-                'SELECT category, setting_key, setting_value FROM settings ORDER BY category ASC, setting_key ASC'
-            );
-
-            if ($statement === false) {
-                return [];
-            }
-
-            $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            $values = [];
-
-            foreach ($rows as $row) {
-                if (!is_array($row)) {
-                    continue;
-                }
-
-                $category = isset($row['category']) ? trim((string) $row['category']) : '';
-                $key = isset($row['setting_key']) ? trim((string) $row['setting_key']) : '';
-
-                if ($category === '' || $key === '') {
-                    continue;
-                }
-
-                $values[$category . '.' . $key] = (string) ($row['setting_value'] ?? '');
-            }
-
-            return $values;
+            $rows = Setting::query()
+                ->select('category', 'setting_key', 'setting_value')
+                ->orderBy('category')
+                ->orderBy('setting_key')
+                ->get();
         } catch (\Throwable) {
             return [];
         }
+
+        $values = [];
+
+        foreach ($rows as $row) {
+            $category = trim((string) $row->getAttribute('category'));
+            $key = trim((string) $row->getAttribute('setting_key'));
+
+            if ($category === '' || $key === '') {
+                continue;
+            }
+
+            $values[$category . '.' . $key] = (string) $row->getAttribute('setting_value');
+        }
+
+        return $values;
     }
 
     /**
@@ -51,82 +45,18 @@ final class SettingsRepository
      */
     public function save(array $rows): void
     {
-        try {
-            $pdo = app(ConnectionManager::class)->getPdo();
-        } catch (\Throwable $exception) {
-            throw new \RuntimeException('Database connection is required to persist settings.', 0, $exception);
-        }
-
-        $timestamp = gmdate('Y-m-d H:i:s');
-        $existing = [];
-
-        try {
-            $statement = $pdo->query('SELECT category, setting_key FROM settings');
-
-            if ($statement !== false) {
-                foreach ($statement->fetchAll(\PDO::FETCH_ASSOC) as $row) {
-                    if (!is_array($row)) {
-                        continue;
-                    }
-
-                    $category = isset($row['category']) ? trim((string) $row['category']) : '';
-                    $key = isset($row['setting_key']) ? trim((string) $row['setting_key']) : '';
-
-                    if ($category === '' || $key === '') {
-                        continue;
-                    }
-
-                    $existing[$category . '.' . $key] = true;
-                }
-            }
-        } catch (\Throwable) {
-            $existing = [];
-        }
-
-        $update = $pdo->prepare(
-            'UPDATE settings SET setting_value = :value, updated_at = :updated_at WHERE category = :category AND setting_key = :setting_key'
-        );
-        $insert = $pdo->prepare(
-            'INSERT INTO settings (category, setting_key, setting_value, created_at, updated_at) VALUES (:category, :setting_key, :value, :created_at, :updated_at)'
-        );
-
-        $pdo->beginTransaction();
-
-        try {
+        app(ConnectionManager::class)->transaction(function () use ($rows): void {
             foreach ($rows as $row) {
-                $category = (string) $row['category'];
-                $key = (string) $row['key'];
-                $identifier = $category . '.' . $key;
-
-                if (isset($existing[$identifier])) {
-                    $update->execute([
-                        ':value' => $row['value'],
-                        ':updated_at' => $timestamp,
-                        ':category' => $category,
-                        ':setting_key' => $key,
-                    ]);
-
-                    continue;
-                }
-
-                $insert->execute([
-                    ':category' => $category,
-                    ':setting_key' => $key,
-                    ':value' => $row['value'],
-                    ':created_at' => $timestamp,
-                    ':updated_at' => $timestamp,
-                ]);
-
-                $existing[$identifier] = true;
+                Setting::updateOrCreate(
+                    [
+                        'category' => (string) $row['category'],
+                        'setting_key' => (string) $row['key'],
+                    ],
+                    [
+                        'setting_value' => (string) $row['value'],
+                    ]
+                );
             }
-
-            $pdo->commit();
-        } catch (\Throwable $exception) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
-
-            throw $exception;
-        }
+        });
     }
 }

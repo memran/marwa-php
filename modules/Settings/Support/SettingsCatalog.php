@@ -23,7 +23,7 @@ final class SettingsCatalog
                     'name' => ['label' => 'App name', 'input' => 'text', 'type' => 'string', 'default' => (string) env('APP_NAME', 'MarwaPHP'), 'help' => 'Applied to the runtime app config and shared labels immediately after save.'],
                     'env' => ['label' => 'Environment', 'input' => 'select', 'type' => 'string', 'default' => (string) env('APP_ENV', 'production'), 'options' => ['production' => 'production', 'staging' => 'staging', 'development' => 'development', 'testing' => 'testing', 'local' => 'local']],
                     'debug' => ['label' => 'Debug mode', 'input' => 'checkbox', 'type' => 'bool', 'default' => (bool) env('APP_DEBUG', false), 'help' => 'Mirrored into the runtime view and error config.'],
-                    'timezone' => ['label' => 'Timezone', 'input' => 'text', 'type' => 'timezone', 'default' => (string) env('TIMEZONE', 'UTC')],
+                    'timezone' => ['label' => 'Timezone', 'input' => 'select', 'type' => 'timezone', 'default' => (string) env('TIMEZONE', 'UTC'), 'options' => $this->timezoneOptions()],
                     'locale' => ['label' => 'Locale', 'input' => 'text', 'type' => 'string', 'default' => 'en'],
                     'maintenance_mode' => ['label' => 'Maintenance mode', 'input' => 'checkbox', 'type' => 'bool', 'default' => false, 'help' => 'Applied dynamically through the starter maintenance middleware.'],
                 ],
@@ -65,9 +65,14 @@ final class SettingsCatalog
                 'fields' => [
                     'theme' => ['label' => 'Frontend theme', 'input' => 'text', 'type' => 'string', 'default' => (string) env('FRONTEND_THEME', 'default')],
                     'admin_theme' => ['label' => 'Admin theme', 'input' => 'text', 'type' => 'string', 'default' => (string) env('ADMIN_THEME', 'admin')],
-                    'logo_url' => ['label' => 'Logo URL', 'input' => 'url', 'type' => 'url', 'default' => ''],
-                    'layout_mode' => ['label' => 'Layout mode', 'input' => 'select', 'type' => 'string', 'default' => 'compact', 'options' => ['compact' => 'compact', 'comfortable' => 'comfortable']],
-                    'sidebar_state' => ['label' => 'Sidebar state', 'input' => 'select', 'type' => 'string', 'default' => 'expanded', 'options' => ['expanded' => 'expanded', 'collapsed' => 'collapsed']],
+                    'logo_url' => [
+                        'label' => 'Logo upload',
+                        'input' => 'file',
+                        'type' => 'string',
+                        'default' => '',
+                        'accept' => 'image/*,.svg',
+                        'help' => 'Upload a PNG, JPG, WebP, GIF, or SVG logo for the admin sidebar.',
+                    ],
                 ],
             ],
             'cache' => [
@@ -111,7 +116,7 @@ final class SettingsCatalog
                         'PHP' => 'PHP - Philippine Peso',
                         'IDR' => 'IDR - Indonesian Rupiah',
                     ]],
-                    'tax_rate' => ['label' => 'Tax rate', 'input' => 'number', 'type' => 'float', 'default' => 0.0, 'min' => 0, 'step' => '0.01'],
+                    'tax_rate' => ['label' => 'Tax rate', 'input' => 'number', 'type' => 'float', 'default' => 5.0, 'min' => 0, 'step' => '0.10'],
                 ],
             ],
         ];
@@ -131,6 +136,20 @@ final class SettingsCatalog
         }
 
         return $defaults;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function timezoneOptions(): array
+    {
+        $options = [];
+
+        foreach (timezone_identifiers_list() as $timezone) {
+            $options[$timezone] = $timezone;
+        }
+
+        return $options;
     }
 
     /**
@@ -332,9 +351,9 @@ final class SettingsCatalog
         $lines = preg_split('/\r\n|\r|\n/', trim((string) $input)) ?: [];
 
         return array_values(array_filter(array_map(
-            static fn (string $line): string => trim($line),
+            static fn(string $line): string => trim($line),
             $lines
-        ), static fn (string $line): bool => $line !== ''));
+        ), static fn(string $line): bool => $line !== ''));
     }
 
     private function serializeValue(string $type, mixed $value): string
@@ -377,8 +396,8 @@ final class SettingsCatalog
         }
 
         return array_values(array_filter(array_map(
-            static fn (mixed $item): string => trim((string) $item),
+            static fn(mixed $item): string => trim((string) $item),
             $decoded
-        ), static fn (string $item): bool => $item !== ''));
+        ), static fn(string $item): bool => $item !== ''));
     }
 }

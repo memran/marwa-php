@@ -2,7 +2,6 @@
 
 <p align="center">
   <img src="https://img.shields.io/packagist/v/memran/marwa-php?label=composer&style=flat" alt="Composer">
-  <img src="https://img.shields.io/packagist/dt/memran/marwa-php?label=downloads&style=flat" alt="Downloads">
   <img src="https://img.shields.io/packagist/dependency-v/memran/marwa-php/php?label=PHP&style=flat" alt="PHP">
   <img src="https://img.shields.io/github/actions/workflow/status/memran/marwa-php/ci.yml?branch=main&label=PHPUnit&style=flat" alt="PHPUnit">
   <img src="https://img.shields.io/github/actions/workflow/status/memran/marwa-php/ci.yml?branch=main&label=PHPStan&style=flat" alt="PHPStan">

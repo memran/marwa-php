@@ -345,6 +345,13 @@ TWIG
         self::assertStringContainsString('/admin/background-jobs', $body);
         self::assertStringContainsString('Background Jobs', $body);
 
+        $profilePage = $kernel->handle($this->request('GET', '/admin/profile'));
+        self::assertSame(200, $profilePage->getStatusCode());
+        $profileBody = (string) $profilePage->getBody();
+        self::assertStringContainsString('Account snapshot', $profileBody);
+        self::assertStringContainsString('admin@marwa.test', $profileBody);
+        self::assertStringContainsString('Administrator', $profileBody);
+
         $settings = $kernel->handle($this->request('GET', '/admin/settings'));
         self::assertSame(200, $settings->getStatusCode());
         $settingsBody = (string) $settings->getBody();
@@ -352,8 +359,10 @@ TWIG
         self::assertStringContainsString('data-tab-target="category-app"', $settingsBody);
         self::assertStringContainsString('Application', $settingsBody);
         self::assertStringContainsString('Security', $settingsBody);
+        self::assertStringContainsString('type="file"', $settingsBody);
+        self::assertStringContainsString('Logo upload', $settingsBody);
 
-        unset($loginPage, $failedLogin, $loginWithoutCsrf, $login, $dashboard, $body, $settings, $settingsBody);
+        unset($loginPage, $failedLogin, $loginWithoutCsrf, $login, $dashboard, $body, $profilePage, $profileBody, $settings, $settingsBody);
 
         $bootstrapAdmin = User::findBy('email', 'admin@marwa.test');
         self::assertInstanceOf(User::class, $bootstrapAdmin);
@@ -1253,8 +1262,9 @@ TWIG
 
     /**
      * @param array<string, mixed> $body
+     * @param array<string, mixed> $files
      */
-    private function request(string $method, string $uri, array $body = []): \Psr\Http\Message\ServerRequestInterface
+    private function request(string $method, string $uri, array $body = [], array $files = []): \Psr\Http\Message\ServerRequestInterface
     {
         $query = [];
         $path = $uri;
@@ -1272,7 +1282,7 @@ TWIG
             ],
             $query,
             $body
-        );
+        )->withUploadedFiles($files);
     }
 
     private function makeDirectory(string $path): void
@@ -1350,6 +1360,7 @@ TWIG
             $this->basePath . '/database/migrations',
             $this->basePath . '/modules/Auth/database/migrations',
             $this->basePath . '/modules/Dashboard/database/migrations',
+            $this->basePath . '/modules/Settings/database/migrations',
             $this->basePath . '/modules/Users/database/migrations',
             $this->basePath . '/modules/Activity/database/migrations',
             $this->basePath . '/modules/Notifications/database/migrations',

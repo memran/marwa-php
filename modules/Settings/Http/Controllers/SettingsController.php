@@ -7,7 +7,9 @@ namespace App\Modules\Settings\Http\Controllers;
 use App\Modules\Settings\Support\SettingsCatalog;
 use App\Modules\Settings\Support\SettingsStore;
 use Marwa\Framework\Controllers\Controller;
+use Marwa\Support\File;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\UploadedFileInterface;
 
 final class SettingsController extends Controller
 {
@@ -29,7 +31,39 @@ final class SettingsController extends Controller
     {
         $before = $this->store->all();
         $submitted = request('settings', []);
-        $normalized = is_array($submitted) ? $this->catalog->normalizeSubmission($submitted, $this->store->all()) : null;
+
+        if (!is_array($submitted)) {
+            session()->flash('settings.errors', [
+                '_global' => ['Settings payload is invalid.'],
+            ]);
+
+            return $this->redirect('/admin/settings');
+        }
+
+        $submitted = array_replace_recursive($before, $submitted);
+        $removeLogo = (bool) ($submitted['ui']['remove_logo'] ?? false);
+        unset($submitted['ui']['remove_logo']);
+
+        if ($removeLogo) {
+            $this->removeStoredLogo();
+            $submitted['ui']['logo_url'] = '';
+        } else {
+            $upload = $this->uploadedLogo();
+
+            if ($upload instanceof UploadedFileInterface) {
+                try {
+                    $submitted['ui']['logo_url'] = $this->storeLogoUpload($upload);
+                } catch (\Throwable $exception) {
+                    session()->flash('settings.errors', [
+                        'ui.logo_url' => [$exception->getMessage()],
+                    ]);
+
+                    return $this->redirect('/admin/settings');
+                }
+            }
+        }
+
+        $normalized = $this->catalog->normalizeSubmission($submitted, $before);
 
         if ($normalized === null || $normalized['errors'] !== []) {
             session()->flash('settings.errors', $normalized['errors'] ?? [
@@ -53,6 +87,101 @@ final class SettingsController extends Controller
         session()->flash('settings.notice', 'Settings updated successfully.');
 
         return $this->redirect('/admin/settings');
+    }
+
+    private function uploadedLogo(): ?UploadedFileInterface
+    {
+        $request = request();
+
+        if (!is_object($request) || !method_exists($request, 'getUploadedFiles')) {
+            return null;
+        }
+
+        $upload = $this->nestedUploadedFile($request->getUploadedFiles(), ['settings_logo_url']);
+
+        if (!$upload instanceof UploadedFileInterface) {
+            return null;
+        }
+
+        if (method_exists($upload, 'getError') && $upload->getError() === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+
+        return $upload;
+    }
+
+    /**
+     * @param array<int|string, mixed> $files
+     * @param list<string> $path
+     */
+    private function nestedUploadedFile(array $files, array $path): mixed
+    {
+        $current = $files;
+
+        foreach ($path as $segment) {
+            if (!is_array($current) || !array_key_exists($segment, $current)) {
+                return null;
+            }
+
+            $current = $current[$segment];
+        }
+
+        return $current;
+    }
+
+    private function storeLogoUpload(UploadedFileInterface $upload): string
+    {
+        if ($upload->getError() !== UPLOAD_ERR_OK) {
+            throw new \RuntimeException('The uploaded logo could not be read.');
+        }
+
+        $clientName = (string) $upload->getClientFilename();
+        $extension = strtolower(pathinfo($clientName, PATHINFO_EXTENSION));
+        $allowedExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'];
+
+        if ($extension === '' || !in_array($extension, $allowedExtensions, true)) {
+            throw new \RuntimeException('Upload a PNG, JPG, WebP, GIF, or SVG logo.');
+        }
+
+        $clientMediaType = strtolower((string) $upload->getClientMediaType());
+        if ($clientMediaType !== '' && !str_starts_with($clientMediaType, 'image/') && $extension !== 'svg') {
+            throw new \RuntimeException('Upload a valid image file for the logo.');
+        }
+
+        $directory = public_path('uploads/settings/interface');
+        File::makeDirectory($directory);
+
+        $relativePath = 'uploads/settings/interface/logo.' . $extension;
+        $destination = public_path($relativePath);
+
+        foreach (glob($directory . DIRECTORY_SEPARATOR . 'logo.*') ?: [] as $existingFile) {
+            if (is_file($existingFile) && basename($existingFile) !== basename($destination)) {
+                File::delete($existingFile);
+            }
+        }
+
+        if (is_file($destination)) {
+            File::delete($destination);
+        }
+
+        $upload->moveTo($destination);
+
+        return $relativePath;
+    }
+
+    private function removeStoredLogo(): void
+    {
+        $directory = public_path('uploads/settings/interface');
+
+        if (!is_dir($directory)) {
+            return;
+        }
+
+        foreach (glob($directory . DIRECTORY_SEPARATOR . 'logo.*') ?: [] as $existingFile) {
+            if (is_file($existingFile)) {
+                File::delete($existingFile);
+            }
+        }
     }
 
     public function purgeCache(): ResponseInterface

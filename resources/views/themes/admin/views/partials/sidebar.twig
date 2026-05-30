@@ -1,14 +1,21 @@
 {% set currentPath = _current_path|default('') %}
 {% set is_admin = is_admin_user|default(false) %}
+{% set settings_ui = _settings.ui|default({}) %}
+{% set logo_value = settings_ui.logo_url|default('')|trim %}
+{% set logo_src = logo_value and not (logo_value starts with('http') or logo_value starts with('/')) ? '/' ~ logo_value : logo_value %}
 {% set section_header = 'px-3 py-2 text-[0.65rem] font-extrabold uppercase tracking-wider text-app-muted' %}
 
 <div class="grid gap-3">
   <!-- Mobile Close Button -->
   <div class="flex items-center justify-between lg:hidden">
     <div class="inline-flex items-center gap-3">
-      <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-app-border bg-app-accent/10 text-app-accent shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
-        {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-5 w-5' } only %}
-      </span>
+      {% if logo_src %}
+        <img src="{{ logo_src }}" alt="Admin logo" class="h-10 w-10 rounded-xl border border-app-border bg-app-surface object-contain p-1.5 shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
+      {% else %}
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-app-border bg-app-accent/10 text-app-accent shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
+          {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-5 w-5' } only %}
+        </span>
+      {% endif %}
       <div class="grid gap-0.5">
         <span class="text-[0.82rem] font-black uppercase tracking-[0.18em] text-app-text">MarwaPHP</span>
         <span class="text-xs text-app-muted">Console</span>
@@ -25,9 +32,13 @@
 
   <!-- Desktop Logo (hidden on mobile) -->
   <div class="hidden lg:inline-flex items-center gap-3">
-    <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-app-border bg-app-accent/10 text-app-accent shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
-      {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-5 w-5' } only %}
-    </span>
+    {% if logo_src %}
+      <img src="{{ logo_src }}" alt="Admin logo" class="h-10 w-10 rounded-xl border border-app-border bg-app-surface object-contain p-1.5 shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
+    {% else %}
+      <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-app-border bg-app-accent/10 text-app-accent shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
+        {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-5 w-5' } only %}
+      </span>
+    {% endif %}
     <div class="grid gap-0.5">
       <span class="text-[0.82rem] font-black uppercase tracking-[0.18em] text-app-text">MarwaPHP</span>
       <span class="text-xs text-app-muted">Operations console</span>

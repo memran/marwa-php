@@ -29,59 +29,111 @@ final class SettingsApplier
         $items['mail'] = $items['mail'] ?? [];
         $items['cache'] = $items['cache'] ?? [];
         $items['logger'] = $items['logger'] ?? [];
+        $items['logger']['storage'] = $items['logger']['storage'] ?? [];
         $items['security'] = $items['security'] ?? [];
+        $items['pagination'] = $items['pagination'] ?? [];
+        $items['system'] = $items['system'] ?? [];
 
-        $items['app']['name'] = $values['app']['name'] ?? ($items['app']['name'] ?? 'MarwaPHP');
-        $items['app']['debug'] = (bool) ($values['app']['debug'] ?? false);
-        $items['app']['env'] = $values['app']['env'] ?? env('APP_ENV', 'production');
-        $items['app']['timezone'] = $values['app']['timezone'] ?? env('TIMEZONE', 'UTC');
-        $items['app']['locale'] = $values['app']['locale'] ?? 'en';
-        $items['app']['maintenance_mode'] = (bool) ($values['app']['maintenance_mode'] ?? false);
+        $appName = (string) ($values['app']['name'] ?? ($items['app']['name'] ?? 'MarwaPHP'));
+        $appEnv = (string) ($values['app']['env'] ?? env('APP_ENV', 'production'));
+        $appDebug = (bool) ($values['app']['debug'] ?? ($items['app']['debug'] ?? false));
+        $appTimezone = (string) ($values['app']['timezone'] ?? env('TIMEZONE', 'UTC'));
+        $appLocale = (string) ($values['app']['locale'] ?? ($items['app']['locale'] ?? 'en'));
+        $maintenanceMode = (bool) ($values['app']['maintenance_mode'] ?? ($items['app']['maintenance_mode'] ?? false));
+        $themeFrontend = (string) ($values['ui']['theme'] ?? ($items['view']['activeTheme'] ?? 'default'));
+        $themeAdmin = (string) ($values['ui']['admin_theme'] ?? ($items['view']['adminTheme'] ?? 'admin'));
+        $logoUrl = (string) ($values['ui']['logo_url'] ?? ($items['ui']['logo_url'] ?? ''));
+        $smtpHost = (string) ($values['email']['smtp_host'] ?? ($items['mail']['smtp']['host'] ?? '127.0.0.1'));
+        $smtpPort = (int) ($values['email']['smtp_port'] ?? ($items['mail']['smtp']['port'] ?? 1025));
+        $smtpUser = $values['email']['smtp_user'] ?? ($items['mail']['smtp']['username'] ?? null);
+        $smtpPass = $values['email']['smtp_pass'] ?? ($items['mail']['smtp']['password'] ?? null);
+        $fromEmail = (string) ($values['email']['from_email'] ?? ($items['mail']['from']['address'] ?? 'no-reply@example.com'));
+        $fromName = (string) ($values['email']['from_name'] ?? ($items['mail']['from']['name'] ?? 'MarwaPHP'));
+        $cacheEnabled = (bool) ($values['cache']['enabled'] ?? ($items['cache']['enabled'] ?? true));
+        $cacheDriver = (string) ($values['cache']['driver'] ?? ($items['cache']['driver'] ?? 'memory'));
+        $logEnabled = (bool) ($values['logging']['enabled'] ?? ($items['logger']['enable'] ?? false));
+        $logLevel = (string) ($values['logging']['level'] ?? ($items['logger']['level'] ?? ($items['logger']['storage']['level'] ?? 'debug')));
+        $logRetentionDays = (int) ($values['logging']['retention_days'] ?? ($items['logger']['storage']['retention_days'] ?? 30));
+        $paginationLimit = (int) ($values['system']['pagination_limit'] ?? ($items['pagination']['default_per_page'] ?? 10));
+        $maxUploadSize = (string) ($values['system']['max_upload_size'] ?? ($items['system']['max_upload_size'] ?? '10M'));
+        $dateFormat = (string) ($values['system']['date_format'] ?? ($items['system']['date_format'] ?? 'Y-m-d'));
+        $timeFormat = (string) ($values['system']['time_format'] ?? ($items['system']['time_format'] ?? 'H:i'));
+        $passwordPolicy = (string) ($values['security']['password_policy'] ?? ($items['security']['password_policy'] ?? ''));
+        $loginAttemptLimit = (int) ($values['security']['login_attempt_limit'] ?? ($items['security']['login_attempt_limit'] ?? 5));
+        $twoFactorEnabled = (bool) ($values['security']['2fa_enabled'] ?? ($items['security']['2fa_enabled'] ?? false));
 
-        $items['view']['activeTheme'] = $values['ui']['theme'] ?? ($items['view']['activeTheme'] ?? 'default');
-        $items['view']['adminTheme'] = $values['ui']['admin_theme'] ?? ($items['view']['adminTheme'] ?? 'admin');
-        $items['mail']['smtp']['host'] = $values['email']['smtp_host'] ?? ($items['mail']['smtp']['host'] ?? '127.0.0.1');
-        $items['mail']['smtp']['port'] = $values['email']['smtp_port'] ?? ($items['mail']['smtp']['port'] ?? 1025);
-        $items['mail']['smtp']['username'] = $values['email']['smtp_user'] ?? ($items['mail']['smtp']['username'] ?? null);
-        $items['mail']['smtp']['password'] = $values['email']['smtp_pass'] ?? ($items['mail']['smtp']['password'] ?? null);
-        $items['mail']['from']['address'] = $values['email']['from_email'] ?? ($items['mail']['from']['address'] ?? 'no-reply@example.com');
-        $items['mail']['from']['name'] = $values['email']['from_name'] ?? ($items['mail']['from']['name'] ?? 'MarwaPHP');
-        $items['cache']['enabled'] = (bool) ($values['cache']['enabled'] ?? ($items['cache']['enabled'] ?? true));
-        $items['cache']['driver'] = $values['cache']['driver'] ?? ($items['cache']['driver'] ?? 'memory');
-        $items['logger']['enable'] = (bool) ($values['logging']['enabled'] ?? ($items['logger']['enable'] ?? false));
-        $items['logger']['level'] = $values['logging']['level'] ?? ($items['logger']['level'] ?? ($items['logger']['storage']['level'] ?? 'debug'));
-        $items['logger']['storage']['level'] = $items['logger']['level'];
-        $items['logger']['storage']['retention_days'] = (int) ($values['logging']['retention_days'] ?? ($items['logger']['storage']['retention_days'] ?? 30));
-        $items['pagination']['default_per_page'] = (int) ($values['system']['pagination_limit'] ?? 10);
-        $items['system']['max_upload_size'] = $values['system']['max_upload_size'] ?? ($items['system']['max_upload_size'] ?? '10M');
-        $items['system']['date_format'] = $values['system']['date_format'] ?? ($items['system']['date_format'] ?? 'Y-m-d');
-        $items['system']['time_format'] = $values['system']['time_format'] ?? ($items['system']['time_format'] ?? 'H:i');
-        $items['security']['password_policy'] = $values['security']['password_policy'] ?? ($items['security']['password_policy'] ?? '');
-        $items['security']['login_attempt_limit'] = (int) ($values['security']['login_attempt_limit'] ?? ($items['security']['login_attempt_limit'] ?? 5));
-        $items['security']['2fa_enabled'] = (bool) ($values['security']['2fa_enabled'] ?? ($items['security']['2fa_enabled'] ?? false));
-        $items['error']['appName'] = $items['app']['name'];
-        $items['error']['environment'] = $items['app']['env'];
-        $items['view']['debug'] = $items['app']['debug'];
-        $items['settings']['lifecycle']['pagination']['default_per_page'] = $items['pagination']['default_per_page'];
-        $items['settings']['lifecycle']['system']['pagination_limit'] = $items['pagination']['default_per_page'];
-        $items['settings']['lifecycle']['system']['max_upload_size'] = $items['system']['max_upload_size'];
-        $items['settings']['lifecycle']['system']['date_format'] = $items['system']['date_format'];
-        $items['settings']['lifecycle']['system']['time_format'] = $items['system']['time_format'];
-        $items['settings']['lifecycle']['app']['name'] = $items['app']['name'];
-        $items['settings']['lifecycle']['app']['env'] = $items['app']['env'];
-        $items['settings']['lifecycle']['app']['debug'] = $items['app']['debug'];
-        $items['settings']['lifecycle']['app']['timezone'] = $items['app']['timezone'];
-        $items['settings']['lifecycle']['app']['maintenance_mode'] = $items['app']['maintenance_mode'];
-        $items['settings']['lifecycle']['security']['password_policy'] = $items['security']['password_policy'];
-        $items['settings']['lifecycle']['security']['login_attempt_limit'] = $items['security']['login_attempt_limit'];
-        $items['settings']['lifecycle']['security']['two_factor_enabled'] = $items['security']['2fa_enabled'];
-        $items['settings']['lifecycle']['theme']['frontend'] = $items['view']['activeTheme'];
-        $items['settings']['lifecycle']['theme']['admin'] = $items['view']['adminTheme'];
-        $items['settings']['lifecycle']['logging']['enabled'] = $items['logger']['enable'];
-        $items['settings']['lifecycle']['logging']['level'] = $items['logger']['level'];
-        $items['settings']['lifecycle']['logging']['retention_days'] = $items['logger']['storage']['retention_days'];
-        $items['settings']['lifecycle']['cache']['enabled'] = $items['cache']['enabled'];
-        $items['settings']['lifecycle']['cache']['driver'] = $items['cache']['driver'];
+        $items['app'] = [
+            'name' => $appName,
+            'debug' => $appDebug,
+            'env' => $appEnv,
+            'timezone' => $appTimezone,
+            'locale' => $appLocale,
+            'maintenance_mode' => $maintenanceMode,
+        ];
+        $items['view']['activeTheme'] = $themeFrontend;
+        $items['view']['adminTheme'] = $themeAdmin;
+        $items['view']['debug'] = $appDebug;
+        $items['ui']['logo_url'] = $logoUrl;
+        $items['mail']['smtp']['host'] = $smtpHost;
+        $items['mail']['smtp']['port'] = $smtpPort;
+        $items['mail']['smtp']['username'] = $smtpUser;
+        $items['mail']['smtp']['password'] = $smtpPass;
+        $items['mail']['from']['address'] = $fromEmail;
+        $items['mail']['from']['name'] = $fromName;
+        $items['cache']['enabled'] = $cacheEnabled;
+        $items['cache']['driver'] = $cacheDriver;
+        $items['logger']['enable'] = $logEnabled;
+        $items['logger']['level'] = $logLevel;
+        $items['logger']['storage']['level'] = $logLevel;
+        $items['logger']['storage']['retention_days'] = $logRetentionDays;
+        $items['pagination']['default_per_page'] = $paginationLimit;
+        $items['system']['max_upload_size'] = $maxUploadSize;
+        $items['system']['date_format'] = $dateFormat;
+        $items['system']['time_format'] = $timeFormat;
+        $items['security']['password_policy'] = $passwordPolicy;
+        $items['security']['login_attempt_limit'] = $loginAttemptLimit;
+        $items['security']['2fa_enabled'] = $twoFactorEnabled;
+        $items['error']['appName'] = $appName;
+        $items['error']['environment'] = $appEnv;
+        $items['settings']['lifecycle'] = [
+            'pagination' => [
+                'default_per_page' => $paginationLimit,
+            ],
+            'system' => [
+                'pagination_limit' => $paginationLimit,
+                'max_upload_size' => $maxUploadSize,
+                'date_format' => $dateFormat,
+                'time_format' => $timeFormat,
+            ],
+            'app' => [
+                'name' => $appName,
+                'env' => $appEnv,
+                'debug' => $appDebug,
+                'timezone' => $appTimezone,
+                'maintenance_mode' => $maintenanceMode,
+            ],
+            'security' => [
+                'password_policy' => $passwordPolicy,
+                'login_attempt_limit' => $loginAttemptLimit,
+                'two_factor_enabled' => $twoFactorEnabled,
+            ],
+            'theme' => [
+                'frontend' => $themeFrontend,
+                'admin' => $themeAdmin,
+            ],
+            'ui' => [
+                'logo_url' => $logoUrl,
+            ],
+            'logging' => [
+                'enabled' => $logEnabled,
+                'level' => $logLevel,
+                'retention_days' => $logRetentionDays,
+            ],
+            'cache' => [
+                'enabled' => $cacheEnabled,
+                'driver' => $cacheDriver,
+            ],
+        ];
 
         $this->config->prime($items);
 
