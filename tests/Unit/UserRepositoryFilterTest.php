@@ -6,7 +6,10 @@ namespace Tests\Unit;
 
 use App\Modules\Users\Models\User;
 use App\Modules\Users\Support\UserActivityService;
+use App\Modules\Users\Support\UserAdminGuard;
+use App\Modules\Users\Support\UserListing;
 use App\Modules\Users\Support\UserRepository;
+use App\Modules\Users\Support\UserStatus;
 use App\Support\AdminSearch;
 use Marwa\DB\Connection\ConnectionManager;
 use Marwa\Framework\Application;
@@ -143,11 +146,11 @@ INSERT INTO users (name, email, password, role_id, is_active, last_login_at, del
 ('Trashed Staff', 'trashed@example.test', 'hash', 2, 1, NULL, datetime('now'), datetime('now'), datetime('now'))
 SQL);
 
-        $repository = new UserRepository(new AdminSearch(), new UserActivityService());
+        $listing = new UserListing(new AdminSearch());
 
-        self::assertCount(3, $repository->paginatedUsers('', 1, 10, 'all')['data']);
-        self::assertSame('active@example.test', (string) $repository->paginatedUsers('', 1, 10, 'active')['data'][0]->getAttribute('email'));
-        self::assertSame('disabled@example.test', (string) $repository->paginatedUsers('', 1, 10, 'disabled')['data'][0]->getAttribute('email'));
-        self::assertSame('trashed@example.test', (string) $repository->paginatedUsers('', 1, 10, 'trashed')['data'][0]->getAttribute('email'));
+        self::assertCount(3, $listing->paginatedUsers('', 1, 10, UserStatus::All)['data']);
+        self::assertSame('active@example.test', (string) $listing->paginatedUsers('', 1, 10, UserStatus::Active)['data'][0]->getAttribute('email'));
+        self::assertSame('disabled@example.test', (string) $listing->paginatedUsers('', 1, 10, UserStatus::Disabled)['data'][0]->getAttribute('email'));
+        self::assertSame('trashed@example.test', (string) $listing->paginatedUsers('', 1, 10, UserStatus::Trashed)['data'][0]->getAttribute('email'));
     }
 }

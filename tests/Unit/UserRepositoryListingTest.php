@@ -6,7 +6,10 @@ namespace Tests\Unit;
 
 use App\Modules\Activity\Support\ActivityRecorder;
 use App\Modules\Users\Support\UserActivityService;
+use App\Modules\Users\Support\UserAdminGuard;
+use App\Modules\Users\Support\UserListing;
 use App\Modules\Users\Support\UserRepository;
+use App\Modules\Users\Support\UserStatus;
 use App\Support\AdminSearch;
 use Marwa\DB\Connection\ConnectionManager;
 use Marwa\Framework\Application;
@@ -142,16 +145,16 @@ INSERT INTO users (name, email, password, role_id, is_active, last_login_at, del
 ('Trashed User', 'trashed@example.test', 'hash', 1, 1, NULL, datetime('now'), datetime('now'), datetime('now'))
 SQL);
 
-        $repository = new UserRepository(new AdminSearch(), new UserActivityService());
+        $listing = new UserListing(new AdminSearch());
 
-        $result = $repository->paginatedUsers('', 1, 10, 'all', 'name', 'asc');
+        $result = $listing->paginatedUsers('', 1, 10, UserStatus::All, 'name', 'asc');
 
         self::assertSame(['Alpha User', 'Beta User', 'Trashed User'], array_map(
             static fn ($user): string => (string) $user->getAttribute('name'),
             $result['data']
         ));
 
-        $active = $repository->paginatedUsers('', 1, 10, 'active', 'name', 'asc');
+        $active = $listing->paginatedUsers('', 1, 10, UserStatus::Active, 'name', 'asc');
         self::assertSame(['Beta User'], array_map(
             static fn ($user): string => (string) $user->getAttribute('name'),
             $active['data']

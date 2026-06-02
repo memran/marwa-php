@@ -38,14 +38,41 @@ final class User extends Model implements PermissionAwareUser
         return strtolower(trim($email));
     }
 
-    public static function findByEmailIncludingTrashed(string $email): ?static
-    {
-        return self::findByAttribute(self::normalizeEmail($email), 'email', true);
-    }
-
     public static function findBy(string $column, mixed $value): ?static
     {
-        return self::findByAttribute($value, $column);
+        if ($value === null) {
+            return null;
+        }
+
+        $row = static::applySoftDeleteFilter(static::baseQuery())
+            ->where($column, '=', $value)
+            ->first();
+
+        if ($row === null) {
+            return null;
+        }
+
+        $data = is_array($row) ? $row : (array) $row;
+
+        return new self($data, true);
+    }
+
+    public static function findByEmailIncludingTrashed(string $email): ?static
+    {
+        $email = self::normalizeEmail($email);
+        if ($email === '') {
+            return null;
+        }
+
+        $row = self::baseQuery()->where('email', '=', $email)->first();
+
+        if ($row === null) {
+            return null;
+        }
+
+        $data = is_array($row) ? $row : (array) $row;
+
+        return new self($data, true);
     }
 
     public function roleRelation(): BelongsTo
@@ -141,27 +168,5 @@ final class User extends Model implements PermissionAwareUser
     public function hasRole(string $role): bool
     {
         return in_array($role, $this->getRoles(), true);
-    }
-
-    private static function findByAttribute(mixed $value, string $column, bool $includeTrashed = false): ?static
-    {
-        $users = $includeTrashed
-            ? self::withTrashed()->all()
-            : self::all();
-
-        $needle = self::normalizeLookupValue($value);
-
-        foreach ($users as $user) {
-            if (self::normalizeLookupValue($user->getAttribute($column)) === $needle) {
-                return $user;
-            }
-        }
-
-        return null;
-    }
-
-    private static function normalizeLookupValue(mixed $value): string
-    {
-        return is_bool($value) ? ((int) $value === 1 ? '1' : '0') : trim((string) $value);
     }
 }

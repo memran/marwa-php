@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use App\Modules\Users\Support\UserActivityPayloads;
 use App\Modules\Users\Support\UserActivityService;
+use App\Modules\Users\Support\UserActivityState;
+use App\Modules\Users\Support\UserAdminGuard;
 use App\Modules\Users\Support\UserRepository;
 use App\Support\AdminSearch;
 use Marwa\DB\Connection\ConnectionManager;
@@ -140,7 +143,10 @@ INSERT INTO users (name, email, password, role_id, is_active, last_login_at, del
 ('Trashed User', 'trashed@example.test', 'hash', 1, 1, NULL, datetime('now'), datetime('now'), datetime('now'))
 SQL);
 
-        $repository = new UserRepository(new AdminSearch(), new UserActivityService());
+        $repository = new UserRepository(
+            new UserActivityService(new UserActivityPayloads(new UserActivityState()), new UserActivityState()),
+            new UserAdminGuard()
+        );
 
         $users = $repository->usersByIds([1, 1, 2, 999]);
 

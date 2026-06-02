@@ -4,81 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Users\Support;
 
-use App\Modules\Auth\Models\Role;
-use App\Modules\Auth\Support\AuthManager;
-use App\Support\AdminSearch;
 use App\Modules\Users\Models\User;
 use Marwa\Support\Arr;
 
 final class UserRepository
 {
-    private ?int $adminRoleId = null;
-
     public function __construct(
-        private readonly AdminSearch $search,
         private readonly UserActivityService $activity,
+        private readonly UserAdminGuard $adminGuard,
     ) {}
-
-    private function adminRoleId(): ?int
-    {
-        if ($this->adminRoleId !== null) {
-            return $this->adminRoleId;
-        }
-
-        $role = Role::findBySlug('admin');
-
-        return $this->adminRoleId = $role === null ? null : (int) $role->getKey();
-    }
-
-    /**
-     * @return array{data:list<User>,total:int,per_page:int,current_page:int,last_page:int}
-     */
-    public function paginatedUsers(
-        string $query,
-        int $page,
-        ?int $perPage = null,
-        string $status = 'all',
-        string $sort = 'created_at',
-        string $direction = 'desc'
-    ): array
-    {
-        $page = max(1, $page);
-        $perPage = max(1, (int) ($perPage ?? config('settings.lifecycle.pagination.default_per_page', config('pagination.default_per_page', 10))));
-        $builder = $this->buildListingBuilder($query, $status, $sort, $direction);
-        $pageData = $builder->paginate($perPage, $page);
-        $pageData['data'] = $this->hydrateUsers($pageData['data']);
-
-        return $pageData;
-    }
-
-    /**
-     * @return list<User>
-     */
-    public function listUsers(
-        string $query,
-        string $status = 'all',
-        string $sort = 'created_at',
-        string $direction = 'desc'
-    ): array {
-        return $this->hydrateUsers($this->buildListingBuilder($query, $status, $sort, $direction)->get());
-    }
-
-    public function protectedAdminId(): int|string|null
-    {
-        $adminRoleId = $this->adminRoleId();
-        if ($adminRoleId === null) {
-            return null;
-        }
-
-        $users = User::where('role_id', '=', $adminRoleId)
-            ->whereNull('deleted_at');
-
-        if ($users->count() !== 1) {
-            return null;
-        }
-
-        return $users->first()?->getKey();
-    }
 
     /**
      * @param array<string, mixed> $vars
@@ -104,22 +38,7 @@ final class UserRepository
      */
     public function usersByIds(array $ids): array
     {
-        $normalized = [];
-
-        foreach ($ids as $id) {
-            if (!is_numeric($id)) {
-                continue;
-            }
-
-            $id = (int) $id;
-            if ($id <= 0 || in_array($id, $normalized, true)) {
-                continue;
-            }
-
-            $normalized[] = $id;
-        }
-
-        $ids = $normalized;
+        $ids = $this->normalizeIds($ids);
 
         if ($ids === []) {
             return [];
@@ -132,21 +51,24 @@ final class UserRepository
         return array_values(array_filter($users, static fn ($user): bool => $user instanceof User));
     }
 
-    public function isLastAdminUser(User $user): bool
+    /**
+     * @param list<int|string> $ids
+     * @return list<int>
+     */
+    private function normalizeIds(array $ids): array
     {
-        $role = $user->role();
-        if ($role === null || $role->getAttribute('slug') !== 'admin') {
-            return false;
+        $normalized = [];
+
+        foreach ($ids as $id) {
+            if (is_numeric($id)) {
+                $id = (int) $id;
+                if ($id > 0 && !in_array($id, $normalized, true)) {
+                    $normalized[] = $id;
+                }
+            }
         }
 
-        $adminRoleId = $this->adminRoleId();
-        if ($adminRoleId === null) {
-            return false;
-        }
-
-        return User::where('role_id', '=', $adminRoleId)
-            ->whereNull('deleted_at')
-            ->count() <= 1;
+        return $normalized;
     }
 
     public function findDuplicateUserByEmail(string $email, ?int $ignoreId = null): ?User
@@ -182,23 +104,21 @@ final class UserRepository
     /**
      * @param array{name:string,email:string,role_id:int,is_active:int} $afterState
      */
-    public function createUser(array $afterState, string $password, ?User $actor = null): User
+    public function createUser(array $afterState, string $password): User
     {
-        $user = User::create([
+        return User::create([
             'name' => $afterState['name'],
             'email' => User::normalizeEmail($afterState['email']),
             'role_id' => $afterState['role_id'],
             'is_active' => $afterState['is_active'],
             'password' => password_hash($password, PASSWORD_DEFAULT),
         ]);
-
-        return $user;
     }
 
     /**
      * @param array{name:string,email:string,role_id:int,is_active:int} $afterState
      */
-    public function updateUser(User $user, array $afterState, ?string $password = null, ?User $actor = null): void
+    public function updateUser(User $user, array $afterState, ?string $password = null): void
     {
         $payload = $afterState;
 
@@ -212,18 +132,14 @@ final class UserRepository
         $user->refresh();
     }
 
-    public function deleteUser(User $user, ?User $actor = null): void
+    public function deleteUser(User $user): void
     {
         $user->deleteOrFail();
     }
 
-    public function restoreUser(User $user, ?User $actor = null): bool
+    public function restoreUser(User $user): bool
     {
-        if (!$user->restore()) {
-            return false;
-        }
-
-        return true;
+        return $user->restore();
     }
 
     /**
@@ -243,96 +159,29 @@ final class UserRepository
         return $this->activity->userStateHasChanges($before, $after);
     }
 
-    public function isSelfProtectedAdmin(User $user, array $afterState, AuthManager $auth): bool
+    public function isLastAdminUser(User $user): bool
     {
-        $currentUser = $auth->user();
-        $currentEmail = $currentUser instanceof User
-            ? User::normalizeEmail((string) $currentUser->getAttribute('email'))
-            : '';
-        $targetEmail = User::normalizeEmail((string) $user->getAttribute('email'));
-
-        return $currentEmail !== ''
-            && $currentEmail === $targetEmail
-            && $this->isLastAdminUser($user)
-            && $afterState['is_active'] === 0;
+        return $this->adminGuard->isLastAdminUser($user);
     }
 
-    public function isActiveSessionUser(User $user, AuthManager $auth): bool
+    public function protectedAdminId(): int|string|null
     {
-        $currentUser = $auth->user();
-
-        if (!$currentUser instanceof User) {
-            return false;
-        }
-
-        $currentEmail = User::normalizeEmail((string) $currentUser->getAttribute('email'));
-        $targetEmail = User::normalizeEmail((string) $user->getAttribute('email'));
-
-        return ($currentEmail !== '' && $currentEmail === $targetEmail)
-            || $currentUser->getKey() === $user->getKey();
-    }
-
-    private function applyStatusFilter(object $builder, string $status): void
-    {
-        if ($status === 'active') {
-            $builder->whereNull('deleted_at')->where('is_active', '=', 1);
-            return;
-        }
-
-        if ($status === 'disabled') {
-            $builder->whereNull('deleted_at')->where('is_active', '=', 0);
-            return;
-        }
-
-        if ($status === 'trashed') {
-            $builder->whereNotNull('deleted_at');
-        }
-    }
-
-    private function applySort(object $builder, string $sort, string $direction): void
-    {
-        $column = match ($sort) {
-            'name' => 'name',
-            'email' => 'email',
-            'role' => 'role_id',
-            'last_login' => 'last_login_at',
-            default => 'created_at',
-        };
-
-        $builder->orderBy($column, $direction);
-    }
-
-    private function buildListingBuilder(string $query, string $status, string $sort, string $direction): object
-    {
-        $builder = User::newQuery()->getBaseBuilder();
-        $query = trim($query);
-        $status = trim($status);
-        $sort = trim($sort);
-        $direction = strtolower(trim($direction)) === 'asc' ? 'asc' : 'desc';
-
-        $this->search->applyLikeFilters($builder, $query, ['name', 'email']);
-        $this->applyStatusFilter($builder, $status);
-        $this->applySort($builder, $sort, $direction);
-
-        return $builder;
+        return $this->adminGuard->protectedAdminId();
     }
 
     /**
-     * @param array<int, array<string, mixed>|object> $rows
-     * @return list<User>
+     * @param array{name:string,email:string,role_id:int,is_active:int} $afterState
      */
-    private function hydrateUsers(array $rows): array
-    {
-        $users = array_map(
-            static fn (array|object $row): User => User::newInstance(is_array($row) ? $row : (array) $row, true),
-            $rows
-        );
-
-        if ($users !== []) {
-            $users[0]->roleRelation()->eagerLoad($users, 'roleRelation');
-        }
-
-        return $users;
+    public function isSelfProtectedAdmin(
+        User $user,
+        array $afterState,
+        \App\Modules\Auth\Support\AuthManager $auth
+    ): bool {
+        return $this->adminGuard->isSelfProtectedAdmin($user, $afterState, $auth);
     }
 
+    public function isActiveSessionUser(User $user, \App\Modules\Auth\Support\AuthManager $auth): bool
+    {
+        return $this->adminGuard->isActiveSessionUser($user, $auth);
+    }
 }

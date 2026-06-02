@@ -4,24 +4,23 @@ declare(strict_types=1);
 
 namespace App\Modules\Users\Support;
 
-use App\Modules\Auth\Models\Role;
+use App\Modules\Activity\Support\ActivityRecorder;
 use App\Modules\Users\Models\User;
 
 final class UserActivityService
 {
+    public function __construct(
+        private readonly UserActivityPayloads $payloads,
+        private readonly UserActivityState $state,
+        private readonly ?ActivityRecorder $recorder = null,
+    ) {}
+
     /**
-     * @return array{name: string, email: string, role_id: int|null, role_name: string, is_active: int}
+     * @return array{name: string, email: string, role: string, is_active: int}
      */
     public function userSnapshot(User $user): array
     {
-        $role = $user->role();
-        return [
-            'name' => trim((string) $user->getAttribute('name')),
-            'email' => trim((string) $user->getAttribute('email')),
-            'role_id' => $role !== null ? (int) $role->getKey() : null,
-            'role_name' => $role !== null ? (string) $role->getAttribute('name') : '',
-            'is_active' => (int) (bool) $user->getAttribute('is_active'),
-        ];
+        return $this->state->userSnapshot($user);
     }
 
     /**
@@ -30,211 +29,58 @@ final class UserActivityService
      */
     public function userStateHasChanges(array $before, array $after): bool
     {
-        return $before !== $after;
+        return $this->state->userStateHasChanges($before, $after);
+    }
+
+    public function recordCreated(User $user, array $afterState, ?User $actor): void
+    {
+        $this->dispatch($this->payloads->createdPayload($user, $afterState), $actor);
+    }
+
+    public function recordUpdated(
+        User $user,
+        array $beforeState,
+        array $afterState,
+        bool $passwordChanged,
+        ?User $actor
+    ): void {
+        $this->dispatch(
+            $this->payloads->updatedPayload($user, $beforeState, $afterState, $passwordChanged),
+            $actor
+        );
+    }
+
+    public function recordStatusChanged(User $user, array $beforeState, array $afterState, ?User $actor): void
+    {
+        $this->dispatch($this->payloads->statusChangedPayload($user, $beforeState, $afterState), $actor);
+    }
+
+    public function recordDeleted(User $user, ?User $actor): void
+    {
+        $this->dispatch($this->payloads->deletedPayload($user), $actor);
+    }
+
+    public function recordRestored(User $user, ?User $actor): void
+    {
+        $this->dispatch($this->payloads->restoredPayload($user), $actor);
     }
 
     /**
-     * @param array{name: string, email: string, role_id: int|null, role_name: string, is_active: int} $state
-     * @return array<string, string>
+     * @param array{action:string,description:string,subjectType:string,subjectId:int,details:array<string,mixed>} $payload
      */
-    public function userReadableState(array $state): array
+    private function dispatch(array $payload, ?User $actor): void
     {
-        return [
-            'Name' => $state['name'] !== '' ? $state['name'] : 'Unknown',
-            'Email' => $state['email'] !== '' ? $state['email'] : 'Unknown',
-            'Role' => $state['role_name'] !== '' ? $state['role_name'] : 'Unknown',
-            'Status' => $state['is_active'] === 1 ? 'Active' : 'Disabled',
-        ];
-    }
-
-    /**
-     * @param array{name: string, email: string, role_id: int|null, role_name: string, is_active: int} $before
-     * @param array{name: string, email: string, role_id: int|null, role_name: string, is_active: int} $after
-     * @return array<string, array{before: string, after: string}>
-     */
-    public function userChanges(array $before, array $after, bool $passwordChanged): array
-    {
-        $changes = [];
-
-        foreach (['name', 'email', 'role_name', 'is_active'] as $field) {
-            if ($before[$field] !== $after[$field]) {
-                $changes[$this->fieldLabel($field)] = [
-                    'before' => $this->fieldValue($field, $before[$field]),
-                    'after' => $this->fieldValue($field, $after[$field]),
-                ];
-            }
+        if ($this->recorder === null) {
+            return;
         }
 
-        if ($passwordChanged) {
-            $changes['Password'] = [
-                'before' => 'Unchanged',
-                'after' => 'Updated',
-            ];
-        }
-
-        return $changes;
+        $this->recorder->recordActorAction(
+            $payload['action'],
+            $payload['description'],
+            $actor,
+            $payload['subjectType'],
+            $payload['subjectId'],
+            $payload['details']
+        );
     }
-
-    /**
-     * @param array{name: string, email: string, role_id: int|null, role_name: string, is_active: int} $before
-     * @param array{name: string, email: string, role_id: int|null, role_name: string, is_active: int} $after
-     */
-    public function userUpdateSummary(array $before, array $after, bool $passwordChanged): string
-    {
-        $labels = array_keys($this->userChanges($before, $after, $passwordChanged));
-
-        if ($labels === []) {
-            return 'No fields changed.';
-        }
-
-        return 'Changed fields: ' . implode(', ', $labels) . '.';
-    }
-
-    /**
-     * @param array{name:string,email:string,role_id:int,is_active:int} $afterState
-     * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
-     */
-    public function createdPayload(User $user, array $afterState): array
-    {
-        return [
-            'action' => 'user.created',
-            'description' => 'Created user ' . $afterState['email'] . '.',
-            'subjectType' => User::class,
-            'subjectId' => (int) $user->getKey(),
-            'details' => [
-                'summary' => 'Created user account.',
-                'changes' => [
-                    'name' => ['before' => null, 'after' => $afterState['name']],
-                    'email' => ['before' => null, 'after' => $afterState['email']],
-                    'role' => ['before' => null, 'after' => Role::nameForId($afterState['role_id'])],
-                    'status' => ['before' => null, 'after' => $afterState['is_active'] === 1 ? 'active' : 'disabled'],
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * @param array{name:string,email:string,role_id:int,is_active:int} $beforeState
-     * @param array{name:string,email:string,role_id:int,is_active:int} $afterState
-     * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
-     */
-    public function updatedPayload(User $user, array $beforeState, array $afterState, bool $passwordChanged): array
-    {
-        $before = [
-            'name' => $beforeState['name'],
-            'email' => $beforeState['email'],
-            'role_id' => $beforeState['role_id'] ?? null,
-            'role_name' => Role::nameForId($beforeState['role_id'] ?? null, false),
-            'is_active' => $beforeState['is_active'],
-        ];
-
-        $after = [
-            'name' => $afterState['name'],
-            'email' => $afterState['email'],
-            'role_id' => $afterState['role_id'],
-            'role_name' => Role::nameForId($afterState['role_id'], false),
-            'is_active' => $afterState['is_active'],
-        ];
-
-        return [
-            'action' => 'user.updated',
-            'description' => 'Updated user ' . $afterState['email'] . '.',
-            'subjectType' => User::class,
-            'subjectId' => (int) $user->getKey(),
-            'details' => [
-                'summary' => $this->userUpdateSummary($before, $after, $passwordChanged),
-                'changes' => $this->userChanges($before, $after, $passwordChanged),
-                'before' => $this->userReadableState($before),
-                'after' => $this->userReadableState($after),
-            ],
-        ];
-    }
-
-    /**
-     * @param array{name:string,email:string,role_id:int,is_active:int} $beforeState
-     * @param array{name:string,email:string,role_id:int,is_active:int} $afterState
-     * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
-     */
-    public function statusChangedPayload(User $user, array $beforeState, array $afterState): array
-    {
-        $afterStatus = $afterState['is_active'] === 1 ? 'Active' : 'Disabled';
-        $beforeStatus = $beforeState['is_active'] === 1 ? 'Active' : 'Disabled';
-
-        $action = $afterState['is_active'] === 1 ? 'user.enabled' : 'user.disabled';
-        $verb = $afterState['is_active'] === 1 ? 'Enabled' : 'Disabled';
-
-        return [
-            'action' => $action,
-            'description' => $verb . ' user ' . $afterState['email'] . '.',
-            'subjectType' => User::class,
-            'subjectId' => (int) $user->getKey(),
-            'details' => [
-                'summary' => $verb . ' user account.',
-                'changes' => [
-                    'Status' => [
-                        'before' => $beforeStatus,
-                        'after' => $afterStatus,
-                    ],
-                ],
-                'before' => [
-                    'Status' => $beforeStatus,
-                ],
-                'after' => [
-                    'Status' => $afterStatus,
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
-     */
-    public function deletedPayload(User $user): array
-    {
-        return $this->payload($user, 'user.deleted', 'Deleted user ' . (string) $user->getAttribute('email') . '.', [
-            'summary' => 'Soft deleted user account.',
-            'state' => $this->userReadableState($this->userSnapshot($user)),
-        ]);
-    }
-
-    /**
-     * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
-     */
-    public function restoredPayload(User $user): array
-    {
-        return $this->payload($user, 'user.restored', 'Restored user ' . (string) $user->getAttribute('email') . '.', [
-            'summary' => 'Restored user account.',
-            'state' => $this->userReadableState($this->userSnapshot($user)),
-        ]);
-    }
-
-    /**
-     * @param array<string, mixed> $details
-     * @return array{action:string,description:string,subjectType:class-string<User>,subjectId:int,details:array<string,mixed>}
-     */
-    private function payload(User $user, string $action, string $description, array $details): array
-    {
-        return [
-            'action' => $action,
-            'description' => $description,
-            'subjectType' => User::class,
-            'subjectId' => (int) $user->getKey(),
-            'details' => $details,
-        ];
-    }
-
-    private function fieldLabel(string $field): string
-    {
-        return $field === 'is_active' ? 'Status' : ucfirst($field);
-    }
-
-    private function fieldValue(string $field, mixed $value): string
-    {
-        if ($field === 'is_active') {
-            return (int) $value === 1 ? 'Active' : 'Disabled';
-        }
-
-        return (string) $value;
-    }
-
 }

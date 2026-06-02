@@ -150,33 +150,26 @@ SQL);
             ],
             []
         ));
-        $actor = User::newInstance([
-            'id' => 999,
-            'name' => 'Administrator',
-            'email' => 'admin@marwa.test',
-            'role_id' => 1,
-            'is_active' => true,
-        ], false);
 
         $created = $users->createUser([
             'name' => 'Operations Lead',
             'email' => 'ops@example.test',
             'role_id' => 2,
             'is_active' => 1,
-        ], 'Secret123!', $actor);
+        ], 'Secret123!');
 
         $users->updateUser($created, [
             'name' => 'Operations Manager',
             'email' => 'ops@example.test',
             'role_id' => 3,
             'is_active' => 0,
-        ], null, $actor);
+        ], null);
 
-        $users->deleteUser($created, $actor);
+        $users->deleteUser($created);
         $trashed = User::withTrashed()->find((int) $created->getKey());
 
         self::assertInstanceOf(User::class, $trashed);
-        self::assertTrue($users->restoreUser($trashed, $actor));
+        self::assertTrue($users->restoreUser($trashed));
         $restored = User::findBy('email', 'ops@example.test');
 
         self::assertInstanceOf(User::class, $restored);
