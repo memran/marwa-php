@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Activity\Http\Controllers;
 
 use App\Modules\Activity\Support\ActivityRecorder;
-use App\Support\AdminPagination;
 use App\Support\AdminListState;
+use App\Support\Pagination;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 
@@ -18,8 +18,8 @@ final class ActivityController extends Controller
         $recorder = app(ActivityRecorder::class);
         /** @var AdminListState $listState */
         $listState = app(AdminListState::class);
-        /** @var AdminPagination $pagination */
-        $pagination = app(AdminPagination::class);
+        /** @var Pagination $pagination */
+        $pagination = app(Pagination::class);
         $state = $listState->state();
         $activities = $recorder->paginated(
             $state['query'],

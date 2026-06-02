@@ -7,7 +7,7 @@ namespace App\Modules\Roles\Http\Controllers;
 use App\Modules\Auth\Support\PermissionRepository;
 use App\Modules\Roles\Support\PermissionFormData;
 use App\Support\AdminListState;
-use App\Support\AdminPagination;
+use App\Support\Pagination;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -16,7 +16,7 @@ final class PermissionsController extends Controller
 {
     public function __construct(
         private readonly AdminListState $listState,
-        private readonly AdminPagination $pagination,
+        private readonly Pagination $pagination,
     ) {}
 
     public function index(): ResponseInterface

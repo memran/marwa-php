@@ -5,17 +5,15 @@ declare(strict_types=1);
 return [
     'name' => 'Users Module',
     'slug' => 'users',
-    'version' => '1.0.0',
+    'version' => '2.0.0',
     'providers' => [
         App\Modules\Users\UsersServiceProvider::class,
     ],
     'requires' => [
         'auth',
-        'user-activity',
     ],
     'paths' => [
         'views' => 'resources/views',
-        'commands' => 'Console/Commands',
         'database/migrations' => 'database/migrations',
         'database/seeders' => 'database/seeders',
     ],
@@ -28,6 +26,6 @@ return [
         'database/migrations/2026_04_14_000001_add_role_id_to_users.php',
     ],
     'seeders' => [
-        'database/Seeders/AdminUserSeeder.php',
+        'database/seeders/AdminUserSeeder.php',
     ],
 ];

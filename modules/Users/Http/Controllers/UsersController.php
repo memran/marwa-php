@@ -6,19 +6,11 @@ namespace App\Modules\Users\Http\Controllers;
 
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Users\Models\User;
-use App\Support\AdminPagination;
 use App\Modules\Users\Support\UserFormData;
-use App\Modules\Users\Support\UserValidationRules;
 use App\Modules\Users\Support\UserRepository;
-use App\Modules\Users\Support\UserListing;
 use App\Modules\Users\Support\UserStatus;
-use App\Modules\Users\Support\UserActivityService;
-use App\Modules\Users\Support\UserBulkActions;
-use App\Modules\Users\Support\UserExportActions;
-use App\Modules\Users\Support\UserWriteActions;
-use App\Modules\Users\Support\UsersTableConfig;
-use App\Support\DataTable\DataTableRequestState;
-use App\Support\DataTable\DataTableView;
+use App\Support\AdminListState;
+use App\Support\Pagination;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -26,105 +18,109 @@ use Psr\Http\Message\ServerRequestInterface;
 final class UsersController extends Controller
 {
     public function __construct(
-        protected readonly UserRepository $users,
-        protected readonly UserListing $listing,
-        protected readonly UserFormData $forms,
-        protected readonly UserValidationRules $rules,
-        protected readonly AdminPagination $pagination,
-        protected readonly AuthManager $auth,
-        protected readonly UserActivityService $activity,
-        protected readonly DataTableRequestState $requestState,
-        protected readonly DataTableView $tableView,
-        protected readonly UsersTableConfig $tableConfig,
-        protected readonly UserBulkActions $bulk,
-        protected readonly UserWriteActions $write,
-        protected readonly UserExportActions $export,
-    ) {}
+        private readonly AuthManager $auth,
+        private readonly UserRepository $users,
+        private readonly UserFormData $forms,
+        private readonly AdminListState $listState,
+        private readonly Pagination $pagination,
+    ) {
+    }
 
-    public function index(): ResponseInterface
+    public function profile(): ResponseInterface
     {
-        $params = [
-            'q' => request('q', ''),
-            'status' => request('status', $this->tableConfig->defaultFilter()),
-            'sort' => request('sort', $this->tableConfig->defaultSort()),
-            'direction' => request('direction', $this->tableConfig->defaultDirection()),
-            'page' => request('page', 1),
-            'columns' => request('columns', []),
-        ];
-        $state = $this->requestState->resolve($params);
-        $status = UserStatus::tryFromFilter($state['filter']);
-        $visibleColumns = $this->tableView->normalizeVisibleColumns($this->tableConfig, $params['columns']);
-        $users = $this->listing->paginatedUsers(
-            $state['query'],
-            $state['page'],
-            null,
-            $status,
-            $state['sort'],
-            $state['direction']
-        );
-        $pagination = $this->buildIndexPagination($state, $visibleColumns, $users);
+        $currentUser = $this->auth->user();
 
-        return $this->view('@users/index', [
-            'table' => $this->tableView->build($this->tableConfig, $params, $users, $pagination),
+        return $this->view('@users/profile', [
+            'authUser' => $currentUser,
+            'roles' => $this->users->roles(),
         ]);
     }
 
-    /**
-     * @param array{query:string,filter:string,sort:string,direction:string,page:int} $state
-     * @param list<string> $visibleColumns
-     * @return array<string, mixed>
-     */
-    private function buildIndexPagination(array $state, array $visibleColumns, mixed $users): array
+    public function index(): ResponseInterface
     {
-        return $this->pagination->viewData($users, $this->tableConfig->basePath(), [
-            'q' => $state['query'],
-            'status' => $state['filter'],
-            'sort' => $state['sort'],
-            'direction' => $state['direction'],
-            'columns' => $visibleColumns,
+        $state = $this->listState->state('q', 'filter', 'sort', 'direction', 'page');
+        $status = UserStatus::tryFromFilter($state['filter']);
+        $normalizedState = array_replace($state, ['filter' => $status->value]);
+
+        $pageData = $this->users->paginatedUsers(
+            $state['query'],
+            $state['page'],
+            null,
+            $state['sort'],
+            $state['direction'],
+            $status
+        );
+
+        $pagination = $this->pagination->viewData(
+            $pageData,
+            '/admin/users',
+            $this->listState->paginationParams($normalizedState)
+        );
+
+        return $this->view('@users/index', [
+            'users' => $pageData['data'],
+            'query' => $normalizedState['query'],
+            'filter' => $normalizedState['filter'],
+            'sort' => $normalizedState['sort'],
+            'direction' => $normalizedState['direction'],
+            ...$this->protectedAdminViewData(),
+            'pagination' => $pagination,
         ]);
     }
 
     public function create(): ResponseInterface
     {
-        return $this->view('@users/form', $this->forms->formViewData([
+        return $this->view('@users/form', $this->sharedFormViewData([
             'mode' => 'create',
             'title' => 'Create user',
             'action' => '/admin/users',
             'submit_label' => 'Create user',
+            'user' => null,
         ]));
     }
 
-    public function store(): ResponseInterface
+    public function store(ServerRequestInterface $request): ResponseInterface
     {
-        $validated = $this->validate($this->rules->store());
+        $payload = $this->forms->payload($request);
+        $errors = $this->forms->validate($payload);
 
-        return $this->write->handleStore($validated);
+        if ($errors !== []) {
+            $this->withErrors($errors)->withInput($payload);
+
+            return $this->redirect('/admin/users/create');
+        }
+
+        $this->users->createUser($payload);
+        $this->flash('users.notice', 'User created successfully.');
+
+        return $this->redirect('/admin/users');
     }
 
     public function show(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        $user = $this->users->findUser($vars, true);
+        $id = (int) ($vars['id'] ?? 0);
+        $user = $this->findUser($id);
 
         if ($user === null) {
-            return $this->response('User not found.', 404);
+            return $this->redirectToUsers();
         }
 
-        return $this->view('@users/profile', [
+        return $this->view('@users/show', [
             'user' => $user,
-            'protected_admin_id' => $this->users->protectedAdminId(),
+            ...$this->protectedAdminViewData(),
         ]);
     }
 
     public function edit(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        $user = $this->users->findUser($vars);
+        $id = (int) ($vars['id'] ?? 0);
+        $user = $this->findUser($id);
 
         if ($user === null) {
-            return $this->response('User not found.', 404);
+            return $this->redirectToUsers();
         }
 
-        return $this->view('@users/form', $this->forms->formViewData([
+        return $this->view('@users/form', $this->sharedFormViewData([
             'mode' => 'edit',
             'title' => 'Edit user',
             'action' => '/admin/users/' . $user->getKey(),
@@ -135,77 +131,82 @@ final class UsersController extends Controller
 
     public function update(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        $user = $this->users->findUser($vars);
+        $id = (int) ($vars['id'] ?? 0);
+        $user = $this->findUser($id);
 
         if ($user === null) {
-            return $this->response('User not found.', 404);
+            return $this->redirectToUsers();
         }
 
-        $validated = $this->validate($this->rules->update(), [], [], $request);
+        $payload = $this->forms->payload($request);
+        $errors = $this->forms->validate($payload, $user);
 
-        return $this->write->handleUpdate($user, $validated);
+        if ($errors !== []) {
+            $this->withErrors($errors)->withInput($payload);
+
+            return $this->redirect('/admin/users/' . $id . '/edit');
+        }
+
+        $this->users->updateUser($user, $payload, $payload['password'] !== '' ? $payload['password'] : null);
+        $this->flash('users.notice', 'User updated successfully.');
+
+        return $this->redirect('/admin/users');
     }
 
-    public function restore(ServerRequestInterface $request, array $vars = []): ResponseInterface
+    public function destroy(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        $user = $this->users->findUser($vars, true);
+        $id = (int) ($vars['id'] ?? 0);
+        $user = $this->findUser($id);
 
         if ($user === null) {
-            return $this->response('User not found.', 404);
+            return $this->redirectToUsers();
         }
 
-        return $this->write->handleRestore($user);
-    }
+        if ($this->users->isLastAdminUser($user)) {
+            $this->flash('users.notice', 'The last admin user cannot be deleted.');
 
-    public function delete(ServerRequestInterface $request, array $vars = []): ResponseInterface
-    {
-        $user = $this->users->findUser($vars);
-
-        if ($user === null) {
-            return $this->response('User not found.', 404);
+            return $this->redirectToUsers();
         }
 
-        return $this->write->handleDelete($user);
-    }
+        $this->users->deleteUser($user);
+        $this->flash('users.notice', 'User deleted successfully.');
 
-    public function export(): ResponseInterface
-    {
-        return $this->export->exportCsv();
-    }
-
-    public function exportPdf(): ResponseInterface
-    {
-        return $this->export->exportPdf();
-    }
-
-    public function bulkDelete(): ResponseInterface
-    {
-        $params = $this->currentListParams();
-        $visibleColumns = $this->tableView->normalizeVisibleColumns($this->tableConfig, $params['columns']);
-
-        return $this->bulk->bulkDelete($params, $visibleColumns);
-    }
-
-    public function bulkStatus(): ResponseInterface
-    {
-        $params = $this->currentListParams();
-        $visibleColumns = $this->tableView->normalizeVisibleColumns($this->tableConfig, $params['columns']);
-
-        return $this->bulk->bulkStatus($params, $visibleColumns);
+        return $this->redirectToUsers();
     }
 
     /**
+     * @param array<string, mixed> $extra
      * @return array<string, mixed>
      */
-    private function currentListParams(): array
+    private function sharedFormViewData(array $extra): array
+    {
+        $oldInput = $this->session('_old_input', []);
+        $errors = $this->session('errors', []);
+
+        return $this->forms->formViewData(
+            $extra,
+            is_array($oldInput) ? $oldInput : [],
+            is_array($errors) ? $errors : []
+        );
+    }
+
+    private function findUser(int $id): ?User
+    {
+        return $this->users->findById($id);
+    }
+
+    private function redirectToUsers(): ResponseInterface
+    {
+        return $this->redirect('/admin/users');
+    }
+
+    /**
+     * @return array{protected_admin_id:?int}
+     */
+    private function protectedAdminViewData(): array
     {
         return [
-            'q' => request('q', ''),
-            'status' => request('status', $this->tableConfig->defaultFilter()),
-            'sort' => request('sort', $this->tableConfig->defaultSort()),
-            'direction' => request('direction', $this->tableConfig->defaultDirection()),
-            'page' => request('page', 1),
-            'columns' => request('columns', []),
+            'protected_admin_id' => $this->users->protectedAdminId(),
         ];
     }
 }

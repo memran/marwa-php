@@ -7,6 +7,9 @@ parameters:
         - tests
     bootstrapFiles:
         - vendor/autoload.php
+    scanDirectories:
+        - modules/Users/database/Seeders
+        - modules/Auth/database/Seeders
     reportUnmatchedIgnoredErrors: false
     ignoreErrors:
         - identifier: staticMethod.notFound

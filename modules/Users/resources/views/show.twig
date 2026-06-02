@@ -1,0 +1,104 @@
+{% extends "layout.twig" %}
+
+{% block title %}{{ user.getAttribute('name') }} | MarwaPHP Admin{% endblock %}
+
+{% block content %}
+  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
+  {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
+  {% set button_secondary = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
+  {% set button_danger = button_base ~ ' border-rose-500/20 bg-rose-500/10 text-rose-200 hover:bg-rose-500/20' %}
+  {% set is_trashed = user.getAttribute('deleted_at') is not empty %}
+  {% set is_protected = protected_admin_id is defined and protected_admin_id is not null and user.getKey() == protected_admin_id %}
+
+  <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <div class="max-w-3xl space-y-2">
+      <span class="inline-flex w-fit items-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-cyan-100">Identity management</span>
+      <h1 class="text-2xl font-black tracking-tight text-white sm:text-3xl">{{ user.getAttribute('name') }}</h1>
+      <p class="max-w-2xl text-sm leading-6 text-slate-300">User profile and account details.</p>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <a class="{{ button_secondary }}" href="/admin/users">Back to users</a>
+      {% if gate.allows('users.edit') and not is_trashed %}
+        <a class="{{ button_primary }}" href="/admin/users/{{ user.getKey() }}/edit">Edit user</a>
+      {% endif %}
+    </div>
+  </section>
+
+  <div class="mt-6 grid gap-6 lg:grid-cols-3">
+    <div class="rounded-xl border border-white/10 bg-white/5 p-6">
+      <h2 class="mb-4 text-lg font-semibold text-slate-100">Profile</h2>
+
+      <dl class="space-y-4">
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wider text-slate-400">Name</dt>
+          <dd class="mt-1 text-sm text-slate-200">{{ user.getAttribute('name') }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wider text-slate-400">Email</dt>
+          <dd class="mt-1 text-sm text-slate-200">{{ user.getAttribute('email') }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wider text-slate-400">ID</dt>
+          <dd class="mt-1 text-sm text-slate-200">{{ user.getKey() }}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="rounded-xl border border-white/10 bg-white/5 p-6">
+      <h2 class="mb-4 text-lg font-semibold text-slate-100">Access</h2>
+
+      <dl class="space-y-4">
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wider text-slate-400">Role</dt>
+          <dd class="mt-1">
+            {% set role = user.role() %}
+            <span class="inline-flex items-center rounded-full bg-cyan-400/10 px-2 py-0.5 text-xs font-medium text-cyan-200">
+              {{ role is not null ? role.getAttribute('name') : 'Unknown' }}
+            </span>
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wider text-slate-400">Status</dt>
+          <dd class="mt-1">
+            {% if is_trashed %}
+              <span class="inline-flex items-center rounded-full bg-rose-400/10 px-2 py-0.5 text-xs font-medium text-rose-200">Trashed</span>
+            {% elseif user.getAttribute('is_active') %}
+              <span class="inline-flex items-center rounded-full bg-emerald-400/10 px-2 py-0.5 text-xs font-medium text-emerald-200">Active</span>
+            {% else %}
+              <span class="inline-flex items-center rounded-full bg-amber-400/10 px-2 py-0.5 text-xs font-medium text-amber-200">Disabled</span>
+            {% endif %}
+            {% if is_protected %}
+              <span class="ml-1 inline-flex items-center rounded-full bg-amber-400/10 px-2 py-0.5 text-xs font-medium text-amber-200">Protected</span>
+            {% endif %}
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wider text-slate-400">Last login</dt>
+          <dd class="mt-1 text-sm text-slate-200">{{ user.getAttribute('last_login_at') ?: 'Never' }}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="rounded-xl border border-white/10 bg-white/5 p-6">
+      <h2 class="mb-4 text-lg font-semibold text-slate-100">Actions</h2>
+
+      <div class="space-y-3">
+        {% if gate.allows('users.edit') and not is_trashed %}
+          <a href="/admin/users/{{ user.getKey() }}/edit" class="{{ button_primary }} w-full justify-center">Edit user</a>
+        {% endif %}
+
+        {% if gate.allows('users.delete') and not is_trashed and not is_protected %}
+          <form method="post" action="/admin/users/{{ user.getKey() }}/delete" onsubmit="return confirm('Delete this user?');">
+            {{ csrf_field() }}
+            <button type="submit" class="{{ button_danger }} w-full justify-center">Delete user</button>
+          </form>
+        {% endif %}
+
+        {% if is_trashed %}
+          <span class="block text-center text-xs text-slate-500">This user has been trashed.</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

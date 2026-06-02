@@ -1,104 +1,48 @@
 {% extends "layout.twig" %}
 
-{% block title %}{{ user.getAttribute('name')|default('User profile') }} | MarwaPHP Admin{% endblock %}
+{% block title %}My Profile | MarwaPHP Admin{% endblock %}
 
 {% block content %}
-  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5' %}
-  {% set button_secondary = button_base ~ ' border-app-border bg-app-surface/80 text-app-text hover:bg-app-surface-2/70' %}
-  {% set button_ghost = button_base ~ ' border-app-border bg-transparent text-app-text hover:bg-app-surface-2/60' %}
-
-  <section class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-    <div class="max-w-3xl space-y-3">
-      <span class="inline-flex w-fit items-center rounded-full border border-app-accent/20 bg-app-accent/10 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-app-accent">Identity management</span>
-      <h1 class="text-3xl font-black tracking-tight text-app-text sm:text-4xl">{{ user.getAttribute('name')|default('Unknown user') }}</h1>
-      <p class="max-w-2xl text-sm leading-6 text-app-muted sm:text-base">Read-only profile details for this user account.</p>
-    </div>
-
-    <div class="flex flex-wrap gap-3">
-      {% if is_self|default(false) %}
-        <a class="{{ button_ghost }}" href="/admin">Back to dashboard</a>
-        <a class="{{ button_secondary }}" href="/admin/profile/edit">Edit profile</a>
-      {% else %}
-        <a class="{{ button_ghost }}" href="/admin/users">Back to users</a>
-        {% if not user.getAttribute('deleted_at') and gate.allows('users.edit') %}
-          <a class="{{ button_secondary }}" href="/admin/users/{{ user.getKey() }}/edit">Edit user</a>
-        {% endif %}
-      {% endif %}
+  <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <div class="max-w-3xl space-y-2">
+      <span class="inline-flex w-fit items-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-cyan-100">Account</span>
+      <h1 class="text-2xl font-black tracking-tight text-white sm:text-3xl">Account snapshot</h1>
+      <p class="max-w-2xl text-sm leading-6 text-slate-300">Your profile and account details.</p>
     </div>
   </section>
 
-  {% embed 'components/card.twig' with {
-    shell_class: 'mt-8 overflow-hidden rounded-[2rem] border border-app-border bg-app-surface/80 p-5 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-6',
-    body_class: 'grid gap-5'
-  } %}
-    {% block header %}
-      <div class="border-b border-app-border pb-5">
+  <div class="mt-6 grid gap-6 lg:grid-cols-2">
+    <div class="rounded-xl border border-white/10 bg-white/5 p-6">
+      <h2 class="mb-4 text-lg font-semibold text-slate-100">Profile</h2>
+      <dl class="space-y-4">
         <div>
-          <h2 class="text-2xl font-bold tracking-tight text-app-text">Account snapshot</h2>
-          <p class="mt-1 text-sm text-app-muted">Current identity, access, and lifecycle details.</p>
+          <dt class="text-xs font-semibold uppercase tracking-wider text-slate-400">Name</dt>
+          <dd class="mt-1 text-sm text-slate-200">{{ authUser.getAttribute('name') }}</dd>
         </div>
-      </div>
-    {% endblock %}
-
-    {% block body %}
-      <div class="overflow-hidden rounded-[1.5rem] border border-app-border bg-app-surface">
-        <table class="w-full border-collapse">
-          <tbody class="divide-y divide-app-border">
-          <tr class="align-top">
-            <td class="w-44 px-3 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-app-muted">Full Name</td>
-            <td class="px-3 py-3 text-sm text-app-text">{{ user.getAttribute('name')|default('Unknown') }}</td>
-          </tr>
-          <tr class="align-top">
-            <td class="w-44 px-3 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-app-muted">Email Address</td>
-            <td class="px-3 py-3 text-sm text-app-text">{{ user.getAttribute('email')|default('Unknown') }}</td>
-          </tr>
-          <tr class="align-top">
-            <td class="w-44 px-3 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-app-muted">Role</td>
-            <td class="px-3 py-3">
-              {% set user_role = user.role() %}
-              <span class="inline-flex rounded-full border border-app-accent/20 bg-app-accent/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-app-accent">
-                {{ user_role is not null ? user_role.getAttribute('name') : 'Unknown' }}
-              </span>
-            </td>
-          </tr>
-          <tr class="align-top">
-            <td class="w-44 px-3 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-app-muted">Account Status</td>
-            <td class="px-3 py-3">
-              {% if user.getAttribute('deleted_at') %}
-                <span class="inline-flex items-center gap-2 rounded-full border border-app-danger/20 bg-app-danger/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-app-danger">
-                  {% include 'components/icon.twig' with { name: 'trash-2', class: 'h-4 w-4 shrink-0' } only %}
-                  <span>Trashed</span>
-                </span>
-              {% elseif user.getAttribute('is_active') %}
-                <span class="inline-flex rounded-full border border-app-success/20 bg-app-success/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-app-success">Active</span>
-              {% else %}
-                <span class="inline-flex rounded-full border border-app-warning/20 bg-app-warning/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-app-warning">Disabled</span>
-              {% endif %}
-              {% if protected_admin_id is defined and protected_admin_id is not null and user.getKey() == protected_admin_id %}
-                <div class="mt-2">
-                  <span class="inline-flex items-center gap-2 rounded-full border border-app-warning/20 bg-app-warning/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-app-warning">
-                    {% include 'components/icon.twig' with { name: 'shield', class: 'h-4 w-4 shrink-0' } only %}
-                    <span>Protected</span>
-                  </span>
-                </div>
-              {% endif %}
-            </td>
-          </tr>
-          <tr class="align-top">
-            <td class="w-44 px-3 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-app-muted">Last Sign-In</td>
-            <td class="px-3 py-3 text-sm text-app-text">{{ user.getAttribute('last_login_at')|default('Never') }}</td>
-          </tr>
-          <tr class="align-top">
-            <td class="w-44 px-3 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-app-muted">Deleted At</td>
-            <td class="px-3 py-3 text-sm text-app-text">{{ user.getAttribute('deleted_at')|default('Not deleted') }}</td>
-          </tr>
-          <tr class="align-top">
-            <td class="w-44 px-3 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-app-muted">User ID</td>
-            <td class="px-3 py-3 text-sm text-app-text">{{ user.getKey() }}</td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-    {% endblock %}
-  {% endembed %}
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wider text-slate-400">Email</dt>
+          <dd class="mt-1 text-sm text-slate-200">{{ authUser.getAttribute('email') }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wider text-slate-400">Role</dt>
+          <dd class="mt-1">
+            {% set role = authUser.role() %}
+            <span class="inline-flex items-center rounded-full bg-cyan-400/10 px-2 py-0.5 text-xs font-medium text-cyan-200">
+              {{ role is not null ? role.getAttribute('name') : 'Unknown' }}
+            </span>
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wider text-slate-400">Status</dt>
+          <dd class="mt-1">
+            {% if authUser.getAttribute('is_active') %}
+              <span class="inline-flex items-center rounded-full bg-emerald-400/10 px-2 py-0.5 text-xs font-medium text-emerald-200">Active</span>
+            {% else %}
+              <span class="inline-flex items-center rounded-full bg-amber-400/10 px-2 py-0.5 text-xs font-medium text-amber-200">Disabled</span>
+            {% endif %}
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
 {% endblock %}

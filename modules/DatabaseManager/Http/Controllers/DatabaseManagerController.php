@@ -86,8 +86,8 @@ final class DatabaseManagerController extends Controller
      */
     private function viewData(string $query, ?array $result, ?string $error = null): array
     {
-        /** @var \App\Support\AdminPagination $pagination */
-        $pagination = app(\App\Support\AdminPagination::class);
+        /** @var \App\Support\Pagination $pagination */
+        $pagination = app(\App\Support\Pagination::class);
 
         return [
             'query' => $query,

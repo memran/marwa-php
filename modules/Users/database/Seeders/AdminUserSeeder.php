@@ -2,46 +2,41 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Users\database\Seeders;
+namespace Database\Seeders;
 
 use App\Modules\Auth\Models\Role;
 use App\Modules\Users\Models\User;
 use Marwa\DB\Seeder\Seeder;
 
-if (!class_exists(\App\Modules\Users\database\Seeders\AdminUserSeeder::class, false)) {
-    final class AdminUserSeeder implements Seeder
-    {
+final class AdminUserSeeder implements Seeder
+{
     public function run(): void
     {
-            if (User::query()->count() > 0) {
-                return;
-            }
+        if (User::query()->count() > 0) {
+            return;
+        }
 
-            $email = trim((string) env('ADMIN_BOOTSTRAP_EMAIL', 'admin@marwa.test'));
-            $password = (string) env('ADMIN_BOOTSTRAP_PASSWORD', 'ExampleAdminPassword123!');
+        $email = trim((string) env('ADMIN_BOOTSTRAP_EMAIL', 'admin@marwa.test'));
+        $password = (string) env('ADMIN_BOOTSTRAP_PASSWORD', 'ExampleAdminPassword123!');
 
-            $adminRole = Role::findBy('slug', 'admin');
+        $adminRole = Role::findBySlug('admin');
 
-            if ($adminRole === null) {
-                // Fallback if migrations didn't run for some reason during seed-only call
-                $adminRole = Role::create([
-                    'name' => 'Admin',
-                    'slug' => 'admin',
-                    'level' => 10,
-                    'description' => 'Administrative access',
-                    'is_system' => 1,
-                ]);
-            }
-
-            $roleId = (int) $adminRole->getKey();
-
-            User::create([
-                'name' => 'Administrator',
-                'email' => $email !== '' ? $email : 'admin@marwa.test',
-                'password' => password_hash($password, PASSWORD_DEFAULT),
-                'role_id' => $roleId,
-                'is_active' => true,
+        if ($adminRole === null) {
+            $adminRole = Role::create([
+                'name' => 'Admin',
+                'slug' => 'admin',
+                'level' => 10,
+                'description' => 'Administrative access',
+                'is_system' => 1,
             ]);
         }
+
+        User::create([
+            'name' => 'Administrator',
+            'email' => $email !== '' ? $email : 'admin@marwa.test',
+            'password' => password_hash($password, PASSWORD_DEFAULT),
+            'role_id' => (int) $adminRole->getKey(),
+            'is_active' => true,
+        ]);
     }
 }

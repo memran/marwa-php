@@ -140,8 +140,8 @@ SQL);
             $connections,
             null,
             'default',
-            __DIR__ . '/../../modules/Users/database/Seeders',
-            'App\Modules\Users\database\Seeders'
+            __DIR__ . '/../../modules/Users/database/seeders',
+            'Database\\Seeders'
         );
 
         $runner->runAll();

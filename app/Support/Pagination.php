@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support;
 
-final class AdminPagination
+class Pagination
 {
     /**
      * @param array{total:int,per_page:int,current_page:int,last_page:int} $pagination

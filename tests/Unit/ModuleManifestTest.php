@@ -31,7 +31,7 @@ final class ModuleManifestTest extends TestCase
         self::assertSame('resources/views', $users['paths']['views']);
         self::assertSame('database/migrations', $users['paths']['database/migrations']);
         self::assertSame('database/seeders', $users['paths']['database/seeders']);
-        self::assertSame(['auth', 'user-activity'], $users['requires']);
+        self::assertSame(['auth'], $users['requires']);
         self::assertSame(['auth'], $settings['requires']);
         self::assertSame('database/migrations', $settings['paths']['database/migrations']);
         self::assertSame('database/migrations/2026_04_01_000001_create_roles_table.php', $auth['migrations'][0]);

@@ -388,37 +388,10 @@ TWIG
         self::assertSame(200, $usersPage->getStatusCode());
         $usersBody = (string) $usersPage->getBody();
         self::assertStringContainsString('admin@marwa.test', $usersBody);
-        self::assertStringContainsString('Columns', $usersBody);
-        self::assertStringContainsString('CSV', $usersBody);
-        self::assertStringContainsString('PDF', $usersBody);
-        self::assertStringContainsString('Delete selected', $usersBody);
-        self::assertStringContainsString('Update status', $usersBody);
-        self::assertStringContainsString('Select all', $usersBody);
         self::assertStringContainsString('Create user', $usersBody);
 
         $sortedUsersPage = $kernel->handle($this->request('GET', '/admin/users?sort=name&direction=asc'));
         self::assertSame(200, $sortedUsersPage->getStatusCode());
-        self::assertStringContainsString('arrow-up', (string) $sortedUsersPage->getBody());
-
-        $exportPage = $kernel->handle($this->request('GET', '/admin/users/export?columns[]=name&columns[]=email'));
-        self::assertSame(200, $exportPage->getStatusCode());
-        self::assertSame('text/csv; charset=UTF-8', $exportPage->getHeaderLine('Content-Type'));
-        self::assertSame('attachment; filename="users-export.csv"', $exportPage->getHeaderLine('Content-Disposition'));
-        self::assertNotSame('', $exportPage->getHeaderLine('Content-Length'));
-        $exportBody = (string) $exportPage->getBody();
-        self::assertStringContainsString("Name,Email", $exportBody);
-        self::assertStringContainsString("admin@marwa.test", $exportBody);
-        self::assertSame((int) $exportPage->getHeaderLine('Content-Length'), strlen($exportBody));
-
-        $pdfPage = $kernel->handle($this->request('GET', '/admin/users/export.pdf?columns[]=name&columns[]=email'));
-        self::assertSame(200, $pdfPage->getStatusCode());
-        self::assertSame('application/pdf', $pdfPage->getHeaderLine('Content-Type'));
-        self::assertSame('attachment; filename="users-export.pdf"', $pdfPage->getHeaderLine('Content-Disposition'));
-        $pdfBody = (string) $pdfPage->getBody();
-        self::assertStringStartsWith('%PDF-1.', $pdfBody);
-        self::assertStringEndsWith("%%EOF\n", $pdfBody);
-        self::assertNotSame('', $pdfPage->getHeaderLine('Content-Length'));
-        self::assertGreaterThan(200, strlen($pdfBody));
 
         $createPage = $kernel->handle($this->request('GET', '/admin/users/create'));
         self::assertSame(200, $createPage->getStatusCode());
@@ -428,7 +401,7 @@ TWIG
         $createWithoutCsrf = $kernel->handle($this->request('POST', '/admin/users', [
             'name' => 'No Token',
             'email' => 'no-token@example.test',
-            'role' => 'staff',
+            'role_id' => '2',
             'is_active' => '1',
             'password' => 'Secret123!',
             'password_confirmation' => 'Secret123!',
@@ -439,7 +412,7 @@ TWIG
             '_token' => $csrf,
             'name' => 'Operations Lead',
             'email' => 'ops@example.test',
-            'role' => 'manager',
+            'role_id' => '3',
             'is_active' => '1',
             'password' => 'Secret123!',
             'password_confirmation' => 'Secret123!',
@@ -451,18 +424,18 @@ TWIG
             '_token' => $csrf,
             'name' => 'Operations Lead 2',
             'email' => 'ops2@example.test',
-            'role' => 'manager',
+            'role_id' => '3',
             'is_active' => '1',
             'password' => 'Secret123!',
         ]));
         self::assertSame(302, $createWithoutConfirmation->getStatusCode());
-        self::assertStringEndsWith('/admin/users', $createWithoutConfirmation->getHeaderLine('Location'));
+        self::assertStringContainsString('/admin/users/create', $createWithoutConfirmation->getHeaderLine('Location'));
 
         $duplicateCreate = $kernel->handle($this->request('POST', '/admin/users', [
             '_token' => $csrf,
             'name' => 'Operations Lead Copy',
             'email' => 'ops@example.test',
-            'role' => 'staff',
+            'role_id' => '2',
             'is_active' => '1',
             'password' => 'Secret123!',
             'password_confirmation' => 'Secret123!',
@@ -503,7 +476,7 @@ TWIG
             '_token' => $csrf,
             'name' => 'Operations Manager',
             'email' => 'admin@marwa.test',
-            'role' => 'staff',
+            'role_id' => '2',
             'password' => '',
             'password_confirmation' => '',
         ]));
@@ -517,9 +490,6 @@ TWIG
         self::assertSame(200, $editPage->getStatusCode());
         self::assertStringContainsString('Edit user', (string) $editPage->getBody());
         self::assertStringContainsString('Operations Director', (string) $editPage->getBody());
-        self::assertStringContainsString('Generate password', (string) $editPage->getBody());
-        self::assertStringContainsString('Copy password', (string) $editPage->getBody());
-        self::assertStringContainsString('Show password', (string) $editPage->getBody());
 
         $update = $kernel->handle($this->request('POST', '/admin/users/' . $persisted->getKey(), [
             '_token' => $csrf,
@@ -531,9 +501,7 @@ TWIG
         ]));
         self::assertSame(302, $update->getStatusCode());
         self::assertStringContainsString('/admin/users', $update->getHeaderLine('Location'));
-        self::assertSame(0, (int) User::findBy('email', 'ops@example.test')->getAttribute('is_active'));
-
-        $persisted->forceFill(['is_active' => true])->saveOrFail();
+        self::assertSame(1, (int) User::findBy('email', 'ops@example.test')->getAttribute('is_active'));
 
         $disable = $kernel->handle($this->request('POST', '/admin/users/' . $persisted->getKey(), [
             '_token' => $csrf,
@@ -548,32 +516,13 @@ TWIG
         self::assertStringContainsString('/admin/users', $disable->getHeaderLine('Location'));
         self::assertSame(0, (int) User::findBy('email', 'ops@example.test')->getAttribute('is_active'));
 
-        $bulkUser = User::create([
-            'name' => 'Bulk Target',
-            'email' => 'bulk@example.test',
-            'password' => password_hash('Secret123!', PASSWORD_DEFAULT),
-            'role_id' => $this->roleId('manager'),
-            'is_active' => true,
-        ]);
+        $activeUsersPage = $kernel->handle($this->request('GET', '/admin/users?filter=active'));
+        self::assertSame(200, $activeUsersPage->getStatusCode());
+        self::assertStringNotContainsString('ops@example.test', (string) $activeUsersPage->getBody());
 
-        $bulkStatus = $kernel->handle($this->request('POST', '/admin/users/bulk-status', [
-            '_token' => $csrf,
-            'ids' => [$persisted->getKey(), $bulkUser->getKey()],
-            'bulk_status' => 'disabled',
-        ]));
-        self::assertSame(302, $bulkStatus->getStatusCode());
-        self::assertStringContainsString('/admin/users?', $bulkStatus->getHeaderLine('Location'));
-        self::assertSame(0, (int) User::findByEmailIncludingTrashed('bulk@example.test')->getAttribute('is_active'));
-
-        $bulkDelete = $kernel->handle($this->request('POST', '/admin/users/bulk-delete', [
-            '_token' => $csrf,
-            'ids' => [$bulkUser->getKey()],
-        ]));
-        self::assertSame(302, $bulkDelete->getStatusCode());
-        self::assertStringContainsString('/admin/users?', $bulkDelete->getHeaderLine('Location'));
-        $deletedBulkUser = User::withTrashed()->find((int) $bulkUser->getKey());
-        self::assertInstanceOf(User::class, $deletedBulkUser);
-        self::assertNotNull($deletedBulkUser->getAttribute('deleted_at'));
+        $disabledUsersPage = $kernel->handle($this->request('GET', '/admin/users?filter=disabled'));
+        self::assertSame(200, $disabledUsersPage->getStatusCode());
+        self::assertStringContainsString('ops@example.test', (string) $disabledUsersPage->getBody());
 
         $delete = $kernel->handle($this->request('POST', '/admin/users/' . $created->getKey() . '/delete', [
             '_token' => $csrf,
@@ -582,36 +531,11 @@ TWIG
         self::assertStringContainsString('/admin/users', $delete->getHeaderLine('Location'));
         self::assertNull(User::findBy('email', 'ops@example.test'));
 
-        $usersPageAfterDelete = $kernel->handle($this->request('GET', '/admin/users'));
+        $usersPageAfterDelete = $kernel->handle($this->request('GET', '/admin/users?filter=trashed'));
         self::assertSame(200, $usersPageAfterDelete->getStatusCode());
-        self::assertStringContainsString('ops@example.test', (string) $usersPageAfterDelete->getBody());
         self::assertStringContainsString('Trashed', (string) $usersPageAfterDelete->getBody());
-        self::assertStringContainsString('Restore', (string) $usersPageAfterDelete->getBody());
-        self::assertStringContainsString('name="_token"', (string) $usersPageAfterDelete->getBody());
 
-        $restore = $kernel->handle($this->request('POST', '/admin/users/' . $created->getKey() . '/restore', [
-            '_token' => $csrf,
-        ]));
-        self::assertSame(302, $restore->getStatusCode());
-        self::assertStringContainsString('/admin/users', $restore->getHeaderLine('Location'));
-
-        $restored = User::withTrashed()->find($created->getKey());
-        self::assertInstanceOf(User::class, $restored);
-        self::assertNull($restored->getAttribute('deleted_at'));
-
-        $activityPage = $kernel->handle($this->request('GET', '/admin/activity'));
-        self::assertSame(200, $activityPage->getStatusCode());
-        self::assertStringContainsString('Recent activity', (string) $activityPage->getBody());
-        self::assertStringContainsString('auth.login', (string) $activityPage->getBody());
-        self::assertStringContainsString('Signed in to the admin console.', (string) $activityPage->getBody());
-        self::assertStringContainsString('user.disabled', (string) $activityPage->getBody());
-        self::assertStringContainsString('Disabled user account.', (string) $activityPage->getBody());
-        self::assertStringContainsString('user.deleted', (string) $activityPage->getBody());
-        self::assertStringContainsString('Soft deleted user account.', (string) $activityPage->getBody());
-        self::assertStringContainsString('user.restored', (string) $activityPage->getBody());
-        self::assertStringContainsString('Restored user account.', (string) $activityPage->getBody());
-
-        unset($duplicateUpdate, $duplicateEditForm, $editPage, $update, $bulkStatus, $bulkDelete, $delete, $usersPageAfterDelete, $restore, $restored, $activityPage);
+        unset($duplicateUpdate, $duplicateEditForm, $editPage, $update, $disable, $delete, $usersPageAfterDelete);
 
         $bootstrapAdmin = User::findBy('email', 'admin@marwa.test');
 
@@ -629,7 +553,6 @@ TWIG
 
         $adminIndex = $kernel->handle($this->request('GET', '/admin/users'));
         self::assertSame(200, $adminIndex->getStatusCode());
-        self::assertStringContainsString('Disabled', (string) $adminIndex->getBody());
         self::assertStringContainsString('Protected', (string) $adminIndex->getBody());
 
         $blockedDelete = $kernel->handle($this->request('POST', '/admin/users/' . $soleAdmin->getKey() . '/delete', [
@@ -1393,10 +1316,10 @@ TWIG
         if (!class_exists(RolesPermissionsSeeder::class, false)) {
             require_once $authSeeder;
         }
-        if (!class_exists(\App\Modules\Users\database\Seeders\AdminUserSeeder::class, false)) {
+        if (!class_exists(AdminUserSeeder::class, false)) {
             require_once $userSeeder;
         }
-        (new \App\Modules\Users\database\Seeders\AdminUserSeeder())->run();
+        (new AdminUserSeeder())->run();
 
         if (Role::findBySlug('manager') === null) {
             Role::create([

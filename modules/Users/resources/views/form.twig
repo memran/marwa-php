@@ -3,207 +3,112 @@
 {% block title %}{{ title }} | MarwaPHP Admin{% endblock %}
 
 {% block content %}
-  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5' %}
-  {% set button_primary = button_base ~ ' border-transparent bg-app-accent text-white hover:bg-app-accent-soft' %}
-  {% set button_secondary = button_base ~ ' border-app-border bg-app-surface/80 text-app-text hover:bg-app-surface-2/70' %}
-  {% set button_ghost = button_base ~ ' border-app-border bg-transparent text-app-text hover:bg-app-surface-2/60' %}
+  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
+  {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
+  {% set button_secondary = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
+  {% set user = user|default(null) %}
+  {% set form = form|default({}) %}
+  {% set roles = roles|default([]) %}
+  {% set is_edit = user is not null %}
 
-  <section class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-    <div class="max-w-3xl space-y-3">
-      <span class="inline-flex w-fit items-center rounded-full border border-app-accent/20 bg-app-accent/10 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-app-accent">Identity management</span>
-      <h1 class="users-form-title text-3xl font-black tracking-tight text-app-text sm:text-4xl">{{ title }}</h1>
-      <p class="users-form-subtitle max-w-2xl text-sm leading-6 text-app-muted sm:text-base">Keep the form compact and readable for long working sessions.</p>
+  <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <div class="max-w-3xl space-y-2">
+      <span class="inline-flex w-fit items-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-cyan-100">Identity management</span>
+      <h1 class="text-2xl font-black tracking-tight text-white sm:text-3xl">{{ title }}</h1>
+      <p class="max-w-2xl text-sm leading-6 text-slate-300">
+        {% if is_edit %}
+          Update account details for this user. Leave password blank to keep the current password.
+        {% else %}
+          Create a new user account. A password is required for new accounts.
+        {% endif %}
+      </p>
     </div>
 
-    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-      <a class="users-form-ghost {{ button_ghost }} w-full sm:w-auto" href="/admin/users">Back to users</a>
+    <div class="flex flex-wrap gap-2">
+      <a class="{{ button_secondary }}" href="/admin/users">Back to users</a>
     </div>
   </section>
 
-  <section class="users-form-shell mt-8 w-full max-w-4xl overflow-hidden rounded-[2rem] border border-app-border bg-gradient-to-b from-app-surface via-app-surface to-app-surface-2/70 p-5 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-6 lg:mx-auto">
-    {% if errors is defined and errors is not empty %}
-      <div class="rounded-2xl border border-app-danger/20 bg-app-danger/10 p-4 text-app-danger">
-        <p class="text-sm font-semibold">Please review the form</p>
-        <p class="mt-1 text-sm text-app-danger/80">One or more fields contain validation errors.</p>
-      </div>
-    {% endif %}
+  <form method="post" action="{{ action }}" class="mt-6">
+    {{ csrf_field() }}
 
-    <form class="mt-6 grid gap-5" method="post" action="{{ action }}">
-      {{ csrf_field() }}
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="rounded-xl border border-white/10 bg-white/5 p-6">
+        <h2 class="mb-4 text-lg font-semibold text-slate-100">Account Details</h2>
 
-      <div class="grid gap-5 lg:grid-cols-2">
-        {% include "components/form-field.twig" with {
-          id: 'name',
-          label: 'Full name',
-          value: form.name|default(''),
-          placeholder: 'Jane Doe',
-          error: errors.name|default([])|first
-        } only %}
+        <div class="space-y-4">
+          {% include "components/form-field.twig" with {
+            id: 'name',
+            label: 'Name',
+            value: form.name|default(''),
+            placeholder: 'John Doe',
+            error: errors.name|default([])|first,
+          } only %}
 
-        {% include "components/form-field.twig" with {
-          id: 'email',
-          label: 'Email address',
-          type: 'email',
-          autocomplete: 'email',
-          value: form.email|default(''),
-          placeholder: 'jane@company.com',
-          error: errors.email|default([])|first
-        } only %}
-      </div>
+          {% include "components/form-field.twig" with {
+            id: 'email',
+            label: 'Email',
+            type: 'email',
+            value: form.email|default(''),
+            placeholder: 'john@example.com',
+            error: errors.email|default([])|first,
+          } only %}
 
-      <div class="grid gap-2">
-        {% include "components/form-field.twig" with {
-          id: 'role_id',
-          label: 'Role',
-          type: 'select',
-          value: form.role_id|default(0),
-          options: roles,
-          error: errors.role_id|default([])|first
-        } only %}
-        <p class="text-xs leading-5 text-app-muted">Controls the access level shown in the user table.</p>
-      </div>
+          {% include "components/form-field.twig" with {
+            id: 'role_id',
+            label: 'Role',
+            type: 'select',
+            value: form.role_id|default(0),
+            options: roles,
+            error: errors.role_id|default([])|first,
+          } only %}
 
-      {% set is_active_checked = form.is_active is defined ? form.is_active : true %}
-
-      <div class="grid gap-2">
-        <label class="dashboard-status-label text-[0.82rem] font-semibold text-app-text" for="is_active">Status</label>
-        <div class="grid gap-2 rounded-2xl border border-app-border bg-app-surface-2/80 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] sm:grid-cols-2">
-          <label class="dashboard-status-option dashboard-status-option-active group flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition {% if is_active_checked %}border-app-success/30 bg-app-success/10 text-app-success{% else %}border-app-border bg-app-surface text-app-muted hover:border-app-accent/20 hover:bg-app-surface-2/80{% endif %}">
-            <input type="radio" name="is_active" value="1" {% if is_active_checked %}checked{% endif %} class="dashboard-status-radio dashboard-status-radio-active h-4 w-4">
-            <span class="dashboard-status-badge flex h-8 w-8 items-center justify-center rounded-full border {% if is_active_checked %}border-app-success/40 bg-app-success/15{% else %}border-app-border bg-app-surface-2/90{% endif %}">
-              {% include 'components/icon.twig' with { name: 'user-check', class: 'h-3.5 w-3.5' } only %}
-            </span>
-            <span class="dashboard-status-title text-sm font-semibold">Active account</span>
-          </label>
-
-          <label class="dashboard-status-option dashboard-status-option-inactive group flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition {% if not is_active_checked %}border-app-warning/30 bg-app-warning/10 text-app-warning{% else %}border-app-border bg-app-surface text-app-muted hover:border-app-accent/20 hover:bg-app-surface-2/80{% endif %}">
-            <input type="radio" name="is_active" value="0" {% if not is_active_checked %}checked{% endif %} class="dashboard-status-radio dashboard-status-radio-inactive h-4 w-4">
-            <span class="dashboard-status-badge flex h-8 w-8 items-center justify-center rounded-full border {% if not is_active_checked %}border-app-warning/40 bg-app-warning/15{% else %}border-app-border bg-app-surface-2/90{% endif %}">
-              {% include 'components/icon.twig' with { name: 'user-x', class: 'h-3.5 w-3.5' } only %}
-            </span>
-            <span class="dashboard-status-title text-sm font-semibold">Inactive account</span>
-          </label>
+          <div class="grid gap-2">
+            <label class="text-[0.82rem] font-semibold text-app-text">Status</label>
+            <div class="flex items-center gap-4">
+              <label class="flex items-center gap-2">
+                <input type="radio" name="is_active" value="1" {% if form.is_active|default(1) == 1 %}checked{% endif %} class="rounded border-white/10 bg-white/5 text-cyan-400 focus:ring-cyan-400/20">
+                <span class="text-sm text-slate-300">Active</span>
+              </label>
+              <label class="flex items-center gap-2">
+                <input type="radio" name="is_active" value="0" {% if form.is_active|default(1) == 0 %}checked{% endif %} class="rounded border-white/10 bg-white/5 text-cyan-400 focus:ring-cyan-400/20">
+                <span class="text-sm text-slate-300">Disabled</span>
+              </label>
+            </div>
+          </div>
         </div>
-        {% if errors.is_active is defined %}
-          <p class="text-sm text-app-danger">{{ errors.is_active|first }}</p>
-        {% else %}
-          <p class="dashboard-status-helper text-sm text-app-muted">Inactive users cannot sign in.</p>
-        {% endif %}
       </div>
 
-      <div class="grid gap-2">
-        <label class="users-form-label text-[0.82rem] font-semibold text-app-text" for="password">{{ mode == 'create' ? 'Password' : 'Password (optional)' }}</label>
-        <input
-          class="w-full rounded-2xl border border-app-border bg-app-surface-2/80 px-4 py-3 text-app-text placeholder:text-app-muted outline-none transition focus:border-app-accent focus:ring-4 focus:ring-app-accent/10"
-          id="password"
-          name="password"
-          type="password"
-          autocomplete="new-password"
-          placeholder="Minimum 8 characters"
-        >
-        <p class="users-form-help text-sm text-app-muted">
-          Password policy: Minimum 8 characters, mixed case recommended.
-        </p>
-        <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        <button class="users-form-secondary {{ button_secondary }} w-full sm:w-auto" type="button" id="generate_password">Generate password</button>
-        <button class="users-form-ghost {{ button_ghost }} w-full sm:w-auto" type="button" id="copy_password">Copy password</button>
-          <label class="users-form-toggle inline-flex w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-app-border bg-app-surface/60 px-4 py-2 text-sm text-app-text transition hover:bg-app-surface-2/60 sm:w-auto">
-            <input type="checkbox" id="show_password" class="form-checkbox h-4 w-4 rounded border-app-border bg-app-surface text-app-accent focus:ring-app-accent/20">
-            <span>Show password</span>
-          </label>
+      <div class="rounded-xl border border-white/10 bg-white/5 p-6">
+        <h2 class="mb-4 text-lg font-semibold text-slate-100">
+          {% if is_edit %}Change Password{% else %}Password{% endif %}
+        </h2>
+
+        <div class="space-y-4">
+          {% include "components/form-field.twig" with {
+            id: 'password',
+            label: 'Password',
+            type: 'password',
+            value: '',
+            placeholder: is_edit ? 'Leave blank to keep current' : 'Minimum 8 characters',
+            error: errors.password|default([])|first,
+          } only %}
+
+          {% include "components/form-field.twig" with {
+            id: 'password_confirmation',
+            label: 'Confirm Password',
+            type: 'password',
+            value: '',
+            placeholder: 'Repeat password',
+            error: errors.password_confirmation|default([])|first,
+          } only %}
         </div>
-        {% if errors.password is defined %}
-          <p class="text-sm text-app-danger">{{ errors.password|first }}</p>
-        {% else %}
-          <p class="text-sm text-app-muted">{{ mode == 'create' ? 'Required for new accounts. Use Generate password for a 12-character random string.' : 'Leave blank to keep the current password. Use Generate password for a 12-character random string.' }}</p>
-        {% endif %}
       </div>
+    </div>
 
-      <div class="grid gap-2">
-        <label class="users-form-label text-[0.82rem] font-semibold text-app-text" for="password_confirmation">Confirm password</label>
-        <input
-          class="w-full rounded-2xl border border-app-border bg-app-surface-2/80 px-4 py-3 text-app-text placeholder:text-app-muted outline-none transition focus:border-app-accent focus:ring-4 focus:ring-app-accent/10"
-          id="password_confirmation"
-          name="password_confirmation"
-          type="password"
-          autocomplete="new-password"
-          placeholder="Repeat the password"
-        >
-      </div>
-
-      <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        <button class="{{ button_primary }} w-full sm:w-auto" type="submit">{{ submit_label }}</button>
-        <a class="{{ button_secondary }} w-full sm:w-auto" href="/admin/users">Cancel</a>
-      </div>
-    </form>
-  </section>
-
-  <script>
-    (() => {
-      const password = document.getElementById('password');
-      const confirmation = document.getElementById('password_confirmation');
-      const generate = document.getElementById('generate_password');
-      const copy = document.getElementById('copy_password');
-      const toggle = document.getElementById('show_password');
-      const form = password?.closest('form');
-
-      if (!password || !confirmation || !generate || !copy || !toggle || !form) {
-        return;
-      }
-
-      const setType = (type) => {
-        password.type = type;
-        confirmation.type = type;
-      };
-
-      const syncConfirmation = () => {
-        confirmation.value = password.value;
-      };
-
-      const setClipboard = async (value) => {
-        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-          await navigator.clipboard.writeText(value);
-          return;
-        }
-
-        password.focus();
-        password.select();
-        document.execCommand('copy');
-      };
-
-      toggle.addEventListener('change', () => {
-        setType(toggle.checked ? 'text' : 'password');
-      });
-
-      password.addEventListener('input', syncConfirmation);
-      password.addEventListener('change', syncConfirmation);
-      form.addEventListener('submit', syncConfirmation);
-
-      generate.addEventListener('click', () => {
-        const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*';
-        const bytes = new Uint8Array(12);
-        window.crypto.getRandomValues(bytes);
-        const value = Array.from(bytes, (byte) => charset.charAt(byte % charset.length)).join('');
-
-        password.value = value;
-        confirmation.value = value;
-        toggle.checked = true;
-        setType('text');
-        password.focus();
-        password.select();
-      });
-
-      copy.addEventListener('click', async () => {
-        if (password.value === '') {
-          return;
-        }
-
-        await setClipboard(password.value);
-        copy.textContent = 'Copied';
-        window.setTimeout(() => {
-          copy.textContent = 'Copy password';
-        }, 1200);
-      });
-    })();
-  </script>
+    <div class="mt-6 flex justify-end gap-3">
+      <a href="/admin/users" class="{{ button_secondary }}">Cancel</a>
+      <button type="submit" class="{{ button_primary }}">{{ submit_label }}</button>
+    </div>
+  </form>
 {% endblock %}

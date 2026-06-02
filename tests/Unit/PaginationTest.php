@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\Support\AdminPagination;
+use App\Support\Pagination;
 use PHPUnit\Framework\TestCase;
 
-final class AdminPaginationTest extends TestCase
+final class PaginationTest extends TestCase
 {
     public function testViewDataLimitsThePageWindowForLargeResultSets(): void
     {
-        $pagination = new AdminPagination();
+        $pagination = new Pagination();
 
         $viewData = $pagination->viewData([
             'total' => 100000,

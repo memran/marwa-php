@@ -20,15 +20,6 @@ enum UserStatus: string
         return self::tryFrom($value) ?? self::All;
     }
 
-    public function isActiveFlag(): ?int
-    {
-        return match ($this) {
-            self::Active => 1,
-            self::Disabled => 0,
-            default => null,
-        };
-    }
-
     public function label(): string
     {
         return match ($this) {

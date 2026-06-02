@@ -8,6 +8,7 @@ use App\Contracts\PermissionAwareUser;
 use App\Modules\Auth\Models\Permission;
 use App\Modules\Auth\Models\Role;
 use Marwa\Framework\Database\Model;
+use Marwa\DB\Query\Builder as BaseBuilder;
 use Marwa\DB\ORM\Relations\BelongsTo;
 
 final class User extends Model implements PermissionAwareUser
@@ -38,23 +39,58 @@ final class User extends Model implements PermissionAwareUser
         return strtolower(trim($email));
     }
 
+    public function scopeSearch(BaseBuilder $query, string $term): void
+    {
+        $term = trim($term);
+
+        if ($term === '') {
+            return;
+        }
+
+        $like = '%' . $term . '%';
+
+        $query->whereNested(static function (BaseBuilder $nested) use ($like): void {
+            $nested->where('name', 'like', $like)
+                ->orWhere('email', 'like', $like);
+        });
+    }
+
+    public function scopeSort(BaseBuilder $query, string $sort = 'created_at', string $direction = 'desc'): void
+    {
+        $column = match (trim($sort)) {
+            'name' => 'name',
+            'email' => 'email',
+            'role' => 'role_id',
+            'role_id' => 'role_id',
+            'is_active' => 'is_active',
+            'updated_at' => 'updated_at',
+            default => 'created_at',
+        };
+
+        $query->orderBy($column, strtolower(trim($direction)) === 'asc' ? 'asc' : 'desc');
+    }
+
+    public function scopeActive(BaseBuilder $query): void
+    {
+        $query->where('is_active', '=', 1);
+    }
+
+    public function scopeDisabled(BaseBuilder $query): void
+    {
+        $query->where('is_active', '=', 0);
+    }
+
     public static function findBy(string $column, mixed $value): ?static
     {
         if ($value === null) {
             return null;
         }
 
-        $row = static::applySoftDeleteFilter(static::baseQuery())
+        $row = static::query()
             ->where($column, '=', $value)
             ->first();
 
-        if ($row === null) {
-            return null;
-        }
-
-        $data = is_array($row) ? $row : (array) $row;
-
-        return new self($data, true);
+        return $row instanceof static ? $row : null;
     }
 
     public static function findByEmailIncludingTrashed(string $email): ?static
@@ -64,15 +100,11 @@ final class User extends Model implements PermissionAwareUser
             return null;
         }
 
-        $row = self::baseQuery()->where('email', '=', $email)->first();
+        $row = static::withTrashed()
+            ->where('email', '=', $email)
+            ->first();
 
-        if ($row === null) {
-            return null;
-        }
-
-        $data = is_array($row) ? $row : (array) $row;
-
-        return new self($data, true);
+        return $row instanceof static ? $row : null;
     }
 
     public function roleRelation(): BelongsTo
