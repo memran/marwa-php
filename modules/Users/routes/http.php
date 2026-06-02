@@ -28,6 +28,10 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
         ->middleware(new RequirePermission('users.view'))
         ->name('admin.users.export')
         ->register();
+    $routes->get('/users/export.pdf', [UsersController::class, 'exportPdf'])
+        ->middleware(new RequirePermission('users.view'))
+        ->name('admin.users.export.pdf')
+        ->register();
     $routes->post('/users/bulk-delete', [UsersController::class, 'bulkDelete'])
         ->middleware(new RequirePermission('users.delete'))
         ->name('admin.users.bulk_delete')

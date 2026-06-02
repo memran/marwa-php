@@ -389,7 +389,8 @@ TWIG
         $usersBody = (string) $usersPage->getBody();
         self::assertStringContainsString('admin@marwa.test', $usersBody);
         self::assertStringContainsString('Columns', $usersBody);
-        self::assertStringContainsString('Export', $usersBody);
+        self::assertStringContainsString('CSV', $usersBody);
+        self::assertStringContainsString('PDF', $usersBody);
         self::assertStringContainsString('Delete selected', $usersBody);
         self::assertStringContainsString('Update status', $usersBody);
         self::assertStringContainsString('Select all', $usersBody);
@@ -408,6 +409,16 @@ TWIG
         self::assertStringContainsString("Name,Email", $exportBody);
         self::assertStringContainsString("admin@marwa.test", $exportBody);
         self::assertSame((int) $exportPage->getHeaderLine('Content-Length'), strlen($exportBody));
+
+        $pdfPage = $kernel->handle($this->request('GET', '/admin/users/export.pdf?columns[]=name&columns[]=email'));
+        self::assertSame(200, $pdfPage->getStatusCode());
+        self::assertSame('application/pdf', $pdfPage->getHeaderLine('Content-Type'));
+        self::assertSame('attachment; filename="users-export.pdf"', $pdfPage->getHeaderLine('Content-Disposition'));
+        $pdfBody = (string) $pdfPage->getBody();
+        self::assertStringStartsWith('%PDF-1.', $pdfBody);
+        self::assertStringEndsWith("%%EOF\n", $pdfBody);
+        self::assertNotSame('', $pdfPage->getHeaderLine('Content-Length'));
+        self::assertGreaterThan(200, strlen($pdfBody));
 
         $createPage = $kernel->handle($this->request('GET', '/admin/users/create'));
         self::assertSame(200, $createPage->getStatusCode());

@@ -30,7 +30,8 @@ final class UsersTableData
         array $requestParams,
         array $usersPage,
         array $pagination,
-        string $exportPath = '/admin/users/export',
+        string $exportCsvPath = '/admin/users/export',
+        string $exportPdfPath = '/admin/users/export.pdf',
     ): array {
         $state = $this->resolveState($requestParams);
         $visibleColumns = $this->normalizeVisibleColumns($requestParams['columns'] ?? null);
@@ -40,7 +41,8 @@ final class UsersTableData
             $state,
             $visibleColumns,
             $this->columns->columnOptions(),
-            $exportPath,
+            $exportCsvPath,
+            $exportPdfPath,
             $buildUrl,
             $hiddenFields
         );
@@ -134,7 +136,8 @@ final class UsersTableData
         array $state,
         array $visibleColumns,
         array $columnOptions,
-        string $exportPath,
+        string $exportCsvPath,
+        string $exportPdfPath,
         callable $buildUrl,
         callable $hiddenFields
     ): array {
@@ -142,10 +145,38 @@ final class UsersTableData
             'search' => $this->toolbar->buildSearch($state, $visibleColumns, $buildUrl, $hiddenFields),
             'filter' => $this->toolbar->buildFilter($state, $visibleColumns, $buildUrl),
             'columns' => $this->toolbar->buildColumnsToolbar($state, $visibleColumns, $columnOptions, $buildUrl, $hiddenFields),
-            'export_url' => $this->buildUsersUrl($state, $visibleColumns, $exportPath),
-            'export_label' => 'Export',
-            'export_icon' => 'download',
+            'exports' => $this->exportActions($state, $visibleColumns, $exportCsvPath, $exportPdfPath, $buildUrl),
             'actions' => $this->printAction(),
+        ];
+    }
+
+    /**
+     * @param array{query:string,filter:string,sort:string,direction:string,page:int} $state
+     * @param list<string> $visibleColumns
+     * @return list<array<string, string>>
+     */
+    private function exportActions(
+        array $state,
+        array $visibleColumns,
+        string $exportCsvPath,
+        string $exportPdfPath,
+        callable $buildUrl
+    ): array {
+        return [
+            [
+                'label' => 'CSV',
+                'url' => $this->buildUsersUrl($state, $visibleColumns, $exportCsvPath),
+                'icon' => 'file-text',
+                'format' => 'csv',
+                'variant' => 'secondary',
+            ],
+            [
+                'label' => 'PDF',
+                'url' => $this->buildUsersUrl($state, $visibleColumns, $exportPdfPath),
+                'icon' => 'file',
+                'format' => 'pdf',
+                'variant' => 'secondary',
+            ],
         ];
     }
 
@@ -223,7 +254,9 @@ final class UsersTableData
      */
     public function buildCsv(array $users, array $columns): string
     {
-        return $this->exporter->buildCsv($users, $columns);
+        $resolved = $this->exporter->resolveColumns($columns);
+
+        return $this->exporter->csv()->build($users, $resolved);
     }
 
     /**
@@ -231,7 +264,19 @@ final class UsersTableData
      */
     public function writeCsvToFile(string $filePath, array $users, array $columns): void
     {
-        $this->exporter->writeCsvToFile($filePath, $users, $columns);
+        $resolved = $this->exporter->resolveColumns($columns);
+        $csv = $this->exporter->csv()->build($users, $resolved);
+        file_put_contents($filePath, $csv);
+    }
+
+    /**
+     * @param list<User> $users
+     */
+    public function writePdfToFile(string $filePath, array $users, array $columns, string $title): void
+    {
+        $resolved = $this->exporter->resolveColumns($columns);
+        $pdf = $this->exporter->pdf()->build($users, $resolved, $title);
+        file_put_contents($filePath, $pdf);
     }
 
     /**

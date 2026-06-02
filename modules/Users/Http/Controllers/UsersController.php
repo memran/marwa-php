@@ -15,11 +15,11 @@ use App\Modules\Users\Support\UserListing;
 use App\Modules\Users\Support\UserStatus;
 use App\Modules\Users\Support\UserActivityService;
 use App\Modules\Users\Support\UserBulkActions;
+use App\Modules\Users\Support\UserExportActions;
 use App\Modules\Users\Support\UserWriteActions;
 use App\Modules\Users\Support\UsersRequestParams;
 use App\Modules\Users\Support\UsersTableData;
 use Marwa\Framework\Controllers\Controller;
-use Marwa\Router\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -38,6 +38,7 @@ final class UsersController extends Controller
         protected readonly UsersTableData $tableData,
         protected readonly UserBulkActions $bulk,
         protected readonly UserWriteActions $write,
+        protected readonly UserExportActions $export,
     ) {}
 
     public function index(): ResponseInterface
@@ -162,63 +163,12 @@ final class UsersController extends Controller
 
     public function export(): ResponseInterface
     {
-        $params = $this->params->listParams();
-        $state = $this->listState->stateFrom($params, 'q', 'status', 'sort', 'direction', 'page');
-        $status = UserStatus::tryFromFilter($state['filter']);
-        $visibleColumns = $this->tableData->normalizeVisibleColumns($params['columns'] ?? null);
-        $users = $this->listing->listUsers(
-            $state['query'],
-            $status,
-            $state['sort'],
-            $state['direction']
-        );
-        $tempFile = $this->writeExportTempFile($users, $visibleColumns);
-
-        if ($tempFile === null) {
-            return $this->response('Unable to generate export file.', 500);
-        }
-
-        $this->scheduleExportFileCleanup($tempFile);
-
-        return Response::download($tempFile, 'users-export.csv', self::EXPORT_CSV_HEADERS);
+        return $this->export->exportCsv();
     }
 
-    private const EXPORT_CSV_HEADERS = [
-        'Content-Type' => 'text/csv; charset=UTF-8',
-        'Cache-Control' => 'no-store, no-cache, must-revalidate',
-    ];
-
-    /**
-     * @param list<User> $users
-     * @param list<string> $visibleColumns
-     */
-    private function writeExportTempFile(array $users, array $visibleColumns): ?string
+    public function exportPdf(): ResponseInterface
     {
-        $tempFile = tempnam(sys_get_temp_dir(), 'users-export-');
-
-        if ($tempFile === false) {
-            return null;
-        }
-
-        try {
-            $this->tableData->writeCsvToFile($tempFile, $users, $visibleColumns);
-        } catch (\Throwable) {
-            if (is_file($tempFile)) {
-                unlink($tempFile);
-            }
-            return null;
-        }
-
-        return $tempFile;
-    }
-
-    private function scheduleExportFileCleanup(string $tempFile): void
-    {
-        register_shutdown_function(static function (string $path): void {
-            if (is_file($path)) {
-                @unlink($path);
-            }
-        }, $tempFile);
+        return $this->export->exportPdf();
     }
 
     public function bulkDelete(): ResponseInterface

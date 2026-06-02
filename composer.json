@@ -26,6 +26,7 @@
   "require": {
     "php": ">=8.2",
     "ext-json": "*",
+    "dompdf/dompdf": "^3.1",
     "memran/marwa-error-handler": "^1.2.0",
     "memran/marwa-framework": "^1.5"
   },
