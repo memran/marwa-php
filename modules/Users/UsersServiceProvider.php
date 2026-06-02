@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Modules\Users;
 
+use App\Modules\Users\Support\UserAccessPolicy;
+use App\Modules\Users\Support\UserRepository;
 use Marwa\Framework\Navigation\MenuRegistry;
 use Marwa\Module\Contracts\ModuleServiceProviderInterface;
 final class UsersServiceProvider implements ModuleServiceProviderInterface
 {
     public function register($app): void
     {
+        $app->container()->add(UserAccessPolicy::class, UserRepository::class);
+
         if (!$app->has(MenuRegistry::class)) {
             return;
         }

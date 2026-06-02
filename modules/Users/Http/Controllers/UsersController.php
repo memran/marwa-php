@@ -7,7 +7,6 @@ namespace App\Modules\Users\Http\Controllers;
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Users\Models\User;
 use App\Support\AdminPagination;
-use App\Support\AdminListState;
 use App\Modules\Users\Support\UserFormData;
 use App\Modules\Users\Support\UserValidationRules;
 use App\Modules\Users\Support\UserRepository;
@@ -17,8 +16,9 @@ use App\Modules\Users\Support\UserActivityService;
 use App\Modules\Users\Support\UserBulkActions;
 use App\Modules\Users\Support\UserExportActions;
 use App\Modules\Users\Support\UserWriteActions;
-use App\Modules\Users\Support\UsersRequestParams;
-use App\Modules\Users\Support\UsersTableData;
+use App\Modules\Users\Support\UsersTableConfig;
+use App\Support\DataTable\DataTableRequestState;
+use App\Support\DataTable\DataTableView;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -30,12 +30,12 @@ final class UsersController extends Controller
         protected readonly UserListing $listing,
         protected readonly UserFormData $forms,
         protected readonly UserValidationRules $rules,
-        protected readonly AdminListState $listState,
         protected readonly AdminPagination $pagination,
         protected readonly AuthManager $auth,
         protected readonly UserActivityService $activity,
-        protected readonly UsersRequestParams $params,
-        protected readonly UsersTableData $tableData,
+        protected readonly DataTableRequestState $requestState,
+        protected readonly DataTableView $tableView,
+        protected readonly UsersTableConfig $tableConfig,
         protected readonly UserBulkActions $bulk,
         protected readonly UserWriteActions $write,
         protected readonly UserExportActions $export,
@@ -43,10 +43,17 @@ final class UsersController extends Controller
 
     public function index(): ResponseInterface
     {
-        $params = $this->params->listParams();
-        $state = $this->listState->stateFrom($params, 'q', 'status', 'sort', 'direction', 'page');
+        $params = [
+            'q' => request('q', ''),
+            'status' => request('status', $this->tableConfig->defaultFilter()),
+            'sort' => request('sort', $this->tableConfig->defaultSort()),
+            'direction' => request('direction', $this->tableConfig->defaultDirection()),
+            'page' => request('page', 1),
+            'columns' => request('columns', []),
+        ];
+        $state = $this->requestState->resolve($params);
         $status = UserStatus::tryFromFilter($state['filter']);
-        $visibleColumns = $this->tableData->normalizeVisibleColumns($params['columns'] ?? null);
+        $visibleColumns = $this->tableView->normalizeVisibleColumns($this->tableConfig, $params['columns']);
         $users = $this->listing->paginatedUsers(
             $state['query'],
             $state['page'],
@@ -58,7 +65,7 @@ final class UsersController extends Controller
         $pagination = $this->buildIndexPagination($state, $visibleColumns, $users);
 
         return $this->view('@users/index', [
-            'table' => $this->tableData->build($params, $users, $pagination),
+            'table' => $this->tableView->build($this->tableConfig, $params, $users, $pagination),
         ]);
     }
 
@@ -69,7 +76,7 @@ final class UsersController extends Controller
      */
     private function buildIndexPagination(array $state, array $visibleColumns, mixed $users): array
     {
-        return $this->pagination->viewData($users, '/admin/users', [
+        return $this->pagination->viewData($users, $this->tableConfig->basePath(), [
             'q' => $state['query'],
             'status' => $state['filter'],
             'sort' => $state['sort'],
@@ -173,17 +180,32 @@ final class UsersController extends Controller
 
     public function bulkDelete(): ResponseInterface
     {
-        $params = $this->params->listParams();
-        $visibleColumns = $this->tableData->normalizeVisibleColumns($params['columns'] ?? null);
+        $params = $this->currentListParams();
+        $visibleColumns = $this->tableView->normalizeVisibleColumns($this->tableConfig, $params['columns']);
 
         return $this->bulk->bulkDelete($params, $visibleColumns);
     }
 
     public function bulkStatus(): ResponseInterface
     {
-        $params = $this->params->listParams();
-        $visibleColumns = $this->tableData->normalizeVisibleColumns($params['columns'] ?? null);
+        $params = $this->currentListParams();
+        $visibleColumns = $this->tableView->normalizeVisibleColumns($this->tableConfig, $params['columns']);
 
         return $this->bulk->bulkStatus($params, $visibleColumns);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function currentListParams(): array
+    {
+        return [
+            'q' => request('q', ''),
+            'status' => request('status', $this->tableConfig->defaultFilter()),
+            'sort' => request('sort', $this->tableConfig->defaultSort()),
+            'direction' => request('direction', $this->tableConfig->defaultDirection()),
+            'page' => request('page', 1),
+            'columns' => request('columns', []),
+        ];
     }
 }

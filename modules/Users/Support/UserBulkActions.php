@@ -6,7 +6,8 @@ namespace App\Modules\Users\Support;
 
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Users\Models\User;
-use App\Support\AdminListState;
+use App\Support\DataTable\DataTableRequestState;
+use App\Support\DataTable\DataTableView;
 use Marwa\Router\Response;
 use Psr\Http\Message\ResponseInterface;
 
@@ -16,9 +17,9 @@ final class UserBulkActions
         private readonly UserRepository $users,
         private readonly UserActivityService $activity,
         private readonly AuthManager $auth,
-        private readonly UsersRequestParams $params,
-        private readonly UsersTableData $tableData,
-        private readonly AdminListState $listState,
+        private readonly DataTableRequestState $requestState,
+        private readonly DataTableView $tableView,
+        private readonly UsersTableConfig $tableConfig,
     ) {}
 
     /**
@@ -27,7 +28,7 @@ final class UserBulkActions
      */
     public function bulkDelete(array $requestParams, array $visibleColumns): ResponseInterface
     {
-        $selectedIds = $this->params->bulkSelectedIds();
+        $selectedIds = $this->requestState->bulkSelectedIds();
 
         if ($selectedIds === []) {
             return $this->redirectWith($requestParams, $visibleColumns, 'Select at least one user before deleting.');
@@ -78,7 +79,7 @@ final class UserBulkActions
             return $this->redirectWith($requestParams, $visibleColumns, 'Choose a valid status before updating selected users.');
         }
 
-        $selectedIds = $this->params->bulkSelectedIds();
+        $selectedIds = $this->requestState->bulkSelectedIds();
 
         if ($selectedIds === []) {
             return $this->redirectWith($requestParams, $visibleColumns, 'Select at least one user before updating status.');
@@ -90,7 +91,7 @@ final class UserBulkActions
     private function resolveTargetStatus(): ?UserStatus
     {
         $validTargets = [UserStatus::Active, UserStatus::Disabled];
-        $target = UserStatus::tryFrom($this->params->bulkStatus() ?? '');
+        $target = UserStatus::tryFrom($this->requestState->bulkStatus());
 
         return ($target !== null && in_array($target, $validTargets, true)) ? $target : null;
     }
@@ -188,8 +189,9 @@ final class UserBulkActions
     private function redirectWith(array $requestParams, array $visibleColumns, string $message): ResponseInterface
     {
         session()->flash('users.notice', $message);
-        $url = $this->tableData->buildUsersUrl(
-            $this->listState->stateFrom($requestParams, 'q', 'status', 'sort', 'direction', 'page'),
+        $url = $this->tableView->buildUsersUrl(
+            $this->tableConfig,
+            $this->requestState->resolve($requestParams),
             $visibleColumns
         );
 

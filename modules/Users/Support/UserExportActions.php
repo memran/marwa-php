@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Users\Support;
 
 use App\Modules\Users\Models\User;
-use App\Support\AdminListState;
-use App\Support\Export\Exporter;
+use App\Support\DataTable\DataTableRequestState;
+use App\Support\DataTable\DataTableView;
 use Marwa\Router\Response;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
@@ -14,10 +14,10 @@ use Throwable;
 final class UserExportActions
 {
     public function __construct(
-        private readonly UsersTableData $tableData,
+        private readonly DataTableView $tableView,
+        private readonly DataTableRequestState $requestState,
+        private readonly UsersTableConfig $tableConfig,
         private readonly UserListing $listing,
-        private readonly UsersRequestParams $params,
-        private readonly AdminListState $listState,
     ) {}
 
     public function exportCsv(): ResponseInterface
@@ -52,10 +52,10 @@ final class UserExportActions
      */
     private function buildContext(): array
     {
-        $params = $this->params->listParams();
-        $state = $this->listState->stateFrom($params, 'q', 'status', 'sort', 'direction', 'page');
+        $params = $this->currentListParams();
+        $state = $this->requestState->resolve($params);
         $status = UserStatus::tryFromFilter($state['filter']);
-        $visibleColumns = $this->tableData->normalizeVisibleColumns($params['columns'] ?? null);
+        $visibleColumns = $this->tableView->normalizeVisibleColumns($this->tableConfig, $params['columns']);
         $users = $this->listing->listUsers(
             $state['query'],
             $status,
@@ -66,7 +66,22 @@ final class UserExportActions
         return [
             'users' => $users,
             'columns' => $visibleColumns,
-            'title' => 'Registered users',
+            'title' => $this->tableConfig->pageTitle(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function currentListParams(): array
+    {
+        return [
+            'q' => request('q', ''),
+            'status' => request('status', $this->tableConfig->defaultFilter()),
+            'sort' => request('sort', $this->tableConfig->defaultSort()),
+            'direction' => request('direction', $this->tableConfig->defaultDirection()),
+            'page' => request('page', 1),
+            'columns' => request('columns', []),
         ];
     }
 
@@ -98,17 +113,32 @@ final class UserExportActions
      */
     private function writePayload(string $tempFile, array $context, string $format): void
     {
+        $state = [
+            'query' => '',
+            'filter' => 'all',
+            'sort' => 'created_at',
+            'direction' => 'desc',
+            'page' => 1,
+        ];
+
         if ($format === 'pdf') {
-            $this->tableData->writePdfToFile(
+            $this->tableView->writePdfToFile(
+                $this->tableConfig,
                 $tempFile,
                 $context['users'],
                 $context['columns'],
-                $context['title']
+                $state
             );
             return;
         }
 
-        $this->tableData->writeCsvToFile($tempFile, $context['users'], $context['columns']);
+        $this->tableView->writeCsvToFile(
+            $this->tableConfig,
+            $tempFile,
+            $context['users'],
+            $context['columns'],
+            $state
+        );
     }
 
     private function scheduleCleanup(string $tempFile): void

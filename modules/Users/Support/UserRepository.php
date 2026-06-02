@@ -7,7 +7,7 @@ namespace App\Modules\Users\Support;
 use App\Modules\Users\Models\User;
 use Marwa\Support\Arr;
 
-final class UserRepository
+final class UserRepository implements UserAccessPolicy
 {
     public function __construct(
         private readonly UserActivityService $activity,
