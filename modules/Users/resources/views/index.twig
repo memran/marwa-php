@@ -19,86 +19,160 @@
     </div>
   </section>
 
-  <div class="mt-4 overflow-hidden rounded-xl border border-white/10 bg-white/5">
-    <table class="w-full">
-      <thead>
-        <tr class="border-b border-white/10 bg-white/5 text-left">
-          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Name</th>
-          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Email</th>
-          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Role</th>
-          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Status</th>
-          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Actions</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-white/5">
-        {% for user in users %}
-          <tr class="hover:bg-white/5">
-            <td class="px-4 py-3">
-              <a href="/admin/users/{{ user.getKey() }}" class="text-sm font-semibold text-slate-100 hover:text-cyan-200">{{ user.getAttribute('name') }}</a>
-              <span class="ml-2 text-xs text-slate-500">ID {{ user.getKey() }}</span>
-            </td>
-            <td class="px-4 py-3">
-              <span class="text-sm text-slate-300">{{ user.getAttribute('email') }}</span>
-            </td>
-            <td class="px-4 py-3">
-              {% set role = user.role() %}
-              <span class="inline-flex items-center rounded-full bg-cyan-400/10 px-2 py-0.5 text-xs font-medium text-cyan-200">
-                {{ role is not null ? role.getAttribute('name') : 'Unknown' }}
-              </span>
-            </td>
-            <td class="px-4 py-3">
-              {% include "@users/_badges.twig" %}
-            </td>
-            <td class="px-4 py-3">
-              <div class="flex items-center gap-2">
-                <a href="/admin/users/{{ user.getKey() }}" class="rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-cyan-200" title="View">
-                  {% include 'components/icon.twig' with { name: 'eye', class: 'h-4 w-4' } only %}
-                </a>
-                {% if gate.allows('users.edit') and not _is_trashed %}
-                  <a href="/admin/users/{{ user.getKey() }}/edit" class="rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-cyan-200" title="Edit">
-                    {% include 'components/icon.twig' with { name: 'pencil', class: 'h-4 w-4' } only %}
-                  </a>
-                {% endif %}
-                {% if gate.allows('users.delete') and not _is_trashed and not _is_protected %}
-                  <form method="post" action="/admin/users/{{ user.getKey() }}/delete" onsubmit="return confirm('Delete this user?');">
-                    {{ csrf_field() }}
-                    <button type="submit" class="rounded-lg p-2 text-slate-400 hover:bg-rose-500/20 hover:text-rose-400" title="Delete">
-                      {% include 'components/icon.twig' with { name: 'trash-2', class: 'h-4 w-4' } only %}
-                    </button>
-                  </form>
-                {% endif %}
-              </div>
-            </td>
-          </tr>
+  <div class="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-[0_30px_80px_rgba(2,6,23,0.25)] backdrop-blur-xl">
+
+    <div class="flex flex-col gap-3 border-b border-white/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <form class="flex h-10 w-full items-center gap-2 overflow-hidden rounded-xl border border-white/10 bg-white/5 px-3 sm:w-80" method="get" action="/admin/users">
+        <span class="flex h-6 w-6 shrink-0 items-center justify-center text-slate-400" aria-hidden="true">
+          {% include 'components/icon.twig' with { name: 'search', class: 'h-4 w-4' } only %}
+        </span>
+        <input
+          class="min-w-0 flex-1 border-0 bg-transparent text-sm text-slate-200 placeholder:text-slate-500 outline-none ring-0 focus:ring-0"
+          type="search"
+          name="q"
+          value="{{ query|default('') }}"
+          placeholder="Search users..."
+          autocomplete="off"
+          spellcheck="false"
+        >
+        {% if query|default('') %}
+          <a class="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-slate-200" href="/admin/users" title="Clear search">
+            {% include 'components/icon.twig' with { name: 'x', class: 'h-3.5 w-3.5' } only %}
+          </a>
+        {% endif %}
+        <button class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/10 text-slate-300 transition hover:bg-white/20" type="submit" title="Search">
+          {% include 'components/icon.twig' with { name: 'arrow-right', class: 'h-3.5 w-3.5' } only %}
+        </button>
+      </form>
+
+      <div class="flex flex-wrap items-center gap-2">
+        {% set filters = [
+          { label: 'All', value: 'all' },
+          { label: 'Active', value: 'active' },
+          { label: 'Disabled', value: 'disabled' },
+          { label: 'Trashed', value: 'trashed' },
+        ] %}
+        {% for f in filters %}
+          <a
+            class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition
+              {% if filter|default('all') == f.value %}
+                border-cyan-300/30 bg-cyan-400/10 text-cyan-200
+              {% else %}
+                border-white/10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200
+              {% endif %}"
+            href="/admin/users?filter={{ f.value }}{% if query|default('') %}&q={{ query }}{% endif %}"
+          >
+            {{ f.label }}
+          </a>
         {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  {% if users|length == 0 %}
-    <div class="mt-8 flex flex-col items-center justify-center py-12 text-center">
-      <div class="flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
-        {% include 'components/icon.twig' with { name: 'users', class: 'h-8 w-8 text-slate-500' } only %}
       </div>
-      <h3 class="mt-4 text-lg font-semibold text-slate-200">No users found</h3>
-      <p class="mt-1 text-sm text-slate-400">Adjust your search or create a new user.</p>
     </div>
-  {% endif %}
 
-  {% include 'components/pagination.twig' with {
-    pagination: pagination|default({ summary: '', links: [] }),
-    search: true,
-    search_value: query|default(''),
-    search_url: '/admin/users',
-    search_param: 'q',
-    sort: sort|default('created_at'),
-    direction: direction|default('desc'),
-    filter: filter|default('all'),
-    filters: [
-      { label: 'All', value: 'all', active: filter|default('all') == 'all' },
-      { label: 'Active', value: 'active', active: filter|default('all') == 'active' },
-      { label: 'Disabled', value: 'disabled', active: filter|default('all') == 'disabled' },
-      { label: 'Trashed', value: 'trashed', active: filter|default('all') == 'trashed' },
-    ],
-  } only %}
+    {% if users|length > 0 %}
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-white/10 bg-white/[0.02]">
+              {% set cols = [
+                { label: 'User', key: 'name' },
+                { label: 'Email', key: 'email' },
+                { label: 'Role', key: 'role' },
+                { label: 'Status', key: 'is_active' },
+              ] %}
+              {% for col in cols %}
+                <th class="px-5 py-3 text-left">
+                  {% set is_active_sort = sort|default('created_at') == col.key %}
+                  <a
+                    class="inline-flex items-center gap-1 text-[0.7rem] font-extrabold uppercase tracking-[0.14em] transition
+                      {% if is_active_sort %}text-cyan-300{% else %}text-slate-500 hover:text-slate-300{% endif %}"
+                    href="/admin/users?sort={{ col.key }}&direction={% if is_active_sort and direction|default('desc') == 'asc' %}desc{% else %}asc{% endif %}&filter={{ filter|default('all') }}{% if query|default('') %}&q={{ query }}{% endif %}"
+                  >
+                    <span>{{ col.label }}</span>
+                    {% if is_active_sort %}
+                      {% include 'components/icon.twig' with { name: direction|default('desc') == 'asc' ? 'arrow-up' : 'arrow-down', class: 'h-3.5 w-3.5 shrink-0 text-cyan-300' } only %}
+                    {% endif %}
+                  </a>
+                </th>
+              {% endfor %}
+              <th class="px-5 py-3 text-left text-[0.7rem] font-extrabold uppercase tracking-[0.14em] text-slate-500">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5">
+            {% for user in users %}
+              <tr class="group transition hover:bg-white/[0.03]">
+                <td class="px-5 py-3.5">
+                  <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-cyan-400/10 text-sm font-black uppercase text-cyan-300 ring-1 ring-cyan-400/10">
+                      {{ user.getAttribute('name')|default('U')|slice(0, 1)|upper }}
+                    </div>
+                    <div class="min-w-0">
+                      <a href="/admin/users/{{ user.getKey() }}" class="block truncate text-sm font-semibold text-slate-100 transition hover:text-cyan-200">{{ user.getAttribute('name') }}</a>
+                      <span class="text-xs text-slate-500">ID {{ user.getKey() }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-5 py-3.5">
+                  <span class="text-sm text-slate-400">{{ user.getAttribute('email') }}</span>
+                </td>
+                <td class="px-5 py-3.5">
+                  {% set role = user.role() %}
+                  <span class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-300">
+                    {% include 'components/icon.twig' with { name: 'shield', class: 'h-3 w-3 shrink-0 text-slate-500' } only %}
+                    {{ role is not null ? role.getAttribute('name') : 'Unknown' }}
+                  </span>
+                </td>
+                <td class="px-5 py-3.5">
+                  {% include "@users/_badges.twig" %}
+                </td>
+                <td class="px-5 py-3.5">
+                  <div class="flex items-center gap-1.5 opacity-0 transition group-hover:opacity-100">
+                    <a href="/admin/users/{{ user.getKey() }}" class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 text-xs font-semibold text-slate-400 transition hover:bg-white/10 hover:text-slate-200" title="View">
+                      {% include 'components/icon.twig' with { name: 'eye', class: 'h-3.5 w-3.5' } only %}
+                      <span class="hidden lg:inline">View</span>
+                    </a>
+                    {% if gate.allows('users.edit') and not _is_trashed %}
+                      <a href="/admin/users/{{ user.getKey() }}/edit" class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 text-xs font-semibold text-slate-400 transition hover:bg-white/10 hover:text-slate-200" title="Edit">
+                        {% include 'components/icon.twig' with { name: 'pencil', class: 'h-3.5 w-3.5' } only %}
+                        <span class="hidden lg:inline">Edit</span>
+                      </a>
+                    {% endif %}
+                    {% if gate.allows('users.delete') and not _is_trashed and not _is_protected %}
+                      <form method="post" action="/admin/users/{{ user.getKey() }}/delete" onsubmit="return confirm('Delete this user?');" class="inline">
+                        {{ csrf_field() }}
+                        <button type="submit" class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-rose-500/20 bg-rose-500/5 px-2.5 text-xs font-semibold text-rose-400 transition hover:bg-rose-500/15 hover:text-rose-300" title="Delete">
+                          {% include 'components/icon.twig' with { name: 'trash-2', class: 'h-3.5 w-3.5' } only %}
+                          <span class="hidden lg:inline">Delete</span>
+                        </button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% include 'components/pagination.twig' with {
+        pagination: pagination|default({ summary: '', links: [] }),
+      } only %}
+    {% else %}
+      <div class="flex flex-col items-center justify-center px-6 py-16 text-center">
+        <div class="flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5">
+          {% include 'components/icon.twig' with { name: 'users', class: 'h-8 w-8 text-slate-500' } only %}
+        </div>
+        <h3 class="mt-4 text-lg font-semibold text-slate-200">No users found</h3>
+        <p class="mt-1 max-w-sm text-sm text-slate-400">
+          {% if query|default('') %}
+            No users match "{{ query }}". Try a different search term.
+          {% else %}
+            Get started by creating the first user account.
+          {% endif %}
+        </p>
+        {% if gate.allows('users.create') and not query|default('') %}
+          <a class="{{ button_primary }} mt-4" href="/admin/users/create">Create user</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
 {% endblock %}
