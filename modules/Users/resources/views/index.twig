@@ -19,23 +19,6 @@
     </div>
   </section>
 
-  {% include 'components/pagination.twig' with {
-    pagination: pagination|default({ summary: '', links: [] }),
-    search: true,
-    search_value: query|default(''),
-    search_url: '/admin/users',
-    search_param: 'q',
-    sort: sort|default('created_at'),
-    direction: direction|default('desc'),
-    filter: filter|default('all'),
-    filters: [
-      { label: 'All', value: 'all', active: filter|default('all') == 'all' },
-      { label: 'Active', value: 'active', active: filter|default('all') == 'active' },
-      { label: 'Disabled', value: 'disabled', active: filter|default('all') == 'disabled' },
-      { label: 'Trashed', value: 'trashed', active: filter|default('all') == 'trashed' },
-    ],
-  } only %}
-
   <div class="mt-4 overflow-hidden rounded-xl border border-white/10 bg-white/5">
     <table class="w-full">
       <thead>
@@ -101,4 +84,21 @@
       <p class="mt-1 text-sm text-slate-400">Adjust your search or create a new user.</p>
     </div>
   {% endif %}
+
+  {% include 'components/pagination.twig' with {
+    pagination: pagination|default({ summary: '', links: [] }),
+    search: true,
+    search_value: query|default(''),
+    search_url: '/admin/users',
+    search_param: 'q',
+    sort: sort|default('created_at'),
+    direction: direction|default('desc'),
+    filter: filter|default('all'),
+    filters: [
+      { label: 'All', value: 'all', active: filter|default('all') == 'all' },
+      { label: 'Active', value: 'active', active: filter|default('all') == 'active' },
+      { label: 'Disabled', value: 'disabled', active: filter|default('all') == 'disabled' },
+      { label: 'Trashed', value: 'trashed', active: filter|default('all') == 'trashed' },
+    ],
+  } only %}
 {% endblock %}
