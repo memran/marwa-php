@@ -3,9 +3,7 @@
 {% block title %}{{ title }} | MarwaPHP Admin{% endblock %}
 
 {% block content %}
-  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
-  {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
-  {% set button_secondary = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
+  {% include "@users/_buttons.twig" %}
   {% set user = user|default(null) %}
   {% set form = form|default({}) %}
   {% set roles = roles|default([]) %}

@@ -3,9 +3,7 @@
 {% block title %}Users | MarwaPHP Admin{% endblock %}
 
 {% block content %}
-  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
-  {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
-  {% set button_secondary = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
+  {% include "@users/_buttons.twig" %}
 
   <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
     <div class="max-w-3xl space-y-2">
@@ -51,8 +49,6 @@
       </thead>
       <tbody class="divide-y divide-white/5">
         {% for user in users %}
-          {% set is_trashed = user.getAttribute('deleted_at') is not empty %}
-          {% set is_protected = protected_admin_id is defined and protected_admin_id is not null and user.getKey() == protected_admin_id %}
           <tr class="hover:bg-white/5">
             <td class="px-4 py-3">
               <a href="/admin/users/{{ user.getKey() }}" class="text-sm font-semibold text-slate-100 hover:text-cyan-200">{{ user.getAttribute('name') }}</a>
@@ -68,28 +64,19 @@
               </span>
             </td>
             <td class="px-4 py-3">
-              {% if is_trashed %}
-                <span class="inline-flex items-center rounded-full bg-rose-400/10 px-2 py-0.5 text-xs font-medium text-rose-200">Trashed</span>
-              {% elseif user.getAttribute('is_active') %}
-                <span class="inline-flex items-center rounded-full bg-emerald-400/10 px-2 py-0.5 text-xs font-medium text-emerald-200">Active</span>
-              {% else %}
-                <span class="inline-flex items-center rounded-full bg-amber-400/10 px-2 py-0.5 text-xs font-medium text-amber-200">Disabled</span>
-              {% endif %}
-              {% if is_protected %}
-                <span class="ml-1 inline-flex items-center rounded-full bg-amber-400/10 px-2 py-0.5 text-xs font-medium text-amber-200">Protected</span>
-              {% endif %}
+              {% include "@users/_badges.twig" %}
             </td>
             <td class="px-4 py-3">
               <div class="flex items-center gap-2">
                 <a href="/admin/users/{{ user.getKey() }}" class="rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-cyan-200" title="View">
                   {% include 'components/icon.twig' with { name: 'eye', class: 'h-4 w-4' } only %}
                 </a>
-                {% if gate.allows('users.edit') and not is_trashed %}
+                {% if gate.allows('users.edit') and not _is_trashed %}
                   <a href="/admin/users/{{ user.getKey() }}/edit" class="rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-cyan-200" title="Edit">
                     {% include 'components/icon.twig' with { name: 'pencil', class: 'h-4 w-4' } only %}
                   </a>
                 {% endif %}
-                {% if gate.allows('users.delete') and not is_trashed and not is_protected %}
+                {% if gate.allows('users.delete') and not _is_trashed and not _is_protected %}
                   <form method="post" action="/admin/users/{{ user.getKey() }}/delete" onsubmit="return confirm('Delete this user?');">
                     {{ csrf_field() }}
                     <button type="submit" class="rounded-lg p-2 text-slate-400 hover:bg-rose-500/20 hover:text-rose-400" title="Delete">

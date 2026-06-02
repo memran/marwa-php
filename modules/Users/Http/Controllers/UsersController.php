@@ -28,19 +28,15 @@ final class UsersController extends Controller
 
     public function profile(): ResponseInterface
     {
-        $currentUser = $this->auth->user();
-
         return $this->view('@users/profile', [
-            'authUser' => $currentUser,
-            'roles' => $this->users->roles(),
+            'authUser' => $this->auth->user(),
         ]);
     }
 
     public function index(): ResponseInterface
     {
-        $state = $this->listState->state('q', 'filter', 'sort', 'direction', 'page');
+        $state = $this->listState->state();
         $status = UserStatus::tryFromFilter($state['filter']);
-        $normalizedState = array_replace($state, ['filter' => $status->value]);
 
         $pageData = $this->users->paginatedUsers(
             $state['query'],
@@ -54,16 +50,13 @@ final class UsersController extends Controller
         $pagination = $this->pagination->viewData(
             $pageData,
             '/admin/users',
-            $this->listState->paginationParams($normalizedState)
+            $this->listState->paginationParams($state)
         );
 
         return $this->view('@users/index', [
+            ...$state,
             'users' => $pageData['data'],
-            'query' => $normalizedState['query'],
-            'filter' => $normalizedState['filter'],
-            'sort' => $normalizedState['sort'],
-            'direction' => $normalizedState['direction'],
-            ...$this->protectedAdminViewData(),
+            'protected_admin_id' => $this->users->protectedAdminId(),
             'pagination' => $pagination,
         ]);
     }
@@ -98,26 +91,24 @@ final class UsersController extends Controller
 
     public function show(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        $id = (int) ($vars['id'] ?? 0);
-        $user = $this->findUser($id);
+        $user = $this->users->findById((int) ($vars['id'] ?? 0));
 
         if ($user === null) {
-            return $this->redirectToUsers();
+            return $this->redirect('/admin/users');
         }
 
         return $this->view('@users/show', [
             'user' => $user,
-            ...$this->protectedAdminViewData(),
+            'protected_admin_id' => $this->users->protectedAdminId(),
         ]);
     }
 
     public function edit(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        $id = (int) ($vars['id'] ?? 0);
-        $user = $this->findUser($id);
+        $user = $this->users->findById((int) ($vars['id'] ?? 0));
 
         if ($user === null) {
-            return $this->redirectToUsers();
+            return $this->redirect('/admin/users');
         }
 
         return $this->view('@users/form', $this->sharedFormViewData([
@@ -132,10 +123,10 @@ final class UsersController extends Controller
     public function update(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
         $id = (int) ($vars['id'] ?? 0);
-        $user = $this->findUser($id);
+        $user = $this->users->findById($id);
 
         if ($user === null) {
-            return $this->redirectToUsers();
+            return $this->redirect('/admin/users');
         }
 
         $payload = $this->forms->payload($request);
@@ -155,23 +146,22 @@ final class UsersController extends Controller
 
     public function destroy(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        $id = (int) ($vars['id'] ?? 0);
-        $user = $this->findUser($id);
+        $user = $this->users->findById((int) ($vars['id'] ?? 0));
 
         if ($user === null) {
-            return $this->redirectToUsers();
+            return $this->redirect('/admin/users');
         }
 
         if ($this->users->isLastAdminUser($user)) {
             $this->flash('users.notice', 'The last admin user cannot be deleted.');
 
-            return $this->redirectToUsers();
+            return $this->redirect('/admin/users');
         }
 
         $this->users->deleteUser($user);
         $this->flash('users.notice', 'User deleted successfully.');
 
-        return $this->redirectToUsers();
+        return $this->redirect('/admin/users');
     }
 
     /**
@@ -188,25 +178,5 @@ final class UsersController extends Controller
             is_array($oldInput) ? $oldInput : [],
             is_array($errors) ? $errors : []
         );
-    }
-
-    private function findUser(int $id): ?User
-    {
-        return $this->users->findById($id);
-    }
-
-    private function redirectToUsers(): ResponseInterface
-    {
-        return $this->redirect('/admin/users');
-    }
-
-    /**
-     * @return array{protected_admin_id:?int}
-     */
-    private function protectedAdminViewData(): array
-    {
-        return [
-            'protected_admin_id' => $this->users->protectedAdminId(),
-        ];
     }
 }

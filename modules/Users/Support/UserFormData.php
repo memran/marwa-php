@@ -25,10 +25,10 @@ final class UserFormData
         $user = $extra['user'] ?? null;
 
         $defaults = [
-            'name' => $user instanceof User ? (string) $user->getAttribute('name') : '',
-            'email' => $user instanceof User ? (string) $user->getAttribute('email') : '',
-            'role_id' => $user instanceof User ? (int) $user->getAttribute('role_id') : 0,
-            'is_active' => $user instanceof User ? (int) $user->getAttribute('is_active') : 1,
+            'name' => $this->attr($user, 'name', ''),
+            'email' => $this->attr($user, 'email', ''),
+            'role_id' => (int) $this->attr($user, 'role_id', 0),
+            'is_active' => (int) $this->attr($user, 'is_active', 1),
         ];
 
         foreach (['name', 'email', 'role_id', 'is_active'] as $field) {
@@ -118,5 +118,10 @@ final class UserFormData
         }
 
         return $errors;
+    }
+
+    private function attr(?User $user, string $key, mixed $default): mixed
+    {
+        return $user instanceof User ? $user->getAttribute($key) : $default;
     }
 }

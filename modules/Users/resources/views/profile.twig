@@ -3,6 +3,9 @@
 {% block title %}My Profile | MarwaPHP Admin{% endblock %}
 
 {% block content %}
+  {% include "@users/_buttons.twig" %}
+  {% set user = authUser %}
+
   <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
     <div class="max-w-3xl space-y-2">
       <span class="inline-flex w-fit items-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-cyan-100">Account</span>
@@ -17,16 +20,16 @@
       <dl class="space-y-4">
         <div>
           <dt class="text-xs font-semibold uppercase tracking-wider text-slate-400">Name</dt>
-          <dd class="mt-1 text-sm text-slate-200">{{ authUser.getAttribute('name') }}</dd>
+          <dd class="mt-1 text-sm text-slate-200">{{ user.getAttribute('name') }}</dd>
         </div>
         <div>
           <dt class="text-xs font-semibold uppercase tracking-wider text-slate-400">Email</dt>
-          <dd class="mt-1 text-sm text-slate-200">{{ authUser.getAttribute('email') }}</dd>
+          <dd class="mt-1 text-sm text-slate-200">{{ user.getAttribute('email') }}</dd>
         </div>
         <div>
           <dt class="text-xs font-semibold uppercase tracking-wider text-slate-400">Role</dt>
           <dd class="mt-1">
-            {% set role = authUser.role() %}
+            {% set role = user.role() %}
             <span class="inline-flex items-center rounded-full bg-cyan-400/10 px-2 py-0.5 text-xs font-medium text-cyan-200">
               {{ role is not null ? role.getAttribute('name') : 'Unknown' }}
             </span>
@@ -35,11 +38,7 @@
         <div>
           <dt class="text-xs font-semibold uppercase tracking-wider text-slate-400">Status</dt>
           <dd class="mt-1">
-            {% if authUser.getAttribute('is_active') %}
-              <span class="inline-flex items-center rounded-full bg-emerald-400/10 px-2 py-0.5 text-xs font-medium text-emerald-200">Active</span>
-            {% else %}
-              <span class="inline-flex items-center rounded-full bg-amber-400/10 px-2 py-0.5 text-xs font-medium text-amber-200">Disabled</span>
-            {% endif %}
+            {% include "@users/_badges.twig" %}
           </dd>
         </div>
       </dl>

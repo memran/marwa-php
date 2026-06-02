@@ -19,14 +19,4 @@ enum UserStatus: string
 
         return self::tryFrom($value) ?? self::All;
     }
-
-    public function label(): string
-    {
-        return match ($this) {
-            self::All => 'All',
-            self::Active => 'Active',
-            self::Disabled => 'Disabled',
-            self::Trashed => 'Trashed',
-        };
-    }
 }

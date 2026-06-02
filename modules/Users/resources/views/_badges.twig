@@ -1,0 +1,12 @@
+{% set _is_trashed = user.getAttribute('deleted_at') is not empty %}
+{% set _is_protected = protected_admin_id is defined and protected_admin_id is not null and user.getKey() == protected_admin_id %}
+{% if _is_trashed %}
+  <span class="inline-flex items-center rounded-full bg-rose-400/10 px-2 py-0.5 text-xs font-medium text-rose-200">Trashed</span>
+{% elseif user.getAttribute('is_active') %}
+  <span class="inline-flex items-center rounded-full bg-emerald-400/10 px-2 py-0.5 text-xs font-medium text-emerald-200">Active</span>
+{% else %}
+  <span class="inline-flex items-center rounded-full bg-amber-400/10 px-2 py-0.5 text-xs font-medium text-amber-200">Disabled</span>
+{% endif %}
+{% if _is_protected %}
+  <span class="ml-1 inline-flex items-center rounded-full bg-amber-400/10 px-2 py-0.5 text-xs font-medium text-amber-200">Protected</span>
+{% endif %}
