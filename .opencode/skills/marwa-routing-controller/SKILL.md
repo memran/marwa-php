@@ -1,3 +1,8 @@
+---
+name: marwa-routing-controller
+description: Create routes and controllers in Marwa modules using framework conventions. Put HTTP routes in routes/http.php with router groups, use thin CRUD controllers in Http/Controllers, return Marwa views or redirects. Use when adding routes or controller actions.
+---
+
 # Skill: marwa-routing-controller
 
 Goal:

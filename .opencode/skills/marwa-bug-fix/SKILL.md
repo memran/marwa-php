@@ -1,3 +1,8 @@
+---
+name: marwa-bug-fix
+description: Fix bugs in Marwa apps without breaking framework conventions. Reproduce, find root cause, apply minimal fix, add regression test, and verify no framework rule was bypassed. Use when investigating or fixing a defect.
+---
+
 # Skill: marwa-bug-fix
 
 Goal:

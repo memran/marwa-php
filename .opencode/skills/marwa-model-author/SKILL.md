@@ -1,3 +1,8 @@
+---
+name: marwa-model-author
+description: Create or modify Marwa module models using the framework database API. Extend Marwa\\Framework\\Database\\Model, define fillable, casts, relationships, and soft deletes. Use when adding or changing model behavior.
+---
+
 # Skill: marwa-model-author
 
 Goal:

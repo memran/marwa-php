@@ -1,3 +1,8 @@
+---
+name: marwa-support-class
+description: Create small Marwa support classes that keep controllers thin. Use for validation rules, form shaping, query coordination, activity formatting, small repository helpers. Avoid service containers, framework abstractions, ORM wrappers. Use when extracting repeated logic.
+---
+
 # Skill: marwa-support-class
 
 Goal:

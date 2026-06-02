@@ -1,3 +1,8 @@
+---
+name: marwa-event-listener
+description: Create Marwa events and listeners only when real decoupling is justified. Prefer direct execution and ActivityRecorder first. Use for audit logging, notifications, metrics. Avoid unnecessary event chains and framework recreation.
+---
+
 # Skill: marwa-event-listener
 
 Goal:

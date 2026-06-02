@@ -1,3 +1,8 @@
+---
+name: marwa-refactor
+description: Improve existing Marwa code without changing behavior. Identify code smells and framework bypasses, refactor in small steps using Marwa APIs, keep public behavior unchanged, run or update tests. Use when restructuring or cleaning up code.
+---
+
 # Skill: marwa-refactor
 
 Goal:

@@ -1,3 +1,8 @@
+---
+name: marwa-service-provider
+description: Create or review a minimal Marwa module service provider. Register view namespace, routes, migrations, translations, scheduled tasks. Avoid business logic, controller logic, database queries. Use when wiring module services.
+---
+
 # Skill: marwa-service-provider
 
 Goal:

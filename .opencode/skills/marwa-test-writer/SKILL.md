@@ -1,3 +1,8 @@
+---
+name: marwa-test-writer
+description: Write useful tests for Marwa modules and starter behavior. Cover user-visible behavior, routes, middleware, redirects, validation, support classes, regressions. Do not test framework internals. Use when adding tests or regression coverage.
+---
+
 # Skill: marwa-test-writer
 
 Goal:

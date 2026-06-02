@@ -1,3 +1,8 @@
+---
+name: marwa-docs-writer
+description: Write or update Marwa documentation clearly and consistently. Document module usage, installation, configuration, routes, views, migrations, scheduled tasks, service providers, testing, troubleshooting. Use when updating README, AGENTS.md, or module docs.
+---
+
 # Skill: marwa-docs-writer
 
 Goal:

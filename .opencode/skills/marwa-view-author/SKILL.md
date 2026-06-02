@@ -1,3 +1,8 @@
+---
+name: marwa-view-author
+description: Create Marwa module Twig views consistent with the starter UI. Use resources/views, module namespace, existing admin layout, framework CSRF helpers, Twig and Tailwind patterns. Use when adding list, create, edit, show, or partial views.
+---
+
 # Skill: marwa-view-author
 
 Goal:

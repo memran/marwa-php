@@ -1,3 +1,8 @@
+---
+name: marwa-manifest-author
+description: Create or update a Marwa module manifest.php. Declare name, slug, version, providers, paths, routes, and explicitly list migrations and tasks. Use when scaffolding or modifying a module's manifest.
+---
+
 # Skill: marwa-manifest-author
 
 Goal:

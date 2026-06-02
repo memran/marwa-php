@@ -1,3 +1,8 @@
+---
+name: marwa-scheduler-task
+description: Create scheduled tasks for a Marwa module. Use command, queue, or call task types, register through manifest.php, support database-backed scheduler status, handle overlap and failure. Use when adding recurring or scheduled work.
+---
+
 # Skill: marwa-scheduler-task
 
 Goal:

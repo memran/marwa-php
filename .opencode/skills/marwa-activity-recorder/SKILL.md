@@ -1,3 +1,8 @@
+---
+name: marwa-activity-recorder
+description: Record user activity consistently in Marwa modules using the framework ActivityRecorder. Use when logging business-relevant actions like user creation, role changes, invoices, suspensions. Avoid custom event chains and duplicate entries.
+---
+
 # Skill: marwa-activity-recorder
 
 Goal:

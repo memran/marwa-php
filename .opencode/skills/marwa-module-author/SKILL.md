@@ -1,3 +1,8 @@
+---
+name: marwa-module-author
+description: Create, modify, review, refactor, and maintain Marwa application modules using the repository module conventions. Follow canonical structure, manifest rules, routing, controller, model, view, and testing rules. Use when working with modules/<Name>.
+---
+
 # Skill: marwa-module-author
 
 Goal:

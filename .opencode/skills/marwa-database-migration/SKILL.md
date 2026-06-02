@@ -1,3 +1,8 @@
+---
+name: marwa-database-migration
+description: Create or modify Marwa module database migrations safely. Place under modules/<Name>/database/migrations, register explicitly in manifest.php, use framework schema APIs, keep reversible. Use when adding tables, columns, indexes, or seeders.
+---
+
 # Skill: marwa-database-migration
 
 Goal:

@@ -1,3 +1,8 @@
+---
+name: marwa-framework
+description: Force all Marwa coding to follow framework architecture, APIs, standards, and conventions. Use existing Marwa services instead of generic PHP. Apply PSR-1/4/7/11/12/14/15/16/17/18, KISS, DRY, SOLID, DDD, and hexagonal architecture. Use for every Marwa coding task.
+---
+
 # Skill: marwa-framework
 
 Goal:

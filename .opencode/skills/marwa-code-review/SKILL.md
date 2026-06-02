@@ -1,3 +1,8 @@
+---
+name: marwa-code-review
+description: Review Marwa code strictly against framework and module conventions. Check framework usage, module structure, controller quality, database, views, and testing. Use when reviewing modules, controllers, services, migrations, or pull requests.
+---
+
 # Skill: marwa-code-review
 
 Goal:
