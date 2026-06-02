@@ -88,4 +88,70 @@ final class SettingsCatalogTest extends TestCase
         self::assertSame('keep-secret', $result['values']['email']['smtp_pass']);
         self::assertSame(15.5, $result['values']['payment']['tax_rate']);
     }
+
+    public function testUncheckingCheckboxReturnsFalse(): void
+    {
+        $catalog = new SettingsCatalog();
+        $existing = $catalog->defaults();
+        $existing['app']['debug'] = true;
+        $existing['app']['maintenance_mode'] = true;
+        $existing['cache']['enabled'] = true;
+
+        $result = $catalog->normalizeSubmission([
+            'app' => [
+                'name' => $existing['app']['name'],
+                'env' => $existing['app']['env'],
+                'debug' => null,
+                'timezone' => $existing['app']['timezone'],
+                'locale' => $existing['app']['locale'],
+                'maintenance_mode' => null,
+            ],
+            'system' => $existing['system'],
+            'security' => $existing['security'],
+            'email' => $existing['email'],
+            'ui' => $existing['ui'],
+            'cache' => [
+                'driver' => $existing['cache']['driver'],
+                'ttl' => $existing['cache']['ttl'],
+                'enabled' => null,
+            ],
+            'logging' => $existing['logging'],
+            'payment' => $existing['payment'],
+        ], $existing);
+
+        self::assertNotNull($result);
+        self::assertSame([], $result['errors']);
+        self::assertFalse($result['values']['app']['debug']);
+        self::assertFalse($result['values']['app']['maintenance_mode']);
+        self::assertFalse($result['values']['cache']['enabled']);
+    }
+
+    public function testCheckingCheckboxReturnsTrue(): void
+    {
+        $catalog = new SettingsCatalog();
+        $existing = $catalog->defaults();
+        $existing['app']['debug'] = false;
+
+        $result = $catalog->normalizeSubmission([
+            'app' => [
+                'name' => $existing['app']['name'],
+                'env' => $existing['app']['env'],
+                'debug' => '1',
+                'timezone' => $existing['app']['timezone'],
+                'locale' => $existing['app']['locale'],
+                'maintenance_mode' => $existing['app']['maintenance_mode'],
+            ],
+            'system' => $existing['system'],
+            'security' => $existing['security'],
+            'email' => $existing['email'],
+            'ui' => $existing['ui'],
+            'cache' => $existing['cache'],
+            'logging' => $existing['logging'],
+            'payment' => $existing['payment'],
+        ], $existing);
+
+        self::assertNotNull($result);
+        self::assertSame([], $result['errors']);
+        self::assertTrue($result['values']['app']['debug']);
+    }
 }

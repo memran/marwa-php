@@ -174,7 +174,7 @@ final class SettingsCatalog
                 $input = $submittedCategory[$key] ?? null;
 
                 if (($field['input'] ?? null) === 'checkbox') {
-                    $input = $input !== null;
+                    $input = $input === '1';
                 }
 
                 if (($field['sensitive'] ?? false) === true && (!is_string($input) || trim($input) === '')) {
