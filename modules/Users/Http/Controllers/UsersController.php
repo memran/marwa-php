@@ -19,6 +19,7 @@ use App\Modules\Users\Support\UserWriteActions;
 use App\Modules\Users\Support\UsersRequestParams;
 use App\Modules\Users\Support\UsersTableData;
 use Marwa\Framework\Controllers\Controller;
+use Marwa\Router\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -171,13 +172,53 @@ final class UsersController extends Controller
             $state['sort'],
             $state['direction']
         );
-        $csv = $this->tableData->buildCsv($users, $visibleColumns);
+        $tempFile = $this->writeExportTempFile($users, $visibleColumns);
 
-        return $this->response($csv, 200, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="users-export.csv"',
-            'Cache-Control' => 'no-store, no-cache, must-revalidate',
-        ]);
+        if ($tempFile === null) {
+            return $this->response('Unable to generate export file.', 500);
+        }
+
+        $this->scheduleExportFileCleanup($tempFile);
+
+        return Response::download($tempFile, 'users-export.csv', self::EXPORT_CSV_HEADERS);
+    }
+
+    private const EXPORT_CSV_HEADERS = [
+        'Content-Type' => 'text/csv; charset=UTF-8',
+        'Cache-Control' => 'no-store, no-cache, must-revalidate',
+    ];
+
+    /**
+     * @param list<User> $users
+     * @param list<string> $visibleColumns
+     */
+    private function writeExportTempFile(array $users, array $visibleColumns): ?string
+    {
+        $tempFile = tempnam(sys_get_temp_dir(), 'users-export-');
+
+        if ($tempFile === false) {
+            return null;
+        }
+
+        try {
+            $this->tableData->writeCsvToFile($tempFile, $users, $visibleColumns);
+        } catch (\Throwable) {
+            if (is_file($tempFile)) {
+                unlink($tempFile);
+            }
+            return null;
+        }
+
+        return $tempFile;
+    }
+
+    private function scheduleExportFileCleanup(string $tempFile): void
+    {
+        register_shutdown_function(static function (string $path): void {
+            if (is_file($path)) {
+                @unlink($path);
+            }
+        }, $tempFile);
     }
 
     public function bulkDelete(): ResponseInterface

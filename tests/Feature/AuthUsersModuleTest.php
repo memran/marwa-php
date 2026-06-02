@@ -401,8 +401,13 @@ TWIG
 
         $exportPage = $kernel->handle($this->request('GET', '/admin/users/export?columns[]=name&columns[]=email'));
         self::assertSame(200, $exportPage->getStatusCode());
+        self::assertSame('text/csv; charset=UTF-8', $exportPage->getHeaderLine('Content-Type'));
         self::assertSame('attachment; filename="users-export.csv"', $exportPage->getHeaderLine('Content-Disposition'));
-        self::assertStringContainsString("Name,Email", (string) $exportPage->getBody());
+        self::assertNotSame('', $exportPage->getHeaderLine('Content-Length'));
+        $exportBody = (string) $exportPage->getBody();
+        self::assertStringContainsString("Name,Email", $exportBody);
+        self::assertStringContainsString("admin@marwa.test", $exportBody);
+        self::assertSame((int) $exportPage->getHeaderLine('Content-Length'), strlen($exportBody));
 
         $createPage = $kernel->handle($this->request('GET', '/admin/users/create'));
         self::assertSame(200, $createPage->getStatusCode());

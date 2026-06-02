@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Users\Support;
 
 use App\Modules\Users\Models\User;
+use RuntimeException;
 
 final class UsersTableExport
 {
     /**
      * @param list<User> $users
-     * @return list<array<string, mixed>>
      */
     public function buildCsv(array $users, array $columns): string
     {
@@ -20,17 +20,44 @@ final class UsersTableExport
             return '';
         }
 
-        $this->writeCsvHeader($handle, $columns);
-
-        foreach ($users as $user) {
-            $this->writeCsvRow($handle, $user, $columns);
-        }
-
+        $this->writeCsvToHandle($handle, $users, $columns);
         rewind($handle);
         $csv = (string) stream_get_contents($handle);
         fclose($handle);
 
         return $csv;
+    }
+
+    /**
+     * @param list<User> $users
+     */
+    public function writeCsvToFile(string $filePath, array $users, array $columns): void
+    {
+        $handle = fopen($filePath, 'w');
+
+        if ($handle === false) {
+            throw new RuntimeException("Cannot open file for writing: {$filePath}");
+        }
+
+        try {
+            $this->writeCsvToHandle($handle, $users, $columns);
+        } finally {
+            fclose($handle);
+        }
+    }
+
+    /**
+     * @param resource $handle
+     * @param list<User> $users
+     * @param list<string> $columns
+     */
+    private function writeCsvToHandle($handle, array $users, array $columns): void
+    {
+        $this->writeCsvHeader($handle, $columns);
+
+        foreach ($users as $user) {
+            $this->writeCsvRow($handle, $user, $columns);
+        }
     }
 
     /**

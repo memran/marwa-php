@@ -227,6 +227,14 @@ final class UsersTableData
     }
 
     /**
+     * @param list<User> $users
+     */
+    public function writeCsvToFile(string $filePath, array $users, array $columns): void
+    {
+        $this->exporter->writeCsvToFile($filePath, $users, $columns);
+    }
+
+    /**
      * @param array<string, mixed> $requestParams
      * @return array{query:string,filter:string,sort:string,direction:string,page:int}
      */
