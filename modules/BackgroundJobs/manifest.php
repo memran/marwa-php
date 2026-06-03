@@ -20,9 +20,10 @@ return [
         'background_jobs.run' => 'Run Background Jobs',
     ],
     'menu' => [
-        'section' => 'System',
+        'section' => 'Administration',
         'label' => 'Background Jobs',
         'route' => '/admin/background-jobs',
+        'order' => 30,
         'icon' => 'clock-3',
         'permissions' => ['background_jobs.view'],
     ],

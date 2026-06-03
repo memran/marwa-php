@@ -18,7 +18,7 @@ final class DatabaseManagerServiceProvider implements ModuleServiceProviderInter
                 'name' => 'database-manager',
                 'label' => 'Database',
                 'url' => '/admin/database',
-                'parent' => 'admin.system',
+                'parent' => 'admin.administration',
                 'order' => 10,
                 'icon' => 'database',
                 'permission' => 'database.view',

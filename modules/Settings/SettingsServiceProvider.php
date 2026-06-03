@@ -41,7 +41,7 @@ final class SettingsServiceProvider implements ModuleServiceProviderInterface
                 'name' => 'settings',
                 'label' => 'Settings',
                 'url' => '/admin/settings',
-                'parent' => 'admin.system',
+                'parent' => 'admin.administration',
                 'order' => 10,
                 'icon' => 'settings',
                 'permission' => 'settings.view',

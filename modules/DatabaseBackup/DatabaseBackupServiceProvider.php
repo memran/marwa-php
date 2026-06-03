@@ -35,9 +35,9 @@ final class DatabaseBackupServiceProvider implements ModuleServiceProviderInterf
         if ($app->has(MenuRegistry::class)) {
             $app->make(MenuRegistry::class)->add([
                 'name' => 'database-backup',
-                'label' => 'Database Backups',
+                'label' => 'Backup & Restore',
                 'url' => '/admin/database-backups',
-                'parent' => 'admin.system',
+                'parent' => 'admin.administration',
                 'order' => 15,
                 'icon' => 'database-zap',
             ]);

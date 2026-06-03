@@ -37,9 +37,10 @@ return [
         'database/migrations/2026_04_11_000002_insert_activity_permissions.php',
     ],
     'menu' => [
-        'section' => 'Overview',
-        'label' => 'Activity',
+        'section' => 'Identity & Access',
+        'label' => 'Audit Logs',
         'route' => '/admin/activity',
+        'order' => 40,
         'icon' => 'activity',
         'permissions' => ['activity.view'],
     ],

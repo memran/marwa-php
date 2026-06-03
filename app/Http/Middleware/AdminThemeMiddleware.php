@@ -20,22 +20,22 @@ final class AdminThemeMiddleware implements MiddlewareInterface
     private const SECTIONS = [
         ['name' => 'admin.overview', 'label' => 'Overview', 'order' => 10],
         ['name' => 'admin.identity-access', 'label' => 'Identity & Access', 'order' => 20],
-        ['name' => 'admin.system', 'label' => 'System', 'order' => 30],
-        ['name' => 'admin.settings', 'label' => 'Settings', 'order' => 40],
+        ['name' => 'admin.administration', 'label' => 'Administration', 'order' => 30],
+        ['name' => 'admin.system-logs', 'label' => 'Systems Logs', 'order' => 40],
     ];
 
     private const SECTION_SLUG_MAP = [
         'Overview' => 'admin.overview',
         'Identity & Access' => 'admin.identity-access',
-        'System' => 'admin.system',
-        'Settings' => 'admin.settings',
+        'Administration' => 'admin.administration',
+        'Systems Logs' => 'admin.system-logs',
     ];
 
     private const SECTION_ICONS = [
         'admin.overview' => 'layout-dashboard',
         'admin.identity-access' => 'users',
-        'admin.system' => 'server',
-        'admin.settings' => 'settings',
+        'admin.administration' => 'server',
+        'admin.system-logs' => 'bell',
     ];
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -214,6 +214,7 @@ final class AdminThemeMiddleware implements MiddlewareInterface
         $label = is_string($item['label'] ?? null) ? trim((string) $item['label']) : '';
         $route = is_string($item['route'] ?? null) ? trim((string) $item['route']) : '';
         $icon = is_string($item['icon'] ?? null) ? trim((string) $item['icon']) : null;
+        $menuOrder = is_int($item['order'] ?? null) ? $item['order'] : $order;
 
         if ($section === '' || $label === '' || $route === '') {
             return null;
@@ -234,7 +235,7 @@ final class AdminThemeMiddleware implements MiddlewareInterface
             'label' => $label,
             'url' => $route,
             'parent' => $parent,
-            'order' => $order,
+            'order' => $menuOrder,
             'icon' => $icon,
             'permission' => is_string($permission) && $permission !== '' ? $permission : null,
             'roles' => null,

@@ -32,6 +32,7 @@ return [
         'section' => 'Identity & Access',
         'label' => 'Users',
         'route' => '/admin/users',
+        'order' => 20,
         'icon' => 'users',
         'permissions' => ['users.view'],
     ],

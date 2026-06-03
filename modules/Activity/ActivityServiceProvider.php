@@ -14,9 +14,9 @@ final class ActivityServiceProvider implements ModuleServiceProviderInterface
         if ($app->has(MenuRegistry::class)) {
             $app->make(MenuRegistry::class)->add([
                 'name' => 'activity',
-                'label' => 'Activity',
+                'label' => 'Audit Logs',
                 'url' => '/admin/activity',
-                'parent' => 'admin.management',
+                'parent' => 'admin.identity-access',
                 'order' => 40,
                 'icon' => 'activity',
                 'permission' => 'activity.view',

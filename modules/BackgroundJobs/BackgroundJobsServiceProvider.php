@@ -32,7 +32,7 @@ final class BackgroundJobsServiceProvider implements ModuleServiceProviderInterf
                 'name' => 'background-jobs',
                 'label' => 'Background Jobs',
                 'url' => '/admin/background-jobs',
-                'parent' => 'admin.system',
+                'parent' => 'admin.administration',
                 'order' => 20,
                 'icon' => 'clock-3',
                 'permission' => 'background_jobs.view',

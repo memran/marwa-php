@@ -23,9 +23,10 @@ return [
         'queue.work' => 'Run Queue Worker',
     ],
     'menu' => [
-        'section' => 'System',
+        'section' => 'Administration',
         'label' => 'Queue',
         'route' => '/admin/queue',
+        'order' => 60,
         'icon' => 'inbox',
         'permissions' => ['queue.view'],
     ],

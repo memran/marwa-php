@@ -11,14 +11,7 @@
   data-sizes='{{ size_options|json_encode|escape }}'
 >
   <div class="transition-[padding-right] duration-200" :class="editMode ? 'lg:pr-80' : ''">
-    <div class="flex flex-col gap-4 mb-6 lg:flex-row lg:items-end lg:justify-between">
-      <div class="max-w-3xl space-y-2">
-        <span class="inline-flex w-fit items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-cyan-100">
-          Design workspace
-        </span>
-        <h1 class="text-2xl font-bold text-white sm:text-3xl">Dashboard</h1>
-        <p class="mt-1 mb-4 text-sm text-slate-400">Welcome back! Here's your overview.</p>
-      </div>
+    <div class="flex flex-col gap-4 mb-6 lg:flex-row lg:items-end lg:justify-end">
       <div class="flex items-center gap-2">
         <button 
           x-show="!editMode"

@@ -29,7 +29,7 @@ final class QueueServiceProvider implements ModuleServiceProviderInterface
                 'name' => 'queue',
                 'label' => 'Queue',
                 'url' => '/admin/queue',
-                'parent' => 'admin.system',
+                'parent' => 'admin.administration',
                 'order' => 25,
                 'icon' => 'inbox',
                 'permission' => 'queue.view',

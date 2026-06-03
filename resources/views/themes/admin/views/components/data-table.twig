@@ -16,7 +16,7 @@
 {% set has_toolbar = features.search|default(false) or features.filter|default(false) or features.columns|default(false) or features.export|default(false) or toolbar.actions|default([]) is not empty %}
 {% set has_bulk = features.bulk|default(false) and (bulk.action_delete_url|default('') or bulk.action_status_url|default('')) %}
 {% set button_base = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl border text-sm font-semibold transition hover:-translate-y-0.5' %}
-{% set toolbar_button = button_base ~ ' h-10 px-3.5' %}
+{% set toolbar_button = button_base ~ ' h-10 cursor-pointer px-3.5' %}
 {% set toolbar_button_primary = toolbar_button ~ ' border-transparent bg-app-accent text-white hover:bg-app-accent-soft' %}
 {% set toolbar_button_secondary = toolbar_button ~ ' border-app-border bg-app-surface/80 text-app-text hover:bg-app-surface-2/70' %}
 {% set toolbar_button_ghost = toolbar_button ~ ' border-app-border bg-transparent text-app-text hover:bg-app-surface-2/60' %}
@@ -27,7 +27,7 @@
 {% set row_action_ghost = row_action_base ~ ' border-app-border bg-transparent text-app-text hover:bg-app-surface-2/60' %}
 {% set row_action_danger = row_action_base ~ ' border-app-danger/20 bg-app-danger/10 text-app-danger hover:bg-app-danger/15' %}
 {% set bulk_control = 'h-10 rounded-2xl border border-app-border bg-app-surface/80 px-3.5 text-sm font-semibold text-app-text outline-none transition hover:bg-app-surface-2/70 focus:border-app-accent focus:ring-2 focus:ring-app-accent/20' %}
-{% set icon_button = 'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-app-border bg-app-surface-2/70 text-app-muted transition hover:bg-app-surface-2/90 hover:text-app-text' %}
+{% set icon_button = 'inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-2xl border border-app-border bg-app-surface-2/70 text-app-muted transition hover:bg-app-surface-2/90 hover:text-app-text' %}
 {% set tone_classes = {
   accent: 'border-app-accent/20 bg-app-accent/10 text-app-accent',
   success: 'border-app-success/20 bg-app-success/10 text-app-success',
@@ -51,41 +51,39 @@
       <div class="flex min-w-0 flex-1 flex-wrap items-center gap-3 xl:flex-nowrap">
         {% if features.search|default(false) and toolbar.search is defined %}
           {% set search = toolbar.search %}
-          <form class="flex h-12 w-[17rem] shrink-0 items-center gap-2 overflow-hidden rounded-[1.1rem] border border-app-border bg-app-surface/90 px-2.5 py-1.5 shadow-[0_24px_60px_rgba(2,6,23,0.22)] backdrop-blur-xl sm:w-[18rem] xl:w-[19rem]" method="get" action="{{ search.action|default('') }}">
+          <form class="relative w-full max-w-md shrink-0" method="get" action="{{ search.action|default('') }}">
             {% for field in search.hidden_fields|default([]) %}
               <input type="hidden" name="{{ field.name }}" value="{{ field.value }}">
             {% endfor %}
-            <div class="flex min-w-0 flex-1 items-center gap-3">
-              <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-app-surface-2/70 text-app-muted" aria-hidden="true">
-                {% include 'components/icon.twig' with { name: search.icon|default('search'), class: 'h-4 w-4' } only %}
-              </span>
-              <div class="min-w-0 flex-1">
-                <label class="sr-only" for="{{ search.id|default('table-search') }}">{{ search.aria_label|default('Search records') }}</label>
-                <input
-                  id="{{ search.id|default('table-search') }}"
-                  class="w-full border-0 bg-transparent px-0 py-0 text-sm text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-300 outline-none ring-0 focus:ring-0"
-                  type="search"
-                  name="{{ search.name|default('q') }}"
-                  value="{{ search.value|default('') }}"
-                  placeholder="{{ search.placeholder|default('Search...') }}"
-                  autocomplete="off"
-                  spellcheck="false"
-                  aria-label="{{ search.aria_label|default('Search records') }}"
-                >
+            <label class="sr-only" for="{{ search.id|default('table-search') }}">{{ search.aria_label|default('Search records') }}</label>
+            <div class="relative">
+              <div class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
+                <svg class="h-4 w-4 text-body" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/>
+                </svg>
               </div>
+              <input
+                id="{{ search.id|default('table-search') }}"
+                class="block w-full rounded-base border border-default-medium bg-neutral-secondary-medium p-3 pe-28 ps-9 text-sm text-heading shadow-xs placeholder:text-body focus:border-brand focus:ring-brand focus:outline-none"
+                type="search"
+                name="{{ search.name|default('q') }}"
+                value="{{ search.value|default('') }}"
+                placeholder="{{ search.placeholder|default('Search') }}"
+                autocomplete="off"
+                spellcheck="false"
+                aria-label="{{ search.aria_label|default('Search records') }}"
+              >
+              {% if search.clear_url is defined and search.value|default('') %}
+                <a class="absolute end-16 top-1/2 inline-flex h-9 -translate-y-1/2 items-center justify-center rounded text-xs font-medium leading-5 border border-default-medium bg-neutral-secondary-medium px-3 py-1.5 text-body shadow-xs transition hover:bg-neutral-secondary-medium/80 focus:outline-none focus:ring-4 focus:ring-brand-medium" href="{{ search.clear_url }}" title="{{ search.clear_label|default('Clear search') }}">
+                  <span class="sr-only">{{ search.clear_label|default('Clear search') }}</span>
+                  {% include 'components/icon.twig' with { name: 'x', class: 'h-4 w-4 shrink-0' } only %}
+                </a>
+              {% endif %}
+              <button class="absolute end-1.5 bottom-1.5 inline-flex h-9 items-center justify-center rounded border border-transparent bg-brand px-3 text-white shadow-xs transition hover:bg-brand-strong focus:outline-none focus:ring-4 focus:ring-brand-medium" type="submit" title="{{ search.submit_label|default('Search') }}">
+                <span class="sr-only">{{ search.submit_label|default('Search') }}</span>
+                {% include 'components/icon.twig' with { name: 'search', class: 'h-4 w-4 shrink-0' } only %}
+              </button>
             </div>
-
-            {% if search.clear_url is defined and search.value|default('') %}
-              <a class="{{ icon_button }}" href="{{ search.clear_url }}" title="{{ search.clear_label|default('Clear search') }}">
-                <span class="sr-only">{{ search.clear_label|default('Clear search') }}</span>
-                {% include 'components/icon.twig' with { name: 'x', class: 'h-4 w-4 shrink-0' } only %}
-              </a>
-            {% endif %}
-
-            <button class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-app-text text-app-surface transition hover:bg-app-accent" type="submit" title="{{ search.submit_label|default('Search') }}">
-              <span class="sr-only">{{ search.submit_label|default('Search') }}</span>
-              {% include 'components/icon.twig' with { name: 'search', class: 'h-4 w-4 shrink-0' } only %}
-            </button>
           </form>
         {% endif %}
 

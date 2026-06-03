@@ -25,9 +25,10 @@ return [
         'database/migrations/2026_04_14_000002_insert_settings_permissions.php',
     ],
     'menu' => [
-        'section' => 'Settings',
+        'section' => 'Administration',
         'label' => 'Settings',
         'route' => '/admin/settings',
+        'order' => 70,
         'icon' => 'settings',
         'permissions' => ['settings.view'],
     ],

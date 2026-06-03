@@ -3,8 +3,6 @@
 {% set settings_ui = _settings.ui|default({}) %}
 {% set logo_value = settings_ui.logo_url|default('')|trim %}
 {% set logo_src = logo_value and not (logo_value starts with('http') or logo_value starts with('/')) ? '/' ~ logo_value : logo_value %}
-{% set section_header = 'px-3 py-2 text-[0.65rem] font-extrabold uppercase tracking-wider text-app-muted' %}
-
 <div class="grid gap-3">
   <!-- Mobile Close Button -->
   <div class="flex items-center justify-between lg:hidden">
@@ -53,7 +51,7 @@
     {% set key = 'section_' ~ loop.index0 %}
     {% set open = false %}
     {% for child in children %}
-      {% if currentPath starts with child.url %}
+      {% if currentPath == child.url or currentPath starts with(child.url ~ '/') %}
         {% set open = true %}
       {% endif %}
     {% endfor %}
@@ -67,16 +65,29 @@
     {% if children|length > 0 %}
       {% set key = 'section_' ~ loop.index0 %}
 
-      {% if children|length == 1 %}
-        {% if loop.first %}
-          <span class="{{ section_header }}">{{ section.label }}</span>
-          <div class="grid gap-1">
-        {% else %}
-          <span class="{{ section_header }} mt-2">{{ section.label }}</span>
-          <div class="grid gap-1">
-        {% endif %}
+      {% if section.name == 'admin.overview' %}
+        <div class="grid gap-1">
+          {% for child in children %}
+            {% set is_active = currentPath == child.url or currentPath starts with(child.url ~ '/') %}
+            <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if is_active %}bg-app-accent/10 text-app-accent ring-1 ring-inset ring-app-accent/20{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="{{ child.url }}"{% if is_active %} aria-current="page"{% endif %}>
+              {% if child.icon %}
+                <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
+                  {% include 'components/icon.twig' with { name: child.icon, class: 'h-4 w-4 shrink-0' } only %}
+                </span>
+              {% endif %}
+              <span class="truncate">{{ child.label }}</span>
+              {% if child.label == 'Notifications' and unread_notification_count|default(0) > 0 %}
+                <span class="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-app-danger text-[0.65rem] font-bold text-white">
+                  {{ unread_notification_count > 9 ? '9+' : unread_notification_count }}
+                </span>
+              {% endif %}
+            </a>
+          {% endfor %}
+        </div>
+      {% elseif children|length == 1 %}
+        <div class="grid gap-1">
         {% set child = children[0] %}
-        {% set is_active = currentPath starts with child.url %}
+        {% set is_active = currentPath == child.url or currentPath starts with(child.url ~ '/') %}
         <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if is_active %}bg-app-accent/10 text-app-accent ring-1 ring-inset ring-app-accent/20{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="{{ child.url }}"{% if is_active %} aria-current="page"{% endif %}>
           <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
             {% if child.icon %}
@@ -92,11 +103,6 @@
         </a>
         </div>
       {% else %}
-        {% if loop.first %}
-          <span class="{{ section_header }}">{{ section.label }}</span>
-        {% else %}
-          <span class="{{ section_header }} mt-2">{{ section.label }}</span>
-        {% endif %}
         <div class="grid gap-1">
           <button
             type="button"
@@ -117,7 +123,7 @@
           </button>
           <div x-show="open.{{ key }}" class="grid gap-1 pl-4">
             {% for child in children %}
-              {% set is_active = currentPath starts with child.url %}
+              {% set is_active = currentPath == child.url or currentPath starts with(child.url ~ '/') %}
               <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if is_active %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="{{ child.url }}"{% if is_active %} aria-current="page"{% endif %}>
                 {% if child.icon %}
                   <span class="inline-flex h-5 w-5 items-center justify-center">

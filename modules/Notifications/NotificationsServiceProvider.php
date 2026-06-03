@@ -30,9 +30,9 @@ final class NotificationsServiceProvider implements ModuleServiceProviderInterfa
         if ($app->has(MenuRegistry::class)) {
             $app->make(MenuRegistry::class)->add([
                 'name' => 'notifications',
-                'label' => 'Notifications',
+                'label' => 'Systems Logs',
                 'url' => '/admin/notifications',
-                'parent' => 'admin.user-space',
+                'parent' => 'admin.system-logs',
                 'order' => 20,
                 'icon' => 'bell',
                 'permission' => 'notifications.view',
