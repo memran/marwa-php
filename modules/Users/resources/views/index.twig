@@ -19,5 +19,51 @@
     </div>
   </section>
 
+  <div class="grid grid-cols-2 gap-4 mt-6 lg:grid-cols-4">
+    <div class="rounded-xl border border-app-border bg-app-surface/80 p-4 shadow-sm">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-medium text-app-muted uppercase tracking-wider">Total Users</span>
+        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-app-accent/10">
+          {% include 'components/icon.twig' with { name: 'users', class: 'h-4 w-4 text-app-accent' } %}
+        </span>
+      </div>
+      <div class="font-mono text-2xl font-bold tabular-nums text-app-text">{{ stats.total }}</div>
+      <div class="mt-1 text-xs font-medium text-app-muted">Registered accounts</div>
+    </div>
+
+    <div class="rounded-xl border border-app-border bg-app-surface/80 p-4 shadow-sm">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-medium text-app-muted uppercase tracking-wider">Active</span>
+        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-app-success/10">
+          {% include 'components/icon.twig' with { name: 'badge-check', class: 'h-4 w-4 text-app-success' } %}
+        </span>
+      </div>
+      <div class="font-mono text-2xl font-bold tabular-nums text-app-text">{{ stats.active }}</div>
+      <div class="mt-1 text-xs font-medium text-app-success">{{ stats.total > 0 ? ((stats.active / stats.total) * 100)|round(1) : 0 }}% of total</div>
+    </div>
+
+    <div class="rounded-xl border border-app-border bg-app-surface/80 p-4 shadow-sm">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-medium text-app-muted uppercase tracking-wider">Disabled</span>
+        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-app-warning/10">
+          {% include 'components/icon.twig' with { name: 'ban', class: 'h-4 w-4 text-app-warning' } %}
+        </span>
+      </div>
+      <div class="font-mono text-2xl font-bold tabular-nums text-app-text">{{ stats.disabled }}</div>
+      <div class="mt-1 text-xs font-medium text-app-warning">{{ stats.total > 0 ? ((stats.disabled / stats.total) * 100)|round(1) : 0 }}% of total</div>
+    </div>
+
+    <div class="rounded-xl border border-app-border bg-app-surface/80 p-4 shadow-sm">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-medium text-app-muted uppercase tracking-wider">Trashed</span>
+        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-app-danger/10">
+          {% include 'components/icon.twig' with { name: 'archive', class: 'h-4 w-4 text-app-danger' } %}
+        </span>
+      </div>
+      <div class="font-mono text-2xl font-bold tabular-nums text-app-text">{{ stats.trashed }}</div>
+      <div class="mt-1 text-xs font-medium text-app-muted">Soft-deleted accounts</div>
+    </div>
+  </div>
+
   {% include 'components/data-table.twig' with { table: table } only %}
 {% endblock %}

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Users\Http\Controllers;
 
 use App\Modules\Auth\Support\AuthManager;
+use App\Modules\Users\Models\User;
 use App\Modules\Users\Support\UserDataTable;
 use App\Modules\Users\Support\UserFormData;
 use App\Modules\Users\Support\UserRepository;
@@ -112,7 +113,16 @@ final class UsersController extends Controller
             )
         );
 
+        $total = (int) User::query()->count();
+        $stats = [
+            'total' => $total,
+            'active' => (int) User::query()->active()->count(),
+            'disabled' => (int) User::query()->disabled()->count(),
+            'trashed' => (int) User::withTrashed()->onlyTrashed()->count(),
+        ];
+
         return $this->view('@users/index', [
+            'stats' => $stats,
             'table' => $this->dataTable->build($this->userTable, $requestParams, $pageData, $pagination),
         ]);
     }
