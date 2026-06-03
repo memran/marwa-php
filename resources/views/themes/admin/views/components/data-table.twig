@@ -63,7 +63,7 @@
                 <label class="sr-only" for="{{ search.id|default('table-search') }}">{{ search.aria_label|default('Search records') }}</label>
                 <input
                   id="{{ search.id|default('table-search') }}"
-                  class="w-full border-0 bg-transparent px-0 py-0 text-sm text-app-text placeholder:text-app-muted outline-none ring-0 focus:ring-0"
+                  class="w-full border-0 bg-transparent px-0 py-0 text-sm text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-300 outline-none ring-0 focus:ring-0"
                   type="search"
                   name="{{ search.name|default('q') }}"
                   value="{{ search.value|default('') }}"
