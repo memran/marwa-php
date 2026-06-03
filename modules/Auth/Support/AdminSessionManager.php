@@ -91,6 +91,13 @@ final class AdminSessionManager
                     ]
                 );
 
+                try {
+                    $user->setAttribute('last_login_at', date('Y-m-d H:i:s'));
+                    $user->save();
+                } catch (\Throwable) {
+                    // Best effort — login succeeds even if timestamp persist fails
+                }
+
                 return true;
             }
         }

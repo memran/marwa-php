@@ -28,11 +28,11 @@
   </section>
 
   <form method="post" action="{{ action }}" class="mt-6 space-y-6"
-        x-data="{
+        {{ ui().data('{
           showPassword: false,
           showConfirm: false,
-          password: '',
-          passwordConfirm: '',
+          password: "",
+          passwordConfirm: "",
           copied: false,
           get hasPassword() { return this.password.length > 0 },
           get score() {
@@ -46,17 +46,17 @@
             return s
           },
           get strengthLabel() {
-            return ['', 'Weak', 'Fair', 'Good', 'Strong', 'Very strong'][this.score]
+            return ["", "Weak", "Fair", "Good", "Strong", "Very strong"][this.score]
           },
           get strengthBar() {
-            return ['', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-lime-500', 'bg-emerald-500'][this.score]
+            return ["", "bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-lime-500", "bg-emerald-500"][this.score]
           },
           get strengthText() {
-            return ['', 'text-red-400', 'text-orange-400', 'text-yellow-400', 'text-lime-400', 'text-emerald-400'][this.score]
+            return ["", "text-red-400", "text-orange-400", "text-yellow-400", "text-lime-400", "text-emerald-400"][this.score]
           },
           generatePassword() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?'
-            let pwd = ''
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?"
+            let pwd = ""
             for (let i = 0; i < 20; i++) {
               pwd += chars.charAt(Math.floor(Math.random() * chars.length))
             }
@@ -70,7 +70,7 @@
             this.copied = true
             setTimeout(() => { this.copied = false }, 2000)
           }
-        }">
+        }') }}">
     {{ csrf_field() }}
 
     <div class="grid gap-6 lg:grid-cols-2">
@@ -153,7 +153,7 @@
             {% else %}
               <p class="text-xs leading-5 text-app-muted">Minimum 8 characters with a mix of letters, numbers &amp; symbols.</p>
             {% endif %}
-            <button type="button" @click="generatePassword()" class="inline-flex items-center gap-1.5 text-xs font-medium text-cyan-400 hover:text-cyan-300 transition">
+            <button type="button" {{ ui().click('generatePassword()') }} class="inline-flex items-center gap-1.5 text-xs font-medium text-cyan-400 hover:text-cyan-300 transition">
               <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456Z" /></svg>
               Generate password
             </button>
@@ -162,45 +162,45 @@
                 class="form-input w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 pr-10 text-sm text-app-text placeholder:text-app-muted outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/10"
                 id="password"
                 name="password"
-                :type="showPassword ? 'text' : 'password'"
+                {{ ui().bind('type', "showPassword ? 'text' : 'password'") }}
                 value=""
-                x-model="password"
+                {{ ui().model('password') }}
                 placeholder="{% if is_edit %}Leave blank to keep current{% else %}Minimum 8 characters{% endif %}"
                 autocomplete="new-password"
               >
               <div class="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
-                <button type="button" @click="copyPassword()" x-show="hasPassword" x-cloak class="p-1.5 text-app-muted hover:text-cyan-400 transition" tabindex="-1" aria-label="Copy password" :title="copied ? 'Copied!' : 'Copy password'">
-                  <svg x-show="!copied" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" /></svg>
-                  <svg x-show="copied" class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" x-cloak><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                <button type="button" {{ ui().click('copyPassword()') }} {{ ui().show('hasPassword') }} {{ ui().cloak() }} class="p-1.5 text-app-muted hover:text-cyan-400 transition" tabindex="-1" aria-label="Copy password" {{ ui().bind('title', "copied ? 'Copied!' : 'Copy password'") }}>
+                  <svg {{ ui().show('!copied') }} class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" /></svg>
+                  <svg {{ ui().show('copied') }} class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" {{ ui().cloak() }}><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                 </button>
-                <button type="button" @click="showPassword = !showPassword" class="p-1.5 text-app-muted hover:text-app-text transition" tabindex="-1" aria-label="Toggle password visibility" title="Toggle password visibility">
-                  <svg x-show="!showPassword" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <button type="button" {{ ui().click('showPassword = !showPassword') }} class="p-1.5 text-app-muted hover:text-app-text transition" tabindex="-1" aria-label="Toggle password visibility" title="Toggle password visibility">
+                  <svg {{ ui().show('!showPassword') }} class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                   </svg>
-                  <svg x-show="showPassword" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" x-cloak>
+                  <svg {{ ui().show('showPassword') }} class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" {{ ui().cloak() }}>
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
                   </svg>
                 </button>
               </div>
             </div>
-            <div x-show="hasPassword" x-cloak class="mt-2 space-y-1.5">
+            <div {{ ui().show('hasPassword') }} {{ ui().cloak() }} class="mt-2 space-y-1.5">
               <div class="flex items-center justify-between gap-3">
                 <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
-                  <div class="h-full rounded-full transition-all duration-300" :style="'width: ' + (score * 20) + '%'" :class="strengthBar"></div>
+                  <div class="h-full rounded-full transition-all duration-300" {{ ui().bind('style', "'width: ' + (score * 20) + '%'") }} {{ ui().bind('class', 'strengthBar') }}></div>
                 </div>
-                <span class="text-xs font-medium" :class="strengthText" x-text="strengthLabel"></span>
+                <span class="text-xs font-medium" {{ ui().bind('class', 'strengthText') }} {{ ui().text('strengthLabel') }}></span>
               </div>
               <ul class="space-y-1">
-                <li class="flex items-center gap-1.5 text-xs" :class="password.length >= 8 ? 'text-emerald-400' : 'text-app-muted'">
+                <li class="flex items-center gap-1.5 text-xs" {{ ui().bind('class', "password.length >= 8 ? 'text-emerald-400' : 'text-app-muted'") }}>
                   <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                   At least 8 characters
                 </li>
-                <li class="flex items-center gap-1.5 text-xs" :class="/[a-z]/.test(password) && /[A-Z]/.test(password) ? 'text-emerald-400' : 'text-app-muted'">
+                <li class="flex items-center gap-1.5 text-xs" {{ ui().bind('class', "/[a-z]/.test(password) && /[A-Z]/.test(password) ? 'text-emerald-400' : 'text-app-muted'") }}>
                   <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                   Uppercase &amp; lowercase
                 </li>
-                <li class="flex items-center gap-1.5 text-xs" :class="/\d/.test(password) ? 'text-emerald-400' : 'text-app-muted'">
+                <li class="flex items-center gap-1.5 text-xs" {{ ui().bind('class', "/\\d/.test(password) ? 'text-emerald-400' : 'text-app-muted'") }}>
                   <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                   At least one number
                 </li>
@@ -221,18 +221,18 @@
                 class="form-input w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 pr-10 text-sm text-app-text placeholder:text-app-muted outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/10"
                 id="password_confirmation"
                 name="password_confirmation"
-                :type="showConfirm ? 'text' : 'password'"
+                {{ ui().bind('type', "showConfirm ? 'text' : 'password'") }}
                 value=""
-                x-model="passwordConfirm"
+                {{ ui().model('passwordConfirm') }}
                 placeholder="Repeat password"
                 autocomplete="new-password"
               >
-              <button type="button" @click="showConfirm = !showConfirm" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-app-muted hover:text-app-text transition" tabindex="-1" aria-label="Toggle password confirmation visibility" title="Toggle password confirmation visibility">
-                <svg x-show="!showConfirm" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <button type="button" {{ ui().click('showConfirm = !showConfirm') }} class="absolute right-2.5 top-1/2 -translate-y-1/2 text-app-muted hover:text-app-text transition" tabindex="-1" aria-label="Toggle password confirmation visibility" title="Toggle password confirmation visibility">
+                <svg {{ ui().show('!showConfirm') }} class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                 </svg>
-                <svg x-show="showConfirm" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" x-cloak>
+                <svg {{ ui().show('showConfirm') }} class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" {{ ui().cloak() }}>
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
                 </svg>
               </button>

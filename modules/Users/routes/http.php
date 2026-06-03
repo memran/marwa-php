@@ -13,6 +13,10 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
         ->name('admin.users.profile')
         ->register();
 
+    $routes->post('/profile/password', [UsersController::class, 'updatePassword'])
+        ->name('admin.users.profile.password')
+        ->register();
+
     $routes->get('/users', [UsersController::class, 'index'])
         ->middleware(new RequirePermission('users.view'))
         ->name('admin.users.index')
