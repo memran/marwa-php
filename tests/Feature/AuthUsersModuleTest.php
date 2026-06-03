@@ -1315,7 +1315,7 @@ TWIG
     private function seedAuthAndUsers(): void
     {
         $authSeeder = $this->basePath . '/modules/Auth/database/Seeders/RolesPermissionsSeeder.php';
-        $userSeeder = $this->basePath . '/modules/Users/database/Seeders/AdminUserSeeder.php';
+        $userSeeder = $this->basePath . '/modules/Users/database/seeders/AdminUserSeeder.php';
 
         if (!class_exists(RolesPermissionsSeeder::class, false)) {
             require_once $authSeeder;

@@ -8,7 +8,7 @@ parameters:
     bootstrapFiles:
         - vendor/autoload.php
     scanDirectories:
-        - modules/Users/database/Seeders
+        - modules/Users/database/seeders
         - modules/Auth/database/Seeders
     reportUnmatchedIgnoredErrors: false
     ignoreErrors:
