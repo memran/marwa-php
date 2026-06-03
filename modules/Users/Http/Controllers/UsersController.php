@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Users\Http\Controllers;
 
 use App\Modules\Auth\Support\AuthManager;
-use App\Modules\Users\Models\User;
 use App\Modules\Users\Support\UserDataTable;
 use App\Modules\Users\Support\UserFormData;
 use App\Modules\Users\Support\UserRepository;
@@ -27,8 +26,7 @@ final class UsersController extends Controller
         private readonly UserDataTable $userTable,
         private readonly DataTableView $dataTable,
         private readonly Pagination $pagination,
-    ) {
-    }
+    ) {}
 
     public function profile(): ResponseInterface
     {
@@ -198,7 +196,7 @@ final class UsersController extends Controller
             'sort' => $state['sort'],
             'direction' => $state['direction'],
             'columns' => $visibleColumns,
-        ], static fn (mixed $value): bool => $value !== null && $value !== '' && $value !== []);
+        ], static fn(mixed $value): bool => $value !== null && $value !== '' && $value !== []);
     }
 
     /**

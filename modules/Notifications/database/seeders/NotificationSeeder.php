@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Notifications\database\Seeders;
+namespace App\Modules\Notifications\database\seeders;
 
 use App\Modules\Auth\Models\Role;
 use App\Modules\Notifications\Models\Notification;

@@ -11,7 +11,7 @@ use App\Modules\Notifications\Models\Notification;
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Auth\database\Seeders\RolesPermissionsSeeder;
 use App\Modules\Auth\Support\RoleRepository;
-use Database\Seeders\AdminUserSeeder;
+use App\Modules\Users\database\seeders\AdminUserSeeder;
 use Marwa\DB\Connection\ConnectionManager;
 use Marwa\DB\Schema\MigrationRepository;
 use Marwa\Framework\Application;
