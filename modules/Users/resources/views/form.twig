@@ -3,24 +3,18 @@
 {% block title %}{{ title }} | MarwaPHP Admin{% endblock %}
 
 {% block content %}
-  {% include "@users/_buttons.twig" %}
+  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
+  {% set button_primary = button_base ~ ' border-transparent bg-app-accent text-white hover:bg-app-accent-soft' %}
+  {% set button_secondary = button_base ~ ' border-app-border bg-app-surface/80 text-app-text hover:bg-app-surface-2/70' %}
+  {% set field_class = 'w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 text-sm text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-300 outline-none transition focus:border-app-accent focus:ring-0 focus-visible:outline-none focus-visible:border-app-accent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-app-accent/20 disabled:cursor-not-allowed disabled:opacity-60' %}
+  {% set select_class = field_class %}
   {% set user = user|default(null) %}
   {% set form = form|default({}) %}
   {% set roles = roles|default([]) %}
   {% set is_edit = user is not null %}
 
-  <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-    <div class="max-w-3xl space-y-2">
-      <span class="inline-flex w-fit items-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-cyan-100">Identity management</span>
-      <h1 class="text-2xl font-black tracking-tight text-white sm:text-3xl">{{ title }}</h1>
-      <p class="max-w-2xl text-sm leading-6 text-slate-300">
-        {% if is_edit %}
-          Update account details for this user. Leave password blank to keep the current password.
-        {% else %}
-          Create a new user account. A password is required for new accounts.
-        {% endif %}
-      </p>
-    </div>
+  <section class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <span class="inline-flex w-fit items-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-cyan-100">Identity management</span>
 
     <div class="flex flex-wrap gap-2">
       <a class="{{ button_secondary }}" href="/admin/users">Back to users</a>
@@ -74,7 +68,7 @@
     {{ csrf_field() }}
 
     <div class="grid gap-6 lg:grid-cols-2">
-      <div class="users-form-shell rounded-xl border p-6">
+      <div class="rounded-[1.25rem] border border-app-border bg-app-surface/80 p-6 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
         <div class="mb-5 flex items-center gap-2.5">
           <svg class="h-5 w-5 shrink-0 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
@@ -83,45 +77,67 @@
         </div>
 
         <div class="space-y-5">
-          {% include "components/form-field.twig" with {
-            id: 'name',
-            label: 'Full name',
-            value: form.name|default(''),
-            placeholder: 'e.g. John Doe',
-            hint: "The user's display name across the platform.",
-            error: errors.name|default([])|first,
-          } only %}
+          <div class="grid gap-2">
+            <label class="text-[0.82rem] font-semibold text-app-text" for="name">Full name</label>
+            <p class="text-xs leading-5 text-app-muted">The user's display name across the platform.</p>
+            <input
+              class="{{ field_class }}"
+              id="name"
+              name="name"
+              type="text"
+              value="{{ form.name|default('') }}"
+              placeholder="e.g. John Doe"
+              autocomplete="name"
+            >
+            {% if errors.name|default([])|length > 0 %}
+              <p class="text-xs text-app-danger">{{ errors.name|default([])|first }}</p>
+            {% endif %}
+          </div>
 
-          {% include "components/form-field.twig" with {
-            id: 'email',
-            label: 'Email address',
-            type: 'email',
-            value: form.email|default(''),
-            placeholder: 'e.g. john@example.com',
-            hint: 'Used for login, notifications, and Gravatar.',
-            error: errors.email|default([])|first,
-          } only %}
+          <div class="grid gap-2">
+            <label class="text-[0.82rem] font-semibold text-app-text" for="email">Email address</label>
+            <p class="text-xs leading-5 text-app-muted">Used for login, notifications, and Gravatar.</p>
+            <input
+              class="{{ field_class }}"
+              id="email"
+              name="email"
+              type="email"
+              value="{{ form.email|default('') }}"
+              placeholder="e.g. john@example.com"
+              autocomplete="email"
+            >
+            {% if errors.email|default([])|length > 0 %}
+              <p class="text-xs text-app-danger">{{ errors.email|default([])|first }}</p>
+            {% endif %}
+          </div>
 
-          {% include "components/form-field.twig" with {
-            id: 'role_id',
-            label: 'Access role',
-            type: 'select',
-            value: form.role_id|default(0),
-            options: roles,
-            hint: 'Controls which sections and actions the user can access.',
-            error: errors.role_id|default([])|first,
-          } only %}
+          <div class="grid gap-2">
+            <label class="text-[0.82rem] font-semibold text-app-text" for="role_id">Access role</label>
+            <p class="text-xs leading-5 text-app-muted">Controls which sections and actions the user can access.</p>
+            <select
+              class="{{ select_class }}"
+              id="role_id"
+              name="role_id"
+            >
+              {% for option_value, option_label in roles %}
+                <option value="{{ option_value }}" {% if form.role_id|default(0) == option_value %}selected{% endif %}>{{ option_label }}</option>
+              {% endfor %}
+            </select>
+            {% if errors.role_id|default([])|length > 0 %}
+              <p class="text-xs text-app-danger">{{ errors.role_id|default([])|first }}</p>
+            {% endif %}
+          </div>
 
           <div class="grid gap-2">
             <label class="text-[0.82rem] font-semibold text-app-text">Account status</label>
             <p class="text-xs leading-5 text-app-muted">Active users can log in and access the system.</p>
             <div class="mt-1 flex gap-3">
               <label class="dashboard-status-option flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-cyan-300/30 hover:bg-cyan-400/5 has-[:checked]:border-cyan-400/40 has-[:checked]:bg-cyan-400/10">
-                <input type="radio" name="is_active" value="1" {% if form.is_active|default(1) == 1 %}checked{% endif %} class="dashboard-status-radio dashboard-status-radio-active h-4 w-4">
+                <input type="radio" name="is_active" value="1" {% if form.is_active|default(1) == 1 %}checked{% endif %} class="h-4 w-4 accent-cyan-400 outline-none focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-cyan-400/20">
                 <span class="text-sm font-medium text-slate-200">Active</span>
               </label>
               <label class="dashboard-status-option flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-rose-300/30 hover:bg-rose-400/5 has-[:checked]:border-rose-400/40 has-[:checked]:bg-rose-400/10">
-                <input type="radio" name="is_active" value="0" {% if form.is_active|default(1) == 0 %}checked{% endif %} class="dashboard-status-radio dashboard-status-radio-inactive h-4 w-4">
+                <input type="radio" name="is_active" value="0" {% if form.is_active|default(1) == 0 %}checked{% endif %} class="h-4 w-4 accent-cyan-400 outline-none focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-cyan-400/20">
                 <span class="text-sm font-medium text-slate-200">Disabled</span>
               </label>
             </div>
@@ -135,7 +151,7 @@
         </div>
       </div>
 
-      <div class="users-form-shell rounded-xl border p-6">
+      <div class="rounded-[1.25rem] border border-app-border bg-app-surface/80 p-6 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
         <div class="mb-5 flex items-center gap-2.5">
           <svg class="h-5 w-5 shrink-0 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
@@ -159,7 +175,7 @@
             </button>
             <div class="relative">
               <input
-                class="form-input w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 pr-10 text-sm text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-300 outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/10"
+                class="w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 pr-10 text-sm text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-300 outline-none transition focus:border-app-accent focus:ring-0 focus-visible:outline-none focus-visible:border-app-accent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-app-accent/20"
                 id="password"
                 name="password"
                 {{ ui().bind('type', "showPassword ? 'text' : 'password'") }}
@@ -218,7 +234,7 @@
             <label class="text-[0.82rem] font-semibold text-app-text" for="password_confirmation">Confirm password</label>
             <div class="relative">
               <input
-                class="form-input w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 pr-10 text-sm text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-300 outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/10"
+                class="w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 pr-10 text-sm text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-300 outline-none transition focus:border-app-accent focus:ring-0 focus-visible:outline-none focus-visible:border-app-accent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-app-accent/20"
                 id="password_confirmation"
                 name="password_confirmation"
                 {{ ui().bind('type', "showConfirm ? 'text' : 'password'") }}

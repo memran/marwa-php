@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Users\Http\Controllers;
 
+use App\Modules\Activity\Models\Activity;
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Users\Models\User;
 use App\Modules\Users\Support\UserDataTable;
@@ -31,12 +32,33 @@ final class UsersController extends Controller
         private readonly Pagination $pagination,
     ) {}
 
-    public function profile(): ResponseInterface
+    public function profile(ServerRequestInterface $request): ResponseInterface
     {
+        $user = $this->auth->user();
+
+        if ($user === null) {
+            return $this->redirect('/admin/login');
+        }
+
+        $queryParams = $request->getQueryParams();
+        $activityPage = max(1, (int) ($queryParams['activity_page'] ?? 1));
+        $activityPageData = $this->recentActivities($user, $activityPage);
+
         return $this->view('@users/profile', [
-            'authUser' => $this->auth->user(),
+            'authUser' => $user,
             'errors' => $this->session('errors', []),
             'old' => $this->session('_old_input', []),
+            'default_tab' => (($queryParams['tab'] ?? '') === 'activity' || $activityPage > 1) ? 'activity' : 'overview',
+            'activities' => $activityPageData['data'],
+            'activity_total' => $activityPageData['pagination']['total'],
+            'activity_pagination' => $this->pagination->viewData(
+                $activityPageData['pagination'],
+                '/admin/profile',
+                [
+                    'tab' => 'activity',
+                ],
+                'activity_page'
+            ),
         ]);
     }
 
@@ -163,9 +185,22 @@ final class UsersController extends Controller
             return $this->redirect('/admin/users');
         }
 
+        $queryParams = $request->getQueryParams();
+        $activityPage = max(1, (int) ($queryParams['activity_page'] ?? 1));
+        $activityPageData = $this->recentActivities($user, $activityPage);
+
         return $this->view('@users/show', [
             'user' => $user,
             'protected_admin_id' => $this->users->protectedAdminId(),
+            'default_tab' => (($queryParams['tab'] ?? '') === 'activity' || $activityPage > 1) ? 'activity' : 'overview',
+            'activities' => $activityPageData['data'],
+            'activity_total' => $activityPageData['pagination']['total'],
+            'activity_pagination' => $this->pagination->viewData(
+                $activityPageData['pagination'],
+                '/admin/users/' . $user->getKey(),
+                ['tab' => 'activity'],
+                'activity_page'
+            ),
         ]);
     }
 
@@ -390,6 +425,47 @@ final class UsersController extends Controller
             $filename,
             'text/csv; charset=UTF-8'
         );
+    }
+
+    /**
+     * @return array{
+     *     data:list<Activity>,
+     *     pagination:array{total:int,per_page:int,current_page:int,last_page:int}
+     * }
+     */
+    private function recentActivities(User $user, int $page = 1, int $perPage = 5): array
+    {
+        try {
+            $builder = Activity::newQuery()->getBaseBuilder()
+                ->where('actor_email', '=', $user->getAttribute('email'))
+                ->orderBy('created_at', 'desc')
+                ->paginate(max(1, $perPage), max(1, $page));
+        } catch (\Throwable) {
+            return [
+                'data' => [],
+                'pagination' => [
+                    'total' => 0,
+                    'per_page' => max(1, $perPage),
+                    'current_page' => max(1, $page),
+                    'last_page' => 1,
+                ],
+            ];
+        }
+
+        $rows = $builder['data'] ?? [];
+
+        return [
+            'data' => array_values(array_filter(array_map(
+            static fn (array|object $row): Activity => Activity::newInstance(is_array($row) ? $row : (array) $row, true),
+            is_array($rows) ? $rows : []
+        ), static fn (Activity $activity): bool => $activity instanceof Activity)),
+            'pagination' => [
+                'total' => (int) ($builder['total'] ?? 0),
+                'per_page' => (int) ($builder['per_page'] ?? max(1, $perPage)),
+                'current_page' => (int) ($builder['current_page'] ?? max(1, $page)),
+                'last_page' => (int) ($builder['last_page'] ?? 1),
+            ],
+        ];
     }
 
     private function downloadContent(string $content, string $filename, string $contentType): ResponseInterface

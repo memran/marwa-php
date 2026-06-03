@@ -36,11 +36,12 @@
   "homepage": "https://github.com/memran/marwa-php#readme",
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.11",
+    "@tailwindcss/cli": "^4.3.0",
     "@tailwindcss/typography": "^0.5.19",
     "autoprefixer": "^10.4.21",
     "lucide-static": "^1.8.0",
     "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.17"
+    "tailwindcss": "^4.3.0"
   },
   "dependencies": {
     "alpinejs": "^3.15.11",

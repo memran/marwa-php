@@ -3,7 +3,6 @@
 {% block title %}My Profile | MarwaPHP Admin{% endblock %}
 
 {% block content %}
-  {% include "@users/_buttons.twig" %}
   {% set user = authUser %}
   {% set role = user.role() %}
   {% set permissions = role is not null ? role.permissions() : [] %}
@@ -13,12 +12,16 @@
   {% set created = user.getAttribute('created_at') %}
   {% set lastLogin = user.getAttribute('last_login_at') %}
   {% set updated = user.getAttribute('updated_at') %}
+  {% set default_tab = default_tab|default('overview') %}
+  {% set activities = activities|default([]) %}
+  {% set activity_total = activity_total|default(0) %}
+  {% set activity_pagination = activity_pagination|default({ links: [], summary: '' }) %}
   {% if created %}
     {% set accountAgeDays = date().diff(date(created)).days %}
   {% endif %}
 
-  <div {{ ui().data('{ activeTab: "overview" }') }}>
-    <section class="users-form-shell rounded-xl border p-6">
+  <div {{ ui().data('{ activeTab: "' ~ default_tab ~ '" }') }}>
+    <section class="rounded-[1.25rem] border border-app-border bg-app-surface/80 p-6 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
       <div class="flex items-start gap-5">
         <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 text-xl font-bold tracking-tight text-white shadow-lg shadow-cyan-500/20">
           {{ initials }}
@@ -26,7 +29,7 @@
         <div class="min-w-0 flex-1">
           <div class="mb-1 flex flex-wrap items-center gap-3">
             <h1 class="text-xl font-bold text-white">{{ name }}</h1>
-            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-2.5 py-1 text-[11px] font-medium text-emerald-200">
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-100">
               <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
               {% if user.getAttribute('is_active') %}Active{% else %}Disabled{% endif %}
             </span>
@@ -58,6 +61,10 @@
         <svg class="-mt-0.5 mr-1.5 inline-block h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" /></svg>
         Overview
       </button>
+      <button {{ ui().click('activeTab = "activity"') }} class="border-b-2 px-4 py-3 text-sm font-medium transition-colors" {{ ui().bind('class', "activeTab === 'activity' ? 'border-cyan-400 text-white' : 'border-transparent text-slate-400 hover:text-slate-200'") }}>
+        <svg class="-mt-0.5 mr-1.5 inline-block h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+        Activity
+      </button>
       <button {{ ui().click('activeTab = "permissions"') }} class="border-b-2 px-4 py-3 text-sm font-medium transition-colors" {{ ui().bind('class', "activeTab === 'permissions' ? 'border-cyan-400 text-white' : 'border-transparent text-slate-400 hover:text-slate-200'") }}>
         <svg class="-mt-0.5 mr-1.5 inline-block h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
         Permissions
@@ -65,111 +72,83 @@
     </nav>
 
     <div {{ ui().show("activeTab === 'overview'") }}>
-      <div class="mt-6 grid gap-6 lg:grid-cols-3">
-        <div class="space-y-6 lg:col-span-2">
-          <div class="users-form-shell rounded-xl border">
-            <div class="flex items-center justify-between border-b border-white/5 px-5 py-4">
-              <h2 class="text-sm font-semibold text-slate-100">Personal Information</h2>
-            </div>
-            <div class="p-5">
-              <div class="grid gap-x-8 gap-y-5 sm:grid-cols-2">
-                <div>
-                  <span class="block text-[11px] font-medium uppercase tracking-wider text-slate-400">Full Name</span>
-                  <span class="mt-1 block text-sm font-medium text-slate-200">{{ name }}</span>
-                </div>
-                <div>
-                  <span class="block text-[11px] font-medium uppercase tracking-wider text-slate-400">Email</span>
-                  <span class="mt-1 block font-mono text-sm text-slate-200">{{ email }}</span>
-                </div>
-                <div>
-                  <span class="block text-[11px] font-medium uppercase tracking-wider text-slate-400">Access Role</span>
-                  <span class="mt-1 block text-sm text-slate-200">{{ role is not null ? role.getAttribute('name') : 'None' }}</span>
-                </div>
-                <div>
-                  <span class="block text-[11px] font-medium uppercase tracking-wider text-slate-400">Account ID</span>
-                  <span class="mt-1 block font-mono text-sm text-slate-200">#{{ user.getKey() }}</span>
-                </div>
-                <div>
-                  <span class="block text-[11px] font-medium uppercase tracking-wider text-slate-400">Created</span>
-                  <span class="mt-1 block text-sm text-slate-200">{{ created ? created|date('M j, Y \\a\\t g:i A') : 'N/A' }}</span>
-                </div>
-                <div>
-                  <span class="block text-[11px] font-medium uppercase tracking-wider text-slate-400">Last Updated</span>
-                  <span class="mt-1 block text-sm text-slate-200">{{ updated ? updated|date('M j, Y \\a\\t g:i A') : 'N/A' }}</span>
-                </div>
+      <div class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(0,0.95fr)]">
+        <div class="space-y-6">
+          <section class="rounded-[1.35rem] border border-app-border bg-app-surface/80 p-6 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
+            <div class="flex flex-col gap-4 border-b border-white/5 pb-5 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Overview</p>
+                <h2 class="mt-2 text-lg font-bold tracking-tight text-slate-100">Profile summary</h2>
+                <p class="mt-1 text-sm text-slate-400">Compact account information and status at a glance.</p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <span class="inline-flex items-center rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-[0.7rem] font-bold uppercase tracking-[0.16em] text-emerald-100">
+                  {% if user.getAttribute('is_active') %}Active{% else %}Disabled{% endif %}
+                </span>
+                {% if role is not null %}
+                  <span class="inline-flex items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.7rem] font-bold uppercase tracking-[0.16em] text-cyan-100">
+                    {{ role.getAttribute('name') }}
+                  </span>
+                {% endif %}
               </div>
             </div>
-          </div>
 
-          <div class="users-form-shell rounded-xl border">
-            <div class="flex items-center justify-between border-b border-white/5 px-5 py-4">
-              <h2 class="text-sm font-semibold text-slate-100">Recent Activity</h2>
-            </div>
-            <div class="divide-y divide-white/5">
-              <div class="flex items-start gap-3 px-5 py-4">
-                <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-400/10">
-                  <svg class="h-4 w-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="text-sm text-slate-200">Account created</div>
-                  <div class="mt-0.5 text-xs text-slate-500">{{ created ? created|date('M j, Y \\a\\t g:i A') : 'N/A' }}</div>
-                </div>
+            <div class="mt-5 grid gap-3 sm:grid-cols-2">
+              <div class="rounded-2xl border border-app-border bg-app-surface-2/60 p-4">
+                <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Full Name</span>
+                <span class="mt-2 block text-sm font-semibold text-slate-100">{{ name }}</span>
               </div>
-              {% if lastLogin %}
-                <div class="flex items-start gap-3 px-5 py-4">
-                  <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-400/10">
-                    <svg class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" /></svg>
-                  </div>
-                  <div class="min-w-0 flex-1">
-                    <div class="text-sm text-slate-200">Last login</div>
-                    <div class="mt-0.5 text-xs text-slate-500">{{ lastLogin|date('M j, Y \\a\\t g:i A') }}</div>
-                  </div>
-                </div>
-              {% endif %}
-              {% if updated and updated != created %}
-                <div class="flex items-start gap-3 px-5 py-4">
-                  <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-400/10">
-                    <svg class="h-4 w-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
-                  </div>
-                  <div class="min-w-0 flex-1">
-                    <div class="text-sm text-slate-200">Account updated</div>
-                    <div class="mt-0.5 text-xs text-slate-500">{{ updated|date('M j, Y \\a\\t g:i A') }}</div>
-                  </div>
-                </div>
-              {% endif %}
+              <div class="rounded-2xl border border-app-border bg-app-surface-2/60 p-4">
+                <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Email</span>
+                <span class="mt-2 block break-all font-mono text-sm text-slate-200">{{ email }}</span>
+              </div>
+              <div class="rounded-2xl border border-app-border bg-app-surface-2/60 p-4">
+                <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Access Role</span>
+                <span class="mt-2 block text-sm font-semibold text-slate-100">{{ role is not null ? role.getAttribute('name') : 'None' }}</span>
+              </div>
+              <div class="rounded-2xl border border-app-border bg-app-surface-2/60 p-4">
+                <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Account ID</span>
+                <span class="mt-2 block font-mono text-sm font-semibold text-slate-200">#{{ user.getKey() }}</span>
+              </div>
+              <div class="rounded-2xl border border-app-border bg-app-surface-2/60 p-4">
+                <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Created</span>
+                <span class="mt-2 block text-sm font-semibold text-slate-100">{{ created ? created|date('M j, Y \a\t g:i A') : 'N/A' }}</span>
+              </div>
+              <div class="rounded-2xl border border-app-border bg-app-surface-2/60 p-4">
+                <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Updated</span>
+                <span class="mt-2 block text-sm font-semibold text-slate-100">{{ updated ? updated|date('M j, Y \a\t g:i A') : 'N/A' }}</span>
+              </div>
             </div>
-          </div>
+          </section>
         </div>
 
         <div class="space-y-6">
-          <div class="users-form-shell rounded-xl border p-5">
-            <h2 class="mb-4 text-sm font-semibold text-slate-100">Security</h2>
-            <div class="space-y-4">
-              <div class="flex items-center justify-between">
-                <span class="text-xs text-slate-400">Last login</span>
-                <span class="font-mono text-sm tabular-nums text-slate-200">{{ lastLogin ? lastLogin|date('M j, Y') : 'Never' }}</span>
+          <section class="rounded-[1.35rem] border border-app-border bg-app-surface/80 p-5 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
+            <h2 class="text-sm font-semibold text-slate-100">Security</h2>
+            <div class="mt-4 space-y-3">
+              <div class="flex items-center justify-between rounded-2xl border border-app-border bg-app-surface-2/60 px-4 py-3">
+                <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Last login</span>
+                <span class="font-mono text-sm tabular-nums text-slate-100">{{ lastLogin ? lastLogin|date('M j, Y') : 'Never' }}</span>
               </div>
-              <div class="flex items-center justify-between">
-                <span class="text-xs text-slate-400">Account age</span>
-                <span class="text-sm text-slate-200">{{ created ? (accountAgeDays == 0 ? 'Today' : accountAgeDays ~ ' day' ~ (accountAgeDays != 1 ? 's' : '')) : 'N/A' }}</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-xs text-slate-400">Account ID</span>
-                <span class="font-mono text-sm tabular-nums text-slate-200">#{{ user.getKey() }}</span>
+              <div class="flex items-center justify-between rounded-2xl border border-app-border bg-app-surface-2/60 px-4 py-3">
+                <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Account age</span>
+                <span class="text-sm text-slate-100">{{ created ? (accountAgeDays == 0 ? 'Today' : accountAgeDays ~ ' day' ~ (accountAgeDays != 1 ? 's' : '')) : 'N/A' }}</span>
               </div>
             </div>
-          </div>
+          </section>
 
-          <div class="users-form-shell rounded-xl border p-5"
-            {{ ui().data('{ showCurrent: false, showNew: false, showConfirm: false }') }}>
-            <h2 class="mb-4 text-sm font-semibold text-slate-100">Change Password</h2>
-            <form method="post" action="/admin/profile/password" class="space-y-4">
+          <section class="rounded-[1.35rem] border border-app-border bg-app-surface/80 p-5 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl" {{ ui().data('{ showCurrent: false, showNew: false, showConfirm: false }') }}>
+            <div class="flex items-center justify-between">
+              <h2 class="text-sm font-semibold text-slate-100">Change Password</h2>
+              <span class="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">Private</span>
+            </div>
+            <form method="post" action="/admin/profile/password" class="mt-4 space-y-4">
               {{ csrf_field() }}
 
               <div>
                 <label for="current_password" class="block text-xs font-medium text-slate-400">Current Password</label>
                 <div class="relative mt-1">
-                  <input {{ ui().bind('type', 'showCurrent ? "text" : "password"') }} id="current_password" name="current_password" autocomplete="current-password" class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 pr-10 text-sm text-slate-200 placeholder-slate-500" placeholder="Enter current password">
+                  <input {{ ui().bind('type', 'showCurrent ? "text" : "password"') }} id="current_password" name="current_password" autocomplete="current-password" class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pr-10 text-sm text-slate-200 placeholder-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10" placeholder="Enter current password">
                   <button type="button" {{ ui().click('showCurrent = !showCurrent') }} class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300" tabindex="-1">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
                   </button>
@@ -182,7 +161,7 @@
               <div>
                 <label for="new_password" class="block text-xs font-medium text-slate-400">New Password</label>
                 <div class="relative mt-1">
-                  <input {{ ui().bind('type', 'showNew ? "text" : "password"') }} id="new_password" name="new_password" autocomplete="new-password" class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 pr-10 text-sm text-slate-200 placeholder-slate-500" placeholder="At least 8 characters">
+                  <input {{ ui().bind('type', 'showNew ? "text" : "password"') }} id="new_password" name="new_password" autocomplete="new-password" class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pr-10 text-sm text-slate-200 placeholder-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10" placeholder="At least 8 characters">
                   <button type="button" {{ ui().click('showNew = !showNew') }} class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300" tabindex="-1">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
                   </button>
@@ -195,7 +174,7 @@
               <div>
                 <label for="new_password_confirmation" class="block text-xs font-medium text-slate-400">Confirm New Password</label>
                 <div class="relative mt-1">
-                  <input {{ ui().bind('type', 'showConfirm ? "text" : "password"') }} id="new_password_confirmation" name="new_password_confirmation" autocomplete="new-password" class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 pr-10 text-sm text-slate-200 placeholder-slate-500" placeholder="Re-enter new password">
+                  <input {{ ui().bind('type', 'showConfirm ? "text" : "password"') }} id="new_password_confirmation" name="new_password_confirmation" autocomplete="new-password" class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pr-10 text-sm text-slate-200 placeholder-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10" placeholder="Re-enter new password">
                   <button type="button" {{ ui().click('showConfirm = !showConfirm') }} class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300" tabindex="-1">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
                   </button>
@@ -205,48 +184,44 @@
                 {% endif %}
               </div>
 
-              <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-transparent bg-white px-3 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200">
+              <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-transparent bg-white px-3 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
                 Update Password
               </button>
             </form>
-          </div>
+          </section>
         </div>
+      </div>
+    </div>
+
+    <div {{ ui().show("activeTab === 'activity'") }} {{ ui().cloak() }}>
+      <div class="mt-6">
+        {% include 'components/activity-log.twig' with {
+          rows: activities,
+          pagination: activity_pagination,
+          compact: true,
+          show_source: false,
+          show_header: false,
+          count_label: activity_total ~ ' entries',
+          empty_message: 'No activity recorded for your account yet.'
+        } only %}
       </div>
     </div>
 
     <div {{ ui().show("activeTab === 'permissions'") }} {{ ui().cloak() }}>
       <div class="mt-6">
-        <div class="users-form-shell rounded-xl border">
-          <div class="border-b border-white/5 px-5 py-4">
-            <h2 class="text-sm font-semibold text-slate-100">Role &amp; Permissions</h2>
-            <p class="mt-1 text-xs text-slate-400">
-              {% if role is not null %}
-                Your role is <span class="font-medium text-slate-200">{{ role.getAttribute('name') }}</span> with {{ permissions|length }} permission{{ permissions|length != 1 ? 's' : '' }}.
-              {% else %}
-                No role assigned.
-              {% endif %}
-            </p>
-          </div>
-          {% if permissions is not empty %}
-            <div class="flex flex-wrap gap-2 p-5">
-              {% for perm in permissions %}
-                <span class="inline-flex items-center gap-1.5 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2 text-sm text-slate-300">
-                  <svg class="h-3.5 w-3.5 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                  {{ perm.getAttribute('name') }}
-                  {% set permGroup = perm.getAttribute('group') %}
-                  {% if permGroup %}
-                    <span class="ml-1 rounded bg-white/5 px-1.5 py-0.5 text-[10px] font-medium text-slate-500">{{ permGroup }}</span>
-                  {% endif %}
-                </span>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="p-5">
-              <p class="text-sm text-slate-500">No permissions assigned to your role.</p>
-            </div>
-          {% endif %}
-        </div>
+        {% include 'components/permission-panel.twig' with {
+          title: 'Role & Permissions',
+          description: role is not null
+            ? 'Your role is ' ~ role.getAttribute('name') ~ ' with ' ~ permissions|length ~ ' permission' ~ (permissions|length != 1 ? 's' : '') ~ '.'
+            : 'No role assigned.',
+          role_name: role is not null ? role.getAttribute('name') : 'Unknown',
+          role_slug: role is not null ? role.getAttribute('slug') : '',
+          permissions: permissions,
+          limit: permissions|length,
+          empty_message: 'No permissions assigned to your role.',
+          count_label: permissions|length ~ ' permissions'
+        } only %}
       </div>
     </div>
   </div>

@@ -25,112 +25,13 @@
     </div>
   </section>
 
-  <section class="mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-6">
-    <div class="flex flex-col gap-3 border-b border-white/10 pb-5 xl:flex-row xl:items-end xl:justify-between">
-      <div>
-        <h2 class="text-2xl font-bold tracking-tight text-white">Recent activity</h2>
-        <p class="mt-1 text-sm text-slate-400">Newest actions appear at the top.</p>
-      </div>
-
-      <div class="flex flex-wrap items-center gap-3">
-        {% include 'components/search-bar.twig' with {
-          action: '/admin/activity',
-          value: query|default(''),
-          placeholder: 'Search activity',
-          aria_label: 'Search activity',
-          action_items: [
-            {
-              type: 'button',
-              label: 'Print',
-              icon: 'printer',
-              onclick: 'window.print()',
-              title: 'Print this page'
-            }
-          ]
-        } only %}
-
-        <details class="group relative z-30">
-          <summary class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm font-semibold text-slate-100 transition hover:bg-white/10 list-none cursor-pointer">
-            {% include 'components/icon.twig' with { name: 'sliders-horizontal', class: 'h-4 w-4 shrink-0' } only %}
-            <span>Filter</span>
-            <span class="rounded-full bg-white/10 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.16em] text-slate-300">
-              {{ current_filter|replace({'_': ' '})|capitalize }}
-            </span>
-          </summary>
-          <div class="absolute right-0 z-50 mt-3 w-56 overflow-hidden rounded-[1.25rem] border border-white/10 bg-slate-950/95 p-2 shadow-[0_24px_60px_rgba(2,6,23,0.35)] backdrop-blur-xl">
-            {% for item in [
-              { label: 'All', value: 'all' },
-              { label: 'Auth', value: 'auth' },
-              { label: 'Users', value: 'users' },
-              { label: 'System', value: 'system' }
-            ] %}
-              <a
-                class="flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold text-slate-100 transition hover:bg-white/10 hover:text-white {% if current_filter == item.value %}bg-cyan-400/10 text-cyan-50{% endif %}"
-                href="/admin/activity?q={{ query|default('')|url_encode }}&filter={{ item.value }}&sort={{ current_sort }}&direction={{ current_direction }}"
-              >
-                <span>{{ item.label }}</span>
-                {% if current_filter == item.value %}
-                  {% include 'components/icon.twig' with { name: 'check', class: 'h-4 w-4 shrink-0 text-cyan-200' } only %}
-                {% endif %}
-              </a>
-            {% endfor %}
-          </div>
-        </details>
-      </div>
-    </div>
-
-    {% if activities.data is empty %}
-      <div class="mt-5 rounded-2xl border border-cyan-300/20 bg-cyan-400/10 p-4 text-cyan-100">
-        <p class="text-sm font-semibold">No activity yet</p>
-        <p class="mt-1 text-sm text-cyan-100/80">Admin actions will appear here once the module records them.</p>
-      </div>
-    {% else %}
-      <div class="mt-5 overflow-hidden rounded-[1.5rem] border border-white/10">
-      <table class="w-full border-collapse">
-        <thead>
-          <tr class="bg-white/5">
-            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">
-              <a class="inline-flex items-center gap-1 hover:text-white" href="/admin/activity?{{ sort_base }}&sort=created_at&direction={{ time_direction }}">Time</a>
-            </th>
-            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">
-              <a class="inline-flex items-center gap-1 hover:text-white" href="/admin/activity?{{ sort_base }}&sort=action&direction={{ action_direction }}">Action</a>
-            </th>
-            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Description</th>
-            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Details</th>
-            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Request</th>
-            <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">
-              <a class="inline-flex items-center gap-1 hover:text-white" href="/admin/activity?{{ sort_base }}&sort=actor&direction={{ actor_direction }}">Actor</a>
-            </th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-white/10">
-          {% for activity in activities.data %}
-            <tr class="align-top">
-              <td class="px-3 py-3 text-sm text-slate-300">{{ activity.getAttribute('created_at')|default('Now')|date((_system_date_format|default('Y-m-d')) ~ ' ' ~ (_system_time_format|default('H:i'))) }}</td>
-              <td class="px-3 py-3">
-                <span class="inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-100">{{ activity.getAttribute('action') }}</span>
-              </td>
-              <td class="px-3 py-3 text-sm text-slate-200">{{ activity.getAttribute('description') }}</td>
-              <td class="px-3 py-3 text-sm text-slate-300">{{ activity.readableDetails() }}</td>
-              <td class="px-3 py-3">
-                <div class="grid gap-0.5">
-                  <span class="font-semibold text-slate-100">{{ activity.getAttribute('ip_address')|default('')|ip_format }}</span>
-                  <span class="max-w-xs break-words text-sm text-slate-400">{{ activity.getAttribute('user_agent')|default('')|ua_summary(72) }}</span>
-                </div>
-              </td>
-              <td class="px-3 py-3">
-                <div class="grid gap-0.5">
-                  <span class="font-semibold text-slate-100">{{ activity.getAttribute('actor_name')|default('System') }}</span>
-                  <span class="text-sm text-slate-400">{{ activity.getAttribute('actor_email')|default('No actor') }}</span>
-                </div>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      </div>
-    {% endif %}
-
-    {% include 'components/pagination.twig' with { pagination: pagination } only %}
-  </section>
+  {% include 'components/activity-log.twig' with {
+    title: 'Recent activity',
+    description: 'Newest actions appear at the top.',
+    rows: activities.data|default([]),
+    pagination: pagination,
+    compact: false,
+    count_label: activities.total|default(0) ~ ' entries',
+    empty_message: 'No activity yet'
+  } only %}
 {% endblock %}

@@ -15,7 +15,7 @@
     >{{ value|default('') }}</textarea>
   {% elseif type|default('text') == 'select' %}
     <select
-      class="form-select w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 text-sm text-app-text outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/10 disabled:cursor-not-allowed disabled:opacity-60"
+      class="form-select w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 text-sm text-app-text outline-none transition focus:border-app-accent focus:ring-1 focus:ring-app-accent/10 disabled:cursor-not-allowed disabled:opacity-60"
       id="{{ id }}"
       name="{{ name|default(id) }}"
       {% if disabled|default(false) %}disabled{% endif %}
