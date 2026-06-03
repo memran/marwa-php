@@ -8,7 +8,7 @@
 <form class="admin-search group w-full max-w-full" method="{{ method|default('get') }}" action="{{ action }}">
   <div class="flex min-w-0 flex-wrap items-center gap-2 rounded-[1.2rem] border border-white/10 bg-slate-950/40 px-3 py-2 text-sm text-slate-100 shadow-[0_24px_60px_rgba(2,6,23,0.22)] backdrop-blur-xl transition focus-within:border-cyan-300/50 focus-within:bg-slate-950/55 focus-within:ring-4 focus-within:ring-cyan-400/10 lg:flex-nowrap">
     <div class="flex min-w-[14rem] flex-1 items-center gap-2">
-      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/5 text-slate-400 transition group-focus-within:text-cyan-100" aria-hidden="true">
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/5 text-slate-400 transition group-focus-within:text-cyan-100" aria-hidden="true">
         {% include 'components/icon.twig' with { name: 'search', class: 'h-4 w-4' } only %}
       </span>
       <div class="min-w-0 flex-1">
