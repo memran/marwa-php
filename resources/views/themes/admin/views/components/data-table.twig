@@ -56,7 +56,7 @@
               <input type="hidden" name="{{ field.name }}" value="{{ field.value }}">
             {% endfor %}
             <div class="flex min-w-0 flex-1 items-center gap-3">
-              <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-app-surface-2/70 text-app-muted" aria-hidden="true">
+              <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-app-surface-2/70 text-app-muted" aria-hidden="true">
                 {% include 'components/icon.twig' with { name: search.icon|default('search'), class: 'h-4 w-4' } only %}
               </span>
               <div class="min-w-0 flex-1">
@@ -82,7 +82,7 @@
               </a>
             {% endif %}
 
-            <button class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-app-text text-app-surface transition hover:bg-app-accent" type="submit" title="{{ search.submit_label|default('Search') }}">
+            <button class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-app-text text-app-surface transition hover:bg-app-accent" type="submit" title="{{ search.submit_label|default('Search') }}">
               <span class="sr-only">{{ search.submit_label|default('Search') }}</span>
               {% include 'components/icon.twig' with { name: 'search', class: 'h-4 w-4 shrink-0' } only %}
             </button>
