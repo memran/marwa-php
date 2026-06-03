@@ -55,6 +55,11 @@ final class DataTableViewTest extends TestCase
         self::assertTrue($built['columns'][0]['active']);
         self::assertSame('email', $built['columns'][1]['key']);
         self::assertFalse($built['columns'][1]['active']);
+        self::assertCount(2, $built['toolbar']['exports']);
+        self::assertSame('CSV', $built['toolbar']['exports'][0]['label']);
+        self::assertStringStartsWith('/admin/items/export/csv?', $built['toolbar']['exports'][0]['url']);
+        self::assertSame('PDF', $built['toolbar']['exports'][1]['label']);
+        self::assertStringStartsWith('/admin/items/export/pdf?', $built['toolbar']['exports'][1]['url']);
     }
 
     public function testNormalizeVisibleColumnsFallsBackToAllWhenEmptyOrInvalid(): void
@@ -285,7 +290,8 @@ final class DataTableViewTest extends TestCase
             public function exports(): array
             {
                 return [
-                    ['label' => 'CSV', 'url' => '/admin/items/export', 'icon' => 'file-text', 'format' => 'csv', 'variant' => 'secondary'],
+                    ['label' => 'CSV', 'url' => '/admin/items/export/csv', 'icon' => 'file-text', 'format' => 'csv', 'variant' => 'secondary'],
+                    ['label' => 'PDF', 'url' => '/admin/items/export/pdf', 'icon' => 'file-down', 'format' => 'pdf', 'variant' => 'secondary'],
                 ];
             }
             /**

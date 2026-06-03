@@ -49,7 +49,7 @@ final class User extends Model implements PermissionAwareUser
 
         $like = '%' . $term . '%';
 
-        $query->whereNested(static function (BaseBuilder $nested) use ($like): void {
+        $query->where(static function (BaseBuilder $nested) use ($like): void {
             $nested->where('name', 'like', $like)
                 ->orWhere('email', 'like', $like);
         });

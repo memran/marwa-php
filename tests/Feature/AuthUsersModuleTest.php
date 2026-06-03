@@ -393,6 +393,8 @@ TWIG
         $usersBody = (string) $usersPage->getBody();
         self::assertStringContainsString('admin@marwa.test', $usersBody);
         self::assertStringContainsString('Create user', $usersBody);
+        self::assertStringContainsString('/admin/users/export/csv', $usersBody);
+        self::assertStringContainsString('/admin/users/export/pdf', $usersBody);
 
         $sortedUsersPage = $kernel->handle($this->request('GET', '/admin/users?sort=name&direction=asc'));
         self::assertSame(200, $sortedUsersPage->getStatusCode());
@@ -423,6 +425,20 @@ TWIG
         ]));
         self::assertSame(302, $create->getStatusCode());
         self::assertStringEndsWith('/admin/users', $create->getHeaderLine('Location'));
+
+        $csvExport = $kernel->handle($this->request('GET', '/admin/users/export/csv?q=ops&columns%5B0%5D=name&columns%5B1%5D=email'));
+        self::assertSame(200, $csvExport->getStatusCode());
+        self::assertSame('text/csv; charset=UTF-8', $csvExport->getHeaderLine('Content-Type'));
+        self::assertStringContainsString('attachment; filename="users-', $csvExport->getHeaderLine('Content-Disposition'));
+        $csvBody = (string) $csvExport->getBody();
+        self::assertStringContainsString('Name,Email', $csvBody);
+        self::assertStringContainsString('"Operations Lead",ops@example.test', $csvBody);
+
+        $pdfExport = $kernel->handle($this->request('GET', '/admin/users/export/pdf?q=ops&columns%5B0%5D=name&columns%5B1%5D=email'));
+        self::assertSame(200, $pdfExport->getStatusCode());
+        self::assertSame('application/pdf', $pdfExport->getHeaderLine('Content-Type'));
+        self::assertStringContainsString('attachment; filename="users-', $pdfExport->getHeaderLine('Content-Disposition'));
+        self::assertStringStartsWith('%PDF-', (string) $pdfExport->getBody());
 
         $createWithoutConfirmation = $kernel->handle($this->request('POST', '/admin/users', [
             '_token' => $csrf,

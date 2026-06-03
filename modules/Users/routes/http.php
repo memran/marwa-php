@@ -23,6 +23,16 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
         ->name('admin.users.create')
         ->register();
 
+    $routes->get('/users/export/csv', [UsersController::class, 'exportCsv'])
+        ->middleware(new RequirePermission('users.view'))
+        ->name('admin.users.export.csv')
+        ->register();
+
+    $routes->get('/users/export/pdf', [UsersController::class, 'exportPdf'])
+        ->middleware(new RequirePermission('users.view'))
+        ->name('admin.users.export.pdf')
+        ->register();
+
     $routes->post('/users', [UsersController::class, 'store'])
         ->middleware(new RequirePermission('users.create'))
         ->name('admin.users.store')

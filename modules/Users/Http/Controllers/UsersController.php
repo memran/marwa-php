@@ -13,6 +13,8 @@ use App\Support\AdminListState;
 use App\Support\DataTable\DataTableView;
 use App\Support\Pagination;
 use Marwa\Framework\Controllers\Controller;
+use Laminas\Diactoros\Response as HttpResponse;
+use Laminas\Diactoros\Stream;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -104,6 +106,16 @@ final class UsersController extends Controller
             'user' => $user,
             'protected_admin_id' => $this->users->protectedAdminId(),
         ]);
+    }
+
+    public function exportCsv(): ResponseInterface
+    {
+        return $this->exportUsers('csv');
+    }
+
+    public function exportPdf(): ResponseInterface
+    {
+        return $this->exportUsers('pdf');
     }
 
     public function edit(ServerRequestInterface $request, array $vars = []): ResponseInterface
@@ -213,5 +225,40 @@ final class UsersController extends Controller
             'page' => $state['page'],
             'columns' => $columns,
         ];
+    }
+
+    private function exportUsers(string $format): ResponseInterface
+    {
+        $state = $this->listState->state();
+        $columns = $this->dataTable->normalizeVisibleColumns($this->userTable, request('columns', null));
+        $status = UserStatus::tryFromFilter($state['filter']);
+        $rows = $this->users->exportUsers($state['query'], $state['sort'], $state['direction'], $status);
+        $filename = 'users-' . date('Ymd-His') . '.' . $format;
+
+        if ($format === 'pdf') {
+            return $this->downloadContent(
+                $this->dataTable->buildPdf($this->userTable, $rows, $columns, $state),
+                $filename,
+                'application/pdf'
+            );
+        }
+
+        return $this->downloadContent(
+            $this->dataTable->buildCsv($this->userTable, $rows, $columns, $state),
+            $filename,
+            'text/csv; charset=UTF-8'
+        );
+    }
+
+    private function downloadContent(string $content, string $filename, string $contentType): ResponseInterface
+    {
+        $stream = new Stream('php://temp', 'wb+');
+        $stream->write($content);
+        $stream->rewind();
+
+        return new HttpResponse($stream, 200, [
+            'Content-Type' => $contentType,
+            'Content-Disposition' => 'attachment; filename="' . addcslashes($filename, '"\\') . '"',
+        ]);
     }
 }

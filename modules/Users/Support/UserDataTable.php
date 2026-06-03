@@ -237,14 +237,29 @@ final class UserDataTable implements DataTableConfigInterface, DataTableOptionsI
 
     public function exports(): array
     {
-        return [];
+        return [
+            [
+                'label' => 'CSV',
+                'url' => '/admin/users/export/csv',
+                'icon' => 'file-text',
+                'format' => 'csv',
+                'variant' => 'secondary',
+            ],
+            [
+                'label' => 'PDF',
+                'url' => '/admin/users/export/pdf',
+                'icon' => 'file-down',
+                'format' => 'pdf',
+                'variant' => 'secondary',
+            ],
+        ];
     }
 
     public function features(): array
     {
         return [
             'bulk' => false,
-            'export' => false,
+            'export' => true,
         ];
     }
 
