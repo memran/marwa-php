@@ -27,84 +27,228 @@
     </div>
   </section>
 
-  <form method="post" action="{{ action }}" class="mt-6">
+  <form method="post" action="{{ action }}" class="mt-6 space-y-6"
+        x-data="{
+          showPassword: false,
+          showConfirm: false,
+          password: '',
+          passwordConfirm: '',
+          copied: false,
+          get hasPassword() { return this.password.length > 0 },
+          get score() {
+            if (this.password.length === 0) return 0
+            let s = 0
+            if (this.password.length >= 8) s++
+            if (this.password.length >= 12) s++
+            if (/[a-z]/.test(this.password) && /[A-Z]/.test(this.password)) s++
+            if (/\d/.test(this.password)) s++
+            if (/[^a-zA-Z0-9]/.test(this.password)) s++
+            return s
+          },
+          get strengthLabel() {
+            return ['', 'Weak', 'Fair', 'Good', 'Strong', 'Very strong'][this.score]
+          },
+          get strengthBar() {
+            return ['', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-lime-500', 'bg-emerald-500'][this.score]
+          },
+          get strengthText() {
+            return ['', 'text-red-400', 'text-orange-400', 'text-yellow-400', 'text-lime-400', 'text-emerald-400'][this.score]
+          },
+          generatePassword() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?'
+            let pwd = ''
+            for (let i = 0; i < 20; i++) {
+              pwd += chars.charAt(Math.floor(Math.random() * chars.length))
+            }
+            this.password = pwd
+            this.passwordConfirm = pwd
+            this.showPassword = true
+            this.showConfirm = true
+          },
+          copyPassword() {
+            navigator.clipboard.writeText(this.password)
+            this.copied = true
+            setTimeout(() => { this.copied = false }, 2000)
+          }
+        }">
     {{ csrf_field() }}
 
     <div class="grid gap-6 lg:grid-cols-2">
-      <div class="rounded-xl border border-white/10 bg-white/5 p-6">
-        <h2 class="mb-4 text-lg font-semibold text-slate-100">Account Details</h2>
+      <div class="users-form-shell rounded-xl border p-6">
+        <div class="mb-5 flex items-center gap-2.5">
+          <svg class="h-5 w-5 shrink-0 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+          </svg>
+          <h2 class="text-lg font-semibold text-slate-100">Account Details</h2>
+        </div>
 
-        <div class="space-y-4">
+        <div class="space-y-5">
           {% include "components/form-field.twig" with {
             id: 'name',
-            label: 'Name',
+            label: 'Full name',
             value: form.name|default(''),
-            placeholder: 'John Doe',
+            placeholder: 'e.g. John Doe',
+            hint: "The user's display name across the platform.",
             error: errors.name|default([])|first,
           } only %}
 
           {% include "components/form-field.twig" with {
             id: 'email',
-            label: 'Email',
+            label: 'Email address',
             type: 'email',
             value: form.email|default(''),
-            placeholder: 'john@example.com',
+            placeholder: 'e.g. john@example.com',
+            hint: 'Used for login, notifications, and Gravatar.',
             error: errors.email|default([])|first,
           } only %}
 
           {% include "components/form-field.twig" with {
             id: 'role_id',
-            label: 'Role',
+            label: 'Access role',
             type: 'select',
             value: form.role_id|default(0),
             options: roles,
+            hint: 'Controls which sections and actions the user can access.',
             error: errors.role_id|default([])|first,
           } only %}
 
           <div class="grid gap-2">
-            <label class="text-[0.82rem] font-semibold text-app-text">Status</label>
-            <div class="flex items-center gap-4">
-              <label class="flex items-center gap-2">
-                <input type="radio" name="is_active" value="1" {% if form.is_active|default(1) == 1 %}checked{% endif %} class="rounded border-white/10 bg-white/5 text-cyan-400 focus:ring-cyan-400/20">
-                <span class="text-sm text-slate-300">Active</span>
+            <label class="text-[0.82rem] font-semibold text-app-text">Account status</label>
+            <p class="text-xs leading-5 text-app-muted">Active users can log in and access the system.</p>
+            <div class="mt-1 flex gap-3">
+              <label class="dashboard-status-option flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-cyan-300/30 hover:bg-cyan-400/5 has-[:checked]:border-cyan-400/40 has-[:checked]:bg-cyan-400/10">
+                <input type="radio" name="is_active" value="1" {% if form.is_active|default(1) == 1 %}checked{% endif %} class="dashboard-status-radio dashboard-status-radio-active h-4 w-4">
+                <span class="text-sm font-medium text-slate-200">Active</span>
               </label>
-              <label class="flex items-center gap-2">
-                <input type="radio" name="is_active" value="0" {% if form.is_active|default(1) == 0 %}checked{% endif %} class="rounded border-white/10 bg-white/5 text-cyan-400 focus:ring-cyan-400/20">
-                <span class="text-sm text-slate-300">Disabled</span>
+              <label class="dashboard-status-option flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-rose-300/30 hover:bg-rose-400/5 has-[:checked]:border-rose-400/40 has-[:checked]:bg-rose-400/10">
+                <input type="radio" name="is_active" value="0" {% if form.is_active|default(1) == 0 %}checked{% endif %} class="dashboard-status-radio dashboard-status-radio-inactive h-4 w-4">
+                <span class="text-sm font-medium text-slate-200">Disabled</span>
               </label>
             </div>
+            {% if errors.is_active|default([])|length > 0 %}
+              <p class="flex items-center gap-1.5 text-xs text-app-danger">
+                <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+                {{ errors.is_active|default([])|first }}
+              </p>
+            {% endif %}
           </div>
         </div>
       </div>
 
-      <div class="rounded-xl border border-white/10 bg-white/5 p-6">
-        <h2 class="mb-4 text-lg font-semibold text-slate-100">
-          {% if is_edit %}Change Password{% else %}Password{% endif %}
-        </h2>
+      <div class="users-form-shell rounded-xl border p-6">
+        <div class="mb-5 flex items-center gap-2.5">
+          <svg class="h-5 w-5 shrink-0 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+          </svg>
+          <h2 class="text-lg font-semibold text-slate-100">
+            {% if is_edit %}Change Password{% else %}Set Password{% endif %}
+          </h2>
+        </div>
 
-        <div class="space-y-4">
-          {% include "components/form-field.twig" with {
-            id: 'password',
-            label: 'Password',
-            type: 'password',
-            value: '',
-            placeholder: is_edit ? 'Leave blank to keep current' : 'Minimum 8 characters',
-            error: errors.password|default([])|first,
-          } only %}
+        <div class="space-y-5">
+          <div class="grid gap-2">
+            <label class="text-[0.82rem] font-semibold text-app-text" for="password">Password</label>
+            {% if is_edit %}
+              <p class="text-xs leading-5 text-app-muted">Leave blank to keep the current password.</p>
+            {% else %}
+              <p class="text-xs leading-5 text-app-muted">Minimum 8 characters with a mix of letters, numbers &amp; symbols.</p>
+            {% endif %}
+            <button type="button" @click="generatePassword()" class="inline-flex items-center gap-1.5 text-xs font-medium text-cyan-400 hover:text-cyan-300 transition">
+              <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456Z" /></svg>
+              Generate password
+            </button>
+            <div class="relative">
+              <input
+                class="form-input w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 pr-10 text-sm text-app-text placeholder:text-app-muted outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/10"
+                id="password"
+                name="password"
+                :type="showPassword ? 'text' : 'password'"
+                value=""
+                x-model="password"
+                placeholder="{% if is_edit %}Leave blank to keep current{% else %}Minimum 8 characters{% endif %}"
+                autocomplete="new-password"
+              >
+              <div class="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                <button type="button" @click="copyPassword()" x-show="hasPassword" x-cloak class="p-1.5 text-app-muted hover:text-cyan-400 transition" tabindex="-1" aria-label="Copy password" :title="copied ? 'Copied!' : 'Copy password'">
+                  <svg x-show="!copied" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" /></svg>
+                  <svg x-show="copied" class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" x-cloak><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                </button>
+                <button type="button" @click="showPassword = !showPassword" class="p-1.5 text-app-muted hover:text-app-text transition" tabindex="-1" aria-label="Toggle password visibility" title="Toggle password visibility">
+                  <svg x-show="!showPassword" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  </svg>
+                  <svg x-show="showPassword" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" x-cloak>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div x-show="hasPassword" x-cloak class="mt-2 space-y-1.5">
+              <div class="flex items-center justify-between gap-3">
+                <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
+                  <div class="h-full rounded-full transition-all duration-300" :style="'width: ' + (score * 20) + '%'" :class="strengthBar"></div>
+                </div>
+                <span class="text-xs font-medium" :class="strengthText" x-text="strengthLabel"></span>
+              </div>
+              <ul class="space-y-1">
+                <li class="flex items-center gap-1.5 text-xs" :class="password.length >= 8 ? 'text-emerald-400' : 'text-app-muted'">
+                  <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                  At least 8 characters
+                </li>
+                <li class="flex items-center gap-1.5 text-xs" :class="/[a-z]/.test(password) && /[A-Z]/.test(password) ? 'text-emerald-400' : 'text-app-muted'">
+                  <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                  Uppercase &amp; lowercase
+                </li>
+                <li class="flex items-center gap-1.5 text-xs" :class="/\d/.test(password) ? 'text-emerald-400' : 'text-app-muted'">
+                  <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                  At least one number
+                </li>
+              </ul>
+            </div>
+            {% if errors.password|default([])|length > 0 %}
+              <p class="flex items-center gap-1.5 text-xs text-app-danger">
+                <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+                {{ errors.password|default([])|first }}
+              </p>
+            {% endif %}
+          </div>
 
-          {% include "components/form-field.twig" with {
-            id: 'password_confirmation',
-            label: 'Confirm Password',
-            type: 'password',
-            value: '',
-            placeholder: 'Repeat password',
-            error: errors.password_confirmation|default([])|first,
-          } only %}
+          <div class="grid gap-2">
+            <label class="text-[0.82rem] font-semibold text-app-text" for="password_confirmation">Confirm password</label>
+            <div class="relative">
+              <input
+                class="form-input w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 pr-10 text-sm text-app-text placeholder:text-app-muted outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/10"
+                id="password_confirmation"
+                name="password_confirmation"
+                :type="showConfirm ? 'text' : 'password'"
+                value=""
+                x-model="passwordConfirm"
+                placeholder="Repeat password"
+                autocomplete="new-password"
+              >
+              <button type="button" @click="showConfirm = !showConfirm" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-app-muted hover:text-app-text transition" tabindex="-1" aria-label="Toggle password confirmation visibility" title="Toggle password confirmation visibility">
+                <svg x-show="!showConfirm" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+                <svg x-show="showConfirm" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" x-cloak>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                </svg>
+              </button>
+            </div>
+            {% if errors.password_confirmation|default([])|length > 0 %}
+              <p class="flex items-center gap-1.5 text-xs text-app-danger">
+                <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+                {{ errors.password_confirmation|default([])|first }}
+              </p>
+            {% endif %}
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="mt-6 flex justify-end gap-3">
+    <div class="flex items-center justify-end gap-3 rounded-xl border border-white/5 bg-white/[0.02] px-6 py-4">
       <a href="/admin/users" class="{{ button_secondary }}">Cancel</a>
       <button type="submit" class="{{ button_primary }}">{{ submit_label }}</button>
     </div>

@@ -352,7 +352,7 @@ TWIG
         $profilePage = $kernel->handle($this->request('GET', '/admin/profile'));
         self::assertSame(200, $profilePage->getStatusCode());
         $profileBody = (string) $profilePage->getBody();
-        self::assertStringContainsString('Account snapshot', $profileBody);
+        self::assertStringContainsString('My Profile', $profileBody);
         self::assertStringContainsString('admin@marwa.test', $profileBody);
         self::assertStringContainsString('Administrator', $profileBody);
 
