@@ -6,10 +6,12 @@ namespace App\Modules\Users\Http\Controllers;
 
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Users\Models\User;
+use App\Modules\Users\Support\UserDataTable;
 use App\Modules\Users\Support\UserFormData;
 use App\Modules\Users\Support\UserRepository;
 use App\Modules\Users\Support\UserStatus;
 use App\Support\AdminListState;
+use App\Support\DataTable\DataTableView;
 use App\Support\Pagination;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
@@ -22,6 +24,8 @@ final class UsersController extends Controller
         private readonly UserRepository $users,
         private readonly UserFormData $forms,
         private readonly AdminListState $listState,
+        private readonly UserDataTable $userTable,
+        private readonly DataTableView $dataTable,
         private readonly Pagination $pagination,
     ) {
     }
@@ -36,6 +40,7 @@ final class UsersController extends Controller
     public function index(): ResponseInterface
     {
         $state = $this->listState->state();
+        $requestParams = $this->requestParams($state, request('columns', null));
         $status = UserStatus::tryFromFilter($state['filter']);
 
         $pageData = $this->users->paginatedUsers(
@@ -50,14 +55,14 @@ final class UsersController extends Controller
         $pagination = $this->pagination->viewData(
             $pageData,
             '/admin/users',
-            $this->listState->paginationParams($state)
+            $this->paginationParams(
+                $state,
+                $this->dataTable->normalizeVisibleColumns($this->userTable, $requestParams['columns'] ?? null)
+            )
         );
 
         return $this->view('@users/index', [
-            ...$state,
-            'users' => $pageData['data'],
-            'protected_admin_id' => $this->users->protectedAdminId(),
-            'pagination' => $pagination,
+            'table' => $this->dataTable->build($this->userTable, $requestParams, $pageData, $pagination),
         ]);
     }
 
@@ -178,5 +183,37 @@ final class UsersController extends Controller
             is_array($oldInput) ? $oldInput : [],
             is_array($errors) ? $errors : []
         );
+    }
+
+    /**
+     * @param array{query:string,filter:string,sort:string,direction:string,page:int} $state
+     * @param list<string> $visibleColumns
+     * @return array<string, scalar|list<string>|null>
+     */
+    private function paginationParams(array $state, array $visibleColumns): array
+    {
+        return array_filter([
+            'q' => $state['query'],
+            'filter' => $state['filter'],
+            'sort' => $state['sort'],
+            'direction' => $state['direction'],
+            'columns' => $visibleColumns,
+        ], static fn (mixed $value): bool => $value !== null && $value !== '' && $value !== []);
+    }
+
+    /**
+     * @param array{query:string,filter:string,sort:string,direction:string,page:int} $state
+     * @return array<string, mixed>
+     */
+    private function requestParams(array $state, mixed $columns): array
+    {
+        return [
+            'q' => $state['query'],
+            'filter' => $state['filter'],
+            'sort' => $state['sort'],
+            'direction' => $state['direction'],
+            'page' => $state['page'],
+            'columns' => $columns,
+        ];
     }
 }

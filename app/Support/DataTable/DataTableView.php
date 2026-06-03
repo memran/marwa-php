@@ -110,7 +110,7 @@ final class DataTableView
     public function urlBuilder(DataTableConfigInterface $config): callable
     {
         return function (array $state, array $visibleColumns = [], ?string $path = null) use ($config): string {
-            return $this->buildUsersUrl($config, $state, $visibleColumns, $path);
+            return $this->buildUrl($config, $state, $visibleColumns, $path);
         };
     }
 
@@ -124,12 +124,27 @@ final class DataTableView
         array $visibleColumns = [],
         ?string $path = null
     ): string {
+        return $this->buildUrl($config, $state, $visibleColumns, $path);
+    }
+
+    /**
+     * @param array{query:string,filter:string,sort:string,direction:string,page:int} $state
+     * @param list<string> $visibleColumns
+     */
+    public function buildUrl(
+        DataTableConfigInterface $config,
+        array $state,
+        array $visibleColumns = [],
+        ?string $path = null
+    ): string {
         $base = $path ?? $config->basePath();
+        $params = $this->queryParams($config);
+
         return $base . '?' . http_build_query([
-            'q' => $state['query'],
-            'status' => $state['filter'],
-            'sort' => $state['sort'],
-            'direction' => $state['direction'],
+            $params['query'] => $state['query'],
+            $params['filter'] => $state['filter'],
+            $params['sort'] => $state['sort'],
+            $params['direction'] => $state['direction'],
             'columns' => $visibleColumns,
         ]);
     }
@@ -140,20 +155,21 @@ final class DataTableView
      */
     public function resolveState(DataTableConfigInterface $config, array $requestParams): array
     {
+        $params = $this->queryParams($config);
         $requestParams = array_merge([
-            'q' => '',
-            'status' => $config->defaultFilter(),
-            'sort' => $config->defaultSort(),
-            'direction' => $config->defaultDirection(),
-            'page' => 1,
+            $params['query'] => '',
+            $params['filter'] => $config->defaultFilter(),
+            $params['sort'] => $config->defaultSort(),
+            $params['direction'] => $config->defaultDirection(),
+            $params['page'] => 1,
         ], $requestParams);
 
         return [
-            'query' => (string) ($requestParams['q'] ?? ''),
-            'filter' => (string) ($requestParams['status'] ?? $config->defaultFilter()),
-            'sort' => (string) ($requestParams['sort'] ?? $config->defaultSort()),
-            'direction' => (string) ($requestParams['direction'] ?? $config->defaultDirection()),
-            'page' => (int) ($requestParams['page'] ?? 1),
+            'query' => (string) ($requestParams[$params['query']] ?? ''),
+            'filter' => (string) ($requestParams[$params['filter']] ?? $config->defaultFilter()),
+            'sort' => (string) ($requestParams[$params['sort']] ?? $config->defaultSort()),
+            'direction' => (string) ($requestParams[$params['direction']] ?? $config->defaultDirection()),
+            'page' => (int) ($requestParams[$params['page']] ?? 1),
         ];
     }
 
@@ -232,7 +248,7 @@ final class DataTableView
                 $hiddenFields,
             ),
             'exports' => $this->exportActions($config, $state, $visibleColumns, $buildUrl),
-            'actions' => $this->printAction(),
+            'actions' => $this->toolbarActions($config),
         ];
     }
 
@@ -314,19 +330,9 @@ final class DataTableView
         return [
             'title' => $config->pageTitle(),
             'description' => $config->pageDescription(),
-            'features' => $this->features(),
+            'features' => $this->features($config),
             'toolbar' => $toolbar,
-            'bulk' => $this->toolbar->buildBulk(
-                $this->bulkFormId($config),
-                $config->basePath() . '/bulk-delete',
-                $config->basePath() . '/bulk-status',
-                $state,
-                $rows,
-                $visibleColumns,
-                $statusOptions,
-                $hiddenFields,
-                $this->bulkLabels($config),
-            ),
+            'bulk' => $this->bulk($config, $state, $rows, $visibleColumns, $statusOptions, $hiddenFields),
             'columns' => $this->columns->build(
                 $state,
                 $visibleColumns,
@@ -336,16 +342,16 @@ final class DataTableView
             ),
             'rows' => $rows,
             'pagination' => $pagination,
-            'empty_state' => $this->emptyState(),
+            'empty_state' => $this->emptyState($config),
         ];
     }
 
     /**
      * @return array<string, bool>
      */
-    private function features(): array
+    private function features(DataTableConfigInterface $config): array
     {
-        return [
+        $defaults = [
             'search' => true,
             'filter' => true,
             'columns' => true,
@@ -355,13 +361,26 @@ final class DataTableView
             'actions' => true,
             'bulk' => true,
         ];
+
+        if ($config instanceof DataTableOptionsInterface) {
+            return array_replace($defaults, $config->features());
+        }
+
+        return $defaults;
     }
 
     /**
      * @return array<string, string>
      */
-    private function emptyState(): array
+    private function emptyState(DataTableConfigInterface $config): array
     {
+        if ($config instanceof DataTableOptionsInterface) {
+            return array_replace([
+                'title' => 'No results',
+                'message' => 'Adjust filters or add a new record to get started.',
+            ], $config->emptyState());
+        }
+
         return [
             'title' => 'No results',
             'message' => 'Adjust filters or add a new record to get started.',
@@ -382,6 +401,73 @@ final class DataTableView
         return [
             'delete_confirm' => 'Delete the selected ' . strtolower(rtrim($resource, 's')) . 's?',
         ];
+    }
+
+    /**
+     * @param array{query:string,filter:string,sort:string,direction:string,page:int} $state
+     * @param list<array<string, mixed>> $rows
+     * @param list<string> $visibleColumns
+     * @param list<array{value:string,label:string}> $statusOptions
+     * @return array<string, mixed>
+     */
+    private function bulk(
+        DataTableConfigInterface $config,
+        array $state,
+        array $rows,
+        array $visibleColumns,
+        array $statusOptions,
+        callable $hiddenFields
+    ): array {
+        $deletePath = $config instanceof DataTableOptionsInterface ? $config->bulkDeletePath() : $config->basePath() . '/bulk-delete';
+        $statusPath = $config instanceof DataTableOptionsInterface ? $config->bulkStatusPath() : $config->basePath() . '/bulk-status';
+
+        if ($deletePath === null && $statusPath === null) {
+            return [];
+        }
+
+        return $this->toolbar->buildBulk(
+            $this->bulkFormId($config),
+            $deletePath ?? '',
+            $statusPath ?? '',
+            $state,
+            $rows,
+            $visibleColumns,
+            $statusOptions,
+            $hiddenFields,
+            $this->bulkLabels($config),
+        );
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function toolbarActions(DataTableConfigInterface $config): array
+    {
+        if ($config instanceof DataTableOptionsInterface) {
+            return $config->toolbarActions();
+        }
+
+        return $this->printAction();
+    }
+
+    /**
+     * @return array{query:string,filter:string,sort:string,direction:string,page:string}
+     */
+    private function queryParams(DataTableConfigInterface $config): array
+    {
+        $defaults = [
+            'query' => 'q',
+            'filter' => 'status',
+            'sort' => 'sort',
+            'direction' => 'direction',
+            'page' => 'page',
+        ];
+
+        if ($config instanceof DataTableOptionsInterface) {
+            return array_replace($defaults, $config->queryParams());
+        }
+
+        return $defaults;
     }
 
     /**
