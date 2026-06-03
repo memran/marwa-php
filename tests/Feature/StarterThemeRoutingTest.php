@@ -259,7 +259,7 @@ TWIG
             self::assertSame('/admin', $login->getHeaderLine('Location'));
         } else {
             self::assertStringContainsString('Sign in to continue.', (string) $login->getBody());
-            self::assertStringContainsString('Access the admin console with a lightweight session-backed login.', (string) $login->getBody());
+            self::assertStringContainsString('Enter your credentials to access the admin console.', (string) $login->getBody());
             self::assertStringContainsString('/themes/admin/css/app.css', (string) $login->getBody());
         }
 
