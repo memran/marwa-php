@@ -42,6 +42,16 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
         ->name('admin.users.store')
         ->register();
 
+    $routes->post('/users/bulk-delete', [UsersController::class, 'bulkDestroy'])
+        ->middleware(new RequirePermission('users.delete'))
+        ->name('admin.users.bulk.destroy')
+        ->register();
+
+    $routes->post('/users/bulk-status', [UsersController::class, 'bulkStatus'])
+        ->middleware(new RequirePermission('users.edit'))
+        ->name('admin.users.bulk.status')
+        ->register();
+
     $routes->get('/users/{id}', [UsersController::class, 'show'])
         ->middleware(new RequirePermission('users.view'))
         ->name('admin.users.show')

@@ -258,7 +258,7 @@ final class UserDataTable implements DataTableConfigInterface, DataTableOptionsI
     public function features(): array
     {
         return [
-            'bulk' => false,
+            'bulk' => true,
             'export' => true,
         ];
     }
@@ -277,12 +277,12 @@ final class UserDataTable implements DataTableConfigInterface, DataTableOptionsI
 
     public function bulkDeletePath(): ?string
     {
-        return null;
+        return '/admin/users/bulk-delete';
     }
 
     public function bulkStatusPath(): ?string
     {
-        return null;
+        return '/admin/users/bulk-status';
     }
 
     public function emptyState(): array
