@@ -28,4 +28,11 @@ return [
     'seeders' => [
         'database/seeders/AdminUserSeeder.php',
     ],
+    'menu' => [
+        'section' => 'Identity & Access',
+        'label' => 'Users',
+        'route' => '/admin/users',
+        'icon' => 'users',
+        'permissions' => ['users.view'],
+    ],
 ];

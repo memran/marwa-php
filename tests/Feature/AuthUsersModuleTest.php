@@ -128,6 +128,10 @@ declare(strict_types=1);
 
 return [
     'name' => env('APP_NAME', 'MarwaPHP'),
+    'providers' => [
+        Marwa\Framework\Providers\KernelServiceProvider::class,
+        App\Providers\AdminNavigationServiceProvider::class,
+    ],
     'middlewares' => [
         Marwa\Framework\Middlewares\RequestIdMiddleware::class,
         Marwa\Framework\Middlewares\SessionMiddleware::class,

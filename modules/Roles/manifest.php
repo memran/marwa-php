@@ -22,4 +22,20 @@ return [
     'migrations' => [
         'database/migrations/2026_04_15_000001_insert_roles_permissions.php',
     ],
+    'menu' => [
+        [
+            'section' => 'Identity & Access',
+            'label' => 'Roles',
+            'route' => '/admin/roles',
+            'icon' => 'shield-check',
+            'permissions' => ['roles.view'],
+        ],
+        [
+            'section' => 'Identity & Access',
+            'label' => 'Permissions',
+            'route' => '/admin/permissions',
+            'icon' => 'list-checks',
+            'permissions' => ['permissions.view'],
+        ],
+    ],
 ];

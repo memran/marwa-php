@@ -1,5 +1,5 @@
 {% set currentPath = _current_path|default('') %}
-{% set is_admin = is_admin_user|default(false) %}
+{% set sections = mainMenu|default([]) %}
 {% set settings_ui = _settings.ui|default({}) %}
 {% set logo_value = settings_ui.logo_url|default('')|trim %}
 {% set logo_src = logo_value and not (logo_value starts with('http') or logo_value starts with('/')) ? '/' ~ logo_value : logo_value %}
@@ -21,8 +21,8 @@
         <span class="text-xs text-app-muted">Console</span>
       </div>
     </div>
-    <button 
-      type="button" 
+    <button
+      type="button"
       class="rounded-lg p-2 text-app-muted hover:bg-app-surface-2/60 hover:text-app-text"
       @click="$dispatch('close-mobile')"
     >
@@ -46,139 +46,97 @@
   </div>
 </div>
 
-<nav class="grid gap-1" aria-label="Primary" x-data="{ 
-  overview: {% if currentPath starts with '/admin/dashboard' or currentPath starts with '/admin/activity' or currentPath starts with '/admin/notifications' %}true{% else %}false{% endif %},
-  identity: {% if currentPath starts with '/admin/users' or currentPath starts with '/admin/roles' or currentPath starts with '/admin/permissions' %}true{% else %}false{% endif %},
-  settings: {% if currentPath starts with '/admin/settings' or currentPath starts with '/admin/api-tokens' or currentPath starts with '/admin/database' or currentPath starts with '/admin/security/risk' or currentPath starts with '/admin/queue' or currentPath starts with '/admin/background-jobs' %}true{% else %}false{% endif %}
-}">
-  {# Overview Section #}
-  <span class="{{ section_header }}">Overview</span>
-  <div class="grid gap-1">
-    {% if can('dashboard.view') %}
-      <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/dashboard' %}bg-app-accent/10 text-app-accent ring-1 ring-inset ring-app-accent/20{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/dashboard" {% if currentPath starts with '/admin/dashboard' %}aria-current="page"{% endif %}>
-        <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
-          {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-4 w-4 shrink-0' } only %}
-        </span>
-        <span class="truncate">Dashboard</span>
-      </a>
-    {% endif %}
-    {% if can('activity.view') %}
-      <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/activity' %}bg-app-accent/10 text-app-accent ring-1 ring-inset ring-app-accent/20{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/activity" {% if currentPath starts with '/admin/activity' %}aria-current="page"{% endif %}>
-        <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
-          {% include 'components/icon.twig' with { name: 'activity', class: 'h-4 w-4 shrink-0' } only %}
-        </span>
-        <span class="truncate">Activity</span>
-      </a>
-    {% endif %}
-    {% if can('notifications.view') %}
-      <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/notifications' %}bg-app-accent/10 text-app-accent ring-1 ring-inset ring-app-accent/20{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/notifications" {% if currentPath starts with '/admin/notifications' %}aria-current="page"{% endif %}>
-        <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
-          {% include 'components/icon.twig' with { name: 'bell', class: 'h-4 w-4 shrink-0' } only %}
-        </span>
-        <span class="truncate">Notifications</span>
-        {% if unread_notification_count|default(0) > 0 %}
-          <span class="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-app-danger text-[0.65rem] font-bold text-white">
-            {{ unread_notification_count > 9 ? '9+' : unread_notification_count }}
-          </span>
-        {% endif %}
-      </a>
-    {% endif %}
-  </div>
-
-  {# Identity & Access Section #}
-  <span class="{{ section_header }} mt-2">Identity & Access</span>
-  <div class="grid gap-1">
-    <button 
-      type="button"
-      class="inline-flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition"
-      :class="identity ? 'bg-app-accent/10 text-app-accent ring-1 ring-inset ring-app-accent/20' : 'text-app-muted hover:bg-app-surface-2/60 hover:text-app-text'"
-      @click="identity = !identity"
-      :aria-expanded="identity"
-    >
-      <span class="flex items-center gap-3">
-        <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
-          {% include 'components/icon.twig' with { name: 'users', class: 'h-4 w-4 shrink-0' } only %}
-        </span>
-        <span class="truncate">Access Control</span>
-      </span>
-      <span class="transition-transform duration-200" :class="identity ? 'rotate-180' : ''">
-        {% include 'components/icon.twig' with { name: 'chevron-down', class: 'h-4 w-4 shrink-0' } only %}
-      </span>
-    </button>
-    <div x-show="identity" x-collapse class="grid gap-1 pl-4">
-      {% if can('users.view') %}
-        <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/users' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/users" {% if currentPath starts with '/admin/users' %}aria-current="page"{% endif %}>
-          <span class="truncate">Users</span>
-        </a>
+{% set alpine_data = {} %}
+{% for section in sections %}
+  {% set children = section.children|default([]) %}
+  {% if children|length > 1 %}
+    {% set key = 'section_' ~ loop.index0 %}
+    {% set open = false %}
+    {% for child in children %}
+      {% if currentPath starts with child.url %}
+        {% set open = true %}
       {% endif %}
-      {% if can('roles.view') %}
-        <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/roles' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/roles" {% if currentPath starts with '/admin/roles' %}aria-current="page"{% endif %}>
-          <span class="truncate">Roles</span>
-        </a>
-      {% endif %}
-      {% if can('permissions.view') %}
-        <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/permissions' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/permissions" {% if currentPath starts with '/admin/permissions' %}aria-current="page"{% endif %}>
-          <span class="truncate">Permissions</span>
-        </a>
-      {% endif %}
-    </div>
-  </div>
-
-  {# Settings Section #}
-  {% if can('settings.view') or can('database.view') or can('api_token.view') or can('queue.view') or can('background_jobs.view') or is_admin %}
-    <span class="{{ section_header }} mt-2">Settings & API</span>
-    <div class="grid gap-1">
-      <button 
-        type="button"
-      class="inline-flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition"
-      :class="settings ? 'bg-app-accent/10 text-app-accent ring-1 ring-inset ring-app-accent/20' : 'text-app-muted hover:bg-app-surface-2/60 hover:text-app-text'"
-      @click="settings = !settings"
-      :aria-expanded="settings"
-      >
-        <span class="flex items-center gap-3">
-          <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
-            {% include 'components/icon.twig' with { name: 'settings', class: 'h-4 w-4 shrink-0' } only %}
-          </span>
-          <span class="truncate">Settings</span>
-        </span>
-        <span class="transition-transform duration-200" :class="settings ? 'rotate-180' : ''">
-          {% include 'components/icon.twig' with { name: 'chevron-down', class: 'h-4 w-4 shrink-0' } only %}
-        </span>
-      </button>
-      <div x-show="settings" x-collapse class="grid gap-1 pl-4">
-        {% if can('settings.view') %}
-          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/settings' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/settings" {% if currentPath starts with '/admin/settings' %}aria-current="page"{% endif %}>
-            <span class="truncate">Settings</span>
-          </a>
-        {% endif %}
-        {% if can('api_token.view') %}
-          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/api-tokens' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/api-tokens" {% if currentPath starts with '/admin/api-tokens' %}aria-current="page"{% endif %}>
-            <span class="truncate">API Keys</span>
-          </a>
-        {% endif %}
-        {% if can('database.view') %}
-          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/database' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/database" {% if currentPath starts with '/admin/database' %}aria-current="page"{% endif %}>
-            <span class="truncate">Database</span>
-          </a>
-        {% endif %}
-        {% if can('queue.view') %}
-          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/queue' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/queue" {% if currentPath starts with '/admin/queue' %}aria-current="page"{% endif %}>
-            <span class="truncate">Queue</span>
-          </a>
-        {% endif %}
-        {% if can('background_jobs.view') %}
-          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/background-jobs' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/background-jobs" {% if currentPath starts with '/admin/background-jobs' %}aria-current="page"{% endif %}>
-            <span class="truncate">Background Jobs</span>
-          </a>
-        {% endif %}
-        {% if is_admin %}
-          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if currentPath starts with '/admin/security/risk' %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="/admin/security/risk" {% if currentPath starts with '/admin/security/risk' %}aria-current="page"{% endif %}>
-            <span class="truncate">Risk Report</span>
-          </a>
-        {% endif %}
-      </div>
-    </div>
+    {% endfor %}
+    {% set alpine_data = alpine_data|merge({(key): open}) %}
   {% endif %}
+{% endfor %}
+
+<nav class="grid gap-1" aria-label="Primary" x-data='{ open: {{ alpine_data|json_encode|raw }} }'>
+  {% for section in sections %}
+    {% set children = section.children|default([]) %}
+    {% if children|length > 0 %}
+      {% set key = 'section_' ~ loop.index0 %}
+
+      {% if children|length == 1 %}
+        {% if loop.first %}
+          <span class="{{ section_header }}">{{ section.label }}</span>
+          <div class="grid gap-1">
+        {% else %}
+          <span class="{{ section_header }} mt-2">{{ section.label }}</span>
+          <div class="grid gap-1">
+        {% endif %}
+        {% set child = children[0] %}
+        {% set is_active = currentPath starts with child.url %}
+        <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if is_active %}bg-app-accent/10 text-app-accent ring-1 ring-inset ring-app-accent/20{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="{{ child.url }}"{% if is_active %} aria-current="page"{% endif %}>
+          <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
+            {% if child.icon %}
+              {% include 'components/icon.twig' with { name: child.icon, class: 'h-4 w-4 shrink-0' } only %}
+            {% endif %}
+          </span>
+          <span class="truncate">{{ child.label }}</span>
+          {% if child.label == 'Notifications' and unread_notification_count|default(0) > 0 %}
+            <span class="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-app-danger text-[0.65rem] font-bold text-white">
+              {{ unread_notification_count > 9 ? '9+' : unread_notification_count }}
+            </span>
+          {% endif %}
+        </a>
+        </div>
+      {% else %}
+        {% if loop.first %}
+          <span class="{{ section_header }}">{{ section.label }}</span>
+        {% else %}
+          <span class="{{ section_header }} mt-2">{{ section.label }}</span>
+        {% endif %}
+        <div class="grid gap-1">
+          <button
+            type="button"
+            class="inline-flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition"
+            :class="open.{{ key }} ? 'bg-app-accent/10 text-app-accent ring-1 ring-inset ring-app-accent/20' : 'text-app-muted hover:bg-app-surface-2/60 hover:text-app-text'"
+            @click="open.{{ key }} = !open.{{ key }}"
+            :aria-expanded="open.{{ key }}"
+          >
+            <span class="flex items-center gap-3">
+              <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
+                {% include 'components/icon.twig' with { name: section.icon|default('folder'), class: 'h-4 w-4 shrink-0' } only %}
+              </span>
+              <span class="truncate">{{ section.label }}</span>
+            </span>
+            <span class="transition-transform duration-200" :class="open.{{ key }} ? 'rotate-180' : ''">
+              {% include 'components/icon.twig' with { name: 'chevron-down', class: 'h-4 w-4 shrink-0' } only %}
+            </span>
+          </button>
+          <div x-show="open.{{ key }}" class="grid gap-1 pl-4">
+            {% for child in children %}
+              {% set is_active = currentPath starts with child.url %}
+              <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if is_active %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="{{ child.url }}"{% if is_active %} aria-current="page"{% endif %}>
+                {% if child.icon %}
+                  <span class="inline-flex h-5 w-5 items-center justify-center">
+                    {% include 'components/icon.twig' with { name: child.icon, class: 'h-4 w-4 shrink-0' } only %}
+                  </span>
+                {% endif %}
+                <span class="truncate">{{ child.label }}</span>
+                {% if child.label == 'Notifications' and unread_notification_count|default(0) > 0 %}
+                  <span class="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-app-danger text-[0.65rem] font-bold text-white">
+                    {{ unread_notification_count > 9 ? '9+' : unread_notification_count }}
+                  </span>
+                {% endif %}
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
+  {% endfor %}
 
   {# Footer #}
   <div class="mt-2 pt-2 border-t border-app-border">

@@ -25,4 +25,11 @@ return [
         'database/migrations/2026_04_15_000001_create_dashboard_widgets_table.php',
         'database/migrations/2026_04_15_000002_insert_dashboard_permissions.php',
     ],
+    'menu' => [
+        'section' => 'Overview',
+        'label' => 'Dashboard',
+        'route' => '/admin/dashboard',
+        'icon' => 'layout-dashboard',
+        'permissions' => ['dashboard.view'],
+    ],
 ];

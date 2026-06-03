@@ -23,4 +23,11 @@ return [
     'migrations' => [
         'database/migrations/2026_04_15_000001_insert_database_manager_permissions.php',
     ],
+    'menu' => [
+        'section' => 'System',
+        'label' => 'Database',
+        'route' => '/admin/database',
+        'icon' => 'database',
+        'permissions' => ['database.view'],
+    ],
 ];

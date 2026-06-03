@@ -36,4 +36,11 @@ return [
         'database/migrations/2026_04_23_000001_add_request_metadata_to_activities_table.php',
         'database/migrations/2026_04_11_000002_insert_activity_permissions.php',
     ],
+    'menu' => [
+        'section' => 'Overview',
+        'label' => 'Activity',
+        'route' => '/admin/activity',
+        'icon' => 'activity',
+        'permissions' => ['activity.view'],
+    ],
 ];
