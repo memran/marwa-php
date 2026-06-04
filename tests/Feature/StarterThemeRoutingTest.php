@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Modules\Auth\Support\AuthManager;
+use App\Modules\Auth\Contracts\AdminUserProviderInterface;
+use App\Modules\Auth\Support\NullAdminUserProvider;
 use Laminas\Diactoros\ServerRequest;
 use Marwa\Framework\Application;
 use Marwa\Framework\Bootstrappers\AppBootstrapper;
@@ -226,14 +228,18 @@ TWIG
     {
         $app = new Application($this->basePath);
         $app->make(AppBootstrapper::class)->bootstrap();
-        (new AuthManager())->logout();
+        $app->add(AdminUserProviderInterface::class, new NullAdminUserProvider());
+        $app->make(AuthManager::class)->logout();
         $kernel = $app->make(HttpKernel::class);
 
         $frontend = $kernel->handle(new ServerRequest(uri: '/', method: 'GET'));
         $adminSlash = $kernel->handle(new ServerRequest(uri: '/admin/', method: 'GET'));
         $admin = $kernel->handle(new ServerRequest(uri: '/admin', method: 'GET'));
         $dashboard = $kernel->handle(new ServerRequest(uri: '/admin/dashboard', method: 'GET'));
-        $logout = $kernel->handle(new ServerRequest(uri: '/admin/logout', method: 'GET'));
+        $logout = $kernel->handle(
+            (new ServerRequest(uri: '/admin/logout', method: 'POST'))
+                ->withParsedBody(['_token' => $app->security()->csrfToken()])
+        );
         $login = $kernel->handle(new ServerRequest(uri: '/admin/login', method: 'GET'));
         $forgot = $kernel->handle(new ServerRequest(uri: '/admin/forgot-password', method: 'GET'));
         $frontendAgain = $kernel->handle(new ServerRequest(uri: '/', method: 'GET'));

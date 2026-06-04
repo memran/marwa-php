@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Users\Http\Controllers;
 
 use App\Modules\Activity\Models\Activity;
-use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Users\Models\User;
 use App\Modules\Users\Support\UserDataTable;
 use App\Modules\Users\Support\UserFormData;
@@ -15,15 +14,12 @@ use App\Support\AdminListState;
 use App\Support\DataTable\DataTableView;
 use App\Support\Pagination;
 use Marwa\Framework\Controllers\Controller;
-use Laminas\Diactoros\Response as HttpResponse;
-use Laminas\Diactoros\Stream;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 final class UsersController extends Controller
 {
     public function __construct(
-        private readonly AuthManager $auth,
         private readonly UserRepository $users,
         private readonly UserFormData $forms,
         private readonly AdminListState $listState,
@@ -31,85 +27,6 @@ final class UsersController extends Controller
         private readonly DataTableView $dataTable,
         private readonly Pagination $pagination,
     ) {}
-
-    public function profile(ServerRequestInterface $request): ResponseInterface
-    {
-        $user = $this->auth->user();
-
-        if ($user === null) {
-            return $this->redirect('/admin/login');
-        }
-
-        $queryParams = $request->getQueryParams();
-        $activityPage = max(1, (int) ($queryParams['activity_page'] ?? 1));
-        $activityPageData = $this->recentActivities($user, $activityPage);
-
-        return $this->view('@users/profile', [
-            'authUser' => $user,
-            'errors' => $this->session('errors', []),
-            'old' => $this->session('_old_input', []),
-            'default_tab' => (($queryParams['tab'] ?? '') === 'activity' || $activityPage > 1) ? 'activity' : 'overview',
-            'activities' => $activityPageData['data'],
-            'activity_total' => $activityPageData['pagination']['total'],
-            'activity_pagination' => $this->pagination->viewData(
-                $activityPageData['pagination'],
-                '/admin/profile',
-                [
-                    'tab' => 'activity',
-                ],
-                'activity_page'
-            ),
-        ]);
-    }
-
-    public function updatePassword(ServerRequestInterface $request): ResponseInterface
-    {
-        $user = $this->auth->user();
-
-        if ($user === null) {
-            return $this->redirect('/admin/login');
-        }
-
-        $body = $request->getParsedBody();
-        $input = is_array($body) ? $body : [];
-
-        $currentPassword = trim((string) ($input['current_password'] ?? ''));
-        $newPassword = trim((string) ($input['new_password'] ?? ''));
-        $newPasswordConfirmation = trim((string) ($input['new_password_confirmation'] ?? ''));
-
-        $errors = [];
-
-        if ($currentPassword === '') {
-            $errors['current_password'][] = 'Your current password is required.';
-        } elseif (!password_verify($currentPassword, (string) $user->getPasswordHash())) {
-            $errors['current_password'][] = 'The current password you entered is incorrect.';
-        }
-
-        if ($newPassword === '') {
-            $errors['new_password'][] = 'The new password field is required.';
-        } elseif (mb_strlen($newPassword) < 8) {
-            $errors['new_password'][] = 'The new password must be at least 8 characters.';
-        }
-
-        if ($newPasswordConfirmation === '') {
-            $errors['new_password_confirmation'][] = 'Please confirm your new password.';
-        } elseif ($newPassword !== '' && $newPassword !== $newPasswordConfirmation) {
-            $errors['new_password_confirmation'][] = 'The new password confirmation does not match.';
-        }
-
-        if ($errors !== []) {
-            $this->withErrors($errors)->withInput($input);
-
-            return $this->redirect('/admin/profile');
-        }
-
-        $user->setAttribute('password', password_hash($newPassword, PASSWORD_DEFAULT));
-        $user->saveOrFail();
-
-        $this->flash('users.notice', 'Password updated successfully.');
-
-        return $this->redirect('/admin/profile');
-    }
 
     public function index(): ResponseInterface
     {
@@ -204,16 +121,6 @@ final class UsersController extends Controller
         ]);
     }
 
-    public function exportCsv(): ResponseInterface
-    {
-        return $this->exportUsers('csv');
-    }
-
-    public function exportPdf(): ResponseInterface
-    {
-        return $this->exportUsers('pdf');
-    }
-
     public function edit(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
         $user = $this->users->findById((int) ($vars['id'] ?? 0));
@@ -275,87 +182,6 @@ final class UsersController extends Controller
         return $this->redirect('/admin/users');
     }
 
-    public function bulkDestroy(ServerRequestInterface $request): ResponseInterface
-    {
-        /** @var list<string> $ids */
-        $ids = (array) ($request->getParsedBody()['ids'] ?? []);
-        $deleted = 0;
-        $skipped = 0;
-
-        foreach ($ids as $id) {
-            $userId = (int) $id;
-            if ($userId <= 0) {
-                continue;
-            }
-
-            $user = $this->users->findById($userId);
-            if ($user === null || $this->users->isLastAdminUser($user)) {
-                $skipped++;
-                continue;
-            }
-
-            $this->users->deleteUser($user);
-            $deleted++;
-        }
-
-        $parts = [];
-        if ($deleted > 0) {
-            $parts[] = $deleted . ' user' . ($deleted !== 1 ? 's' : '') . ' deleted.';
-        }
-        if ($skipped > 0) {
-            $parts[] = $skipped . ' skipped (protected or not found).';
-        }
-
-        $this->flash('users.notice', implode(' ', $parts));
-
-        return $this->redirect('/admin/users');
-    }
-
-    public function bulkStatus(ServerRequestInterface $request): ResponseInterface
-    {
-        /** @var list<string> $ids */
-        $ids = (array) ($request->getParsedBody()['ids'] ?? []);
-        $status = strtolower(trim((string) ($request->getParsedBody()['bulk_status'] ?? '')));
-
-        if (!in_array($status, ['active', 'disabled'], true)) {
-            $this->flash('users.notice', 'Invalid status value.');
-            return $this->redirect('/admin/users');
-        }
-
-        $isActive = $status === 'active' ? 1 : 0;
-        $updated = 0;
-        $skipped = 0;
-
-        foreach ($ids as $id) {
-            $userId = (int) $id;
-            if ($userId <= 0) {
-                continue;
-            }
-
-            $user = $this->users->findById($userId);
-            if ($user === null || $this->users->isLastAdminUser($user)) {
-                $skipped++;
-                continue;
-            }
-
-            $user->setAttribute('is_active', $isActive);
-            $user->save();
-            $updated++;
-        }
-
-        $parts = [];
-        if ($updated > 0) {
-            $parts[] = $updated . ' user' . ($updated !== 1 ? 's' : '') . ' set to ' . $status . '.';
-        }
-        if ($skipped > 0) {
-            $parts[] = $skipped . ' skipped (protected or not found).';
-        }
-
-        $this->flash('users.notice', implode(' ', $parts));
-
-        return $this->redirect('/admin/users');
-    }
-
     /**
      * @param array<string, mixed> $extra
      * @return array<string, mixed>
@@ -404,29 +230,6 @@ final class UsersController extends Controller
         ];
     }
 
-    private function exportUsers(string $format): ResponseInterface
-    {
-        $state = $this->listState->state();
-        $columns = $this->dataTable->normalizeVisibleColumns($this->userTable, request('columns', null));
-        $status = UserStatus::tryFromFilter($state['filter']);
-        $rows = $this->users->exportUsers($state['query'], $state['sort'], $state['direction'], $status);
-        $filename = 'users-' . date('Ymd-His') . '.' . $format;
-
-        if ($format === 'pdf') {
-            return $this->downloadContent(
-                $this->dataTable->buildPdf($this->userTable, $rows, $columns, $state),
-                $filename,
-                'application/pdf'
-            );
-        }
-
-        return $this->downloadContent(
-            $this->dataTable->buildCsv($this->userTable, $rows, $columns, $state),
-            $filename,
-            'text/csv; charset=UTF-8'
-        );
-    }
-
     /**
      * @return array{
      *     data:list<Activity>,
@@ -466,17 +269,5 @@ final class UsersController extends Controller
                 'last_page' => (int) ($builder['last_page'] ?? 1),
             ],
         ];
-    }
-
-    private function downloadContent(string $content, string $filename, string $contentType): ResponseInterface
-    {
-        $stream = new Stream('php://temp', 'wb+');
-        $stream->write($content);
-        $stream->rewind();
-
-        return new HttpResponse($stream, 200, [
-            'Content-Type' => $contentType,
-            'Content-Disposition' => 'attachment; filename="' . addcslashes($filename, '"\\') . '"',
-        ]);
     }
 }

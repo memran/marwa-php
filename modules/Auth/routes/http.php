@@ -13,5 +13,5 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
     $routes->post('/forgot-password', [AuthController::class, 'sendForgotPasswordLink'])->name('admin.forgot-password.submit')->register();
     $routes->get('/reset-password/{token}', [AuthController::class, 'resetPassword'])->name('admin.reset-password')->register();
     $routes->post('/reset-password/{token}', [AuthController::class, 'updatePassword'])->name('admin.reset-password.submit')->register();
-    $routes->get('/logout', [AuthController::class, 'logout'])->name('admin.logout')->register();
+    $routes->post('/logout', [AuthController::class, 'logout'])->name('admin.logout')->register();
 });

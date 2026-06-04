@@ -1,4 +1,4 @@
-{% set button_base = button_base|default('inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition') %}
-{% set button_primary = button_primary|default(button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200') %}
-{% set button_secondary = button_secondary|default(button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10') %}
-{% set button_danger = button_danger|default(button_base ~ ' border-rose-500/20 bg-rose-500/10 text-rose-200 hover:bg-rose-500/20') %}
+{% set button_base = button_base|default('inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition disabled:cursor-not-allowed disabled:opacity-60') %}
+{% set button_primary = button_primary|default(button_base ~ ' border-transparent bg-app-accent text-white hover:bg-app-accent-soft') %}
+{% set button_secondary = button_secondary|default(button_base ~ ' border-app-border bg-app-surface/80 text-app-text hover:bg-app-surface-2/70') %}
+{% set button_danger = button_danger|default(button_base ~ ' border-app-danger/20 bg-app-danger/10 text-app-danger hover:bg-app-danger/15') %}

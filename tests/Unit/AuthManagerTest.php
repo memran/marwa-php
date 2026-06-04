@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use App\Modules\Auth\Support\AuthManager;
-use App\Modules\Users\Models\User;
+use App\Modules\Auth\Contracts\AdminActorInterface;
+use App\Modules\Auth\Contracts\AdminUserProviderInterface;
+use App\Modules\Auth\Support\NullAdminUserProvider;
 use Marwa\Framework\Application;
 use PHPUnit\Framework\TestCase;
 
@@ -71,15 +73,16 @@ final class AuthManagerTest extends TestCase
     {
         $app = new Application($this->basePath);
         $GLOBALS['marwa_app'] = $app;
+        $app->add(AdminUserProviderInterface::class, new NullAdminUserProvider());
 
-        $auth = new AuthManager();
+        $auth = $app->make(AuthManager::class);
 
         self::assertTrue($auth->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
         self::assertTrue($auth->check());
 
         $user = $auth->user();
 
-        self::assertInstanceOf(User::class, $user);
+        self::assertInstanceOf(AdminActorInterface::class, $user);
         self::assertSame('admin@marwa.test', $user->getAttribute('email'));
         self::assertSame('Administrator', $user->getAttribute('name'));
         self::assertFalse($auth->attempt('admin@marwa.test', 'wrong-password'));

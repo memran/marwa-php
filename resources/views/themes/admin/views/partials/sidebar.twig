@@ -146,9 +146,12 @@
 
   {# Footer #}
   <div class="mt-2 pt-2 border-t border-app-border">
-    <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold text-app-muted hover:bg-app-surface-2/60 hover:text-app-text" href="/admin/logout">
-      {% include 'components/icon.twig' with { name: 'log-out', class: 'h-5 w-5 shrink-0' } only %}
-      <span class="truncate">Logout</span>
-    </a>
+    <form method="post" action="/admin/logout">
+      {{ csrf_field() }}
+      <button type="submit" class="inline-flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[0.82rem] font-semibold text-app-muted hover:bg-app-surface-2/60 hover:text-app-text">
+        {% include 'components/icon.twig' with { name: 'log-out', class: 'h-5 w-5 shrink-0' } only %}
+        <span class="truncate">Logout</span>
+      </button>
+    </form>
   </div>
 </nav>

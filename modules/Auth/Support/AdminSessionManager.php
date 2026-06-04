@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Support;
 
+use App\Modules\Auth\Contracts\AdminActorInterface;
+use App\Modules\Auth\Contracts\AdminAuthenticatableInterface;
+use App\Modules\Auth\Contracts\AdminUserProviderInterface;
 use App\Modules\Activity\Support\ActivityRecorder;
-use App\Modules\Users\Models\User;
 
 final class AdminSessionManager
 {
@@ -15,11 +17,17 @@ final class AdminSessionManager
     private const DEFAULT_ADMIN_NAME = 'Administrator';
 
     private ?string $lastFailureReason = null;
+    private readonly AdminUserProviderInterface $users;
+    private readonly LoginAttemptTracker $loginTracker;
 
     public function __construct(
-        private readonly AdminUserResolver $users,
-        private readonly LoginAttemptTracker $loginTracker
+        $users = null,
+        ?LoginAttemptTracker $loginTracker = null
     ) {
+        $this->users = $users instanceof AdminUserProviderInterface
+            ? $users
+            : new NullAdminUserProvider();
+        $this->loginTracker = $loginTracker ?? new LoginAttemptTracker();
     }
 
     public function check(): bool
@@ -27,7 +35,7 @@ final class AdminSessionManager
         return $this->user() !== null;
     }
 
-    public function user(): ?User
+    public function user(): ?AdminActorInterface
     {
         if (!session(self::SESSION_AUTHENTICATED, false)) {
             return null;
@@ -40,7 +48,7 @@ final class AdminSessionManager
         }
 
         $persistedUser = $this->users->findPersistedUserByEmail($email);
-        if ($persistedUser instanceof User) {
+        if ($persistedUser instanceof AdminAuthenticatableInterface) {
             return $persistedUser;
         }
 
@@ -48,16 +56,10 @@ final class AdminSessionManager
             return null;
         }
 
-        $fallbackUser = User::newInstance([
-            'id' => 0,
-            'name' => trim((string) session(self::SESSION_USER_NAME, self::DEFAULT_ADMIN_NAME)) ?: self::DEFAULT_ADMIN_NAME,
-            'email' => $email,
-            'role_id' => $this->users->adminRoleId(),
-            'role' => 'admin',
-            'is_active' => true,
-        ], false);
-
-        return $fallbackUser;
+        return $this->users->createBootstrapUser(
+            trim((string) session(self::SESSION_USER_NAME, self::DEFAULT_ADMIN_NAME)) ?: self::DEFAULT_ADMIN_NAME,
+            $email
+        );
     }
 
     public function attempt(string $email, string $password): bool
@@ -67,7 +69,7 @@ final class AdminSessionManager
 
         $user = $this->users->findPersistedUserByEmail($email);
 
-        if ($user instanceof User) {
+        if ($user instanceof AdminAuthenticatableInterface) {
             $hash = $user->getPasswordHash();
 
             if ($hash !== null && password_verify($password, $hash)) {
@@ -77,12 +79,10 @@ final class AdminSessionManager
                 session()->set(self::SESSION_USER_NAME, (string) $user->getAttribute('name'));
                 session()->set(self::SESSION_USER_EMAIL, (string) $user->getAttribute('email'));
 
-                (new ActivityRecorder())->recordActorAction(
+                $this->recordAuthActivity(
                     'auth.login',
                     'Signed in to the admin console.',
                     $user,
-                    'auth',
-                    null,
                     [
                         'summary' => 'Signed in to the admin console.',
                         'state' => [
@@ -92,8 +92,7 @@ final class AdminSessionManager
                 );
 
                 try {
-                    $user->setAttribute('last_login_at', date('Y-m-d H:i:s'));
-                    $user->save();
+                    $user->recordSuccessfulLogin(date('Y-m-d H:i:s'));
                 } catch (\Throwable) {
                     // Best effort — login succeeds even if timestamp persist fails
                 }
@@ -109,13 +108,10 @@ final class AdminSessionManager
             session()->set(self::SESSION_USER_NAME, self::DEFAULT_ADMIN_NAME);
             session()->set(self::SESSION_USER_EMAIL, $this->loginTracker->configuredEmail());
 
-            $user = $this->user();
-            (new ActivityRecorder())->recordActorAction(
+            $this->recordAuthActivity(
                 'auth.login',
                 'Signed in to the admin console.',
-                $user,
-                'auth',
-                null,
+                $this->user(),
                 [
                     'summary' => 'Signed in to the admin console.',
                     'state' => [
@@ -146,13 +142,10 @@ final class AdminSessionManager
 
     public function logout(): void
     {
-        $actor = $this->user();
-
-        (new ActivityRecorder())->recordActorAction(
+        $this->recordAuthActivity(
             'auth.logout',
             'Signed out of the admin console.',
-            $actor,
-            'auth'
+            $this->user()
         );
 
         $session = session();
@@ -161,5 +154,22 @@ final class AdminSessionManager
         $session->forget(self::SESSION_USER_NAME);
         $session->forget(self::SESSION_USER_EMAIL);
         $session->close();
+    }
+
+    /**
+     * @param array<string, mixed> $details
+     */
+    private function recordAuthActivity(
+        string $action,
+        string $description,
+        ?AdminActorInterface $actor = null,
+        array $details = []
+    ): void {
+        (new ActivityRecorder())->record($action, $description, [
+            'actor_name' => $actor?->getAttribute('name'),
+            'actor_email' => $actor?->getAttribute('email'),
+            'subject_type' => 'auth',
+            'details' => $details,
+        ]);
     }
 }

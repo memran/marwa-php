@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Support;
 
+use App\Modules\Auth\Models\Permission;
+use App\Modules\Auth\Models\Role;
 use Marwa\DB\Facades\DB;
 
 final class PermissionMigrationHelper
@@ -22,32 +24,20 @@ final class PermissionMigrationHelper
             ->whereIn('slug', $assignToRoles)
             ->pluck('id')
             ->toArray();
+        $roles = array_values(array_filter(array_map(
+            static fn (mixed $roleId): ?Role => Role::find((int) $roleId),
+            $roleIds
+        ), static fn (?Role $role): bool => $role instanceof Role));
 
         foreach ($permissions as $perm) {
             $perm['created_at'] = date('Y-m-d H:i:s');
             $perm['updated_at'] = date('Y-m-d H:i:s');
-            
-            // Check if permission already exists
-            $existing = DB::table('permissions')->where('slug', '=', $perm['slug'])->first();
-            if ($existing) {
-                $permissionId = (int) ($existing instanceof \stdClass ? $existing->id : $existing['id']);
-            } else {
-                DB::table('permissions')->insert($perm);
-                $permissionId = (int) DB::connection()->getPdo()->lastInsertId();
-            }
 
-            foreach ($roleIds as $roleId) {
-                $exists = DB::table('role_permission')
-                    ->where('role_id', '=', $roleId)
-                    ->where('permission_id', '=', $permissionId)
-                    ->count() > 0;
+            $permission = Permission::findBySlug($perm['slug']) ?? Permission::create($perm);
+            $permissionId = (int) $permission->getKey();
 
-                if (!$exists) {
-                    DB::table('role_permission')->insert([
-                        'role_id' => $roleId,
-                        'permission_id' => $permissionId,
-                    ]);
-                }
+            foreach ($roles as $role) {
+                $role->attachPermissionId($permissionId);
             }
         }
     }

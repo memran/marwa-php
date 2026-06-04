@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Modules\Users\Models;
 
 use App\Contracts\PermissionAwareUser;
+use App\Modules\Auth\Contracts\AdminAuthenticatableInterface;
 use App\Modules\Auth\Models\Permission;
 use App\Modules\Auth\Models\Role;
 use Marwa\Framework\Database\Model;
 use Marwa\DB\Query\Builder as BaseBuilder;
 use Marwa\DB\ORM\Relations\BelongsTo;
 
-final class User extends Model implements PermissionAwareUser
+final class User extends Model implements PermissionAwareUser, AdminAuthenticatableInterface
 {
     protected static ?string $table = 'users';
 
@@ -136,6 +137,18 @@ final class User extends Model implements PermissionAwareUser
         return $password !== '' ? $password : null;
     }
 
+    public function recordSuccessfulLogin(string $timestamp): void
+    {
+        $this->setAttribute('last_login_at', $timestamp);
+        $this->save();
+    }
+
+    public function updatePasswordHash(string $hash): void
+    {
+        $this->setAttribute('password', $hash);
+        $this->saveOrFail();
+    }
+
     /**
      * @return list<string>
      */
@@ -159,7 +172,7 @@ final class User extends Model implements PermissionAwareUser
 
         return array_values(array_filter(
             array_map(
-                static fn (Permission $permission): string => (string) $permission->getAttribute('slug'),
+                static fn(Permission $permission): string => (string) $permission->getAttribute('slug'),
                 $role->permissions()
             )
         ));

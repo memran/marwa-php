@@ -108,7 +108,7 @@ final class AdminActivityTrail
         $method = strtoupper($request->getMethod());
         $path = $request->getUri()->getPath();
 
-        if (in_array($method, ['GET', 'HEAD', 'OPTIONS'], true) && $path !== '/admin/logout') {
+        if (in_array($method, ['GET', 'HEAD', 'OPTIONS'], true)) {
             return false;
         }
 

@@ -144,7 +144,7 @@
             </a>
           </div>
           <div class="border-t border-app-border py-2">
-            <form method="get" action="/admin/logout">
+            <form method="post" action="/admin/logout">
               {{ csrf_field() }}
               <button type="submit" class="flex w-full items-center gap-3 px-4 py-2 text-sm text-app-text transition hover:bg-app-surface-2/60 hover:text-app-text">
                 {% include 'components/icon.twig' with { name: 'log-out', class: 'h-4 w-4 shrink-0' } only %}

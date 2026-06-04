@@ -5,15 +5,18 @@ declare(strict_types=1);
 use App\Http\Middleware\AdminThemeMiddleware;
 use App\Modules\Auth\Http\Middleware\RequireAdminAuthentication;
 use App\Modules\Auth\Http\Middleware\RequirePermission;
+use App\Modules\Users\Http\Controllers\ProfileController;
 use App\Modules\Users\Http\Controllers\UsersController;
+use App\Modules\Users\Http\Controllers\UserExportController;
+use App\Modules\Users\Http\Controllers\UserBulkActionController;
 use Marwa\Framework\Facades\Router;
 
 Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class]], static function ($routes): void {
-    $routes->get('/profile', [UsersController::class, 'profile'])
+    $routes->get('/profile', [ProfileController::class, 'show'])
         ->name('admin.users.profile')
         ->register();
 
-    $routes->post('/profile/password', [UsersController::class, 'updatePassword'])
+    $routes->post('/profile/password', [ProfileController::class, 'updatePassword'])
         ->name('admin.users.profile.password')
         ->register();
 
@@ -27,12 +30,12 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
         ->name('admin.users.create')
         ->register();
 
-    $routes->get('/users/export/csv', [UsersController::class, 'exportCsv'])
+    $routes->get('/users/export/csv', [UserExportController::class, 'csv'])
         ->middleware(new RequirePermission('users.view'))
         ->name('admin.users.export.csv')
         ->register();
 
-    $routes->get('/users/export/pdf', [UsersController::class, 'exportPdf'])
+    $routes->get('/users/export/pdf', [UserExportController::class, 'pdf'])
         ->middleware(new RequirePermission('users.view'))
         ->name('admin.users.export.pdf')
         ->register();
@@ -42,12 +45,12 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
         ->name('admin.users.store')
         ->register();
 
-    $routes->post('/users/bulk-delete', [UsersController::class, 'bulkDestroy'])
+    $routes->post('/users/bulk-delete', [UserBulkActionController::class, 'delete'])
         ->middleware(new RequirePermission('users.delete'))
         ->name('admin.users.bulk.destroy')
         ->register();
 
-    $routes->post('/users/bulk-status', [UsersController::class, 'bulkStatus'])
+    $routes->post('/users/bulk-status', [UserBulkActionController::class, 'status'])
         ->middleware(new RequirePermission('users.edit'))
         ->name('admin.users.bulk.status')
         ->register();

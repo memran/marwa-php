@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Auth\Support;
 
 use App\Modules\Auth\Models\Permission;
+use App\Modules\Auth\Models\Role;
 use App\Support\AdminSearch;
-use Marwa\DB\Facades\DB;
 use Marwa\DB\ORM\QueryBuilder;
 
 final class PermissionRepository
@@ -92,19 +92,12 @@ final class PermissionRepository
      */
     public function getByRoleId(int $roleId): array
     {
-        $permissionIds = DB::table('role_permission')
-            ->where('role_id', '=', $roleId)
-            ->pluck('permission_id')
-            ->toArray();
-
-        if ($permissionIds === []) {
+        $role = Role::findById($roleId);
+        if ($role === null) {
             return [];
         }
 
-        return Permission::whereIn('id', array_map('intval', $permissionIds))
-            ->orderBy('group', 'asc')
-            ->orderBy('name', 'asc')
-            ->get();
+        return $role->permissions();
     }
 
     /**

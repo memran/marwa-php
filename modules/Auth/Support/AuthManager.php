@@ -4,63 +4,57 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Support;
 
-use App\Modules\Users\Models\User;
+use App\Modules\Auth\Contracts\AdminActorInterface;
 
 final class AuthManager
 {
-    private ?AdminSessionManager $sessionManager;
-    private ?PasswordResetMailer $passwordResetMailer;
+    private readonly AdminSessionManager $sessionManager;
+    private readonly PasswordResetMailer $passwordResetMailer;
 
     public function __construct(
-        ?AdminSessionManager $sessionManager = null,
-        ?PasswordResetMailer $passwordResetMailer = null
+        $sessionManager = null,
+        $passwordResetMailer = null,
     ) {
-        $this->sessionManager = $sessionManager;
-        $this->passwordResetMailer = $passwordResetMailer;
+        $this->sessionManager = $sessionManager instanceof AdminSessionManager
+            ? $sessionManager
+            : new AdminSessionManager();
+        $this->passwordResetMailer = $passwordResetMailer instanceof PasswordResetMailer
+            ? $passwordResetMailer
+            : new PasswordResetMailer();
     }
 
     public function check(): bool
     {
-        return $this->sessionManager()->check();
+        return $this->sessionManager->check();
     }
 
-    public function user(): ?User
+    public function user(): ?AdminActorInterface
     {
-        return $this->sessionManager()->user();
+        return $this->sessionManager->user();
     }
 
     public function attempt(string $email, string $password): bool
     {
-        return $this->sessionManager()->attempt($email, $password);
+        return $this->sessionManager->attempt($email, $password);
     }
 
     public function lastFailureReason(): ?string
     {
-        return $this->sessionManager()->lastFailureReason();
+        return $this->sessionManager->lastFailureReason();
     }
 
     public function logout(): void
     {
-        $this->sessionManager()->logout();
+        $this->sessionManager->logout();
     }
 
     public function createPasswordResetLink(string $email, int $ttlMinutes = 30): ?string
     {
-        return $this->passwordResetMailer()->createPasswordResetLink($email, $ttlMinutes);
+        return $this->passwordResetMailer->createPasswordResetLink($email, $ttlMinutes);
     }
 
     public function resetPassword(string $token, string $password): bool
     {
-        return $this->passwordResetMailer()->resetPassword($token, $password);
-    }
-
-    private function sessionManager(): AdminSessionManager
-    {
-        return $this->sessionManager ??= app(AdminSessionManager::class);
-    }
-
-    private function passwordResetMailer(): PasswordResetMailer
-    {
-        return $this->passwordResetMailer ??= app(PasswordResetMailer::class);
+        return $this->passwordResetMailer->resetPassword($token, $password);
     }
 }

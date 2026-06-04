@@ -7,7 +7,6 @@ namespace App\Modules\Auth\Support;
 use App\Modules\Users\Models\User;
 use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Models\Permission;
-use Marwa\DB\Facades\DB;
 
 final class RoleRepository
 {
@@ -127,22 +126,16 @@ final class RoleRepository
      */
     public function syncPermissions(int $roleId, array $permissionIds): bool
     {
-        DB::table('role_permission')
-            ->where('role_id', '=', $roleId)
-            ->delete();
-
-        if (empty($permissionIds)) {
-            return true;
+        $role = $this->findById($roleId);
+        if ($role === null) {
+            return false;
         }
 
-        foreach ($permissionIds as $permissionId) {
-            DB::table('role_permission')->insert([
-                'role_id' => $roleId,
-                'permission_id' => (int) $permissionId,
-            ]);
-        }
+        $role->syncPermissionIds(array_values(array_map(
+            static fn (int|string $permissionId): int => (int) $permissionId,
+            $permissionIds
+        )));
 
         return true;
     }
-
 }

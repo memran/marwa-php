@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Support;
 
+use App\Modules\Auth\Contracts\AdminAuthenticatableInterface;
+use App\Modules\Auth\Contracts\AdminUserProviderInterface;
 use App\Modules\Auth\Mail\PasswordResetMail;
 use App\Modules\Auth\Models\PasswordResetToken;
-use App\Modules\Users\Models\User;
 
 final class PasswordResetMailer
 {
-    public function __construct(private readonly AdminUserResolver $users)
+    private readonly AdminUserProviderInterface $users;
+
+    public function __construct($users = null)
     {
+        $this->users = $users instanceof AdminUserProviderInterface
+            ? $users
+            : new NullAdminUserProvider();
     }
 
     public function createPasswordResetLink(string $email, int $ttlMinutes = 30): ?string
@@ -23,7 +29,7 @@ final class PasswordResetMailer
         }
 
         $user = $this->users->findPersistedUserByEmail($email);
-        if (!$user instanceof User) {
+        if (!$user instanceof AdminAuthenticatableInterface) {
             return null;
         }
 
@@ -57,7 +63,7 @@ final class PasswordResetMailer
         }
 
         $user = $this->users->findPersistedUserByEmail($email);
-        if (!$user instanceof User) {
+        if (!$user instanceof AdminAuthenticatableInterface) {
             return false;
         }
 
@@ -96,15 +102,12 @@ final class PasswordResetMailer
             return false;
         }
 
-        $user = User::find((int) $record->getAttribute('user_id'));
-        if (!$user instanceof User || !(bool) $user->getAttribute('is_active')) {
+        $user = $this->users->findPersistedUserById((int) $record->getAttribute('user_id'));
+        if (!$user instanceof AdminAuthenticatableInterface || !(bool) $user->getAttribute('is_active')) {
             return false;
         }
 
-        $user->fill([
-            'password' => password_hash($password, PASSWORD_DEFAULT),
-        ]);
-        $user->save();
+        $user->updatePasswordHash(password_hash($password, PASSWORD_DEFAULT));
 
         $record->delete();
 

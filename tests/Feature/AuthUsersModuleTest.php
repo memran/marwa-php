@@ -34,6 +34,12 @@ final class AuthUsersModuleTest extends TestCase
         Runtime::setConsoleOverride(false);
         unset($GLOBALS['marwa_app']);
         Input::reset();
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            $_SESSION = [];
+            session_write_close();
+        }
+
         $this->basePath = sys_get_temp_dir() . '/marwa-auth-users-' . bin2hex(random_bytes(6));
 
         $this->makeDirectory($this->basePath);
@@ -298,7 +304,7 @@ TWIG
         $this->app->make(AppBootstrapper::class)->bootstrap();
         $this->migrateAuthAndUserModules($this->app);
         $this->seedAuthAndUsers();
-        (new AuthManager())->logout();
+        $this->auth()->logout();
         $kernel = $this->app->make(HttpKernel::class);
 
         self::assertGreaterThan(0, User::query()->count());
@@ -338,8 +344,8 @@ TWIG
         ]));
         self::assertSame(302, $login->getStatusCode());
 
-        (new AuthManager())->logout();
-        self::assertTrue((new AuthManager())->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+        $this->auth()->logout();
+        self::assertTrue($this->auth()->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
         $csrf = $this->app->security()->csrfToken();
 
         $dashboard = $kernel->handle($this->request('GET', '/admin'));
@@ -586,7 +592,9 @@ TWIG
         self::assertSame(200, $adminIndexAfterBlockedDelete->getStatusCode());
         self::assertStringContainsString('The last admin user cannot be deleted.', (string) $adminIndexAfterBlockedDelete->getBody());
 
-        $logout = $kernel->handle($this->request('GET', '/admin/logout'));
+        $logout = $kernel->handle($this->request('POST', '/admin/logout', [
+            '_token' => $csrf,
+        ]));
         self::assertSame(302, $logout->getStatusCode());
         self::assertSame('/admin/login', $logout->getHeaderLine('Location'));
 
@@ -602,14 +610,14 @@ TWIG
         $this->app->make(AppBootstrapper::class)->bootstrap();
         $this->migrateAuthAndUserModules($this->app);
         $this->seedAuthAndUsers();
-        (new AuthManager())->logout();
+        $this->auth()->logout();
         $kernel = $this->app->make(HttpKernel::class);
 
         $loginPage = $kernel->handle($this->request('GET', '/admin/login'));
         self::assertSame(200, $loginPage->getStatusCode());
 
         $csrf = $this->app->security()->csrfToken();
-        $link = (new AuthManager())->createPasswordResetLink('admin@marwa.test');
+        $link = $this->auth()->createPasswordResetLink('admin@marwa.test');
         self::assertNotNull($link);
         self::assertStringContainsString('reset-password/', $link);
 
@@ -631,7 +639,7 @@ TWIG
         self::assertStringContainsString('Set a new password.', (string) $resetPage->getBody());
         self::assertStringContainsString($token, (string) $resetPage->getBody());
 
-        self::assertTrue((new AuthManager())->resetPassword($token, 'ResetPassword123!'));
+        self::assertTrue($this->auth()->resetPassword($token, 'ResetPassword123!'));
 
         $this->connections = null;
         $this->app = null;
@@ -656,7 +664,7 @@ TWIG
         ]));
         self::assertSame(302, $login->getStatusCode());
         self::assertNotSame('', $login->getHeaderLine('Location'));
-        self::assertTrue((new AuthManager())->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+        self::assertTrue($this->auth()->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
 
         $permissionsPage = $kernel->handle($this->request('GET', '/admin/permissions'));
         self::assertSame(200, $permissionsPage->getStatusCode());
@@ -743,7 +751,7 @@ TWIG
         $this->app->make(AppBootstrapper::class)->bootstrap();
         $this->migrateAuthAndUserModules($this->app);
         $this->seedAuthAndUsers();
-        (new AuthManager())->logout();
+        $this->auth()->logout();
         $kernel = $this->app->make(HttpKernel::class);
 
         $loginPage = $kernel->handle($this->request('GET', '/admin/login'));
@@ -757,7 +765,7 @@ TWIG
         ]));
         self::assertSame(302, $login->getStatusCode());
         self::assertNotSame('', $login->getHeaderLine('Location'));
-        self::assertTrue((new AuthManager())->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+        self::assertTrue($this->auth()->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
 
         $permissionsPage = $kernel->handle($this->request('GET', '/admin/permissions'));
         self::assertSame(200, $permissionsPage->getStatusCode());
@@ -867,7 +875,7 @@ TWIG
         $this->app->make(AppBootstrapper::class)->bootstrap();
         $this->migrateAuthAndUserModules($this->app);
         $this->seedAuthAndUsers();
-        (new AuthManager())->logout();
+        $this->auth()->logout();
         $kernel = $this->app->make(HttpKernel::class);
 
         $userRole = Role::findBySlug('user');
@@ -891,8 +899,8 @@ TWIG
 
         self::assertSame(302, $login->getStatusCode());
         self::assertSame('/admin/', $login->getHeaderLine('Location'));
-        self::assertTrue((new AuthManager())->check());
-        self::assertSame('portal.user@example.test', (new AuthManager())->user()?->getAttribute('email'));
+        self::assertTrue($this->auth()->check());
+        self::assertSame('portal.user@example.test', $this->auth()->user()?->getAttribute('email'));
 
         $this->connections = null;
         $this->app = null;
@@ -904,7 +912,7 @@ TWIG
         $this->app->make(AppBootstrapper::class)->bootstrap();
         $this->migrateAuthAndUserModules($this->app);
         $this->seedAuthAndUsers();
-        (new AuthManager())->logout();
+        $this->auth()->logout();
         $kernel = $this->app->make(HttpKernel::class);
 
         $dashboardPermission = Permission::findBySlug('dashboard.view');
@@ -942,7 +950,7 @@ TWIG
             'password' => 'LimitedViewerPassword123!',
         ]));
         self::assertSame(302, $login->getStatusCode());
-        self::assertTrue((new AuthManager())->attempt('limited.viewer@example.test', 'LimitedViewerPassword123!'));
+        self::assertTrue($this->auth()->attempt('limited.viewer@example.test', 'LimitedViewerPassword123!'));
 
         $dashboard = $kernel->handle($this->request('GET', '/admin/dashboard'));
         self::assertSame(200, $dashboard->getStatusCode());
@@ -974,10 +982,10 @@ TWIG
             'password' => 'ExampleAdminPassword123!',
         ]));
         self::assertSame(302, $login->getStatusCode());
-        self::assertTrue((new AuthManager())->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+        self::assertTrue($this->auth()->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
         $csrf = $this->app->security()->csrfToken();
 
-        $adminUser = (new AuthManager())->user();
+        $adminUser = $this->auth()->user();
         self::assertInstanceOf(User::class, $adminUser);
 
         $create = $kernel->handle($this->request('POST', '/admin/notifications', [
@@ -1015,7 +1023,7 @@ TWIG
         $this->app->make(AppBootstrapper::class)->bootstrap();
         $this->migrateAuthAndUserModules($this->app);
         $this->seedAuthAndUsers();
-        (new AuthManager())->logout();
+        $this->auth()->logout();
         $kernel = $this->app->make(HttpKernel::class);
 
         $notificationPermission = Permission::findBySlug('notifications.view');
@@ -1073,7 +1081,7 @@ TWIG
             'password' => 'NotificationViewer123!',
         ]));
         self::assertSame(302, $login->getStatusCode());
-        self::assertTrue((new AuthManager())->attempt('viewer@example.test', 'NotificationViewer123!'));
+        self::assertTrue($this->auth()->attempt('viewer@example.test', 'NotificationViewer123!'));
 
         $latest = $kernel->handle($this->request('GET', '/admin/notifications/latest'));
         self::assertSame(200, $latest->getStatusCode());
@@ -1091,7 +1099,7 @@ TWIG
         $this->app->make(AppBootstrapper::class)->bootstrap();
         $this->migrateAuthAndUserModules($this->app);
         $this->seedAuthAndUsers();
-        (new AuthManager())->logout();
+        $this->auth()->logout();
         $kernel = $this->app->make(HttpKernel::class);
 
         $csrf = $this->app->security()->csrfToken();
@@ -1101,7 +1109,7 @@ TWIG
             'password' => 'ExampleAdminPassword123!',
         ]));
         self::assertSame(302, $login->getStatusCode());
-        self::assertTrue((new AuthManager())->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+        self::assertTrue($this->auth()->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
 
         $usersPermission = Permission::findBySlug('users.view');
         self::assertInstanceOf(Permission::class, $usersPermission);
@@ -1161,7 +1169,7 @@ TWIG
         $this->app->make(AppBootstrapper::class)->bootstrap();
         $this->migrateAuthAndUserModules($this->app);
         $this->seedAuthAndUsers();
-        (new AuthManager())->logout();
+        $this->auth()->logout();
         $kernel = $this->app->make(HttpKernel::class);
 
         $csrf = $this->app->security()->csrfToken();
@@ -1171,7 +1179,7 @@ TWIG
             'password' => 'ExampleAdminPassword123!',
         ]));
         self::assertSame(302, $login->getStatusCode());
-        self::assertTrue((new AuthManager())->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+        self::assertTrue($this->auth()->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
 
         session()->flash('users.notice', 'User created successfully.');
         session()->flash('settings.errors', [
@@ -1196,7 +1204,7 @@ TWIG
         $this->app->make(AppBootstrapper::class)->bootstrap();
         $this->migrateAuthAndUserModules($this->app);
         $this->seedAuthAndUsers();
-        (new AuthManager())->logout();
+        $this->auth()->logout();
         $kernel = $this->app->make(HttpKernel::class);
 
         $login = $kernel->handle($this->request('POST', '/admin/login', [
@@ -1242,6 +1250,11 @@ TWIG
             $query,
             $body
         )->withUploadedFiles($files);
+    }
+
+    private function auth(): AuthManager
+    {
+        return $this->app->make(AuthManager::class);
     }
 
     private function makeDirectory(string $path): void

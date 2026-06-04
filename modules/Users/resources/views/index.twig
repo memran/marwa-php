@@ -10,7 +10,7 @@
 
     <div class="flex flex-wrap gap-2">
       {% if gate.allows('users.create') %}
-        <a class="{{ button_primary }}" href="/admin/users/create">Create user</a>
+        <a class="{{ button_primary }} users-create-button" href="/admin/users/create">Create user</a>
       {% endif %}
     </div>
   </section>

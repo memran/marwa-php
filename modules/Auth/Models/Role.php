@@ -95,6 +95,38 @@ final class Role extends Model
         return false;
     }
 
+    /**
+     * @param list<int|string> $permissionIds
+     */
+    public function syncPermissionIds(array $permissionIds): void
+    {
+        if (static::$cm === null || $this->getKey() === null) {
+            return;
+        }
+
+        $normalized = array_values(array_unique(array_map(
+            static fn (int|string $permissionId): int => (int) $permissionId,
+            $permissionIds
+        )));
+
+        $this->permissionsRelation()->sync($this, $normalized);
+    }
+
+    public function attachPermissionId(int $permissionId): void
+    {
+        if (static::$cm === null || $this->getKey() === null || $permissionId <= 0) {
+            return;
+        }
+
+        foreach ($this->permissionsRelation()->get($this) as $permission) {
+            if ((int) $permission->getKey() === $permissionId) {
+                return;
+            }
+        }
+
+        $this->permissionsRelation()->attach($this, $permissionId);
+    }
+
     public static function findBySlug(string $slug): ?self
     {
         return self::findBy('slug', $slug);
