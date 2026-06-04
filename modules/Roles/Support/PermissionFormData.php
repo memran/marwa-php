@@ -15,7 +15,7 @@ final class PermissionFormData
     ) {}
 
     /**
-     * @param array{mode:string,title:string,action:string,submit_label:string,permission:?Permission} $extra
+     * @param array{mode:string,title:string,action:string,submit_label:string,back_url?:string,permission:?Permission} $extra
      * @return array<string, mixed>
      */
     public function formViewData(array $extra): array

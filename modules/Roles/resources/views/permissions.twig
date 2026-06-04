@@ -3,9 +3,7 @@
 {% block title %}Permissions | MarwaPHP Admin{% endblock %}
 
 {% block content %}
-  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
-  {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
-  {% set button_secondary = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
+  {% include '@roles/_buttons.twig' %}
   {% set current_sort = sort|default('group') %}
   {% set current_direction = direction|default('asc') %}
   {% set sort_options = {
@@ -17,57 +15,65 @@
 
   <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
     <div class="max-w-3xl space-y-2">
-      <span class="inline-flex w-fit items-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-cyan-100">Roles & Permissions</span>
-      <h1 class="text-2xl font-black tracking-tight text-white sm:text-3xl">Permissions</h1>
-      <p class="max-w-2xl text-sm leading-6 text-slate-300">
+      <span class="inline-flex w-fit items-center rounded-xl border border-app-accent/20 bg-app-accent/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-app-accent">Roles & Permissions</span>
+      <h1 class="text-2xl font-black tracking-tight text-app-text sm:text-3xl">Permissions</h1>
+      <p class="max-w-2xl text-sm leading-6 text-app-muted">
         Permissions are assigned to roles dynamically. Updating a role here changes access for every user attached to that role.
       </p>
     </div>
 
     <div class="flex flex-wrap gap-2">
-      <a class="{{ button_primary }}" href="{{ create_url|default('/admin/permissions/create') }}">Create permission</a>
+      {% if can('permissions.manage') %}
+        <a class="{{ button_primary }}" href="{{ create_url|default('/admin/permissions/create') }}">Create permission</a>
+      {% endif %}
       <a class="{{ button_secondary }}" href="/admin/roles">Back to roles</a>
     </div>
   </section>
 
+  {% if notice is defined and notice %}
+    <div class="mt-6 rounded-2xl border border-app-success/20 bg-app-success/10 px-4 py-3 text-sm font-semibold text-app-success">
+      {{ notice }}
+    </div>
+  {% endif %}
+
   <div class="mt-6 grid gap-4 sm:grid-cols-3">
-    <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
-      <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Total</p>
-      <p class="mt-2 text-2xl font-black text-white">{{ total_permissions|default(0) }}</p>
-      <p class="mt-1 text-sm text-slate-400">Permissions in the system.</p>
+    <div class="rounded-[1.25rem] border border-app-border bg-app-surface/80 p-4 shadow-sm">
+      <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-app-muted">Total</p>
+      <p class="mt-2 text-2xl font-black text-app-text">{{ total_permissions|default(0) }}</p>
+      <p class="mt-1 text-sm text-app-muted">Permissions in the system.</p>
     </div>
-    <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
-      <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Visible</p>
-      <p class="mt-2 text-2xl font-black text-white">{{ visible_permissions|default(0) }}</p>
-      <p class="mt-1 text-sm text-slate-400">Matched by the current filters.</p>
+    <div class="rounded-[1.25rem] border border-app-border bg-app-surface/80 p-4 shadow-sm">
+      <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-app-muted">Visible</p>
+      <p class="mt-2 text-2xl font-black text-app-text">{{ visible_permissions|default(0) }}</p>
+      <p class="mt-1 text-sm text-app-muted">Matched by the current filters.</p>
     </div>
-    <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
-      <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Groups</p>
-      <p class="mt-2 text-2xl font-black text-white">{{ group_count|default(0) }}</p>
-      <p class="mt-1 text-sm text-slate-400">Groups shown in the current list.</p>
+    <div class="rounded-[1.25rem] border border-app-border bg-app-surface/80 p-4 shadow-sm">
+      <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-app-muted">Groups</p>
+      <p class="mt-2 text-2xl font-black text-app-text">{{ group_count|default(0) }}</p>
+      <p class="mt-1 text-sm text-app-muted">Groups shown in the current list.</p>
     </div>
   </div>
 
-  <form method="get" action="/admin/permissions" class="mt-6 rounded-[1.5rem] border border-white/10 bg-white/5 p-4 shadow-[0_20px_60px_rgba(2,6,23,0.22)] backdrop-blur-xl">
+  <form method="get" action="/admin/permissions" class="mt-6 rounded-[1.5rem] border border-app-border bg-app-surface/80 p-4 shadow-[0_20px_60px_rgba(2,6,23,0.22)] backdrop-blur-xl">
     <div class="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_220px_180px_140px_auto] xl:items-end">
       <div class="grid gap-2">
-        <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400" for="q">Search</label>
+        <label class="text-xs font-extrabold uppercase tracking-[0.18em] text-app-muted" for="q">Search</label>
         <input
           id="q"
           name="q"
           type="search"
           value="{{ query|default('') }}"
           placeholder="Search by name, slug, group, or description"
-          class="w-full rounded-2xl border border-white/10 bg-slate-950/30 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
+          class="w-full rounded-2xl border border-app-border bg-app-surface/60 px-4 py-3 text-sm text-app-text placeholder:text-app-muted outline-none transition focus:border-app-accent focus:ring-4 focus:ring-app-accent/20"
         >
       </div>
 
       <div class="grid gap-2">
-        <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400" for="group">Group</label>
+        <label class="text-xs font-extrabold uppercase tracking-[0.18em] text-app-muted" for="group">Group</label>
         <select
           id="group"
           name="group"
-          class="w-full rounded-2xl border border-white/10 bg-slate-950/30 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
+          class="w-full rounded-2xl border border-app-border bg-app-surface/60 px-4 py-3 text-sm text-app-text outline-none transition focus:border-app-accent focus:ring-4 focus:ring-app-accent/20"
         >
           <option value="">All groups</option>
           {% for option in group_options|default([]) %}
@@ -77,11 +83,11 @@
       </div>
 
       <div class="grid gap-2">
-        <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400" for="sort">Sort</label>
+        <label class="text-xs font-extrabold uppercase tracking-[0.18em] text-app-muted" for="sort">Sort</label>
         <select
           id="sort"
           name="sort"
-          class="w-full rounded-2xl border border-white/10 bg-slate-950/30 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
+          class="w-full rounded-2xl border border-app-border bg-app-surface/60 px-4 py-3 text-sm text-app-text outline-none transition focus:border-app-accent focus:ring-4 focus:ring-app-accent/20"
         >
           {% for value, label in sort_options %}
             <option value="{{ value }}" {% if current_sort == value %}selected{% endif %}>{{ label }}</option>
@@ -90,11 +96,11 @@
       </div>
 
       <div class="grid gap-2">
-        <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400" for="direction">Order</label>
+        <label class="text-xs font-extrabold uppercase tracking-[0.18em] text-app-muted" for="direction">Order</label>
         <select
           id="direction"
           name="direction"
-          class="w-full rounded-2xl border border-white/10 bg-slate-950/30 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
+          class="w-full rounded-2xl border border-app-border bg-app-surface/60 px-4 py-3 text-sm text-app-text outline-none transition focus:border-app-accent focus:ring-4 focus:ring-app-accent/20"
         >
           <option value="asc" {% if current_direction == 'asc' %}selected{% endif %}>Ascending</option>
           <option value="desc" {% if current_direction == 'desc' %}selected{% endif %}>Descending</option>
@@ -111,18 +117,18 @@
   </form>
 
   {% if permissions is empty %}
-    <div class="mt-8 flex flex-col items-center justify-center rounded-[1.75rem] border border-dashed border-white/10 bg-white/5 px-6 py-14 text-center">
-      <div class="flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
-        {% include 'components/icon.twig' with { name: 'key-round', class: 'h-8 w-8 text-slate-500' } only %}
+    <div class="mt-8 flex flex-col items-center justify-center rounded-[1.75rem] border border-dashed border-app-border bg-app-surface/60 px-6 py-14 text-center">
+      <div class="flex h-16 w-16 items-center justify-center rounded-full bg-app-surface-2/70">
+        {% include 'components/icon.twig' with { name: 'key-round', class: 'h-8 w-8 text-app-muted' } only %}
       </div>
-      <h3 class="mt-4 text-lg font-semibold text-slate-200">
+      <h3 class="mt-4 text-lg font-semibold text-app-text">
         {% if query|default('') or group|default('') %}
           No permissions match your filters
         {% else %}
           No permissions found
         {% endif %}
       </h3>
-      <p class="mt-1 max-w-xl text-sm text-slate-400">
+      <p class="mt-1 max-w-xl text-sm text-app-muted">
         {% if query|default('') or group|default('') %}
           Try a broader search term or clear the group filter to see the full catalog.
         {% else %}
@@ -136,42 +142,44 @@
   {% else %}
     <div class="mt-8 space-y-6">
       {% for group_name, perms in permissions %}
-        <section class="overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/5">
-          <div class="flex flex-col gap-3 border-b border-white/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <section class="overflow-hidden rounded-[1.75rem] border border-app-border bg-app-surface/80 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
+          <div class="flex flex-col gap-3 border-b border-app-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 class="text-lg font-bold tracking-tight text-white">{{ group_name|replace({'_': ' '})|capitalize }}</h2>
-              <p class="mt-1 text-sm text-slate-400">{{ perms|length }} permission{{ perms|length == 1 ? '' : 's' }}</p>
+              <h2 class="text-lg font-bold tracking-tight text-app-text">{{ group_name|replace({'_': ' '})|capitalize }}</h2>
+              <p class="mt-1 text-sm text-app-muted">{{ perms|length }} permission{{ perms|length == 1 ? '' : 's' }}</p>
             </div>
-            <span class="inline-flex w-fit items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-100">{{ group_name }}</span>
+            <span class="inline-flex w-fit items-center rounded-full border border-app-accent/20 bg-app-accent/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-app-accent">{{ group_name }}</span>
           </div>
 
           <div class="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-3">
             {% for perm in perms %}
-              <article class="rounded-2xl border border-white/10 bg-slate-950/30 p-4 transition hover:border-cyan-300/20 hover:bg-slate-950/40">
+              <article class="rounded-2xl border border-app-border bg-app-surface-2/40 p-4 transition hover:border-app-accent/30 hover:bg-app-surface-2/60">
                 <div class="flex items-start justify-between gap-3">
                   <div class="min-w-0">
-                    <h3 class="truncate text-base font-semibold text-slate-50">{{ perm.getAttribute('name') }}</h3>
-                    <p class="mt-1 truncate text-xs text-slate-400">{{ perm.getAttribute('slug') }}</p>
+                    <h3 class="truncate text-base font-semibold text-app-text">{{ perm.getAttribute('name') }}</h3>
+                    <p class="mt-1 truncate text-xs text-app-muted">{{ perm.getAttribute('slug') }}</p>
                   </div>
-                  <span class="inline-flex shrink-0 items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-[0.18em] text-slate-300">#{{ perm.getKey() }}</span>
+                  <span class="inline-flex shrink-0 items-center rounded-full border border-app-border bg-app-surface/70 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-[0.18em] text-app-muted">#{{ perm.getKey() }}</span>
                 </div>
 
-                <p class="mt-3 line-clamp-3 text-sm leading-6 text-slate-300">
+                <p class="mt-3 line-clamp-3 text-sm leading-6 text-app-text">
                   {{ perm.getAttribute('description')|default('') ?: 'No description provided.' }}
                 </p>
 
                 <div class="mt-4 flex flex-wrap gap-2">
-                  <a href="/admin/permissions/{{ perm.getKey() }}/edit" class="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:bg-white/10">
-                    {% include 'components/icon.twig' with { name: 'pencil', class: 'h-3.5 w-3.5' } only %}
-                    <span>Edit</span>
-                  </a>
-                  <form method="post" action="/admin/permissions/{{ perm.getKey() }}/delete" onsubmit="return confirm('Delete this permission?');">
-                    {{ csrf_field() }}
-                    <button type="submit" class="inline-flex items-center gap-2 rounded-xl border border-rose-400/20 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-100 transition hover:bg-rose-500/20">
-                      {% include 'components/icon.twig' with { name: 'trash-2', class: 'h-3.5 w-3.5' } only %}
-                      <span>Delete</span>
-                    </button>
-                  </form>
+                  {% if can('permissions.manage') %}
+                    <a href="/admin/permissions/{{ perm.getKey() }}/edit" class="inline-flex items-center gap-2 rounded-xl border border-app-border bg-app-surface/60 px-3 py-2 text-xs font-semibold text-app-text transition hover:bg-app-surface-2/70">
+                      {% include 'components/icon.twig' with { name: 'pencil', class: 'h-3.5 w-3.5' } only %}
+                      <span>Edit</span>
+                    </a>
+                    <form method="post" action="/admin/permissions/{{ perm.getKey() }}/delete" onsubmit="return confirm('Delete this permission?');">
+                      {{ csrf_field() }}
+                      <button type="submit" class="inline-flex items-center gap-2 rounded-xl border border-app-danger/20 bg-app-danger/10 px-3 py-2 text-xs font-semibold text-app-danger transition hover:bg-app-danger/20">
+                        {% include 'components/icon.twig' with { name: 'trash-2', class: 'h-3.5 w-3.5' } only %}
+                        <span>Delete</span>
+                      </button>
+                    </form>
+                  {% endif %}
                 </div>
               </article>
             {% endfor %}
@@ -182,19 +190,19 @@
   {% endif %}
 
   {% if pagination.links|default([])|length > 1 %}
-    <nav class="mt-8 flex flex-col gap-4 rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-      <p class="text-sm text-slate-400">{{ pagination.summary|default('') }}</p>
+    <nav class="mt-8 flex flex-col gap-4 rounded-[1.5rem] border border-app-border bg-app-surface/80 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <p class="text-sm text-app-muted">{{ pagination.summary|default('') }}</p>
       <div class="flex flex-wrap items-center gap-2">
         {% set previous_page = null %}
         {% for link in pagination.links|default([]) %}
           {% if previous_page is not null and link.page > previous_page + 1 %}
-            <span class="px-2 text-slate-500">…</span>
+            <span class="px-2 text-app-muted">...</span>
           {% endif %}
 
           {% if link.active %}
-            <span class="inline-flex h-9 min-w-9 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-3 text-sm font-semibold text-cyan-200">{{ link.page }}</span>
+            <span class="inline-flex h-9 min-w-9 items-center justify-center rounded-xl border border-app-accent/30 bg-app-accent/10 px-3 text-sm font-semibold text-app-accent">{{ link.page }}</span>
           {% else %}
-            <a class="inline-flex h-9 min-w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-medium text-slate-300 transition hover:bg-white/10" href="{{ link.url }}">{{ link.page }}</a>
+            <a class="inline-flex h-9 min-w-9 items-center justify-center rounded-xl border border-app-border bg-app-surface/60 px-3 text-sm font-medium text-app-text transition hover:bg-app-surface-2/70" href="{{ link.url }}">{{ link.page }}</a>
           {% endif %}
 
           {% set previous_page = link.page %}

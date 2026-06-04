@@ -138,4 +138,56 @@ final class RoleRepository
 
         return true;
     }
+
+    /**
+     * @return array{data:list<Role>,total:int,per_page:int,current_page:int,last_page:int}
+     */
+    public function paginatedRoles(
+        string $query = '',
+        int $page = 1,
+        ?int $perPage = null,
+        string $sort = 'level',
+        string $direction = 'desc',
+        string $filter = 'all'
+    ): array {
+        $perPage = max(1, (int) ($perPage ?? config('settings.lifecycle.pagination.default_per_page', config('pagination.default_per_page', 12))));
+
+        $builder = Role::newQuery()->getBaseBuilder();
+
+        $query = trim($query);
+        if ($query !== '') {
+            $like = '%' . $query . '%';
+            $builder->where(static function ($nested) use ($like): void {
+                $nested->where('name', 'like', $like)
+                    ->orWhere('slug', 'like', $like)
+                    ->orWhere('description', 'like', $like);
+            });
+        }
+
+        $filter = trim($filter);
+        if ($filter === 'system') {
+            $builder->where('is_system', '=', 1);
+        } elseif ($filter === 'custom') {
+            $builder->where('is_system', '=', 0);
+        }
+
+        $column = match (trim($sort)) {
+            'name' => 'name',
+            'slug' => 'slug',
+            'level' => 'level',
+            'users' => 'level',
+            default => 'level',
+        };
+
+        $direction = strtolower(trim($direction)) === 'asc' ? 'asc' : 'desc';
+        $builder->orderBy($column, $direction);
+
+        $pageData = $builder->paginate($perPage, $page);
+        $pageData['data'] = array_map(
+            static fn (array|object $row): Role => Role::newInstance(is_array($row) ? $row : (array) $row, true),
+            $pageData['data']
+        );
+
+        return $pageData;
+    }
 }

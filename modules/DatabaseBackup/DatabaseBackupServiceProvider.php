@@ -37,7 +37,7 @@ final class DatabaseBackupServiceProvider implements ModuleServiceProviderInterf
                 'name' => 'database-backup',
                 'label' => 'Backup & Restore',
                 'url' => '/admin/database-backups',
-                'parent' => 'admin.administration',
+                'parent' => 'admin.system',
                 'order' => 15,
                 'icon' => 'database-zap',
             ]);

@@ -3,23 +3,22 @@
 {% block title %}{{ title }} | MarwaPHP Admin{% endblock %}
 
 {% block content %}
-  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
-  {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
-  {% set button_secondary = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
+  {% include '@roles/_buttons.twig' %}
   {% set permission = permission|default(null) %}
   {% set form = form|default({}) %}
+  {% set back_url = back_url|default('/admin/permissions') %}
 
   <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
     <div class="max-w-3xl space-y-2">
-      <span class="inline-flex w-fit items-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-cyan-100">Permissions</span>
-      <h1 class="text-2xl font-black tracking-tight text-white sm:text-3xl">{{ title }}</h1>
-      <p class="max-w-2xl text-sm leading-6 text-slate-300">
+      <span class="inline-flex w-fit items-center rounded-xl border border-app-accent/20 bg-app-accent/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-app-accent">Permissions</span>
+      <h1 class="text-2xl font-black tracking-tight text-app-text sm:text-3xl">{{ title }}</h1>
+      <p class="max-w-2xl text-sm leading-6 text-app-muted">
         Permissions are reusable access rules. Updating one here changes every role that uses it.
       </p>
     </div>
 
     <div class="flex flex-wrap gap-2">
-      <a class="{{ button_secondary }}" href="/admin/permissions">Back to permissions</a>
+      <a class="{{ button_secondary }}" href="{{ back_url }}">Back to permissions</a>
     </div>
   </section>
 
@@ -27,12 +26,15 @@
     {{ csrf_field() }}
 
     <div class="grid gap-6 lg:grid-cols-2">
-      <div class="rounded-xl border border-white/10 bg-white/5 p-6">
+      <div class="rounded-[1.25rem] border border-app-border bg-app-surface/80 p-6 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
         <div class="mb-4 flex items-center justify-between gap-3">
-          <h2 class="text-lg font-semibold text-slate-100">Permission Details</h2>
+          <h2 class="text-lg font-semibold text-app-text">Permission Details</h2>
+          {% if permission is not null %}
+            <span class="inline-flex items-center rounded-full border border-app-success/20 bg-app-success/10 px-2.5 py-1 text-xs font-semibold text-app-success">Editing</span>
+          {% endif %}
         </div>
 
-        <div class="space-y-4">
+        <div class="space-y-5">
           {% include "components/form-field.twig" with {
             id: 'name',
             label: 'Name',
@@ -50,20 +52,21 @@
             error: errors.slug|default([])|first
           } only %}
 
-          <div class="grid gap-3">
-            <label class="text-[0.82rem] font-semibold text-slate-200" for="group">Group</label>
+          {% set field_class = 'w-full rounded-xl border border-app-border bg-app-surface/60 px-3 py-2 text-sm text-app-text outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/20' %}
+          <div class="grid gap-2">
+            <label class="text-[0.82rem] font-semibold text-app-text" for="group">Group</label>
             <select
               id="group"
               name="group"
-              class="admin-control w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10"
+              class="{{ field_class }}"
             >
               {% for group in groups %}
                 <option value="{{ group }}" {% if form.group|default('') == group %}selected{% endif %}>{{ group }}</option>
               {% endfor %}
             </select>
-            <p class="text-xs leading-5 text-slate-400">Permissions must use one of the existing groups.</p>
+            <p class="text-xs leading-5 text-app-muted">Permissions must use one of the existing groups.</p>
             {% if errors.group is defined and errors.group|first %}
-              <p class="text-xs text-rose-300">{{ errors.group|first }}</p>
+              <p class="text-xs text-app-danger">{{ errors.group|first }}</p>
             {% endif %}
           </div>
 
@@ -79,33 +82,30 @@
         </div>
       </div>
 
-      <div class="rounded-xl border border-white/10 bg-white/5 p-6">
+      <div class="rounded-[1.25rem] border border-app-border bg-app-surface/80 p-6 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
         <div class="mb-4 flex items-center justify-between gap-3">
-          <h2 class="text-lg font-semibold text-slate-100">Permission Summary</h2>
-          {% if permission is not null %}
-            <span class="inline-flex items-center rounded-full bg-emerald-400/10 px-2 py-0.5 text-xs font-medium text-emerald-200">Editing</span>
-          {% endif %}
+          <h2 class="text-lg font-semibold text-app-text">Permission Summary</h2>
         </div>
 
-        <div class="space-y-3 rounded-2xl border border-white/5 bg-white/[0.03] p-4 text-sm text-slate-300">
+        <div class="space-y-3 rounded-2xl border border-app-border bg-app-surface-2/40 p-4 text-sm text-app-text">
           <div class="flex items-center justify-between gap-4">
-            <span class="text-slate-500">Name</span>
-            <span class="font-semibold text-slate-100">{{ form.name|default('') ?: 'Untitled permission' }}</span>
+            <span class="text-app-muted">Name</span>
+            <span class="font-semibold">{{ form.name|default('') ?: 'Untitled permission' }}</span>
           </div>
           <div class="flex items-center justify-between gap-4">
-            <span class="text-slate-500">Slug</span>
-            <span class="font-semibold text-slate-100">{{ form.slug|default('') ?: 'custom.permission' }}</span>
+            <span class="text-app-muted">Slug</span>
+            <span class="font-semibold">{{ form.slug|default('') ?: 'custom.permission' }}</span>
           </div>
           <div class="flex items-center justify-between gap-4">
-            <span class="text-slate-500">Group</span>
-            <span class="font-semibold text-slate-100">{{ form.group|default('') ?: 'custom' }}</span>
+            <span class="text-app-muted">Group</span>
+            <span class="font-semibold">{{ form.group|default('') ?: 'custom' }}</span>
           </div>
         </div>
       </div>
     </div>
 
     <div class="mt-6 flex justify-end gap-3">
-      <a href="/admin/permissions" class="{{ button_secondary }}">Cancel</a>
+      <a href="{{ back_url }}" class="{{ button_secondary }}">Cancel</a>
       <button type="submit" class="{{ button_primary }}">{{ submit_label }}</button>
     </div>
   </form>
