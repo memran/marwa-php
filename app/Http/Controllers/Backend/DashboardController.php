@@ -241,7 +241,7 @@ final class DashboardController extends Controller
         }
 
         try {
-            $view = app()->make(View::class);
+            $view = app()->view();
 
             $data = [];
             

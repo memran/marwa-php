@@ -6,6 +6,9 @@ namespace App\Modules\Settings\Support;
 
 final class SettingsCatalog
 {
+    private const THEME_TYPE_FRONT = 'front';
+    private const THEME_TYPE_ADMIN = 'admin';
+
     /**
      * @return array<string, array{
      *     label:string,
@@ -63,8 +66,8 @@ final class SettingsCatalog
                 'label' => 'Interface',
                 'description' => 'Visual and layout defaults shared across starter UIs.',
                 'fields' => [
-                    'theme' => ['label' => 'Frontend theme', 'input' => 'text', 'type' => 'string', 'default' => (string) env('FRONTEND_THEME', 'default')],
-                    'admin_theme' => ['label' => 'Admin theme', 'input' => 'text', 'type' => 'string', 'default' => (string) env('ADMIN_THEME', 'admin')],
+                    'theme' => ['label' => 'Frontend theme', 'input' => 'select', 'type' => 'string', 'default' => (string) env('FRONTEND_THEME', 'default'), 'options' => $this->themeOptions(self::THEME_TYPE_FRONT)],
+                    'admin_theme' => ['label' => 'Admin theme', 'input' => 'select', 'type' => 'string', 'default' => (string) env('ADMIN_THEME', 'admin'), 'options' => $this->themeOptions(self::THEME_TYPE_ADMIN)],
                     'logo_url' => [
                         'label' => 'Logo upload',
                         'input' => 'file',
@@ -150,6 +153,100 @@ final class SettingsCatalog
         }
 
         return $options;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function themeOptions(string $expectedType): array
+    {
+        $options = [];
+        $themesPath = $this->themePath();
+
+        if (!is_dir($themesPath)) {
+            return [
+                'default' => 'default',
+                'admin' => 'admin',
+            ];
+        }
+
+        foreach (scandir($themesPath) ?: [] as $entry) {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+
+            $themeDir = $themesPath . DIRECTORY_SEPARATOR . $entry;
+            if (!is_dir($themeDir)) {
+                continue;
+            }
+
+            $manifest = $this->readThemeManifest($themeDir);
+            if ($manifest === null) {
+                continue;
+            }
+
+            $type = strtolower(trim((string) ($manifest['type'] ?? '')));
+            if ($type !== $expectedType) {
+                continue;
+            }
+
+            $name = trim((string) ($manifest['name'] ?? $entry));
+            if ($name === '') {
+                continue;
+            }
+
+            $options[$entry] = $name;
+        }
+
+        if ($options === []) {
+            return $expectedType === self::THEME_TYPE_FRONT
+                ? ['default' => 'default']
+                : ['admin' => 'admin'];
+        }
+
+        ksort($options);
+
+        return $options;
+    }
+
+    private function themePath(): string
+    {
+        try {
+            $configuredPath = config('view.themePath');
+
+            if (is_string($configuredPath) && trim($configuredPath) !== '') {
+                return rtrim($configuredPath, DIRECTORY_SEPARATOR);
+            }
+        } catch (\Throwable) {
+        }
+
+        return dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'themes';
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function readThemeManifest(string $themeDir): ?array
+    {
+        $phpManifest = $themeDir . DIRECTORY_SEPARATOR . 'manifest.php';
+        if (is_file($phpManifest)) {
+            $manifest = require $phpManifest;
+
+            return is_array($manifest) ? $manifest : null;
+        }
+
+        $jsonManifest = $themeDir . DIRECTORY_SEPARATOR . 'manifest.json';
+        if (!is_file($jsonManifest)) {
+            return null;
+        }
+
+        try {
+            $manifest = json_decode((string) file_get_contents($jsonManifest), true, 512, JSON_THROW_ON_ERROR);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return is_array($manifest) ? $manifest : null;
     }
 
     /**

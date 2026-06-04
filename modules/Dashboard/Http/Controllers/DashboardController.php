@@ -246,7 +246,7 @@ final class DashboardController extends Controller
         }
 
         try {
-            $view = app()->make(View::class);
+            $view = app()->view();
             $namespace = (string) ($widget['namespace'] ?? 'dashboard');
             $viewName = (string) ($widget['view'] ?? ('widgets/' . $id));
             $card = $this->widgetCard($id) ?? ($widget['card'] ?? []);

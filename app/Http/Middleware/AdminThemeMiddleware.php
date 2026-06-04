@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Auth\Support\RolePolicy;
+use App\Support\AdminThemeResolver;
 use App\Support\PermissionGate;
 use Marwa\Framework\Views\View;
 use App\Modules\Users\Models\User;
@@ -43,7 +44,9 @@ final class AdminThemeMiddleware implements MiddlewareInterface
         /** @var View $view */
         $view = app(View::class);
         $previousTheme = $view->theme();
-        $adminTheme = trim((string) config('settings.lifecycle.theme.admin', config('view.adminTheme', 'admin'))) ?: 'admin';
+        $adminTheme = app(AdminThemeResolver::class)->resolve(
+            (string) config('settings.lifecycle.theme.admin', config('view.adminTheme', 'admin'))
+        );
 
         $view->theme($adminTheme);
         $currentPath = $request->getUri()->getPath();

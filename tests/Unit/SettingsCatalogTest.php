@@ -29,6 +29,20 @@ final class SettingsCatalogTest extends TestCase
         self::assertArrayHasKey('UTC', $timezoneField['options']);
     }
 
+    public function testInterfaceThemesAreSplitByThemeType(): void
+    {
+        $catalog = new SettingsCatalog();
+        $interfaceFields = $catalog->categories()['ui']['fields'];
+
+        self::assertSame('select', $interfaceFields['theme']['input']);
+        self::assertSame('select', $interfaceFields['admin_theme']['input']);
+        self::assertSame(['default' => 'default'], $interfaceFields['theme']['options']);
+        self::assertArrayHasKey('admin', $interfaceFields['admin_theme']['options']);
+        self::assertArrayHasKey('executive', $interfaceFields['admin_theme']['options']);
+        self::assertSame('admin', $interfaceFields['admin_theme']['options']['admin']);
+        self::assertSame('Executive', $interfaceFields['admin_theme']['options']['executive']);
+    }
+
     public function testNormalizeSubmissionCoercesTypesAndRetainsSensitiveValues(): void
     {
         $catalog = new SettingsCatalog();
@@ -64,6 +78,7 @@ final class SettingsCatalogTest extends TestCase
             ],
             'ui' => [
                 'theme' => 'default',
+                'admin_theme' => 'admin',
                 'logo_url' => 'https://example.test/logo.svg',
             ],
             'cache' => [

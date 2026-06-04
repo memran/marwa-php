@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 return [
-    'name' => 'admin',
+    'name' => 'Executive',
     'type' => 'admin',
-    'parent' => 'default',
-    'assets_url' => '/themes/admin',
+    'parent' => 'admin',
+    'assets_url' => '/themes/executive',
     'views_path' => 'views',
 ];
