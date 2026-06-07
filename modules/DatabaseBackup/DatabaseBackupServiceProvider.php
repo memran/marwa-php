@@ -7,7 +7,6 @@ namespace App\Modules\DatabaseBackup;
 use App\Modules\DatabaseBackup\Support\BackupSettingsRepository;
 use App\Modules\DatabaseBackup\Support\DatabaseBackupService;
 use League\Container\Container;
-use Marwa\Framework\Navigation\MenuRegistry;
 use Marwa\Framework\Scheduling\Task;
 use Marwa\Framework\Supports\Runtime;
 use Marwa\Framework\Views\View;
@@ -31,17 +30,6 @@ final class DatabaseBackupServiceProvider implements ModuleServiceProviderInterf
                 $this->container->get(BackupSettingsRepository::class)
             );
         });
-
-        if ($app->has(MenuRegistry::class)) {
-            $app->make(MenuRegistry::class)->add([
-                'name' => 'database-backup',
-                'label' => 'Backup & Restore',
-                'url' => '/admin/database-backups',
-                'parent' => 'admin.system',
-                'order' => 15,
-                'icon' => 'database-zap',
-            ]);
-        }
     }
 
     public function boot($app): void

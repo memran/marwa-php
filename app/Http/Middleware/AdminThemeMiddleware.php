@@ -22,14 +22,14 @@ final class AdminThemeMiddleware implements MiddlewareInterface
         ['name' => 'admin.overview', 'label' => 'Overview', 'order' => 10],
         ['name' => 'admin.identity-access', 'label' => 'Identity & Access', 'order' => 20],
         ['name' => 'admin.administration', 'label' => 'Administration', 'order' => 30],
-        ['name' => 'admin.system-logs', 'label' => 'Systems Logs', 'order' => 40],
+        ['name' => 'admin.system-logs', 'label' => 'Notifications', 'order' => 40],
     ];
 
     private const SECTION_SLUG_MAP = [
         'Overview' => 'admin.overview',
         'Identity & Access' => 'admin.identity-access',
         'Administration' => 'admin.administration',
-        'Systems Logs' => 'admin.system-logs',
+        'Notifications' => 'admin.system-logs',
     ];
 
     private const SECTION_ICONS = [

@@ -26,8 +26,8 @@ return [
         'database/migrations/2026_04_14_000003_insert_notifications_permissions.php',
     ],
     'menu' => [
-        'section' => 'Systems Logs',
-        'label' => 'Systems Logs',
+        'section' => 'Notifications',
+        'label' => 'Notifications',
         'route' => '/admin/notifications',
         'icon' => 'bell',
         'order' => 10,

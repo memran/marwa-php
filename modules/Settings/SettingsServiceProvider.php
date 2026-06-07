@@ -10,7 +10,6 @@ use App\Modules\Settings\Support\SettingsRepository;
 use App\Modules\Settings\Support\SettingsStore;
 use App\Support\ModuleDatabaseDependency;
 use League\Container\Container;
-use Marwa\Framework\Navigation\MenuRegistry;
 use Marwa\Module\Contracts\ModuleServiceProviderInterface;
 
 final class SettingsServiceProvider implements ModuleServiceProviderInterface
@@ -35,18 +34,6 @@ final class SettingsServiceProvider implements ModuleServiceProviderInterface
             $this->container->get(SettingsRepository::class),
             $this->container->get(SettingsApplier::class)
         ));
-
-        if ($app->has(MenuRegistry::class)) {
-            $app->make(MenuRegistry::class)->add([
-                'name' => 'settings',
-                'label' => 'Settings',
-                'url' => '/admin/settings',
-                'parent' => 'admin.administration',
-                'order' => 10,
-                'icon' => 'settings',
-                'permission' => 'settings.view',
-            ]);
-        }
     }
 
     public function boot($app): void

@@ -6,7 +6,6 @@ namespace App\Modules\BackgroundJobs;
 
 use App\Modules\BackgroundJobs\Support\BackgroundJobRepository;
 use League\Container\Container;
-use Marwa\Framework\Navigation\MenuRegistry;
 use Marwa\Framework\Supports\Runtime;
 use Marwa\Framework\Scheduling\Task;
 use Marwa\Framework\Views\View;
@@ -26,18 +25,6 @@ final class BackgroundJobsServiceProvider implements ModuleServiceProviderInterf
         $this->container->addShared(BackgroundJobRepository::class, function () use ($app) {
             return new BackgroundJobRepository($app);
         });
-
-        if ($app->has(MenuRegistry::class)) {
-            $app->make(MenuRegistry::class)->add([
-                'name' => 'background-jobs',
-                'label' => 'Background Jobs',
-                'url' => '/admin/background-jobs',
-                'parent' => 'admin.administration',
-                'order' => 20,
-                'icon' => 'clock-3',
-                'permission' => 'background_jobs.view',
-            ]);
-        }
     }
 
     public function boot($app): void
