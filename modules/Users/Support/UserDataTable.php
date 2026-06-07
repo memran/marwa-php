@@ -277,12 +277,16 @@ final class UserDataTable implements DataTableConfigInterface, DataTableOptionsI
 
     public function bulkDeletePath(): ?string
     {
-        return '/admin/users/bulk-delete';
+        $path = config('users.bulk_delete_path', '/admin/users/bulk-delete');
+
+        return is_string($path) && trim($path) !== '' ? $path : null;
     }
 
     public function bulkStatusPath(): ?string
     {
-        return '/admin/users/bulk-status';
+        $path = config('users.bulk_status_path', '/admin/users/bulk-status');
+
+        return is_string($path) && trim($path) !== '' ? $path : null;
     }
 
     public function emptyState(): array
@@ -304,6 +308,9 @@ final class UserDataTable implements DataTableConfigInterface, DataTableOptionsI
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function statusCell(User $user, bool $isProtected): array
     {
         if ($this->rowIsTrashed($user)) {

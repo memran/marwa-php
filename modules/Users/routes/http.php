@@ -6,9 +6,15 @@ use App\Http\Middleware\AdminThemeMiddleware;
 use App\Modules\Auth\Http\Middleware\RequireAdminAuthentication;
 use App\Modules\Auth\Http\Middleware\RequirePermission;
 use App\Modules\Users\Http\Controllers\ProfileController;
-use App\Modules\Users\Http\Controllers\UsersController;
+use App\Modules\Users\Http\Controllers\UserCreateController;
+use App\Modules\Users\Http\Controllers\UserDeleteController;
+use App\Modules\Users\Http\Controllers\UserEditController;
 use App\Modules\Users\Http\Controllers\UserExportController;
 use App\Modules\Users\Http\Controllers\UserBulkActionController;
+use App\Modules\Users\Http\Controllers\UserIndexController;
+use App\Modules\Users\Http\Controllers\UserShowController;
+use App\Modules\Users\Http\Controllers\UserStoreController;
+use App\Modules\Users\Http\Controllers\UserUpdateController;
 use Marwa\Framework\Facades\Router;
 
 Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class]], static function ($routes): void {
@@ -20,12 +26,12 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
         ->name('admin.users.profile.password')
         ->register();
 
-    $routes->get('/users', [UsersController::class, 'index'])
+    $routes->get('/users', [UserIndexController::class, 'index'])
         ->middleware(new RequirePermission('users.view'))
         ->name('admin.users.index')
         ->register();
 
-    $routes->get('/users/create', [UsersController::class, 'create'])
+    $routes->get('/users/create', [UserCreateController::class, 'create'])
         ->middleware(new RequirePermission('users.create'))
         ->name('admin.users.create')
         ->register();
@@ -40,7 +46,7 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
         ->name('admin.users.export.pdf')
         ->register();
 
-    $routes->post('/users', [UsersController::class, 'store'])
+    $routes->post('/users', [UserStoreController::class, 'store'])
         ->middleware(new RequirePermission('users.create'))
         ->name('admin.users.store')
         ->register();
@@ -55,22 +61,22 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
         ->name('admin.users.bulk.status')
         ->register();
 
-    $routes->get('/users/{id}', [UsersController::class, 'show'])
+    $routes->get('/users/{id}', [UserShowController::class, 'show'])
         ->middleware(new RequirePermission('users.view'))
         ->name('admin.users.show')
         ->register();
 
-    $routes->get('/users/{id}/edit', [UsersController::class, 'edit'])
+    $routes->get('/users/{id}/edit', [UserEditController::class, 'edit'])
         ->middleware(new RequirePermission('users.edit'))
         ->name('admin.users.edit')
         ->register();
 
-    $routes->post('/users/{id}', [UsersController::class, 'update'])
+    $routes->post('/users/{id}', [UserUpdateController::class, 'update'])
         ->middleware(new RequirePermission('users.edit'))
         ->name('admin.users.update')
         ->register();
 
-    $routes->post('/users/{id}/delete', [UsersController::class, 'destroy'])
+    $routes->post('/users/{id}/delete', [UserDeleteController::class, 'destroy'])
         ->middleware(new RequirePermission('users.delete'))
         ->name('admin.users.destroy')
         ->register();

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Users\Http\Controllers;
 
-use App\Modules\Activity\Models\Activity;
+use App\Modules\Activity\Support\ActivityTimeline;
+use App\Modules\Auth\Contracts\AdminAuthenticatableInterface;
 use App\Modules\Auth\Support\AuthManager;
-use App\Modules\Users\Models\User;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -15,21 +15,25 @@ final class ProfileController extends Controller
 {
     public function __construct(
         private readonly AuthManager $auth,
+        private readonly ActivityTimeline $activities,
     ) {}
 
     public function show(ServerRequestInterface $request): ResponseInterface
     {
         $user = $this->auth->user();
 
-        if ($user === null) {
+        if (!$user instanceof AdminAuthenticatableInterface) {
             return $this->redirect('/admin/login');
         }
 
         $queryParams = $request->getQueryParams();
         $activityPage = max(1, (int) ($queryParams['activity_page'] ?? 1));
-        $activityPageData = $this->activityPageData(
+        $activity = $this->activities->actorEmail(
             (string) $user->getAttribute('email'),
-            $activityPage
+            '/admin/profile',
+            $activityPage,
+            5,
+            ['tab' => 'activity']
         );
 
         return $this->view('@users/profile', [
@@ -37,16 +41,9 @@ final class ProfileController extends Controller
             'errors' => $this->session('errors', []),
             'old' => $this->session('_old_input', []),
             'default_tab' => (($queryParams['tab'] ?? '') === 'activity' || $activityPage > 1) ? 'activity' : 'overview',
-            'activities' => $activityPageData['data'],
-            'activity_total' => $activityPageData['pagination']['total'],
-            'activity_pagination' => pagination_view_data(
-                $activityPageData['pagination'],
-                '/admin/profile',
-                [
-                    'tab' => 'activity',
-                ],
-                'activity_page'
-            ),
+            'activities' => $activity['data'],
+            'activity_total' => $activity['total'],
+            'activity_pagination' => $activity['pagination'],
         ]);
     }
 
@@ -54,7 +51,7 @@ final class ProfileController extends Controller
     {
         $user = $this->auth->user();
 
-        if ($user === null) {
+        if (!$user instanceof AdminAuthenticatableInterface) {
             return $this->redirect('/admin/login');
         }
 
@@ -91,49 +88,11 @@ final class ProfileController extends Controller
             return $this->redirect('/admin/profile');
         }
 
-        $user->setAttribute('password', password_hash($newPassword, PASSWORD_DEFAULT));
-        $user->saveOrFail();
+        $user->updatePasswordHash(password_hash($newPassword, PASSWORD_DEFAULT));
 
         $this->flash('users.notice', 'Password updated successfully.');
 
         return $this->redirect('/admin/profile');
     }
 
-    /**
-     * @return array{data:list<Activity>,pagination:array{total:int,per_page:int,current_page:int,last_page:int}}
-     */
-    private function activityPageData(string $email, int $page, int $perPage = 5): array
-    {
-        $page = max(1, $page);
-        $perPage = max(1, $perPage);
-
-        try {
-            $activity = new Activity();
-            $query = Activity::query();
-            $builder = $query->getBaseBuilder();
-
-            $activity->scopeActorEmail($builder, $email);
-            $activity->scopeSort($builder, 'created_at', 'desc');
-
-            $pageData = $query->paginate($perPage, $page);
-        } catch (\Throwable) {
-            $pageData = [
-                'data' => [],
-                'total' => 0,
-                'per_page' => $perPage,
-                'current_page' => $page,
-                'last_page' => 1,
-            ];
-        }
-
-        return [
-            'data' => $pageData['data'],
-            'pagination' => [
-                'total' => (int) $pageData['total'],
-                'per_page' => (int) $pageData['per_page'],
-                'current_page' => (int) $pageData['current_page'],
-                'last_page' => (int) $pageData['last_page'],
-            ],
-        ];
-    }
 }

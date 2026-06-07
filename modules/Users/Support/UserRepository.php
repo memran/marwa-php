@@ -152,23 +152,33 @@ final class UserRepository
         return Role::query()->orderBy('name', 'asc')->get();
     }
 
-    /**
-     * @return QueryBuilder<User>
-     */
     private function query(
         string $query = '',
         string $sort = 'created_at',
         string $direction = 'desc',
         UserStatus $status = UserStatus::All
     ): QueryBuilder {
+        $user = new User();
         $builder = User::query()
-            ->with('roleRelation')
-            ->search($query)
-            ->sort($sort, $direction);
+            ->with('roleRelation');
+        $baseBuilder = $builder->getBaseBuilder();
+
+        $user->scopeSearch($baseBuilder, $query);
+        $user->scopeSort($baseBuilder, $sort, $direction);
+
+        if ($status === UserStatus::Active) {
+            $user->scopeActive($baseBuilder);
+
+            return $builder;
+        }
+
+        if ($status === UserStatus::Disabled) {
+            $user->scopeDisabled($baseBuilder);
+
+            return $builder;
+        }
 
         return match ($status) {
-            UserStatus::Active => $builder->active(),
-            UserStatus::Disabled => $builder->disabled(),
             UserStatus::Trashed => $builder->onlyTrashed(),
             default => $builder,
         };
