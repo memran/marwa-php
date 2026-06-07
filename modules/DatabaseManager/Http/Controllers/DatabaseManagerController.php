@@ -86,15 +86,12 @@ final class DatabaseManagerController extends Controller
      */
     private function viewData(string $query, ?array $result, ?string $error = null): array
     {
-        /** @var \App\Support\Pagination $pagination */
-        $pagination = app(\App\Support\Pagination::class);
-
         return [
             'query' => $query,
             'result' => $result,
             'error' => $error,
             'pagination' => $result !== null && ($result['is_result_set'] ?? false)
-                ? $pagination->viewData([
+                ? pagination_view_data([
                     'total' => (int) ($result['total_rows'] ?? 0),
                     'per_page' => (int) ($result['per_page'] ?? config('settings.lifecycle.pagination.default_per_page', 25)),
                     'current_page' => (int) ($result['current_page'] ?? 1),

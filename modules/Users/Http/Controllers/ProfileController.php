@@ -7,7 +7,6 @@ namespace App\Modules\Users\Http\Controllers;
 use App\Modules\Activity\Models\Activity;
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Users\Models\User;
-use App\Support\Pagination;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -16,7 +15,6 @@ final class ProfileController extends Controller
 {
     public function __construct(
         private readonly AuthManager $auth,
-        private readonly Pagination $pagination,
     ) {}
 
     public function show(ServerRequestInterface $request): ResponseInterface
@@ -38,7 +36,7 @@ final class ProfileController extends Controller
             'default_tab' => (($queryParams['tab'] ?? '') === 'activity' || $activityPage > 1) ? 'activity' : 'overview',
             'activities' => $activityPageData['data'],
             'activity_total' => $activityPageData['pagination']['total'],
-            'activity_pagination' => $this->pagination->viewData(
+            'activity_pagination' => pagination_view_data(
                 $activityPageData['pagination'],
                 '/admin/profile',
                 [

@@ -45,3 +45,20 @@ function is_mobile_request(): bool
 
     return false;
 }
+
+if (!function_exists('pagination_view_data')) {
+    /**
+     * Build standard pagination summary and links for admin lists.
+     *
+     * @param array{total:int,per_page:int,current_page:int,last_page:int} $pagination
+     * @param array<string, scalar|list<string>|null> $params
+     * @return array{
+     *     summary:string,
+     *     links:list<array{page:int,url:string,active:bool}>
+     * }
+     */
+    function pagination_view_data(array $pagination, string $path, array $params = [], string $pageParam = 'page'): array
+    {
+        return (new \App\Support\Pagination())->viewData($pagination, $path, $params, $pageParam);
+    }
+}

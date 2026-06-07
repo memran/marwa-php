@@ -10,7 +10,6 @@ use App\Modules\Roles\Support\RoleDataTable;
 use App\Modules\Roles\Support\RoleFormData;
 use App\Support\AdminListState;
 use App\Support\DataTable\DataTableView;
-use App\Support\Pagination;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -24,7 +23,6 @@ final class RolesController extends Controller
         private readonly RoleActivityLogger $activity,
         private readonly AdminListState $listState,
         private readonly DataTableView $dataTable,
-        private readonly Pagination $pagination,
     ) {}
 
     public function index(): ResponseInterface
@@ -41,7 +39,7 @@ final class RolesController extends Controller
             $state['filter']
         );
 
-        $pagination = $this->pagination->viewData(
+        $pagination = pagination_view_data(
             $pageData,
             '/admin/roles',
             $this->paginationParams(

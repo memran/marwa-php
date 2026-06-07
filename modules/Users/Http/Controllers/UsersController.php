@@ -12,7 +12,6 @@ use App\Modules\Users\Support\UserRepository;
 use App\Modules\Users\Support\UserStatus;
 use App\Support\AdminListState;
 use App\Support\DataTable\DataTableView;
-use App\Support\Pagination;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -25,7 +24,6 @@ final class UsersController extends Controller
         private readonly AdminListState $listState,
         private readonly UserDataTable $userTable,
         private readonly DataTableView $dataTable,
-        private readonly Pagination $pagination,
     ) {}
 
     public function index(): ResponseInterface
@@ -43,7 +41,7 @@ final class UsersController extends Controller
             $status
         );
 
-        $pagination = $this->pagination->viewData(
+        $pagination = pagination_view_data(
             $pageData,
             '/admin/users',
             $this->paginationParams(
@@ -112,7 +110,7 @@ final class UsersController extends Controller
             'default_tab' => (($queryParams['tab'] ?? '') === 'activity' || $activityPage > 1) ? 'activity' : 'overview',
             'activities' => $activityPageData['data'],
             'activity_total' => $activityPageData['pagination']['total'],
-            'activity_pagination' => $this->pagination->viewData(
+            'activity_pagination' => pagination_view_data(
                 $activityPageData['pagination'],
                 '/admin/users/' . $user->getKey(),
                 ['tab' => 'activity'],
