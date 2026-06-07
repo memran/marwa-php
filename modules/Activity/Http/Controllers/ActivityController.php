@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Activity\Http\Controllers;
 
-use App\Modules\Activity\Support\ActivityRecorder;
+use App\Modules\Activity\Models\Activity;
 use App\Support\AdminListState;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
@@ -13,19 +13,30 @@ final class ActivityController extends Controller
 {
     public function index(): ResponseInterface
     {
-        /** @var ActivityRecorder $recorder */
-        $recorder = app(ActivityRecorder::class);
         /** @var AdminListState $listState */
         $listState = app(AdminListState::class);
         $state = $listState->state();
-        $activities = $recorder->paginated(
-            $state['query'],
-            $state['page'],
-            null,
-            $state['filter'],
-            $state['sort'],
-            $state['direction']
-        );
+        $perPage = (int) config('settings.lifecycle.pagination.default_per_page', config('pagination.default_per_page', 20));
+
+        try {
+            $activity = new Activity();
+            $query = Activity::query();
+            $builder = $query->getBaseBuilder();
+
+            $activity->scopeSearch($builder, $state['query']);
+            $activity->scopeFilter($builder, $state['filter']);
+            $activity->scopeSort($builder, $state['sort'], $state['direction']);
+
+            $activities = $query->paginate(max(1, $perPage), $state['page']);
+        } catch (\Throwable) {
+            $activities = [
+                'data' => [],
+                'total' => 0,
+                'per_page' => max(1, $perPage),
+                'current_page' => $state['page'],
+                'last_page' => 1,
+            ];
+        }
 
         return $this->view('@user_activity/index', [
             'activities' => $activities,

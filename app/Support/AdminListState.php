@@ -33,6 +33,39 @@ final class AdminListState
     }
 
     /**
+     * @param array{query:string,filter:string,sort:string,direction:string,page:int} $state
+     * @return array{q:string,filter:string,sort:string,direction:string,page:int,columns:mixed}
+     */
+    public function requestParams(array $state, mixed $columns = null): array
+    {
+        return [
+            'q' => $state['query'],
+            'filter' => $state['filter'],
+            'sort' => $state['sort'],
+            'direction' => $state['direction'],
+            'page' => $state['page'],
+            'columns' => $columns,
+        ];
+    }
+
+    /**
+     * @param array{query:string,filter:string,sort:string,direction:string,page:int} $state
+     * @param mixed $columns
+     * @param list<string> $visibleColumns
+     * @return array{
+     *     request:array{q:string,filter:string,sort:string,direction:string,page:int,columns:mixed},
+     *     pagination:array<string, scalar|list<string>|null>
+     * }
+     */
+    public function tableParams(array $state, mixed $columns = null, array $visibleColumns = []): array
+    {
+        return [
+            'request' => $this->requestParams($state, $columns),
+            'pagination' => $this->paginationParams($state, ['columns' => $visibleColumns]),
+        ];
+    }
+
+    /**
      * @param array<string, mixed> $params
      * @return array{query:string,filter:string,sort:string,direction:string,page:int}
      */
@@ -58,8 +91,8 @@ final class AdminListState
 
     /**
      * @param array{query:string,filter:string,sort:string,direction:string,page:int} $state
-     * @param array<string, scalar|null> $extra
-     * @return array<string, scalar|null>
+     * @param array<string, scalar|list<string>|null> $extra
+     * @return array<string, scalar|list<string>|null>
      */
     public function paginationParams(array $state, array $extra = []): array
     {

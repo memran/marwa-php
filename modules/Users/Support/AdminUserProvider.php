@@ -70,7 +70,7 @@ final class AdminUserProvider implements AdminUserProviderInterface
     private function adminRoleId(): ?int
     {
         try {
-            $role = Role::findBySlug(RolePolicy::ROLE_ADMIN);
+            $role = Role::findBy('slug', RolePolicy::ROLE_ADMIN);
         } catch (\Throwable) {
             return null;
         }

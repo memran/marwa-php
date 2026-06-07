@@ -33,7 +33,7 @@ final class PermissionMigrationHelper
             $perm['created_at'] = date('Y-m-d H:i:s');
             $perm['updated_at'] = date('Y-m-d H:i:s');
 
-            $permission = Permission::findBySlug($perm['slug']) ?? Permission::create($perm);
+            $permission = Permission::findBy('slug', $perm['slug']) ?? Permission::create($perm);
             $permissionId = (int) $permission->getKey();
 
             foreach ($roles as $role) {

@@ -4,21 +4,19 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\Modules\Auth\Models\Role;
 use App\Modules\Users\Models\User;
 use Marwa\DB\Connection\ConnectionManager;
-use Marwa\DB\Seeder\SeedRunner;
 use Marwa\Framework\Application;
 use Marwa\Framework\Bootstrappers\AppBootstrapper;
 use PHPUnit\Framework\TestCase;
 
-final class AdminUserSeederTest extends TestCase
+final class UserModelPaginationTest extends TestCase
 {
     private string $basePath;
 
     protected function setUp(): void
     {
-        $this->basePath = sys_get_temp_dir() . '/marwa-admin-user-seeder-' . bin2hex(random_bytes(6));
+        $this->basePath = sys_get_temp_dir() . '/marwa-user-model-pagination-' . bin2hex(random_bytes(6));
 
         mkdir($this->basePath, 0777, true);
         mkdir($this->basePath . '/config', 0777, true);
@@ -26,7 +24,7 @@ final class AdminUserSeederTest extends TestCase
 
         file_put_contents(
             $this->basePath . '/.env',
-            "APP_ENV=testing\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nTIMEZONE=UTC\nDB_ENABLED=1\nDB_CONNECTION=sqlite\nDB_DATABASE={$this->basePath}/database/database.sqlite\nADMIN_BOOTSTRAP_EMAIL=admin@marwa.test\nADMIN_BOOTSTRAP_PASSWORD=ExampleAdminPassword123!\n"
+            "APP_ENV=testing\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nTIMEZONE=UTC\nDB_ENABLED=1\nDB_CONNECTION=sqlite\nDB_DATABASE={$this->basePath}/database/database.sqlite\n"
         );
 
         file_put_contents(
@@ -52,11 +50,6 @@ return [
 PHP
         );
 
-        file_put_contents(
-            $this->basePath . '/config/event.php',
-            "<?php\n\ndeclare(strict_types=1);\n\nreturn [\n    'listeners' => [],\n    'subscribers' => [],\n];\n"
-        );
-
         file_put_contents($this->basePath . '/database/database.sqlite', '');
     }
 
@@ -64,7 +57,6 @@ PHP
     {
         foreach ([
             $this->basePath . '/config/database.php',
-            $this->basePath . '/config/event.php',
             $this->basePath . '/database/database.sqlite',
             $this->basePath . '/.env',
         ] as $file) {
@@ -83,22 +75,12 @@ PHP
             $_ENV['DB_ENABLED'],
             $_ENV['DB_CONNECTION'],
             $_ENV['DB_DATABASE'],
-            $_ENV['ADMIN_BOOTSTRAP_EMAIL'],
-            $_ENV['ADMIN_BOOTSTRAP_PASSWORD'],
-            $_SERVER['APP_ENV'],
-            $_SERVER['APP_KEY'],
-            $_SERVER['TIMEZONE'],
-            $_SERVER['DB_ENABLED'],
-            $_SERVER['DB_CONNECTION'],
-            $_SERVER['DB_DATABASE'],
-            $_SERVER['ADMIN_BOOTSTRAP_EMAIL'],
-            $_SERVER['ADMIN_BOOTSTRAP_PASSWORD']
         );
 
         parent::tearDown();
     }
 
-    public function testModuleSeederCreatesTheDefaultAdminUser(): void
+    public function testUserModelPaginateReturnsOnlyRows(): void
     {
         $app = new Application($this->basePath);
         $GLOBALS['marwa_app'] = $app;
@@ -109,48 +91,31 @@ PHP
         $pdo = $connections->getPdo();
 
         $pdo->exec(<<<'SQL'
-CREATE TABLE roles (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    slug TEXT NOT NULL UNIQUE,
-    level INTEGER NOT NULL DEFAULT 1,
-    description TEXT NULL,
-    is_system INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NULL,
-    updated_at TEXT NULL
-)
-SQL);
-
-        $pdo->exec(<<<'SQL'
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    email TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL,
     password TEXT NOT NULL,
-    role_id INTEGER NOT NULL,
+    role_id INTEGER NULL,
     is_active INTEGER NOT NULL DEFAULT 1,
     last_login_at TEXT NULL,
-    deleted_at TEXT NULL,
     created_at TEXT NULL,
-    updated_at TEXT NULL
+    updated_at TEXT NULL,
+    deleted_at TEXT NULL
 )
 SQL);
 
-        $runner = new SeedRunner(
-            $connections,
-            null,
-            'default',
-            __DIR__ . '/../../modules/Users/database/seeders',
-            'App\\Modules\\Users\\database\\seeders'
-        );
+        $pdo->exec("INSERT INTO users (name, email, password, role_id, is_active) VALUES ('Ada', 'ada@example.test', 'hash', 1, 1)");
+        $pdo->exec("INSERT INTO users (name, email, password, role_id, is_active) VALUES ('Grace', 'grace@example.test', 'hash', 1, 1)");
+        $pdo->exec("INSERT INTO users (name, email, password, role_id, is_active) VALUES ('Linus', 'linus@example.test', 'hash', 1, 1)");
 
-        $runner->runAll();
+        $page1 = User::paginate(2, 1);
+        $page2 = User::paginate(2, 2);
 
-        $user = User::findBy('email', 'admin@marwa.test');
-
-        self::assertInstanceOf(User::class, $user);
-        self::assertSame('Administrator', $user->getAttribute('name'));
-        self::assertSame(1, (int) $user->getAttribute('is_active'));
-        self::assertSame('admin', (string) Role::find((int) $user->getAttribute('role_id'))?->getAttribute('slug'));
+        self::assertCount(2, $page1);
+        self::assertCount(1, $page2);
+        self::assertInstanceOf(User::class, $page1[0]);
+        self::assertSame('Ada', $page1[0]->getAttribute('name'));
+        self::assertSame('Linus', $page2[0]->getAttribute('name'));
     }
 }

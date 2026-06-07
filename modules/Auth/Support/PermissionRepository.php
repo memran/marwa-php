@@ -92,7 +92,7 @@ final class PermissionRepository
      */
     public function getByRoleId(int $roleId): array
     {
-        $role = Role::findById($roleId);
+        $role = Role::find($roleId);
         if ($role === null) {
             return [];
         }

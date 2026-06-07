@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\BackgroundJobs\Http\Controllers;
 
+use App\Modules\Activity\Events\ActivityRecordingRequested;
 use App\Modules\BackgroundJobs\Support\BackgroundJobRepository;
-use App\Modules\Activity\Support\ActivityRecorder;
-use App\Modules\Auth\Support\AuthManager;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -49,17 +48,16 @@ final class BackgroundJobsController extends Controller
         $job = $this->repository->find($registryId);
 
         if ($job !== null) {
-            app(ActivityRecorder::class)->recordActorAction(
+            event(new ActivityRecordingRequested(
                 'background_jobs.run_now',
                 (bool) ($result['ok'] ?? false) ? 'Triggered background job.' : 'Failed to trigger background job.',
-                app(AuthManager::class)->user(),
                 'schedule_job',
                 null,
                 [
                     'registry_id' => $registryId,
                     'result' => $result,
                 ]
-            );
+            ));
         }
 
         session()->flash('background_jobs.notice', (string) ($result['message'] ?? 'Task execution finished.'));

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Backend;
 
-use App\Modules\Activity\Support\ActivityRecorder;
+use App\Modules\Activity\Models\Activity;
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\DashboardStatus\DashboardStatusCards;
 use App\Modules\Dashboard\Support\WidgetRegistry;
@@ -284,10 +284,22 @@ final class DashboardController extends Controller
      */
     private function recentActivities(): array
     {
-        if (!class_exists(ActivityRecorder::class)) {
+        if (!class_exists(Activity::class)) {
             return [];
         }
 
-        return app(ActivityRecorder::class)->recent(5);
+        try {
+            $activity = new Activity();
+            $query = Activity::query();
+
+            $activity->scopeSort($query->getBaseBuilder(), 'created_at', 'desc');
+
+            return array_values(array_filter(
+                $query->limit(5)->get(),
+                static fn (mixed $row): bool => $row instanceof Activity
+            ));
+        } catch (\Throwable) {
+            return [];
+        }
     }
 }

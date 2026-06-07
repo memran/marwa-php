@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5121df29786f23d28a84815560e80302",
+    "content-hash": "1b1bcd25b9b0f08189fe1bb11c3c64d1",
     "packages": [
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -1839,16 +1839,16 @@
         },
         {
             "name": "memran/marwa-framework",
-            "version": "v1.5.8",
+            "version": "v1.5.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/memran/marwa-framework.git",
-                "reference": "e3244715b3706dda09b0720d8c0e294e0b0bbfca"
+                "reference": "c12657a59e96c1881e7e54f06f2bf84d329a40e3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/memran/marwa-framework/zipball/e3244715b3706dda09b0720d8c0e294e0b0bbfca",
-                "reference": "e3244715b3706dda09b0720d8c0e294e0b0bbfca",
+                "url": "https://api.github.com/repos/memran/marwa-framework/zipball/c12657a59e96c1881e7e54f06f2bf84d329a40e3",
+                "reference": "c12657a59e96c1881e7e54f06f2bf84d329a40e3",
                 "shasum": ""
             },
             "require": {
@@ -1935,9 +1935,9 @@
             ],
             "support": {
                 "issues": "https://github.com/memran/marwa-framework/issues",
-                "source": "https://github.com/memran/marwa-framework/tree/v1.5.8"
+                "source": "https://github.com/memran/marwa-framework/tree/v1.5.9"
             },
-            "time": "2026-06-02T21:18:00+00:00"
+            "time": "2026-06-04T11:44:56+00:00"
         },
         {
             "name": "memran/marwa-logger",
@@ -5537,16 +5537,16 @@
         },
         {
             "name": "friendsofphp/php-cs-fixer",
-            "version": "v3.95.3",
+            "version": "v3.95.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer.git",
-                "reference": "3d681493acc0e93283481b1c63c263737df78687"
+                "reference": "3f8f68856837a77e1f1d870354eca3c8747f2f72"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHP-CS-Fixer/PHP-CS-Fixer/zipball/3d681493acc0e93283481b1c63c263737df78687",
-                "reference": "3d681493acc0e93283481b1c63c263737df78687",
+                "url": "https://api.github.com/repos/PHP-CS-Fixer/PHP-CS-Fixer/zipball/3f8f68856837a77e1f1d870354eca3c8747f2f72",
+                "reference": "3f8f68856837a77e1f1d870354eca3c8747f2f72",
                 "shasum": ""
             },
             "require": {
@@ -5630,7 +5630,7 @@
             ],
             "support": {
                 "issues": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/issues",
-                "source": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/tree/v3.95.3"
+                "source": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/tree/v3.95.4"
             },
             "funding": [
                 {
@@ -5638,7 +5638,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-05-29T20:35:26+00:00"
+            "time": "2026-06-03T18:02:44+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -5878,11 +5878,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.2.1",
+            "version": "2.2.2",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/dea9c8f2d25cc849391042b71e429c1a4bf82660",
-                "reference": "dea9c8f2d25cc849391042b71e429c1a4bf82660",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/e5cc34d491a90e79c216d824f60fe21fd4d93bd6",
+                "reference": "e5cc34d491a90e79c216d824f60fe21fd4d93bd6",
                 "shasum": ""
             },
             "require": {
@@ -5938,7 +5938,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-05-28T14:44:12+00:00"
+            "time": "2026-06-05T09:00:01+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",

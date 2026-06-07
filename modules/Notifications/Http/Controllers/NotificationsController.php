@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Notifications\Http\Controllers;
 
+use App\Modules\Activity\Events\ActivityRecordingRequested;
 use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Support\AuthManager;
-use App\Modules\Activity\Support\ActivityRecorder;
 use App\Modules\Notifications\Models\Notification;
 use App\Modules\Notifications\Support\NotificationRepository;
 use App\Modules\Notifications\Support\NotificationService;
@@ -127,10 +127,9 @@ final class NotificationsController extends Controller
         $result = $this->repository->delete($id, $user->getKey());
 
         if ($result && $notification instanceof Notification) {
-            app(ActivityRecorder::class)->recordActorAction(
+            event(new ActivityRecordingRequested(
                 'notification.deleted',
                 'Deleted notification.',
-                $user,
                 'notification',
                 (int) $notification->getKey(),
                 [
@@ -143,7 +142,7 @@ final class NotificationsController extends Controller
                         'is_read' => $notification->getAttribute('is_read'),
                     ],
                 ]
-            );
+            ));
             session()->flash('notifications.notice', 'Notification deleted successfully.');
             return $this->redirect('/admin/notifications');
         }
@@ -297,7 +296,7 @@ final class NotificationsController extends Controller
         $ids = [];
 
         foreach (['admin', 'super_admin'] as $slug) {
-            $role = Role::findBySlug($slug);
+            $role = Role::findBy('slug', $slug);
 
             if ($role !== null) {
                 $ids[] = (int) $role->getKey();

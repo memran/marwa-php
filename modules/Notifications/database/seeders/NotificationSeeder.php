@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Notifications\database\seeders;
+namespace App\Modules\Notifications\database\Seeders;
 
 use App\Modules\Auth\Models\Role;
 use App\Modules\Notifications\Models\Notification;
@@ -15,7 +15,7 @@ final class NotificationSeeder implements Seeder
     {
         $adminRoleIds = [];
         foreach (['admin', 'super_admin'] as $slug) {
-            $role = Role::findBySlug($slug);
+            $role = Role::findBy('slug', $slug);
 
             if ($role !== null) {
                 $adminRoleIds[] = (int) $role->getKey();

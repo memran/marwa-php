@@ -28,7 +28,11 @@ final class RolesController extends Controller
     public function index(): ResponseInterface
     {
         $state = $this->listState->state();
-        $requestParams = $this->requestParams($state, request('columns', null));
+        $tableParams = $this->listState->tableParams(
+            $state,
+            request('columns', null),
+            $this->dataTable->normalizeVisibleColumns($this->roleTable, request('columns', null))
+        );
 
         $pageData = $this->roles->paginatedRoles(
             $state['query'],
@@ -42,16 +46,13 @@ final class RolesController extends Controller
         $pagination = pagination_view_data(
             $pageData,
             '/admin/roles',
-            $this->paginationParams(
-                $state,
-                $this->dataTable->normalizeVisibleColumns($this->roleTable, $requestParams['columns'] ?? null)
-            )
+            $tableParams['pagination']
         );
 
         $notice = $this->consumeFlash('roles.notice');
 
         return $this->view('@roles/index', [
-            'table' => $this->dataTable->build($this->roleTable, $requestParams, $pageData, $pagination),
+            'table' => $this->dataTable->build($this->roleTable, $tableParams['request'], $pageData, $pagination),
             'notice' => $notice,
         ]);
     }
@@ -179,41 +180,6 @@ final class RolesController extends Controller
         session()->flash('roles.notice', 'Role deleted successfully.');
 
         return $this->redirect('/admin/roles');
-    }
-
-    /**
-     * @param array{query:string,filter:string,sort:string,direction:string,page:int} $state
-     * @param mixed $columns
-     * @return array<string, mixed>
-     */
-    private function requestParams(array $state, mixed $columns): array
-    {
-        return [
-            'q' => $state['query'],
-            'filter' => $state['filter'],
-            'sort' => $state['sort'],
-            'direction' => $state['direction'],
-            'page' => $state['page'],
-            'columns' => $columns,
-        ];
-    }
-
-    /**
-     * @param array{query:string,filter:string,sort:string,direction:string,page:int} $state
-     * @param list<string> $visibleColumns
-     * @return array<string, scalar|list<string>|null>
-     */
-    private function paginationParams(array $state, array $visibleColumns): array
-    {
-        $params = [
-            'q' => $state['query'],
-            'filter' => $state['filter'],
-            'sort' => $state['sort'],
-            'direction' => $state['direction'],
-            'columns' => $visibleColumns,
-        ];
-
-        return array_filter($params, static fn (mixed $value): bool => $value !== '' && $value !== []);
     }
 
     private function consumeFlash(string $key): ?string

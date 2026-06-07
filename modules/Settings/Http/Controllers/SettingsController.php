@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Settings\Http\Controllers;
 
+use App\Modules\Activity\Events\ActivityRecordingRequested;
 use App\Modules\Settings\Support\SettingsCatalog;
 use App\Modules\Settings\Support\SettingsStore;
 use Marwa\Framework\Controllers\Controller;
@@ -75,14 +76,13 @@ final class SettingsController extends Controller
 
         $this->store->update($normalized['values']);
         if ($before !== $normalized['values']) {
-            app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+            event(new ActivityRecordingRequested(
                 'settings.updated',
                 'Updated settings.',
-                app(\App\Modules\Auth\Support\AuthManager::class)->user(),
                 'settings',
                 null,
                 ['before' => $before, 'after' => $normalized['values']]
-            );
+            ));
         }
         session()->flash('settings.notice', 'Settings updated successfully.');
 
@@ -189,14 +189,13 @@ final class SettingsController extends Controller
         try {
             if (app()->has(\Marwa\Framework\Contracts\CacheInterface::class)) {
                 app()->cache()->flush();
-                app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+                event(new ActivityRecordingRequested(
                     'settings.cache_cleared',
                     'Cleared settings cache.',
-                    app(\App\Modules\Auth\Support\AuthManager::class)->user(),
                     'settings',
                     null,
                     ['state' => ['cache' => 'flushed']]
-                );
+                ));
                 session()->flash('settings.notice', 'Cache cleared successfully.');
             } else {
                 session()->flash('settings.notice', 'Cache service not available.');
@@ -226,14 +225,13 @@ final class SettingsController extends Controller
             }
 
             if ($count > 0) {
-                app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+                event(new ActivityRecordingRequested(
                     'settings.logs_cleared',
                     'Cleared log files.',
-                    app(\App\Modules\Auth\Support\AuthManager::class)->user(),
                     'settings',
                     null,
                     ['state' => ['deleted_files' => $count]]
-                );
+                ));
                 session()->flash('settings.notice', "Deleted {$count} log file(s).");
             } else {
                 session()->flash('settings.notice', 'No log files to delete.');

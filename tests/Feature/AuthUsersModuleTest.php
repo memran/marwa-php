@@ -677,8 +677,8 @@ TWIG
         self::assertStringContainsString('View Users', (string) $createPage->getBody());
         self::assertStringContainsString('name="permissions[]"', (string) $createPage->getBody());
 
-        $dashboardPermission = Permission::findBySlug('dashboard.view');
-        $usersPermission = Permission::findBySlug('users.view');
+        $dashboardPermission = Permission::findBy('slug', 'dashboard.view');
+        $usersPermission = Permission::findBy('slug', 'users.view');
 
         self::assertInstanceOf(Permission::class, $dashboardPermission);
         self::assertInstanceOf(Permission::class, $usersPermission);
@@ -697,7 +697,7 @@ TWIG
         self::assertSame(302, $create->getStatusCode());
         self::assertSame('/admin/roles', $create->getHeaderLine('Location'));
 
-        $role = Role::findBySlug('support_agent');
+        $role = Role::findBy('slug', 'support_agent');
         self::assertInstanceOf(Role::class, $role);
         self::assertSame('Support Agent', $role->getAttribute('name'));
         self::assertSame(2, count($role->permissions()));
@@ -715,7 +715,7 @@ TWIG
         self::assertSame(302, $update->getStatusCode());
         self::assertSame('/admin/roles', $update->getHeaderLine('Location'));
 
-        $updatedRole = Role::findBySlug('support_agent');
+        $updatedRole = Role::findBy('slug', 'support_agent');
         self::assertInstanceOf(Role::class, $updatedRole);
         self::assertSame('Support Lead', $updatedRole->getAttribute('name'));
         self::assertSame(4, (int) $updatedRole->getAttribute('level'));
@@ -733,7 +733,7 @@ TWIG
         ]));
         self::assertSame(302, $delete->getStatusCode());
         self::assertSame('/admin/roles', $delete->getHeaderLine('Location'));
-        self::assertNull(Role::findBySlug('support_agent'));
+        self::assertNull(Role::findBy('slug', 'support_agent'));
 
         $activityPage = $kernel->handle($this->request('GET', '/admin/activity'));
         self::assertSame(200, $activityPage->getStatusCode());
@@ -787,7 +787,7 @@ TWIG
         self::assertSame(302, $create->getStatusCode());
         self::assertSame('/admin/permissions', $create->getHeaderLine('Location'));
 
-        $permission = Permission::findBySlug('reports.view');
+        $permission = Permission::findBy('slug', 'reports.view');
         self::assertInstanceOf(Permission::class, $permission);
         self::assertSame('View Reports', $permission->getAttribute('name'));
 
@@ -801,7 +801,7 @@ TWIG
         self::assertSame(302, $update->getStatusCode());
         self::assertSame('/admin/permissions', $update->getHeaderLine('Location'));
 
-        $updatedPermission = Permission::findBySlug('reports.view');
+        $updatedPermission = Permission::findBy('slug', 'reports.view');
         self::assertInstanceOf(Permission::class, $updatedPermission);
         self::assertSame('View Audit Reports', $updatedPermission->getAttribute('name'));
 
@@ -821,7 +821,7 @@ TWIG
         ]));
         self::assertSame(302, $delete->getStatusCode());
         self::assertSame('/admin/permissions', $delete->getHeaderLine('Location'));
-        self::assertNull(Permission::findBySlug('reports.view'));
+        self::assertNull(Permission::findBy('slug', 'reports.view'));
 
         $activityPage = $kernel->handle($this->request('GET', '/admin/activity'));
         self::assertSame(200, $activityPage->getStatusCode());
@@ -849,7 +849,7 @@ TWIG
         ]));
         self::assertSame(302, $login->getStatusCode());
 
-        $systemRole = Role::findBySlug('user');
+        $systemRole = Role::findBy('slug', 'user');
         self::assertInstanceOf(Role::class, $systemRole);
 
         $update = $kernel->handle($this->request('POST', '/admin/roles/' . $systemRole->getKey(), [
@@ -863,7 +863,7 @@ TWIG
 
         self::assertSame(302, $update->getStatusCode());
         self::assertSame('/admin/roles', $update->getHeaderLine('Location'));
-        self::assertSame('user', Role::findBySlug('user')?->getAttribute('slug'));
+        self::assertSame('user', Role::findBy('slug', 'user')?->getAttribute('slug'));
 
         $this->connections = null;
         $this->app = null;
@@ -878,7 +878,7 @@ TWIG
         $this->auth()->logout();
         $kernel = $this->app->make(HttpKernel::class);
 
-        $userRole = Role::findBySlug('user');
+        $userRole = Role::findBy('slug', 'user');
         self::assertInstanceOf(Role::class, $userRole);
 
         $user = User::create([
@@ -915,8 +915,8 @@ TWIG
         $this->auth()->logout();
         $kernel = $this->app->make(HttpKernel::class);
 
-        $dashboardPermission = Permission::findBySlug('dashboard.view');
-        $activityPermission = Permission::findBySlug('activity.view');
+        $dashboardPermission = Permission::findBy('slug', 'dashboard.view');
+        $activityPermission = Permission::findBy('slug', 'activity.view');
 
         self::assertInstanceOf(Permission::class, $dashboardPermission);
         self::assertInstanceOf(Permission::class, $activityPermission);
@@ -1026,7 +1026,7 @@ TWIG
         $this->auth()->logout();
         $kernel = $this->app->make(HttpKernel::class);
 
-        $notificationPermission = Permission::findBySlug('notifications.view');
+        $notificationPermission = Permission::findBy('slug', 'notifications.view');
         self::assertInstanceOf(Permission::class, $notificationPermission);
 
         $role = Role::create([
@@ -1111,7 +1111,7 @@ TWIG
         self::assertSame(302, $login->getStatusCode());
         self::assertTrue($this->auth()->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
 
-        $usersPermission = Permission::findBySlug('users.view');
+        $usersPermission = Permission::findBy('slug', 'users.view');
         self::assertInstanceOf(Permission::class, $usersPermission);
 
         $role = Role::create([
@@ -1315,7 +1315,7 @@ TWIG
 
     private function roleId(string $slug): int
     {
-        $role = Role::findBySlug($slug);
+        $role = Role::findBy('slug', $slug);
 
         if ($role === null) {
             self::fail("Role {$slug} was not seeded.");
@@ -1354,7 +1354,7 @@ TWIG
         }
         (new AdminUserSeeder())->run();
 
-        if (Role::findBySlug('manager') === null) {
+        if (Role::findBy('slug', 'manager') === null) {
             Role::create([
                 'name' => 'Manager',
                 'slug' => 'manager',

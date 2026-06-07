@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Activity\Support;
 
+use App\Modules\Activity\Models\Activity;
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Users\Models\User;
 use Marwa\Framework\Adapters\Event\RequestHandled;
@@ -16,7 +17,6 @@ final class AdminActivityTrail
     ];
 
     public function __construct(
-        private readonly ActivityRecorder $recorder,
         private readonly AuthManager $auth,
     ) {}
 
@@ -57,14 +57,18 @@ final class AdminActivityTrail
             'request' => $this->filteredRequestData($request),
         ];
 
-        $this->recorder->recordActorAction(
-            $module . '.' . $operation,
-            $description,
-            $this->actor(),
-            $resource,
-            $subjectId,
-            $details
-        );
+        try {
+            Activity::create(ActivityPayload::actorAction(
+                $module . '.' . $operation,
+                $description,
+                $this->actor(),
+                $resource,
+                $subjectId,
+                $details
+            ));
+        } catch (\Throwable) {
+            return;
+        }
     }
 
     private function activityFlag(string $module): mixed

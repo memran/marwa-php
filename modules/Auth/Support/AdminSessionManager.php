@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Support;
 
+use App\Modules\Activity\Events\ActivityRecordingRequested;
 use App\Modules\Auth\Contracts\AdminActorInterface;
 use App\Modules\Auth\Contracts\AdminAuthenticatableInterface;
 use App\Modules\Auth\Contracts\AdminUserProviderInterface;
-use App\Modules\Activity\Support\ActivityRecorder;
 
 final class AdminSessionManager
 {
@@ -82,7 +82,6 @@ final class AdminSessionManager
                 $this->recordAuthActivity(
                     'auth.login',
                     'Signed in to the admin console.',
-                    $user,
                     [
                         'summary' => 'Signed in to the admin console.',
                         'state' => [
@@ -111,7 +110,6 @@ final class AdminSessionManager
             $this->recordAuthActivity(
                 'auth.login',
                 'Signed in to the admin console.',
-                $this->user(),
                 [
                     'summary' => 'Signed in to the admin console.',
                     'state' => [
@@ -144,8 +142,7 @@ final class AdminSessionManager
     {
         $this->recordAuthActivity(
             'auth.logout',
-            'Signed out of the admin console.',
-            $this->user()
+            'Signed out of the admin console.'
         );
 
         $session = session();
@@ -162,14 +159,14 @@ final class AdminSessionManager
     private function recordAuthActivity(
         string $action,
         string $description,
-        ?AdminActorInterface $actor = null,
         array $details = []
     ): void {
-        (new ActivityRecorder())->record($action, $description, [
-            'actor_name' => $actor?->getAttribute('name'),
-            'actor_email' => $actor?->getAttribute('email'),
-            'subject_type' => 'auth',
-            'details' => $details,
-        ]);
+        event(new ActivityRecordingRequested(
+            $action,
+            $description,
+            'auth',
+            null,
+            $details
+        ));
     }
 }

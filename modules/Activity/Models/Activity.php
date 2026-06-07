@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Activity\Models;
 
-use Marwa\Framework\Database\Model;
+use App\Models\Model;
+use App\Support\AdminSearch;
+use Marwa\DB\Query\Builder as BaseBuilder;
 
 final class Activity extends Model
 {
@@ -32,6 +34,60 @@ final class Activity extends Model
         'subject_id' => 'int',
     ];
 
+    public function scopeSearch(BaseBuilder $query, string $term): void
+    {
+        (new AdminSearch())->applyLikeFilters($query, trim($term), [
+            'action',
+            'description',
+            'actor_name',
+            'actor_email',
+            'ip_address',
+            'user_agent',
+            'subject_type',
+            'details',
+        ]);
+    }
+
+    public function scopeFilter(BaseBuilder $query, string $filter): void
+    {
+        $filter = trim($filter);
+        if ($filter === '' || $filter === 'all') {
+            return;
+        }
+
+        if ($filter === 'auth') {
+            $query->where('action', 'like', 'auth.%');
+            return;
+        }
+
+        if ($filter === 'users') {
+            $query->where('action', 'like', 'user.%');
+            return;
+        }
+
+        if ($filter === 'system') {
+            $query->where('action', 'not like', 'auth.%')
+                ->where('action', 'not like', 'user.%');
+        }
+    }
+
+    public function scopeSort(BaseBuilder $query, string $sort = 'created_at', string $direction = 'desc'): void
+    {
+        $column = match (trim($sort)) {
+            'action' => 'action',
+            'actor' => 'actor_name',
+            'actor_email' => 'actor_email',
+            default => 'created_at',
+        };
+
+        $query->orderBy($column, strtolower(trim($direction)) === 'asc' ? 'asc' : 'desc');
+    }
+
+    public function scopeActorEmail(BaseBuilder $query, string $email): void
+    {
+        $query->where('actor_email', '=', trim($email));
+    }
+
     public function readableDetails(): string
     {
         $raw = trim((string) $this->getAttribute('details'));
@@ -46,7 +102,7 @@ final class Activity extends Model
             return $raw;
         }
 
-        $summary = $this->stringValue($decoded['summary'] ?? null);
+        $summary = self::stringValue($decoded['summary'] ?? null);
         $parts = [];
 
         if (isset($decoded['changes']) && is_array($decoded['changes'])) {
@@ -97,8 +153,8 @@ final class Activity extends Model
     private function formatChange(string $label, mixed $before, mixed $after): string
     {
         $label = ucfirst(str_replace('_', ' ', trim($label)));
-        $beforeText = $this->stringValue($before);
-        $afterText = $this->stringValue($after);
+        $beforeText = self::stringValue($before);
+        $afterText = self::stringValue($after);
 
         if ($beforeText !== null && $afterText !== null) {
             return sprintf('%s: from %s to %s', $label, $beforeText, $afterText);
@@ -118,12 +174,12 @@ final class Activity extends Model
     private function formatLabelValue(string $label, mixed $value): string
     {
         $label = ucfirst(str_replace('_', ' ', trim($label)));
-        $value = $this->stringValue($value);
+        $value = self::stringValue($value);
 
         return $value !== null ? sprintf('%s: %s', $label, $value) : $label;
     }
 
-    private function stringValue(mixed $value): ?string
+    private static function stringValue(mixed $value): ?string
     {
         $value = is_scalar($value) ? trim((string) $value) : '';
 

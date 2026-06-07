@@ -203,7 +203,7 @@ SQL);
         $pdo->exec("INSERT INTO roles (name, slug, level, is_system) VALUES ('Admin', 'admin', 10, 1)");
         $pdo->exec("INSERT INTO roles (name, slug, level, is_system) VALUES ('Custom', 'custom', 2, 0)");
 
-        $custom = Role::findBySlug('custom');
+        $custom = Role::findBy('slug', 'custom');
         self::assertInstanceOf(Role::class, $custom);
 
         $dataTable = new \App\Modules\Roles\Support\RoleDataTable(
@@ -227,7 +227,7 @@ SQL);
         self::assertSame('2', $customRow['cells']['level']['value']);
         self::assertSame('muted', $customRow['cells']['kind']['tone']);
 
-        $adminRow = $dataTable->buildRow(Role::findBySlug('admin'));
+        $adminRow = $dataTable->buildRow(Role::findBy('slug', 'admin'));
         self::assertTrue($adminRow['bulk']['disabled']);
         self::assertCount(1, $adminRow['actions']);
         self::assertSame('warning', $adminRow['cells']['kind']['tone']);

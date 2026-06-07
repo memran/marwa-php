@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\DatabaseManager\Http\Controllers;
 
+use App\Modules\Activity\Events\ActivityRecordingRequested;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use App\Modules\DatabaseManager\Support\RawSqlExecutor;
@@ -63,14 +64,13 @@ final class DatabaseManagerController extends Controller
             }
 
             $preview = $executor->execute($sanitized['query'], $page);
-            app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+            event(new ActivityRecordingRequested(
                 'database.executed',
                 'Executed database query.',
-                app(\App\Modules\Auth\Support\AuthManager::class)->user() instanceof \App\Modules\Users\Models\User ? app(\App\Modules\Auth\Support\AuthManager::class)->user() : null,
                 'database',
                 null,
                 ['state' => ['page' => $page, 'query' => $sanitized['normalized']]]
-            );
+            ));
 
             session()->set('database_manager.query', $sanitized['query']);
 

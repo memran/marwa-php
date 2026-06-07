@@ -12,14 +12,14 @@ final class AdminUserSeeder implements Seeder
 {
     public function run(): void
     {
-        if (User::query()->count() > 0) {
+        if (User::query()->exists()) {
             return;
         }
 
         $email = trim((string) env('ADMIN_BOOTSTRAP_EMAIL', 'admin@marwa.test'));
         $password = (string) env('ADMIN_BOOTSTRAP_PASSWORD', 'ExampleAdminPassword123!');
 
-        $adminRole = Role::findBySlug('admin');
+        $adminRole = Role::findBy('slug', 'admin');
 
         if ($adminRole === null) {
             $adminRole = Role::create([

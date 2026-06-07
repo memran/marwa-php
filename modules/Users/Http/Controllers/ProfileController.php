@@ -27,7 +27,10 @@ final class ProfileController extends Controller
 
         $queryParams = $request->getQueryParams();
         $activityPage = max(1, (int) ($queryParams['activity_page'] ?? 1));
-        $activityPageData = $this->recentActivities($user, $activityPage);
+        $activityPageData = $this->activityPageData(
+            (string) $user->getAttribute('email'),
+            $activityPage
+        );
 
         return $this->view('@users/profile', [
             'authUser' => $user,
@@ -97,42 +100,39 @@ final class ProfileController extends Controller
     }
 
     /**
-     * @return array{
-     *     data:list<Activity>,
-     *     pagination:array{total:int,per_page:int,current_page:int,last_page:int}
-     * }
+     * @return array{data:list<Activity>,pagination:array{total:int,per_page:int,current_page:int,last_page:int}}
      */
-    private function recentActivities(User $user, int $page = 1, int $perPage = 5): array
+    private function activityPageData(string $email, int $page, int $perPage = 5): array
     {
+        $page = max(1, $page);
+        $perPage = max(1, $perPage);
+
         try {
-            $builder = Activity::newQuery()->getBaseBuilder()
-                ->where('actor_email', '=', $user->getAttribute('email'))
-                ->orderBy('created_at', 'desc')
-                ->paginate(max(1, $perPage), max(1, $page));
+            $activity = new Activity();
+            $query = Activity::query();
+            $builder = $query->getBaseBuilder();
+
+            $activity->scopeActorEmail($builder, $email);
+            $activity->scopeSort($builder, 'created_at', 'desc');
+
+            $pageData = $query->paginate($perPage, $page);
         } catch (\Throwable) {
-            return [
+            $pageData = [
                 'data' => [],
-                'pagination' => [
-                    'total' => 0,
-                    'per_page' => max(1, $perPage),
-                    'current_page' => max(1, $page),
-                    'last_page' => 1,
-                ],
+                'total' => 0,
+                'per_page' => $perPage,
+                'current_page' => $page,
+                'last_page' => 1,
             ];
         }
 
-        $rows = $builder['data'] ?? [];
-
         return [
-            'data' => array_values(array_filter(array_map(
-            static fn (array|object $row): Activity => Activity::newInstance(is_array($row) ? $row : (array) $row, true),
-            is_array($rows) ? $rows : []
-        ), static fn (Activity $activity): bool => $activity instanceof Activity)),
+            'data' => $pageData['data'],
             'pagination' => [
-                'total' => (int) ($builder['total'] ?? 0),
-                'per_page' => (int) ($builder['per_page'] ?? max(1, $perPage)),
-                'current_page' => (int) ($builder['current_page'] ?? max(1, $page)),
-                'last_page' => (int) ($builder['last_page'] ?? 1),
+                'total' => (int) $pageData['total'],
+                'per_page' => (int) $pageData['per_page'],
+                'current_page' => (int) $pageData['current_page'],
+                'last_page' => (int) $pageData['last_page'],
             ],
         ];
     }

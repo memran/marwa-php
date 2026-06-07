@@ -6,11 +6,11 @@ namespace App\Modules\Users\Models;
 
 use App\Contracts\PermissionAwareUser;
 use App\Modules\Auth\Contracts\AdminAuthenticatableInterface;
-use App\Modules\Auth\Models\Permission;
 use App\Modules\Auth\Models\Role;
-use Marwa\Framework\Database\Model;
+use App\Models\Model;
 use Marwa\DB\Query\Builder as BaseBuilder;
 use Marwa\DB\ORM\Relations\BelongsTo;
+use Marwa\Support\{Security, Str};
 
 final class User extends Model implements PermissionAwareUser, AdminAuthenticatableInterface
 {
@@ -37,10 +37,10 @@ final class User extends Model implements PermissionAwareUser, AdminAuthenticata
 
     public static function normalizeEmail(string $email): string
     {
-        return strtolower(trim($email));
+        return Str::lower(trim(Security::sanitize($email, 'email')));
     }
 
-    public function scopeSearch(BaseBuilder $query, string $term): void
+    public function scopeSearch(\Marwa\DB\Query\Builder $query, string $term): void
     {
         $term = trim($term);
 
@@ -50,13 +50,13 @@ final class User extends Model implements PermissionAwareUser, AdminAuthenticata
 
         $like = '%' . $term . '%';
 
-        $query->where(static function (BaseBuilder $nested) use ($like): void {
+        $query->where(static function (\Marwa\DB\Query\Builder $nested) use ($like): void {
             $nested->where('name', 'like', $like)
                 ->orWhere('email', 'like', $like);
         });
     }
 
-    public function scopeSort(BaseBuilder $query, string $sort = 'created_at', string $direction = 'desc'): void
+    public function scopeSort(\Marwa\DB\Query\Builder $query, string $sort = 'created_at', string $direction = 'desc'): void
     {
         $column = match (trim($sort)) {
             'name' => 'name',
@@ -81,46 +81,16 @@ final class User extends Model implements PermissionAwareUser, AdminAuthenticata
         $query->where('is_active', '=', 0);
     }
 
-    public static function findBy(string $column, mixed $value): ?static
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        $row = static::query()
-            ->where($column, '=', $value)
-            ->first();
-
-        return $row instanceof static ? $row : null;
-    }
-
-    public static function findByEmailIncludingTrashed(string $email): ?static
-    {
-        $email = self::normalizeEmail($email);
-        if ($email === '') {
-            return null;
-        }
-
-        $row = static::withTrashed()
-            ->where('email', '=', $email)
-            ->first();
-
-        return $row instanceof static ? $row : null;
-    }
-
     public function roleRelation(): BelongsTo
     {
-        if (static::$cm === null) {
-            throw new \RuntimeException('ConnectionManager not set. Call Model::setConnectionManager().');
-        }
+        return $this->belongsTo(Role::class, 'role_id');
+    }
 
-        return new BelongsTo(
-            static::$cm,
-            static::$connection,
-            static::class,
-            Role::class,
-            'role_id'
-        );
+    public function role(): ?Role
+    {
+        $role = $this->getRelationValue('roleRelation');
+
+        return $role instanceof Role ? $role : null;
     }
 
     public function getId(): ?int
@@ -149,69 +119,24 @@ final class User extends Model implements PermissionAwareUser, AdminAuthenticata
         $this->saveOrFail();
     }
 
-    /**
-     * @return list<string>
-     */
-    public function getRoles(): array
-    {
-        $role = $this->role();
-
-        return $role === null ? [] : [(string) $role->getAttribute('slug')];
-    }
-
-    /**
-     * @return list<string>
-     */
-    public function getPermissions(): array
-    {
-        $role = $this->role();
-
-        if ($role === null) {
-            return [];
-        }
-
-        return array_values(array_filter(
-            array_map(
-                static fn(Permission $permission): string => (string) $permission->getAttribute('slug'),
-                $role->permissions()
-            )
-        ));
-    }
-
-    public function role(): ?Role
-    {
-        if (static::$cm === null) {
-            return null;
-        }
-
-        $roleId = $this->getAttribute('role_id');
-        if ($roleId === null) {
-            return null;
-        }
-
-        if ($this->relationLoaded('roleRelation')) {
-            $role = $this->getRelation('roleRelation');
-
-            return $role instanceof Role ? $role : null;
-        }
-
-        $this->roleRelation()->eagerLoad([$this], 'roleRelation');
-        $role = $this->getRelation('roleRelation');
-
-        return $role instanceof Role ? $role : null;
-    }
-
     public function hasPermission(string $permission): bool
     {
-        if ($this->hasRole('admin')) {
+        $role = $this->role();
+
+        if ($role instanceof Role && (string) $role->getAttribute('slug') === 'admin') {
             return true;
         }
 
-        return in_array($permission, $this->getPermissions(), true);
-    }
+        if (!$role instanceof Role) {
+            return false;
+        }
 
-    public function hasRole(string $role): bool
-    {
-        return in_array($role, $this->getRoles(), true);
+        foreach ($role->permissions() as $rolePermission) {
+            if ((string) $rolePermission->getAttribute('slug') === $permission) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

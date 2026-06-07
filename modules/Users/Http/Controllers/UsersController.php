@@ -29,7 +29,12 @@ final class UsersController extends Controller
     public function index(): ResponseInterface
     {
         $state = $this->listState->state();
-        $requestParams = $this->requestParams($state, request('columns', null));
+        $columns = request('columns', null);
+        $tableParams = $this->listState->tableParams(
+            $state,
+            $columns,
+            $this->dataTable->normalizeVisibleColumns($this->userTable, $columns)
+        );
         $status = UserStatus::tryFromFilter($state['filter']);
 
         $pageData = $this->users->paginatedUsers(
@@ -44,23 +49,30 @@ final class UsersController extends Controller
         $pagination = pagination_view_data(
             $pageData,
             '/admin/users',
-            $this->paginationParams(
-                $state,
-                $this->dataTable->normalizeVisibleColumns($this->userTable, $requestParams['columns'] ?? null)
-            )
+            $tableParams['pagination']
         );
 
-        $total = (int) User::query()->count();
+        $users = User::collect();
+        $activeUsers = $users->filter(static fn (User $user): bool =>
+            trim((string) $user->getAttribute('deleted_at')) === '' && (int) $user->getAttribute('is_active') === 1
+        );
+        $disabledUsers = $users->filter(static fn (User $user): bool =>
+            trim((string) $user->getAttribute('deleted_at')) === '' && (int) $user->getAttribute('is_active') === 0
+        );
+        $trashedUsers = $users->filter(static fn (User $user): bool =>
+            trim((string) $user->getAttribute('deleted_at')) !== ''
+        );
+
         $stats = [
-            'total' => $total,
-            'active' => (int) User::query()->active()->count(),
-            'disabled' => (int) User::query()->disabled()->count(),
-            'trashed' => (int) User::withTrashed()->onlyTrashed()->count(),
+            'total' => $activeUsers->count() + $disabledUsers->count(),
+            'active' => $activeUsers->count(),
+            'disabled' => $disabledUsers->count(),
+            'trashed' => $trashedUsers->count(),
         ];
 
         return $this->view('@users/index', [
             'stats' => $stats,
-            'table' => $this->dataTable->build($this->userTable, $requestParams, $pageData, $pagination),
+            'table' => $this->dataTable->build($this->userTable, $tableParams['request'], $pageData, $pagination),
         ]);
     }
 
@@ -102,7 +114,10 @@ final class UsersController extends Controller
 
         $queryParams = $request->getQueryParams();
         $activityPage = max(1, (int) ($queryParams['activity_page'] ?? 1));
-        $activityPageData = $this->recentActivities($user, $activityPage);
+        $activityPageData = $this->activityPageData(
+            (string) $user->getAttribute('email'),
+            $activityPage
+        );
 
         return $this->view('@users/show', [
             'user' => $user,
@@ -197,74 +212,39 @@ final class UsersController extends Controller
     }
 
     /**
-     * @param array{query:string,filter:string,sort:string,direction:string,page:int} $state
-     * @param list<string> $visibleColumns
-     * @return array<string, scalar|list<string>|null>
+     * @return array{data:list<Activity>,pagination:array{total:int,per_page:int,current_page:int,last_page:int}}
      */
-    private function paginationParams(array $state, array $visibleColumns): array
+    private function activityPageData(string $email, int $page, int $perPage = 5): array
     {
-        return array_filter([
-            'q' => $state['query'],
-            'filter' => $state['filter'],
-            'sort' => $state['sort'],
-            'direction' => $state['direction'],
-            'columns' => $visibleColumns,
-        ], static fn(mixed $value): bool => $value !== null && $value !== '' && $value !== []);
-    }
+        $page = max(1, $page);
+        $perPage = max(1, $perPage);
 
-    /**
-     * @param array{query:string,filter:string,sort:string,direction:string,page:int} $state
-     * @return array<string, mixed>
-     */
-    private function requestParams(array $state, mixed $columns): array
-    {
-        return [
-            'q' => $state['query'],
-            'filter' => $state['filter'],
-            'sort' => $state['sort'],
-            'direction' => $state['direction'],
-            'page' => $state['page'],
-            'columns' => $columns,
-        ];
-    }
-
-    /**
-     * @return array{
-     *     data:list<Activity>,
-     *     pagination:array{total:int,per_page:int,current_page:int,last_page:int}
-     * }
-     */
-    private function recentActivities(User $user, int $page = 1, int $perPage = 5): array
-    {
         try {
-            $builder = Activity::newQuery()->getBaseBuilder()
-                ->where('actor_email', '=', $user->getAttribute('email'))
-                ->orderBy('created_at', 'desc')
-                ->paginate(max(1, $perPage), max(1, $page));
+            $activity = new Activity();
+            $query = Activity::query();
+            $builder = $query->getBaseBuilder();
+
+            $activity->scopeActorEmail($builder, $email);
+            $activity->scopeSort($builder, 'created_at', 'desc');
+
+            $pageData = $query->paginate($perPage, $page);
         } catch (\Throwable) {
-            return [
+            $pageData = [
                 'data' => [],
-                'pagination' => [
-                    'total' => 0,
-                    'per_page' => max(1, $perPage),
-                    'current_page' => max(1, $page),
-                    'last_page' => 1,
-                ],
+                'total' => 0,
+                'per_page' => $perPage,
+                'current_page' => $page,
+                'last_page' => 1,
             ];
         }
 
-        $rows = $builder['data'] ?? [];
-
         return [
-            'data' => array_values(array_filter(array_map(
-            static fn (array|object $row): Activity => Activity::newInstance(is_array($row) ? $row : (array) $row, true),
-            is_array($rows) ? $rows : []
-        ), static fn (Activity $activity): bool => $activity instanceof Activity)),
+            'data' => $pageData['data'],
             'pagination' => [
-                'total' => (int) ($builder['total'] ?? 0),
-                'per_page' => (int) ($builder['per_page'] ?? max(1, $perPage)),
-                'current_page' => (int) ($builder['current_page'] ?? max(1, $page)),
-                'last_page' => (int) ($builder['last_page'] ?? 1),
+                'total' => (int) $pageData['total'],
+                'per_page' => (int) $pageData['per_page'],
+                'current_page' => (int) $pageData['current_page'],
+                'last_page' => (int) $pageData['last_page'],
             ],
         ];
     }

@@ -104,7 +104,7 @@ final class NotificationService
         $ids = [];
 
         foreach (['admin', 'super_admin'] as $slug) {
-            $role = Role::findBySlug($slug);
+            $role = Role::findBy('slug', $slug);
 
             if ($role !== null) {
                 $ids[] = (int) $role->getKey();

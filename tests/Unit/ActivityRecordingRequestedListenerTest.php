@@ -4,19 +4,22 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\Modules\Activity\Support\ActivityRecorder;
+use App\Modules\Activity\Events\ActivityRecordingRequested;
+use App\Modules\Activity\Listeners\RecordActivityRecordingListener;
+use App\Modules\Auth\Support\AuthManager;
 use Marwa\DB\Connection\ConnectionManager;
 use Marwa\Framework\Application;
 use Marwa\Framework\Bootstrappers\AppBootstrapper;
 use PHPUnit\Framework\TestCase;
 
-final class ActivityRecorderListingTest extends TestCase
+final class ActivityRecordingRequestedListenerTest extends TestCase
 {
     private string $basePath;
 
     protected function setUp(): void
     {
-        $this->basePath = sys_get_temp_dir() . '/marwa-activity-listing-' . bin2hex(random_bytes(6));
+        $this->basePath = sys_get_temp_dir() . '/marwa-activity-listener-' . bin2hex(random_bytes(6));
+
         mkdir($this->basePath, 0777, true);
         mkdir($this->basePath . '/config', 0777, true);
         mkdir($this->basePath . '/database', 0777, true);
@@ -49,18 +52,13 @@ return [
 PHP
         );
 
-        file_put_contents($this->basePath . '/config/event.php', "<?php\n\ndeclare(strict_types=1);\n\nreturn [\n    'listeners' => [],\n    'subscribers' => [],\n];\n");
         file_put_contents($this->basePath . '/database/database.sqlite', '');
     }
 
     protected function tearDown(): void
     {
-        @restore_error_handler();
-        @restore_exception_handler();
-
         foreach ([
             $this->basePath . '/config/database.php',
-            $this->basePath . '/config/event.php',
             $this->basePath . '/database/database.sqlite',
             $this->basePath . '/.env',
         ] as $file) {
@@ -79,25 +77,20 @@ PHP
             $_ENV['DB_ENABLED'],
             $_ENV['DB_CONNECTION'],
             $_ENV['DB_DATABASE'],
-            $_SERVER['APP_ENV'],
-            $_SERVER['APP_KEY'],
-            $_SERVER['TIMEZONE'],
-            $_SERVER['DB_ENABLED'],
-            $_SERVER['DB_CONNECTION'],
-            $_SERVER['DB_DATABASE']
         );
 
         parent::tearDown();
     }
 
-    public function testPaginatedActivitiesSupportsFilterAndSort(): void
+    public function testListenerPersistsRequestedActivity(): void
     {
         $app = new Application($this->basePath);
+        $GLOBALS['marwa_app'] = $app;
         $app->make(AppBootstrapper::class)->bootstrap();
 
-        /** @var ConnectionManager $manager */
-        $manager = $app->make(ConnectionManager::class);
-        $pdo = $manager->getPdo();
+        /** @var ConnectionManager $connections */
+        $connections = $app->make(ConnectionManager::class);
+        $pdo = $connections->getPdo();
 
         $pdo->exec(<<<'SQL'
 CREATE TABLE activities (
@@ -116,25 +109,23 @@ CREATE TABLE activities (
 )
 SQL);
 
-        $pdo->exec(<<<'SQL'
-INSERT INTO activities (action, description, actor_name, actor_email, ip_address, user_agent, subject_type, subject_id, details, created_at, updated_at) VALUES
-('auth.login', 'Signed in', 'Admin', 'admin@example.test', '127.0.0.1', 'Mozilla', 'user', 1, NULL, datetime('now', '-2 minutes'), datetime('now', '-2 minutes')),
-('user.deleted', 'Deleted user', 'Admin', 'admin@example.test', '127.0.0.1', 'Mozilla', 'user', 2, NULL, datetime('now', '-1 minutes'), datetime('now', '-1 minutes')),
-('notification.created', 'Created notification', 'System', NULL, '127.0.0.1', 'Mozilla', 'notification', 3, NULL, datetime('now'), datetime('now'))
-SQL);
+        $listener = new RecordActivityRecordingListener(new AuthManager());
 
-        $recorder = new ActivityRecorder();
-
-        $users = $recorder->paginated('', 1, 10, 'users', 'action', 'asc');
-        self::assertSame(['user.deleted'], array_map(
-            static fn ($activity): string => (string) $activity->getAttribute('action'),
-            $users['data']
+        $listener->handle(new ActivityRecordingRequested(
+            'user.created',
+            'Created user.',
+            'user',
+            42,
+            ['state' => ['name' => 'Ada']]
         ));
 
-        $auth = $recorder->paginated('', 1, 10, 'auth', 'created_at', 'asc');
-        self::assertSame(['auth.login'], array_map(
-            static fn ($activity): string => (string) $activity->getAttribute('action'),
-            $auth['data']
-        ));
+        $row = $pdo->query('SELECT * FROM activities LIMIT 1')->fetchObject();
+
+        self::assertNotFalse($row);
+        self::assertSame('user.created', $row->action);
+        self::assertSame('Created user.', $row->description);
+        self::assertSame('user', $row->subject_type);
+        self::assertSame(42, (int) $row->subject_id);
+        self::assertNotSame('', (string) $row->created_at);
     }
 }

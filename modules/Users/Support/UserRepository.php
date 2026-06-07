@@ -111,7 +111,7 @@ final class UserRepository
             $builder->where('id', '!=', $ignoreId);
         }
 
-        return (int) $builder->count() > 0;
+        return $builder->exists();
     }
 
     public function protectedAdminId(): ?int
@@ -125,13 +125,14 @@ final class UserRepository
         $builder = User::query()
             ->where('role_id', '=', $adminRoleId)
             ->whereNull('deleted_at');
-        $count = (int) $builder->count();
 
-        if ($count !== 1) {
+        $users = $builder->orderBy('id', 'asc')->limit(2)->get();
+
+        if (count($users) !== 1) {
             return null;
         }
 
-        $user = $builder->orderBy('id', 'asc')->first();
+        $user = $users[0] ?? null;
 
         return $user instanceof User ? (int) $user->getKey() : null;
     }
@@ -175,7 +176,7 @@ final class UserRepository
 
     private function findAdminRoleId(): ?int
     {
-        $role = Role::findBySlug('admin');
+        $role = Role::findBy('slug', 'admin');
 
         return $role !== null ? (int) $role->getKey() : null;
     }

@@ -13,6 +13,9 @@ return [
         'auth',
     ],
     'listeners' => [
+        App\Modules\Activity\Events\ActivityRecordingRequested::class => [
+            App\Modules\Activity\Listeners\RecordActivityRecordingListener::class,
+        ],
         Marwa\Framework\Adapters\Event\RequestHandled::class => [
             App\Modules\Activity\Listeners\RecordModuleActivityListener::class,
         ],

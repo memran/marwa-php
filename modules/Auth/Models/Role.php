@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Models;
 
+use App\Models\Model;
 use Marwa\DB\ORM\Relations\BelongsToMany;
-use Marwa\Framework\Database\Model;
 
 final class Role extends Model
 {
@@ -127,13 +127,4 @@ final class Role extends Model
         $this->permissionsRelation()->attach($this, $permissionId);
     }
 
-    public static function findBySlug(string $slug): ?self
-    {
-        return self::findBy('slug', $slug);
-    }
-
-    public static function findById(int $id): ?self
-    {
-        return self::find($id);
-    }
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Settings\Models;
 
-use Marwa\DB\ORM\Model;
+use App\Models\Model;
 
 final class Setting extends Model
 {

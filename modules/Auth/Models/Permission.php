@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Models;
 
-use Marwa\Framework\Database\Model;
+use App\Models\Model;
 
 final class Permission extends Model
 {
@@ -19,16 +19,6 @@ final class Permission extends Model
         'description',
         'group',
     ];
-
-    public static function findBySlug(string $slug): ?self
-    {
-        return self::findBy('slug', $slug);
-    }
-
-    public static function findById(int $id): ?self
-    {
-        return self::find($id);
-    }
 
     /**
      * @return list<self>

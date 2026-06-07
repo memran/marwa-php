@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Dashboard\Http\Controllers;
 
+use App\Modules\Activity\Events\ActivityRecordingRequested;
 use App\Modules\Auth\Support\AuthManager;
-use App\Modules\Users\Models\User;
 use App\Modules\Dashboard\Support\WidgetRegistry;
 use App\Support\PermissionGate;
 use Marwa\Framework\Controllers\Controller;
-use Marwa\Framework\Views\View;
 use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -40,7 +39,7 @@ final class DashboardController extends Controller
 
         return $this->view('@dashboard/index', [
             'widgets' => $widgets,
-            'available_widgets' => $this->filteredWidgets($this->widgetRegistry->all()),
+            'available_widgets' => $this->filteredWidgets(),
             'size_options' => $sizeOptions,
             'is_edit_mode' => false,
         ]);
@@ -54,11 +53,11 @@ final class DashboardController extends Controller
 
         return $this->json([
             'widgets' => $this->getUserWidgets($this->getUserId()),
-            'available_widgets' => $this->filteredWidgets($this->widgetRegistry->all()),
+            'available_widgets' => $this->filteredWidgets(),
         ]);
     }
 
-    private function filteredWidgets(array $widgets): array
+    private function filteredWidgets(): array
     {
         return $this->widgetRegistry->filterByPermission(
             fn (string $permission): bool => $this->gate->allows($permission)
@@ -79,14 +78,13 @@ final class DashboardController extends Controller
         }
 
         $this->saveUserWidgets($userId, $widgets);
-        app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+        event(new ActivityRecordingRequested(
             'dashboard.saved',
             'Saved dashboard widgets.',
-            app(\App\Modules\Auth\Support\AuthManager::class)->user() instanceof \App\Modules\Users\Models\User ? app(\App\Modules\Auth\Support\AuthManager::class)->user() : null,
             'dashboard',
             null,
             ['state' => ['widgets' => array_map(static fn (array $widget): string => (string) ($widget['widget_id'] ?? ''), $widgets)]]
-        );
+        ));
 
         return $this->json(['success' => true, 'message' => 'Dashboard saved']);
     }
@@ -105,14 +103,13 @@ final class DashboardController extends Controller
             $stmt->execute(['user_id' => $userId]);
         }
 
-        app(\App\Modules\Activity\Support\ActivityRecorder::class)->recordActorAction(
+        event(new ActivityRecordingRequested(
             'dashboard.reset',
             'Reset dashboard widgets.',
-            app(\App\Modules\Auth\Support\AuthManager::class)->user() instanceof \App\Modules\Users\Models\User ? app(\App\Modules\Auth\Support\AuthManager::class)->user() : null,
             'dashboard',
             null,
             ['state' => ['reset' => true]]
-        );
+        ));
         return $this->json(['success' => true, 'message' => 'Dashboard reset to default']);
     }
 
@@ -159,7 +156,7 @@ final class DashboardController extends Controller
 
     private function getUserId(): ?int
     {
-        return app(AuthManager::class)->user()?->getId();
+        return $this->auth->user()?->getId();
     }
 
     private function gate(): PermissionGate

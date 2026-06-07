@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Dashboard\Models;
 
-use Marwa\Framework\Database\Model;
+use App\Models\Model;
 
 final class DashboardWidget extends Model
 {

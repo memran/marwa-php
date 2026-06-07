@@ -4,19 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Roles\Support;
 
-use App\Modules\Activity\Support\ActivityRecorder;
+use App\Modules\Activity\Events\ActivityRecordingRequested;
 use App\Modules\Auth\Models\Permission;
-use App\Modules\Auth\Support\AuthManager;
-use App\Modules\Users\Models\User;
 
 final class PermissionActivityLogger
 {
-    public function __construct(
-        private readonly ActivityRecorder $activity,
-        private readonly AuthManager $auth,
-    ) {
-    }
-
     /**
      * @param array<string, mixed> $payload
      */
@@ -52,22 +44,12 @@ final class PermissionActivityLogger
         ?int $subjectId = null,
         string $subjectType = 'permission'
     ): void {
-        $actor = $this->actor();
-
-        $this->activity->recordActorAction(
+        event(new ActivityRecordingRequested(
             $action,
             $description,
-            $actor,
             $subjectType,
             $subjectId ?? ($permission instanceof Permission ? (int) $permission->getKey() : null),
             ['state' => $state]
-        );
-    }
-
-    private function actor(): ?User
-    {
-        $user = $this->auth->user();
-
-        return $user instanceof User ? $user : null;
+        ));
     }
 }

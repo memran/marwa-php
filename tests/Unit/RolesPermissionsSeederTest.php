@@ -146,7 +146,7 @@ SQL);
 
         $runner->runAll();
 
-        $role = Role::findBySlug('user');
+        $role = Role::findBy('slug', 'user');
         self::assertInstanceOf(Role::class, $role);
         self::assertSame(['dashboard.view', 'notifications.view'], array_map(
             static fn (Permission $permission): string => (string) $permission->getAttribute('slug'),
