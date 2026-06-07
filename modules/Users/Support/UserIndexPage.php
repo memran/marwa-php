@@ -11,7 +11,6 @@ use App\Support\DataTable\DataTableView;
 final class UserIndexPage
 {
     public function __construct(
-        private readonly UserRepository $users,
         private readonly AdminListState $listState,
         private readonly UserDataTable $userTable,
         private readonly DataTableView $dataTable,
@@ -30,15 +29,14 @@ final class UserIndexPage
             $this->dataTable->normalizeVisibleColumns($this->userTable, $columns)
         );
         $status = UserStatus::tryFromFilter($state['filter']);
+        $perPage = $this->perPage();
 
-        $pageData = $this->users->paginatedUsers(
+        $pageData = $this->pageData(User::listQuery(
             $state['query'],
-            $state['page'],
-            null,
             $state['sort'],
             $state['direction'],
             $status
-        );
+        )->paginate($perPage, $state['page']));
 
         return [
             'stats' => $this->stats(),
@@ -48,6 +46,36 @@ final class UserIndexPage
                 $pageData,
                 $this->pagination($pageData, $tableParams['pagination'])
             ),
+        ];
+    }
+
+    private function perPage(): int
+    {
+        $defaultPerPage = (int) config('pagination.default_per_page', 10);
+        $configuredPerPage = config('settings.lifecycle.pagination.default_per_page', null);
+
+        return max(1, (int) ($configuredPerPage ?? $defaultPerPage));
+    }
+
+    /**
+     * @param array{data:array<int, mixed>,total:int,per_page:int,current_page:int,last_page:int} $pageData
+     * @return array{data:list<User>,total:int,per_page:int,current_page:int,last_page:int}
+     */
+    private function pageData(array $pageData): array
+    {
+        $users = [];
+        foreach ($pageData['data'] as $row) {
+            if ($row instanceof User) {
+                $users[] = $row;
+            }
+        }
+
+        return [
+            'data' => $users,
+            'total' => $pageData['total'],
+            'per_page' => $pageData['per_page'],
+            'current_page' => $pageData['current_page'],
+            'last_page' => $pageData['last_page'],
         ];
     }
 

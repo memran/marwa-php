@@ -6,28 +6,9 @@ namespace App\Modules\Users\Support;
 
 use App\Modules\Auth\Models\Role;
 use App\Modules\Users\Models\User;
-use Marwa\DB\ORM\QueryBuilder;
 
 final class UserRepository
 {
-    /**
-     * @return array{data:list<User>,total:int,per_page:int,current_page:int,last_page:int}
-     */
-    public function paginatedUsers(
-        string $query = '',
-        int $page = 1,
-        ?int $perPage = null,
-        string $sort = 'created_at',
-        string $direction = 'desc',
-        UserStatus $status = UserStatus::All
-    ): array {
-        $defaultPerPage = (int) config('pagination.default_per_page', 10);
-        $configuredPerPage = config('settings.lifecycle.pagination.default_per_page', null);
-
-        $perPage = max(1, (int) ($perPage ?? $configuredPerPage ?? $defaultPerPage));
-        return $this->query($query, $sort, $direction, $status)->paginate($perPage, $page);
-    }
-
     public function findById(int $id, bool $includeTrashed = false): ?User
     {
         if ($id <= 0) {
@@ -50,7 +31,7 @@ final class UserRepository
     ): array {
         $rows = [];
 
-        foreach ($this->query($query, $sort, $direction, $status)->get() as $user) {
+        foreach (User::listQuery($query, $sort, $direction, $status)->get() as $user) {
             if ($user instanceof User) {
                 $rows[] = $user;
             }
@@ -150,38 +131,6 @@ final class UserRepository
     public function roles(): array
     {
         return Role::query()->orderBy('name', 'asc')->get();
-    }
-
-    private function query(
-        string $query = '',
-        string $sort = 'created_at',
-        string $direction = 'desc',
-        UserStatus $status = UserStatus::All
-    ): QueryBuilder {
-        $user = new User();
-        $builder = User::query()
-            ->with('roleRelation');
-        $baseBuilder = $builder->getBaseBuilder();
-
-        $user->scopeSearch($baseBuilder, $query);
-        $user->scopeSort($baseBuilder, $sort, $direction);
-
-        if ($status === UserStatus::Active) {
-            $user->scopeActive($baseBuilder);
-
-            return $builder;
-        }
-
-        if ($status === UserStatus::Disabled) {
-            $user->scopeDisabled($baseBuilder);
-
-            return $builder;
-        }
-
-        return match ($status) {
-            UserStatus::Trashed => $builder->onlyTrashed(),
-            default => $builder,
-        };
     }
 
     private function findAdminRoleId(): ?int

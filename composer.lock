@@ -1839,16 +1839,16 @@
         },
         {
             "name": "memran/marwa-framework",
-            "version": "v1.5.9",
+            "version": "v1.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/memran/marwa-framework.git",
-                "reference": "c12657a59e96c1881e7e54f06f2bf84d329a40e3"
+                "reference": "d784d8f76d1612fa2c7ea3b3214fc8194e31b50b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/memran/marwa-framework/zipball/c12657a59e96c1881e7e54f06f2bf84d329a40e3",
-                "reference": "c12657a59e96c1881e7e54f06f2bf84d329a40e3",
+                "url": "https://api.github.com/repos/memran/marwa-framework/zipball/d784d8f76d1612fa2c7ea3b3214fc8194e31b50b",
+                "reference": "d784d8f76d1612fa2c7ea3b3214fc8194e31b50b",
                 "shasum": ""
             },
             "require": {
@@ -1876,7 +1876,8 @@
                 "symfony/console": "^7.3",
                 "symfony/dotenv": "^7.3",
                 "symfony/mailer": "^6.4|^7.0",
-                "symfony/process": "^6.4|^7.0"
+                "symfony/process": "^6.4|^7.0",
+                "symfony/var-dumper": "^7.4"
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^3.89",
@@ -1935,9 +1936,9 @@
             ],
             "support": {
                 "issues": "https://github.com/memran/marwa-framework/issues",
-                "source": "https://github.com/memran/marwa-framework/tree/v1.5.9"
+                "source": "https://github.com/memran/marwa-framework/tree/v1.6.0"
             },
-            "time": "2026-06-04T11:44:56+00:00"
+            "time": "2026-06-07T20:06:07+00:00"
         },
         {
             "name": "memran/marwa-logger",
@@ -4846,6 +4847,93 @@
                 }
             ],
             "time": "2026-01-05T13:30:16+00:00"
+        },
+        {
+            "name": "symfony/var-dumper",
+            "version": "v7.4.8",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/var-dumper.git",
+                "reference": "9510c3966f749a1d1ff0059e1eabef6cc621e7fd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/9510c3966f749a1d1ff0059e1eabef6cc621e7fd",
+                "reference": "9510c3966f749a1d1ff0059e1eabef6cc621e7fd",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2",
+                "symfony/deprecation-contracts": "^2.5|^3",
+                "symfony/polyfill-mbstring": "~1.0"
+            },
+            "conflict": {
+                "symfony/console": "<6.4"
+            },
+            "require-dev": {
+                "symfony/console": "^6.4|^7.0|^8.0",
+                "symfony/http-kernel": "^6.4|^7.0|^8.0",
+                "symfony/process": "^6.4|^7.0|^8.0",
+                "symfony/uid": "^6.4|^7.0|^8.0",
+                "twig/twig": "^3.12"
+            },
+            "bin": [
+                "Resources/bin/var-dump-server"
+            ],
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "Resources/functions/dump.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Component\\VarDumper\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Provides mechanisms for walking through any arbitrary PHP variable",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "debug",
+                "dump"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/var-dumper/tree/v7.4.8"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-03-30T13:44:50+00:00"
         },
         {
             "name": "thecodingmachine/safe",

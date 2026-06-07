@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\Modules\Auth\database\Seeders\RolesPermissionsSeeder;
+use App\Modules\Auth\database\seeders\RolesPermissionsSeeder;
 use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Models\Permission;
 use Marwa\DB\Connection\ConnectionManager;
@@ -140,8 +140,8 @@ SQL);
             $connections,
             null,
             'default',
-            __DIR__ . '/../../modules/Auth/database/Seeders',
-            'App\\Modules\\Auth\\database\\Seeders'
+            __DIR__ . '/../../modules/Auth/database/seeders',
+            'App\\Modules\\Auth\\database\\seeders'
         );
 
         $runner->runAll();

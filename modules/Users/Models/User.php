@@ -7,8 +7,10 @@ namespace App\Modules\Users\Models;
 use App\Contracts\PermissionAwareUser;
 use App\Modules\Auth\Contracts\AdminAuthenticatableInterface;
 use App\Modules\Auth\Models\Role;
+use App\Modules\Users\Support\UserStatus;
 use App\Models\Model;
 use Marwa\DB\Query\Builder as BaseBuilder;
+use Marwa\DB\ORM\QueryBuilder;
 use Marwa\DB\ORM\Relations\BelongsTo;
 use Marwa\Support\{Security, Str};
 
@@ -38,6 +40,37 @@ final class User extends Model implements PermissionAwareUser, AdminAuthenticata
     public static function normalizeEmail(string $email): string
     {
         return Str::lower(trim(Security::sanitize($email, 'email')));
+    }
+
+    public static function listQuery(
+        string $query = '',
+        string $sort = 'created_at',
+        string $direction = 'desc',
+        UserStatus $status = UserStatus::All
+    ): QueryBuilder {
+        $user = new self();
+        $builder = self::query()->with('roleRelation');
+        $baseBuilder = $builder->getBaseBuilder();
+
+        $user->scopeSearch($baseBuilder, $query);
+        $user->scopeSort($baseBuilder, $sort, $direction);
+
+        if ($status === UserStatus::Active) {
+            $user->scopeActive($baseBuilder);
+
+            return $builder;
+        }
+
+        if ($status === UserStatus::Disabled) {
+            $user->scopeDisabled($baseBuilder);
+
+            return $builder;
+        }
+
+        return match ($status) {
+            UserStatus::Trashed => $builder->onlyTrashed(),
+            default => $builder,
+        };
     }
 
     public function scopeSearch(\Marwa\DB\Query\Builder $query, string $term): void

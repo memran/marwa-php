@@ -80,7 +80,7 @@ PHP
         parent::tearDown();
     }
 
-    public function testUserModelPaginateReturnsOnlyRows(): void
+    public function testUserModelPaginateReturnsPageData(): void
     {
         $app = new Application($this->basePath);
         $GLOBALS['marwa_app'] = $app;
@@ -112,10 +112,19 @@ SQL);
         $page1 = User::paginate(2, 1);
         $page2 = User::paginate(2, 2);
 
-        self::assertCount(2, $page1);
-        self::assertCount(1, $page2);
-        self::assertInstanceOf(User::class, $page1[0]);
-        self::assertSame('Ada', $page1[0]->getAttribute('name'));
-        self::assertSame('Linus', $page2[0]->getAttribute('name'));
+        self::assertSame(3, $page1['total']);
+        self::assertSame(2, $page1['per_page']);
+        self::assertSame(1, $page1['current_page']);
+        self::assertSame(2, $page1['last_page']);
+        self::assertCount(2, $page1['data']);
+        self::assertInstanceOf(User::class, $page1['data'][0]);
+        self::assertSame('Ada', $page1['data'][0]->getAttribute('name'));
+
+        self::assertSame(3, $page2['total']);
+        self::assertSame(2, $page2['per_page']);
+        self::assertSame(2, $page2['current_page']);
+        self::assertSame(2, $page2['last_page']);
+        self::assertCount(1, $page2['data']);
+        self::assertSame('Linus', $page2['data'][0]->getAttribute('name'));
     }
 }
