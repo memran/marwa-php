@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support\Datatables\Contracts;
 
+use App\Support\Pagination\PaginationResult;
+
 interface DataTableResultInterface extends \JsonSerializable
 {
     /**
@@ -22,9 +24,14 @@ interface DataTableResultInterface extends \JsonSerializable
     public function rows(): array;
 
     /**
+     * @return PaginationResult
+     */
+    public function pagination(): PaginationResult;
+
+    /**
      * @return array<string, mixed>
      */
-    public function pagination(): array;
+    public function paginationArray(): array;
 
     /**
      * @return list<array<string, mixed>>

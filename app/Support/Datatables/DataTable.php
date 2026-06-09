@@ -7,6 +7,7 @@ namespace App\Support\Datatables;
 use Closure;
 use App\Support\Datatables\Contracts\DataTableResultInterface;
 use App\Support\Datatables\Exceptions\MissingQueryException;
+use App\Support\Pagination\PaginationResult;
 use Marwa\DB\ORM\QueryBuilder;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -321,7 +322,12 @@ final class DataTable
             'bulk' => $this->bulk($state, $visibleColumns, $rows),
             'columns' => $this->resolveVisibleColumnMetadata($visibleColumns, $state),
             'rows' => $rows,
-            'pagination' => $this->pagination($pageData, $state, $visibleColumns),
+            'pagination' => PaginationResult::fromArray(
+                $pageData,
+                path: $this->path,
+                query: $this->paginationQuery($state, $visibleColumns),
+                pageName: $this->pageParameter
+            ),
             'filters' => $this->filtersPayload($state),
             'search' => (new Search($state['search']))->toArray(),
             'sort' => (new Sort($state['sort'], $state['direction']))->toArray(),
@@ -891,38 +897,18 @@ final class DataTable
     }
 
     /**
-     * @param array{data:array<int, mixed>,total:int,per_page:int,current_page:int,last_page:int} $pageData
-     * @param array<string, mixed> $state
+     * @param array{search:string,sort:string,direction:string,page:int,filters:array<string,mixed>,columns:list<string>} $state
      * @param list<string> $visibleColumns
      * @return array<string, mixed>
      */
-    private function pagination(array $pageData, array $state, array $visibleColumns): array
+    private function paginationQuery(array $state, array $visibleColumns): array
     {
-        $links = [];
-        for ($page = 1; $page <= $pageData['last_page']; $page++) {
-            $links[] = [
-                'page' => (string) $page,
-                'url' => $this->buildUrl(array_merge($state, ['page' => $page]), $visibleColumns),
-                'active' => $page === $pageData['current_page'],
-            ];
-        }
-
-        $summary = $pageData['total'] === 0
-            ? 'No results'
-            : sprintf(
-                'Showing %d-%d of %d results',
-                (($pageData['current_page'] - 1) * $pageData['per_page']) + 1,
-                min($pageData['current_page'] * $pageData['per_page'], $pageData['total']),
-                $pageData['total']
-            );
-
         return [
-            'summary' => $summary,
-            'links' => $links,
-            'current_page' => $pageData['current_page'],
-            'last_page' => $pageData['last_page'],
-            'total' => $pageData['total'],
-            'per_page' => $pageData['per_page'],
+            $this->searchParameter => $state['search'],
+            $this->sortParameter => $state['sort'],
+            $this->directionParameter => $state['direction'],
+            $this->filterParameter => $this->buildFilterQueryValue($state['filters']),
+            $this->columnsParameter => $visibleColumns,
         ];
     }
 

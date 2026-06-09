@@ -112,7 +112,7 @@ PHP
             []
         ))->paginate(10)->result();
 
-        self::assertSame(1, $table->pagination()['total']);
+        self::assertSame(1, $table->pagination()->total());
         self::assertCount(1, $table->rows());
         self::assertSame('Ada', $table->rows()[0]['cells']['name']['value']);
         self::assertSame('/admin/users/1', $table->rows()[0]['cells']['name']['href']);
@@ -121,8 +121,8 @@ PHP
         self::assertCount(2, $table->rows()[0]['cells']['is_active']['items']);
         self::assertSame('Protected', $table->rows()[0]['cells']['is_active']['items'][1]['value']);
         self::assertTrue($table->rows()[0]['bulk']['disabled']);
-        self::assertStringContainsString('q=ada', $table->pagination()['links'][0]['url']);
-        self::assertStringContainsString('filter=active', $table->pagination()['links'][0]['url']);
+        self::assertStringContainsString('q=ada', $table->pagination()->pages()[0]->url);
+        self::assertStringContainsString('filter=active', $table->pagination()->pages()[0]->url);
     }
 
     public function testUsersDatatableExposesRowActionsForPermittedUsers(): void
@@ -216,7 +216,7 @@ PHP
             []
         ))->paginate(10)->result();
 
-        self::assertSame(1, $table->pagination()['total']);
+        self::assertSame(1, $table->pagination()->total());
         self::assertCount(1, $table->rows());
         self::assertSame('Editor', $table->rows()[0]['cells']['name']['value']);
         self::assertSame('/admin/roles/2/edit', $table->rows()[0]['cells']['name']['href']);
@@ -225,7 +225,7 @@ PHP
         self::assertTrue($table->rows()[0]['bulk']['disabled']);
         self::assertCount(1, $table->rows()[0]['actions']);
         self::assertSame('edit', $table->rows()[0]['actions'][0]['name']);
-        self::assertStringContainsString('filter=custom', $table->pagination()['links'][0]['url']);
+        self::assertStringContainsString('filter=custom', $table->pagination()->pages()[0]->url);
     }
 
     private function bootstrapApp(): Application

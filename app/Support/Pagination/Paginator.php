@@ -9,7 +9,7 @@ use InvalidArgumentException;
 final class Paginator
 {
     /**
-     * @param array<string, scalar|list<string>|null> $query
+     * @param array<string, mixed> $query
      */
     public function __construct(
         private readonly string $path = '/',
@@ -82,7 +82,7 @@ final class Paginator
     }
 
     /**
-     * @return array<string, scalar|list<string>|null>
+     * @return array<string, mixed>
      */
     public function query(): array
     {
@@ -170,7 +170,7 @@ final class Paginator
     }
 
     /**
-     * @return array<string, scalar|list<string>|null>
+     * @return array<string, mixed>
      */
     private function normalizedQuery(): array
     {

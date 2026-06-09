@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Datatables;
 
 use App\Support\Datatables\Contracts\DataTableResultInterface;
+use App\Support\Pagination\PaginationResult;
 use ArrayAccess;
 use ArrayIterator;
 use IteratorAggregate;
@@ -57,11 +58,40 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
     }
 
     /**
-     * @return array<string, mixed>
+     * @return PaginationResult
      */
-    public function pagination(): array
+    public function pagination(): PaginationResult
     {
-        return $this->payload['pagination'] ?? [];
+        $pagination = $this->payload['pagination'] ?? null;
+
+        if ($pagination instanceof PaginationResult) {
+            return $pagination;
+        }
+
+        if (is_array($pagination)) {
+            return PaginationResult::fromArray(
+                [
+                    'data' => $pagination['data'] ?? [],
+                    'total' => (int) ($pagination['total'] ?? 0),
+                    'per_page' => (int) ($pagination['per_page'] ?? 1),
+                    'current_page' => (int) ($pagination['current_page'] ?? 1),
+                    'last_page' => (int) ($pagination['last_page'] ?? 1),
+                ],
+                path: (string) ($pagination['path'] ?? '/'),
+                query: is_array($pagination['query'] ?? null) ? $pagination['query'] : [],
+                pageName: (string) ($pagination['page_name'] ?? 'page'),
+                window: (int) ($pagination['window'] ?? 2),
+                maxPerPage: (int) ($pagination['max_per_page'] ?? 100)
+            );
+        }
+
+        return PaginationResult::fromArray([
+            'data' => [],
+            'total' => 0,
+            'per_page' => 1,
+            'current_page' => 1,
+            'last_page' => 1,
+        ]);
     }
 
     /**
@@ -69,7 +99,15 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
      */
     public function getPagination(): array
     {
-        return $this->pagination();
+        return $this->pagination()->toArray();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function paginationArray(): array
+    {
+        return $this->pagination()->toArray();
     }
 
     /**
@@ -241,7 +279,7 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
      */
     public function toArray(): array
     {
-        return $this->payload;
+        return $this->normalizeForOutput($this->payload);
     }
 
     /**
@@ -278,5 +316,26 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
     public function getIterator(): Traversable
     {
         return new ArrayIterator($this->payload);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
+    private function normalizeForOutput(array $payload): array
+    {
+        foreach ($payload as $key => $value) {
+            if ($value instanceof JsonSerializable) {
+                $payload[$key] = $value->jsonSerialize();
+
+                continue;
+            }
+
+            if (is_array($value)) {
+                $payload[$key] = $this->normalizeForOutput($value);
+            }
+        }
+
+        return $payload;
     }
 }

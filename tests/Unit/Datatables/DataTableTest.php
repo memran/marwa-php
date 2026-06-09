@@ -104,8 +104,8 @@ final class DataTableTest extends TestCase
             ->result();
 
         self::assertSame('Records', $table->title());
-        self::assertSame(1, $table->pagination()['current_page']);
-        self::assertSame(1, $table->pagination()['total']);
+        self::assertSame(1, $table->pagination()->currentPage());
+        self::assertSame(1, $table->pagination()->total());
         self::assertCount(4, $table->columns());
         self::assertSame('Name', $table->columns()[0]['label']);
         self::assertCount(1, $table->rows());
@@ -114,9 +114,9 @@ final class DataTableTest extends TestCase
         self::assertSame('green', $table->rows()[0]['cells']['status']['badge']['tone']);
         self::assertCount(2, $table->rows()[0]['actions']);
         self::assertSame('/admin/users/3', $table->rows()[0]['actions'][0]['href']);
-        self::assertSame('Showing 1-1 of 1 results', $table->pagination()['summary']);
-        self::assertStringContainsString('search=admin', $table->pagination()['links'][0]['url']);
-        self::assertStringContainsString('filters%5Bstatus%5D=active', $table->pagination()['links'][0]['url']);
+        self::assertSame('Showing 1-1 of 1 results', $table->pagination()->summary());
+        self::assertStringContainsString('search=admin', $table->pagination()->pages()[0]->url);
+        self::assertStringContainsString('filters%5Bstatus%5D=active', $table->pagination()->pages()[0]->url);
         self::assertSame('Admin', $table->rows()[0]['cells']['name']['value']);
         self::assertSame(0, count($table->actions()));
         self::assertSame(1, count($table->bulkActions()));

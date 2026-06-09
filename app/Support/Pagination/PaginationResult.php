@@ -17,7 +17,7 @@ final class PaginationResult implements IteratorAggregate, Countable, JsonSerial
 {
     /**
      * @param array<int, mixed> $items
-     * @param array<string, scalar|list<string>|null> $query
+     * @param array<string, mixed> $query
      */
     private function __construct(
         private readonly array $items,
@@ -37,7 +37,7 @@ final class PaginationResult implements IteratorAggregate, Countable, JsonSerial
 
     /**
      * @param array{data:array<int, mixed>, total:int, per_page:int, current_page:int, last_page:int} $source
-     * @param array<string, scalar|list<string>|null> $query
+     * @param array<string, mixed> $query
      */
     public static function fromArray(
         array $source,
@@ -215,7 +215,7 @@ final class PaginationResult implements IteratorAggregate, Countable, JsonSerial
     }
 
     /**
-     * @return array<string, scalar|list<string>|null>
+     * @return array<string, mixed>
      */
     public function query(): array
     {
