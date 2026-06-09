@@ -6,6 +6,7 @@ namespace App\Modules\Activity\Http\Controllers;
 
 use App\Modules\Activity\Models\Activity;
 use App\Support\AdminListState;
+use App\Support\Pagination\PaginationResult;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 
@@ -44,7 +45,13 @@ final class ActivityController extends Controller
             'filter' => $state['filter'],
             'sort' => $state['sort'],
             'direction' => $state['direction'],
-            'pagination' => pagination_view_data($activities, '/admin/activity', [
+            'pagination' => PaginationResult::fromArray([
+                'data' => $activities['data'] ?? [],
+                'total' => (int) ($activities['total'] ?? 0),
+                'per_page' => (int) ($activities['per_page'] ?? $perPage),
+                'current_page' => (int) ($activities['current_page'] ?? $state['page']),
+                'last_page' => (int) ($activities['last_page'] ?? 1),
+            ], '/admin/activity', [
                 'q' => $state['query'],
                 'filter' => $state['filter'],
                 'sort' => $state['sort'],

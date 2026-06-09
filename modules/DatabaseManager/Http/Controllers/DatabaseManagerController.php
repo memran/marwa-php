@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\DatabaseManager\Http\Controllers;
 
 use App\Modules\Activity\Events\ActivityRecordingRequested;
+use App\Support\Pagination\PaginationResult;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use App\Modules\DatabaseManager\Support\RawSqlExecutor;
@@ -91,7 +92,8 @@ final class DatabaseManagerController extends Controller
             'result' => $result,
             'error' => $error,
             'pagination' => $result !== null && ($result['is_result_set'] ?? false)
-                ? pagination_view_data([
+                ? PaginationResult::fromArray([
+                    'data' => $result['rows'] ?? [],
                     'total' => (int) ($result['total_rows'] ?? 0),
                     'per_page' => (int) ($result['per_page'] ?? per_page(25)),
                     'current_page' => (int) ($result['current_page'] ?? 1),

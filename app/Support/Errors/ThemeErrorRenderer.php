@@ -54,7 +54,7 @@ final class ThemeErrorRenderer implements RendererInterface
             $frames[] = [
                 'file' => (string) ($frame['file'] ?? '-'),
                 'line' => (int) ($frame['line'] ?? 0),
-                'call' => (string) (($frame['class'] ?? '') . ($frame['type'] ?? '') . ($frame['function'] ?? '')),
+                'call' => (string) (($frame['class'] ?? '') . ($frame['type'] ?? '') . $frame['function']),
             ];
 
             if (count($frames) >= 12) {

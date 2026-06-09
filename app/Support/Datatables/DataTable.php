@@ -51,6 +51,7 @@ final class DataTable
     private string $description = '';
     private string $searchPlaceholder = 'Search';
     private string $searchAriaLabel = 'Search records';
+    /** @var array{title:string,message:string} */
     private array $emptyState = [
         'title' => 'No records',
         'message' => 'Nothing matched the current filters.',
@@ -60,8 +61,9 @@ final class DataTable
     private string $defaultSortDirection = 'asc';
     private ?string $bulkDeleteUrl = null;
     private ?string $bulkStatusUrl = null;
+    /** @var list<array{value:string,label:string}> */
     private array $bulkStatusOptions = [];
-    /** @var null|Closure(array|object, array<string, mixed>): array<string, mixed> */
+    /** @var null|Closure(array<string, mixed>|object, array<string, mixed>): array<string, mixed> */
     private ?Closure $rowCallback = null;
 
     private function __construct(private readonly ServerRequestInterface $request)
@@ -86,7 +88,7 @@ final class DataTable
      */
     public function columns(array $columns): self
     {
-        $this->columns = array_values($columns);
+        $this->columns = $columns;
 
         return $this;
     }
@@ -96,7 +98,7 @@ final class DataTable
      */
     public function filters(array $filters): self
     {
-        $this->filters = array_values($filters);
+        $this->filters = $filters;
 
         return $this;
     }
@@ -106,7 +108,7 @@ final class DataTable
      */
     public function actions(array $actions): self
     {
-        $this->actions = array_values($actions);
+        $this->actions = $actions;
 
         return $this;
     }
@@ -116,7 +118,7 @@ final class DataTable
      */
     public function bulkActions(array $actions): self
     {
-        $this->bulkActions = array_values($actions);
+        $this->bulkActions = $actions;
 
         return $this;
     }
@@ -126,7 +128,7 @@ final class DataTable
      */
     public function exports(array $exports): self
     {
-        $this->exports = array_values($exports);
+        $this->exports = $exports;
 
         return $this;
     }
@@ -272,7 +274,7 @@ final class DataTable
     }
 
     /**
-     * @param Closure(array|object, array<string, mixed>): array<string, mixed> $callback
+     * @param Closure(array<string, mixed>|object, array<string, mixed>): array<string, mixed> $callback
      */
     public function row(Closure $callback): self
     {
@@ -364,6 +366,7 @@ final class DataTable
     }
 
     /**
+     * @param list<string> $visibleColumns
      * @param array{search:string,sort:string,direction:string,page:int,filters:array<string,mixed>,columns:list<string>} $state
      * @return list<array<string, mixed>>
      */
@@ -442,7 +445,7 @@ final class DataTable
 
         if ($this->rowCallback !== null) {
             $overrides = ($this->rowCallback)($row, $record);
-            if (is_array($overrides) && $overrides !== []) {
+            if ($overrides !== []) {
                 $record = array_replace_recursive($record, $overrides);
             }
         }
@@ -541,7 +544,7 @@ final class DataTable
 
         $visible = [];
         foreach ($requestedColumns as $column) {
-            if (is_string($column) && in_array($column, $allowed, true) && !in_array($column, $visible, true)) {
+            if (in_array($column, $allowed, true) && !in_array($column, $visible, true)) {
                 $visible[] = $column;
             }
         }
@@ -653,6 +656,8 @@ final class DataTable
     }
 
     /**
+     * @param array{search:string,sort:string,direction:string,page:int,filters:array<string,mixed>,columns:list<string>} $state
+     * @param list<string> $visibleColumns
      * @return array<string, mixed>
      */
     private function toolbar(array $state, array $visibleColumns): array
@@ -670,6 +675,8 @@ final class DataTable
     }
 
     /**
+     * @param array{search:string,sort:string,direction:string,page:int,filters:array<string,mixed>,columns:list<string>} $state
+     * @param list<string> $visibleColumns
      * @return array<string, mixed>
      */
     private function searchToolbar(array $state, array $visibleColumns): array
@@ -695,6 +702,8 @@ final class DataTable
     }
 
     /**
+     * @param array{search:string,sort:string,direction:string,page:int,filters:array<string,mixed>,columns:list<string>} $state
+     * @param list<string> $visibleColumns
      * @return array<string, mixed>
      */
     private function filterToolbar(array $state, array $visibleColumns): array
@@ -743,6 +752,8 @@ final class DataTable
     }
 
     /**
+     * @param array{search:string,sort:string,direction:string,page:int,filters:array<string,mixed>,columns:list<string>} $state
+     * @param list<string> $visibleColumns
      * @return array<string, mixed>
      */
     private function columnsToolbar(array $state, array $visibleColumns): array
@@ -848,15 +859,15 @@ final class DataTable
     }
 
     /**
-     * @param array<string, mixed> $state
+     * @param array{search:string,sort:string,direction:string,page:int,filters:array<string,mixed>,columns:list<string>} $state
+     * @param list<string> $visibleColumns
+     * @param list<array<string, mixed>> $rows
      * @return array<string, mixed>
      */
     private function bulk(array $state, array $visibleColumns, array $rows): array
     {
         return [
             'form_id' => 'datatable-bulk-form',
-            'action_delete_url' => '',
-            'action_status_url' => '',
             'selectable_count' => count(array_filter($rows, static fn (array $row): bool => !($row['bulk']['disabled'] ?? false))),
             'select_all_label' => 'Select all',
             'selection_header_label' => 'Select rows',
@@ -931,6 +942,9 @@ final class DataTable
         return $filters;
     }
 
+    /**
+     * @param array{search:string,sort:string,direction:string,page:int,filters:array<string,mixed>,columns:list<string>} $state
+     */
     private function currentFilterLabel(array $state): string
     {
         foreach ($this->filters as $filter) {

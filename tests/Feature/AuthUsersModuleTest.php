@@ -402,6 +402,8 @@ TWIG
         self::assertStringContainsString('Search users...', $usersBody);
         self::assertStringContainsString('/admin/users/export/csv', $usersBody);
         self::assertStringContainsString('/admin/users/export/pdf', $usersBody);
+        self::assertStringContainsString('admin-pagination', $usersBody);
+        self::assertMatchesRegularExpression('/Showing \d+-\d+ of \d+ results/', $usersBody);
 
         $sortedUsersPage = $kernel->handle($this->request('GET', '/admin/users?sort=name&direction=asc'));
         self::assertSame(200, $sortedUsersPage->getStatusCode());

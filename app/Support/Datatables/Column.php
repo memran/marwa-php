@@ -30,7 +30,7 @@ final class Column
     /** @var null|Closure(mixed):mixed */
     private ?Closure $iconCallback = null;
 
-    /** @var null|Closure(array|object):string */
+    /** @var null|Closure(array<string, mixed>|object):string */
     private ?Closure $hrefCallback = null;
 
     public function __construct(string $field, ?string $label = null)
@@ -136,7 +136,7 @@ final class Column
     }
 
     /**
-     * @param Closure(array|object):string $callback
+     * @param Closure(array<string, mixed>|object):string $callback
      */
     public function link(Closure $callback): self
     {

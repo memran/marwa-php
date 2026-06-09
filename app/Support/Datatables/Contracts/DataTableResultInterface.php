@@ -55,4 +55,23 @@ interface DataTableResultInterface extends \JsonSerializable
      * @return array<string, mixed>
      */
     public function emptyState(): array;
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toolbar(): array;
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function bulk(): array;
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function features(): array;
+
+    public function title(): string;
+
+    public function description(): string;
 }

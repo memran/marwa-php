@@ -192,23 +192,18 @@
     </div>
   {% endif %}
 
-  {% if pagination.links|default([])|length > 1 %}
+  {% if pagination.hasPages %}
     <nav class="mt-8 flex flex-col gap-4 rounded-[1.5rem] border border-app-border bg-app-surface/80 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-      <p class="text-sm text-app-muted">{{ pagination.summary|default('') }}</p>
+      <p class="text-sm text-app-muted">{{ pagination.summary }}</p>
       <div class="flex flex-wrap items-center gap-2">
-        {% set previous_page = null %}
-        {% for link in pagination.links|default([]) %}
-          {% if previous_page is not null and link.page > previous_page + 1 %}
-            <span class="px-2 text-app-muted">...</span>
-          {% endif %}
-
-          {% if link.active %}
-            <span class="inline-flex h-9 min-w-9 items-center justify-center rounded-xl border border-app-accent/30 bg-app-accent/10 px-3 text-sm font-semibold text-app-accent">{{ link.page }}</span>
+        {% for link in pagination.pages %}
+          {% if link.disabled %}
+            <span class="px-2 text-app-muted">{{ link.label }}</span>
+          {% elseif link.active %}
+            <span class="inline-flex h-9 min-w-9 items-center justify-center rounded-xl border border-app-accent/30 bg-app-accent/10 px-3 text-sm font-semibold text-app-accent">{{ link.label }}</span>
           {% else %}
-            <a class="inline-flex h-9 min-w-9 items-center justify-center rounded-xl border border-app-border bg-app-surface/60 px-3 text-sm font-medium text-app-text transition hover:bg-app-surface-2/70" href="{{ link.url }}">{{ link.page }}</a>
+            <a class="inline-flex h-9 min-w-9 items-center justify-center rounded-xl border border-app-border bg-app-surface/60 px-3 text-sm font-medium text-app-text transition hover:bg-app-surface-2/70" href="{{ link.url }}">{{ link.label }}</a>
           {% endif %}
-
-          {% set previous_page = link.page %}
         {% endfor %}
       </div>
     </nav>

@@ -9,7 +9,7 @@ parameters:
         - vendor/autoload.php
     scanDirectories:
         - modules/Users/database/seeders
-        - modules/Auth/database/Seeders
+        - modules/Auth/database/seeders
     reportUnmatchedIgnoredErrors: false
     ignoreErrors:
         - identifier: staticMethod.notFound

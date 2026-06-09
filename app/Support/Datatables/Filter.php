@@ -11,6 +11,7 @@ final class Filter
 {
     private string $label;
     private string $type;
+    /** @var array<string, string> */
     private array $options = [];
     private ?string $placeholder = null;
     private mixed $default = null;
@@ -131,6 +132,9 @@ final class Filter
         return $this->label;
     }
 
+    /**
+     * @param array<string, mixed> $filters
+     */
     public function value(array $filters): mixed
     {
         if (array_key_exists($this->name, $filters)) {

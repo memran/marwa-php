@@ -8,6 +8,7 @@ use App\Modules\Auth\Support\PermissionRepository;
 use App\Modules\Roles\Support\PermissionActivityLogger;
 use App\Modules\Roles\Support\PermissionFormData;
 use App\Support\AdminListState;
+use App\Support\Pagination\PaginationResult;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -73,7 +74,13 @@ final class PermissionsController extends Controller
             'group_count' => $groupCount,
             'total_permissions' => count($this->permissions->all()),
             'create_url' => '/admin/permissions/create',
-            'pagination' => pagination_view_data($pageData, '/admin/permissions', [
+            'pagination' => PaginationResult::fromArray([
+                'data' => $pageData['data'] ?? [],
+                'total' => (int) ($pageData['total'] ?? 0),
+                'per_page' => (int) ($pageData['per_page'] ?? 1),
+                'current_page' => (int) ($pageData['current_page'] ?? 1),
+                'last_page' => (int) ($pageData['last_page'] ?? 1),
+            ], '/admin/permissions', [
                 'q' => $state['query'],
                 'group' => $group,
                 'sort' => $sort,

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Activity\Support;
 
 use App\Modules\Activity\Models\Activity;
+use App\Support\Pagination\PaginationResult;
 
 final class ActivityTimeline
 {
@@ -13,7 +14,7 @@ final class ActivityTimeline
      * @return array{
      *     data:list<Activity>,
      *     total:int,
-     *     pagination:array{summary:string,links:list<array{page:string,url:string,active:bool}>}
+     *     pagination:PaginationResult
      * }
      */
     public function actorEmail(string $email, string $path, int $page = 1, int $perPage = 5, array $params = []): array
@@ -23,7 +24,12 @@ final class ActivityTimeline
         return [
             'data' => $pageData['data'],
             'total' => $pageData['pagination']['total'],
-            'pagination' => $this->pagination($pageData['pagination'], $path, $params),
+            'pagination' => PaginationResult::fromArray(
+                array_merge($pageData['pagination'], ['data' => $pageData['data']]),
+                $path,
+                $params,
+                'activity_page'
+            ),
         ];
     }
 
@@ -68,25 +74,4 @@ final class ActivityTimeline
         ];
     }
 
-    /**
-     * @param array{total:int,per_page:int,current_page:int,last_page:int} $pageData
-     * @param array<string, scalar|list<string>|null> $params
-     * @return array{summary:string,links:list<array{page:string,url:string,active:bool}>}
-     */
-    private function pagination(array $pageData, string $path, array $params): array
-    {
-        $pagination = pagination_view_data($pageData, $path, $params, 'activity_page');
-
-        return [
-            'summary' => $pagination['summary'],
-            'links' => array_map(
-                static fn (array $link): array => [
-                    'page' => (string) $link['page'],
-                    'url' => $link['url'],
-                    'active' => $link['active'],
-                ],
-                $pagination['links']
-            ),
-        ];
-    }
 }
