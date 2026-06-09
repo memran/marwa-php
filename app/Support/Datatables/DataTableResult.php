@@ -5,24 +5,116 @@ declare(strict_types=1);
 namespace App\Support\Datatables;
 
 use App\Support\Datatables\Contracts\DataTableResultInterface;
+use App\Support\Datatables\DTO\DataTableAction;
+use App\Support\Datatables\DTO\DataTableColumn;
+use App\Support\Datatables\DTO\DataTableRow;
 use App\Support\Pagination\PaginationResult;
 use ArrayAccess;
 use ArrayIterator;
 use IteratorAggregate;
 use JsonSerializable;
+use LogicException;
 use Traversable;
 
 /**
  * @implements ArrayAccess<string, mixed>
  * @implements IteratorAggregate<string, mixed>
  */
-final class DataTableResult implements DataTableResultInterface, ArrayAccess, IteratorAggregate
+final readonly class DataTableResult implements DataTableResultInterface, ArrayAccess, IteratorAggregate
 {
+    /**
+     * @param array<string, mixed> $features
+     * @param array<string, mixed> $toolbar
+     * @param array<string, mixed> $bulk
+     * @param list<DataTableColumn> $columns
+     * @param list<DataTableRow> $rows
+     * @param array<string, mixed> $filters
+     * @param array<string, mixed> $search
+     * @param array<string, mixed> $sort
+     * @param list<DataTableAction> $actions
+     * @param list<DataTableAction> $bulkActions
+     * @param array<string, mixed> $emptyState
+     */
+    public function __construct(
+        private string $title,
+        private string $description,
+        private array $features,
+        private array $toolbar,
+        private array $bulk,
+        private array $columns,
+        private array $rows,
+        private PaginationResult $pagination,
+        private array $filters,
+        private array $search,
+        private array $sort,
+        private array $actions,
+        private array $bulkActions,
+        private array $emptyState,
+    ) {
+    }
+
     /**
      * @param array<string, mixed> $payload
      */
-    public function __construct(private array $payload)
+    public static function fromArray(array $payload): self
     {
+        $pagination = $payload['pagination'] ?? null;
+
+        if (!$pagination instanceof PaginationResult) {
+            $pagination = is_array($pagination)
+                ? PaginationResult::fromArray(
+                    [
+                        'data' => $pagination['data'] ?? [],
+                        'total' => (int) ($pagination['total'] ?? 0),
+                        'per_page' => (int) ($pagination['per_page'] ?? 1),
+                        'current_page' => (int) ($pagination['current_page'] ?? 1),
+                        'last_page' => (int) ($pagination['last_page'] ?? 1),
+                    ],
+                    path: (string) ($pagination['path'] ?? '/'),
+                    query: is_array($pagination['query'] ?? null) ? $pagination['query'] : [],
+                    pageName: (string) ($pagination['page_name'] ?? 'page'),
+                    window: (int) ($pagination['window'] ?? 2),
+                    maxPerPage: (int) ($pagination['max_per_page'] ?? 100)
+                )
+                : PaginationResult::fromArray([
+                    'data' => [],
+                    'total' => 0,
+                    'per_page' => 1,
+                    'current_page' => 1,
+                    'last_page' => 1,
+                ]);
+        }
+
+        $rawFilters = is_array($payload['filters'] ?? null) ? $payload['filters'] : [];
+
+        return new self(
+            (string) ($payload['title'] ?? ''),
+            (string) ($payload['description'] ?? ''),
+            is_array($payload['features'] ?? null) ? $payload['features'] : [],
+            is_array($payload['toolbar'] ?? null) ? $payload['toolbar'] : [],
+            is_array($payload['bulk'] ?? null) ? $payload['bulk'] : [],
+            array_map(
+                static fn (array $column): DataTableColumn => DataTableColumn::fromArray($column),
+                self::normalizeList($payload['columns'] ?? [])
+            ),
+            array_map(
+                static fn (array $row): DataTableRow => DataTableRow::fromArray($row),
+                self::normalizeList($payload['rows'] ?? [])
+            ),
+            $pagination,
+            is_array($rawFilters['items'] ?? null) ? $rawFilters['items'] : [],
+            is_array($payload['search'] ?? null) ? $payload['search'] : [],
+            is_array($payload['sort'] ?? null) ? $payload['sort'] : [],
+            array_map(
+                static fn (array $action): DataTableAction => DataTableAction::fromArray($action),
+                self::normalizeList($payload['actions'] ?? [])
+            ),
+            array_map(
+                static fn (array $action): DataTableAction => DataTableAction::fromArray($action),
+                self::normalizeList($payload['bulkActions'] ?? [])
+            ),
+            is_array($payload['emptyState'] ?? null) ? $payload['emptyState'] : []
+        );
     }
 
     /**
@@ -30,7 +122,10 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
      */
     public function columns(): array
     {
-        return $this->payload['columns'] ?? [];
+        return array_map(
+            static fn (DataTableColumn $column): array => $column->toArray(),
+            $this->columns
+        );
     }
 
     /**
@@ -42,11 +137,22 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
     }
 
     /**
+     * @return list<DataTableColumn>
+     */
+    public function columnObjects(): array
+    {
+        return $this->columns;
+    }
+
+    /**
      * @return list<array<string, mixed>>
      */
     public function rows(): array
     {
-        return $this->payload['rows'] ?? [];
+        return array_map(
+            static fn (DataTableRow $row): array => $row->toArray(),
+            $this->rows
+        );
     }
 
     /**
@@ -58,40 +164,16 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
     }
 
     /**
-     * @return PaginationResult
+     * @return list<DataTableRow>
      */
+    public function rowObjects(): array
+    {
+        return $this->rows;
+    }
+
     public function pagination(): PaginationResult
     {
-        $pagination = $this->payload['pagination'] ?? null;
-
-        if ($pagination instanceof PaginationResult) {
-            return $pagination;
-        }
-
-        if (is_array($pagination)) {
-            return PaginationResult::fromArray(
-                [
-                    'data' => $pagination['data'] ?? [],
-                    'total' => (int) ($pagination['total'] ?? 0),
-                    'per_page' => (int) ($pagination['per_page'] ?? 1),
-                    'current_page' => (int) ($pagination['current_page'] ?? 1),
-                    'last_page' => (int) ($pagination['last_page'] ?? 1),
-                ],
-                path: (string) ($pagination['path'] ?? '/'),
-                query: is_array($pagination['query'] ?? null) ? $pagination['query'] : [],
-                pageName: (string) ($pagination['page_name'] ?? 'page'),
-                window: (int) ($pagination['window'] ?? 2),
-                maxPerPage: (int) ($pagination['max_per_page'] ?? 100)
-            );
-        }
-
-        return PaginationResult::fromArray([
-            'data' => [],
-            'total' => 0,
-            'per_page' => 1,
-            'current_page' => 1,
-            'last_page' => 1,
-        ]);
+        return $this->pagination;
     }
 
     /**
@@ -115,7 +197,7 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
      */
     public function filters(): array
     {
-        return $this->payload['filters'] ?? [];
+        return array_values($this->filters);
     }
 
     /**
@@ -131,7 +213,7 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
      */
     public function search(): array
     {
-        return $this->payload['search'] ?? [];
+        return $this->search;
     }
 
     /**
@@ -147,7 +229,7 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
      */
     public function sort(): array
     {
-        return $this->payload['sort'] ?? [];
+        return $this->sort;
     }
 
     /**
@@ -163,7 +245,10 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
      */
     public function actions(): array
     {
-        return $this->payload['actions'] ?? [];
+        return array_map(
+            static fn (DataTableAction $action): array => $action->toArray(),
+            $this->actions
+        );
     }
 
     /**
@@ -175,11 +260,22 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
     }
 
     /**
+     * @return list<DataTableAction>
+     */
+    public function actionObjects(): array
+    {
+        return $this->actions;
+    }
+
+    /**
      * @return list<array<string, mixed>>
      */
     public function bulkActions(): array
     {
-        return $this->payload['bulkActions'] ?? [];
+        return array_map(
+            static fn (DataTableAction $action): array => $action->toArray(),
+            $this->bulkActions
+        );
     }
 
     /**
@@ -191,11 +287,19 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
     }
 
     /**
+     * @return list<DataTableAction>
+     */
+    public function bulkActionObjects(): array
+    {
+        return $this->bulkActions;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function emptyState(): array
     {
-        return $this->payload['emptyState'] ?? [];
+        return $this->emptyState;
     }
 
     /**
@@ -211,7 +315,7 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
      */
     public function toolbar(): array
     {
-        return $this->payload['toolbar'] ?? [];
+        return $this->toolbar;
     }
 
     /**
@@ -227,7 +331,7 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
      */
     public function bulk(): array
     {
-        return $this->payload['bulk'] ?? [];
+        return $this->bulk;
     }
 
     /**
@@ -243,7 +347,7 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
      */
     public function features(): array
     {
-        return $this->payload['features'] ?? [];
+        return $this->features;
     }
 
     /**
@@ -256,7 +360,7 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
 
     public function title(): string
     {
-        return (string) ($this->payload['title'] ?? '');
+        return $this->title;
     }
 
     public function getTitle(): string
@@ -266,7 +370,7 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
 
     public function description(): string
     {
-        return (string) ($this->payload['description'] ?? '');
+        return $this->description;
     }
 
     public function getDescription(): string
@@ -279,7 +383,22 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
      */
     public function toArray(): array
     {
-        return $this->normalizeForOutput($this->payload);
+        return $this->normalizeForOutput([
+            'title' => $this->title,
+            'description' => $this->description,
+            'features' => $this->features,
+            'toolbar' => $this->toolbar,
+            'bulk' => $this->bulk,
+            'columns' => $this->columns(),
+            'rows' => $this->rows(),
+            'pagination' => $this->pagination,
+            'filters' => $this->filters(),
+            'search' => $this->search,
+            'sort' => $this->sort,
+            'actions' => $this->actions(),
+            'bulkActions' => $this->bulkActions(),
+            'emptyState' => $this->emptyState,
+        ]);
     }
 
     /**
@@ -292,22 +411,24 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
 
     public function offsetExists(mixed $offset): bool
     {
-        return array_key_exists((string) $offset, $this->payload);
+        return array_key_exists((string) $offset, $this->toArray());
     }
 
     public function offsetGet(mixed $offset): mixed
     {
-        return $this->payload[(string) $offset] ?? null;
+        $data = $this->toArray();
+
+        return $data[(string) $offset] ?? null;
     }
 
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        throw new \LogicException('DataTableResult is immutable.');
+        throw new LogicException('DataTableResult is immutable.');
     }
 
     public function offsetUnset(mixed $offset): void
     {
-        throw new \LogicException('DataTableResult is immutable.');
+        throw new LogicException('DataTableResult is immutable.');
     }
 
     /**
@@ -315,7 +436,26 @@ final class DataTableResult implements DataTableResultInterface, ArrayAccess, It
      */
     public function getIterator(): Traversable
     {
-        return new ArrayIterator($this->payload);
+        return new ArrayIterator($this->toArray());
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private static function normalizeList(mixed $items): array
+    {
+        if (!is_array($items)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($items as $item) {
+            if (is_array($item)) {
+                $normalized[] = $item;
+            }
+        }
+
+        return $normalized;
     }
 
     /**

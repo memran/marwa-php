@@ -1,5 +1,5 @@
-{% set pagination_summary = pagination.summary %}
-{% set pagination_pages = pagination.pages %}
+{% set pagination_summary = pagination.summary() %}
+{% set pagination_pages = pagination.pages() %}
 
 <div class="admin-pagination mt-4 flex flex-col gap-3 border-t border-white/10 pt-3 sm:flex-row sm:items-center sm:justify-between">
   <div class="text-xs text-slate-400 sm:text-sm">{{ pagination_summary }}</div>

@@ -6,6 +6,9 @@ namespace App\Support\Datatables;
 
 use Closure;
 use App\Support\Datatables\Contracts\DataTableResultInterface;
+use App\Support\Datatables\DTO\DataTableAction as DataTableActionDto;
+use App\Support\Datatables\DTO\DataTableColumn as DataTableColumnDto;
+use App\Support\Datatables\DTO\DataTableRow as DataTableRowDto;
 use App\Support\Datatables\Exceptions\MissingQueryException;
 use App\Support\Pagination\PaginationResult;
 use Marwa\DB\ORM\QueryBuilder;
@@ -314,30 +317,39 @@ final class DataTable
 
         $rows = $this->buildRows($pageData['data'], $visibleColumns);
 
-        $payload = [
-            'title' => $this->title,
-            'description' => $this->description,
-            'features' => $this->features(),
-            'toolbar' => $this->toolbar($state, $visibleColumns),
-            'bulk' => $this->bulk($state, $visibleColumns, $rows),
-            'columns' => $this->resolveVisibleColumnMetadata($visibleColumns, $state),
-            'rows' => $rows,
-            'pagination' => PaginationResult::fromArray(
+        return new DataTableResult(
+            title: $this->title,
+            description: $this->description,
+            features: $this->features(),
+            toolbar: $this->toolbar($state, $visibleColumns),
+            bulk: $this->bulk($state, $visibleColumns, $rows),
+            columns: array_map(
+                static fn (array $column): DataTableColumnDto => DataTableColumnDto::fromArray($column),
+                $this->resolveVisibleColumnMetadata($visibleColumns, $state)
+            ),
+            rows: array_map(
+                static fn (array $row): DataTableRowDto => DataTableRowDto::fromArray($row),
+                $rows
+            ),
+            pagination: PaginationResult::fromArray(
                 $pageData,
                 path: $this->path,
                 query: $this->paginationQuery($state, $visibleColumns),
                 pageName: $this->pageParameter
             ),
-            'filters' => $this->filtersPayload($state),
-            'search' => (new Search($state['search']))->toArray(),
-            'sort' => (new Sort($state['sort'], $state['direction']))->toArray(),
-            'actions' => $this->resolveToolbarActions(),
-            'bulkActions' => $this->resolveBulkActionToolbar(),
-            'empty_state' => $this->emptyState,
-            'emptyState' => $this->emptyState,
-        ];
-
-        return new DataTableResult($payload);
+            filters: ['items' => $this->filtersPayload($state)],
+            search: (new Search($state['search']))->toArray(),
+            sort: (new Sort($state['sort'], $state['direction']))->toArray(),
+            actions: array_map(
+                static fn (array $action): DataTableActionDto => DataTableActionDto::fromArray($action),
+                $this->resolveToolbarActions()
+            ),
+            bulkActions: array_map(
+                static fn (array $action): DataTableActionDto => DataTableActionDto::fromArray($action),
+                $this->resolveBulkActionToolbar()
+            ),
+            emptyState: $this->emptyState,
+        );
     }
 
     /**

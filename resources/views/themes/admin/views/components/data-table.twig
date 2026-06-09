@@ -4,9 +4,9 @@
 {% set features = table.features|default({}) %}
 {% set toolbar = table.toolbar|default({}) %}
 {% set bulk = table.bulk|default({}) %}
-{% set columns = table.columns|default([]) %}
-{% set rows = table.rows|default([]) %}
-{% set pagination = table.pagination|default(null) %}
+{% set columns = table.columnObjects|default([]) %}
+{% set rows = table.rowObjects|default([]) %}
+{% set pagination = table.pagination()|default(null) %}
 {% set empty_state = table.empty_state|default({
   title: 'No records',
   message: 'Nothing matched the current filters.'
@@ -277,7 +277,7 @@
             {% endif %}
             {% for column in columns %}
               <th class="border-b border-app-border px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-app-muted">
-                {% if features.sort|default(false) and column.sortable|default(false) and column.href is defined and column.href %}
+                {% if features.sort|default(false) and column.sortable and column.href %}
                   <a class="inline-flex items-center gap-1 hover:text-app-text {% if column.active|default(false) %}text-app-accent{% endif %}" href="{{ column.href }}">
                     <span>{{ column.label }}</span>
                     {% if column.active|default(false) %}
@@ -327,7 +327,7 @@
                           {{ cell.avatar|default(cell.value|default('U'))|slice(0, 1)|upper }}
                         </div>
                         <div class="grid gap-0.5 min-w-0">
-                          {% if cell.href is defined and cell.href %}
+                          {% if cell.href %}
                             <a class="truncate font-semibold text-app-text transition hover:text-app-accent" href="{{ cell.href }}">{{ cell.value }}</a>
                           {% else %}
                             <span class="truncate font-semibold text-app-text">{{ cell.value }}</span>
@@ -338,7 +338,7 @@
                         </div>
                       </div>
                     {% elseif cell.type == 'text' %}
-                      {% if cell.href is defined and cell.href %}
+                      {% if cell.href %}
                         <a class="{% if cell.muted|default(false) %}text-app-muted{% else %}text-app-text hover:text-app-accent transition{% endif %}" href="{{ cell.href }}">
                           {{ cell.value }}
                         </a>
@@ -373,8 +373,8 @@
               {% if features.actions|default(false) %}
                 <td class="px-3 py-3">
                   <div class="flex flex-wrap gap-2">
-                    {% for action in row.actions|default([]) %}
-                      {% set action_variant = action.variant|default('secondary') %}
+                    {% for action in row.actions %}
+                      {% set action_variant = action.variant %}
                       {% set action_class = action_variant == 'primary'
                         ? row_action_primary
                         : action_variant == 'danger'

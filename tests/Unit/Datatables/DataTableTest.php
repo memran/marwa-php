@@ -117,6 +117,12 @@ final class DataTableTest extends TestCase
         self::assertSame('Showing 1-1 of 1 results', $table->pagination()->summary());
         self::assertStringContainsString('search=admin', $table->pagination()->pages()[0]->url);
         self::assertStringContainsString('filters%5Bstatus%5D=active', $table->pagination()->pages()[0]->url);
+        self::assertSame('Name', $table->columnObjects()[0]->label());
+        self::assertSame('Admin', $table->rowObjects()[0]->cells()['name']->value());
+        self::assertSame('/admin/users/3', $table->rowObjects()[0]->actions()[0]->href());
+        self::assertSame('Name', $table->columnObjects()[0]->label);
+        self::assertSame('badge', $table->rowObjects()[0]->cells()['status']->type);
+        self::assertSame('/admin/users/3', $table->rowObjects()[0]->actions()[0]->href);
         self::assertSame('Admin', $table->rows()[0]['cells']['name']['value']);
         self::assertSame(0, count($table->actions()));
         self::assertSame(1, count($table->bulkActions()));
