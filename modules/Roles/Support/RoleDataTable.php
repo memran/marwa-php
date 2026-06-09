@@ -25,7 +25,6 @@ final class RoleDataTable
             ->sortParameter('sort')
             ->directionParameter('direction')
             ->pageParameter('page')
-            ->filterParameter('filter')
             ->columnsParameter('columns')
             ->selectedIdsParameter('ids')
             ->path('/admin/roles')
@@ -59,7 +58,7 @@ final class RoleDataTable
                     ->format(static fn (mixed $value): string => ((int) $value) . ' ' . (((int) $value) === 1 ? 'user' : 'users')),
             ])
             ->filters([
-                Filter::select('filter')
+                Filter::select('type')
                     ->label('Type')
                     ->options([
                         'all' => 'All roles',

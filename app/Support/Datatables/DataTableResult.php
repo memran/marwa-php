@@ -54,70 +54,6 @@ final readonly class DataTableResult implements DataTableResultInterface, ArrayA
     }
 
     /**
-     * @param array<string, mixed> $payload
-     */
-    public static function fromArray(array $payload): self
-    {
-        $pagination = $payload['pagination'] ?? null;
-
-        if (!$pagination instanceof PaginationResult) {
-            $pagination = is_array($pagination)
-                ? PaginationResult::fromArray(
-                    [
-                        'data' => $pagination['data'] ?? [],
-                        'total' => (int) ($pagination['total'] ?? 0),
-                        'per_page' => (int) ($pagination['per_page'] ?? 1),
-                        'current_page' => (int) ($pagination['current_page'] ?? 1),
-                        'last_page' => (int) ($pagination['last_page'] ?? 1),
-                    ],
-                    path: (string) ($pagination['path'] ?? '/'),
-                    query: is_array($pagination['query'] ?? null) ? $pagination['query'] : [],
-                    pageName: (string) ($pagination['page_name'] ?? 'page'),
-                    window: (int) ($pagination['window'] ?? 2),
-                    maxPerPage: (int) ($pagination['max_per_page'] ?? 100)
-                )
-                : PaginationResult::fromArray([
-                    'data' => [],
-                    'total' => 0,
-                    'per_page' => 1,
-                    'current_page' => 1,
-                    'last_page' => 1,
-                ]);
-        }
-
-        $rawFilters = is_array($payload['filters'] ?? null) ? $payload['filters'] : [];
-
-        return new self(
-            (string) ($payload['title'] ?? ''),
-            (string) ($payload['description'] ?? ''),
-            is_array($payload['features'] ?? null) ? $payload['features'] : [],
-            is_array($payload['toolbar'] ?? null) ? $payload['toolbar'] : [],
-            is_array($payload['bulk'] ?? null) ? $payload['bulk'] : [],
-            array_map(
-                static fn (array $column): DataTableColumn => DataTableColumn::fromArray($column),
-                self::normalizeList($payload['columns'] ?? [])
-            ),
-            array_map(
-                static fn (array $row): DataTableRow => DataTableRow::fromArray($row),
-                self::normalizeList($payload['rows'] ?? [])
-            ),
-            $pagination,
-            is_array($rawFilters['items'] ?? null) ? $rawFilters['items'] : [],
-            is_array($payload['search'] ?? null) ? $payload['search'] : [],
-            is_array($payload['sort'] ?? null) ? $payload['sort'] : [],
-            array_map(
-                static fn (array $action): DataTableAction => DataTableAction::fromArray($action),
-                self::normalizeList($payload['actions'] ?? [])
-            ),
-            array_map(
-                static fn (array $action): DataTableAction => DataTableAction::fromArray($action),
-                self::normalizeList($payload['bulkActions'] ?? [])
-            ),
-            is_array($payload['emptyState'] ?? null) ? $payload['emptyState'] : []
-        );
-    }
-
-    /**
      * @return list<array<string, mixed>>
      */
     public function columns(): array
@@ -197,7 +133,18 @@ final readonly class DataTableResult implements DataTableResultInterface, ArrayA
      */
     public function filters(): array
     {
-        return array_values($this->filters);
+        if (is_array($this->filters['items'] ?? null)) {
+            return $this->filters['items'];
+        }
+
+        $items = [];
+        foreach ($this->filters as $filter) {
+            if (is_array($filter)) {
+                $items[] = $filter;
+            }
+        }
+
+        return $items;
     }
 
     /**
@@ -437,25 +384,6 @@ final readonly class DataTableResult implements DataTableResultInterface, ArrayA
     public function getIterator(): Traversable
     {
         return new ArrayIterator($this->toArray());
-    }
-
-    /**
-     * @return list<array<string, mixed>>
-     */
-    private static function normalizeList(mixed $items): array
-    {
-        if (!is_array($items)) {
-            return [];
-        }
-
-        $normalized = [];
-        foreach ($items as $item) {
-            if (is_array($item)) {
-                $normalized[] = $item;
-            }
-        }
-
-        return $normalized;
     }
 
     /**

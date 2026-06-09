@@ -9,6 +9,7 @@ use App\Support\Datatables\Contracts\DataTableResultInterface;
 use App\Support\Datatables\DTO\DataTableAction as DataTableActionDto;
 use App\Support\Datatables\DTO\DataTableColumn as DataTableColumnDto;
 use App\Support\Datatables\DTO\DataTableRow as DataTableRowDto;
+use App\Support\Datatables\DTO\DataTableState;
 use App\Support\Datatables\Exceptions\MissingQueryException;
 use App\Support\Pagination\PaginationResult;
 use Marwa\DB\ORM\QueryBuilder;
@@ -301,19 +302,19 @@ final class DataTable
         $state = $this->resolveState();
         $engine = new DataTableQuery(clone $query);
 
-        $search = new Search($state['search']);
+        $search = new Search($state->search());
         $search->columns($this->searchableColumns());
         $engine->applySearch($search, $this->searchableColumns());
-        $engine->applyFilters($this->filters, $state['filters']);
+        $engine->applyFilters($this->filters, $state->filters());
         $engine->applySort(
-            new Sort($state['sort'], $state['direction']),
+            new Sort($state->sort(), $state->direction()),
             $this->sortableColumnFields(),
             $this->defaultSortField,
             $this->defaultSortDirection
         );
 
-        $pageData = $engine->paginate($this->perPage, $state['page']);
-        $visibleColumns = $this->resolveVisibleColumns($state['columns']);
+        $pageData = $engine->paginate($this->perPage, $state->page());
+        $visibleColumns = $this->resolveVisibleColumns($state->columns());
 
         $rows = $this->buildRows($pageData['data'], $visibleColumns);
 
@@ -334,12 +335,18 @@ final class DataTable
             pagination: PaginationResult::fromArray(
                 $pageData,
                 path: $this->path,
-                query: $this->paginationQuery($state, $visibleColumns),
+                query: $state->paginationQuery(
+                    $this->searchParameter,
+                    $this->sortParameter,
+                    $this->directionParameter,
+                    $this->filterParameter,
+                    $this->columnsParameter
+                ),
                 pageName: $this->pageParameter
             ),
             filters: ['items' => $this->filtersPayload($state)],
-            search: (new Search($state['search']))->toArray(),
-            sort: (new Sort($state['sort'], $state['direction']))->toArray(),
+            search: (new Search($state->search()))->toArray(),
+            sort: (new Sort($state->sort(), $state->direction()))->toArray(),
             actions: array_map(
                 static fn (array $action): DataTableActionDto => DataTableActionDto::fromArray($action),
                 $this->resolveToolbarActions()
@@ -361,12 +368,12 @@ final class DataTable
         $state = $this->resolveState();
         $engine = new DataTableQuery(clone $query);
 
-        $search = new Search($state['search']);
+        $search = new Search($state->search());
         $search->columns($this->searchableColumns());
         $engine->applySearch($search, $this->searchableColumns());
-        $engine->applyFilters($this->filters, $state['filters']);
+        $engine->applyFilters($this->filters, $state->filters());
         $engine->applySort(
-            new Sort($state['sort'], $state['direction']),
+            new Sort($state->sort(), $state->direction()),
             $this->sortableColumnFields(),
             $this->defaultSortField,
             $this->defaultSortDirection
@@ -385,10 +392,9 @@ final class DataTable
 
     /**
      * @param list<string> $visibleColumns
-     * @param array{search:string,sort:string,direction:string,page:int,filters:array<string,mixed>,columns:list<string>} $state
      * @return list<array<string, mixed>>
      */
-    private function resolveVisibleColumnMetadata(array $visibleColumns, array $state): array
+    private function resolveVisibleColumnMetadata(array $visibleColumns, DataTableState $state): array
     {
         $metadata = [];
 
@@ -398,16 +404,16 @@ final class DataTable
                 $sortField = $column->sortField();
 
                 if ($column->isSortable()) {
-                    $isActive = $state['sort'] !== '' && $state['sort'] === $sortField;
-                    $nextDirection = $isActive && $state['direction'] === 'asc' ? 'desc' : 'asc';
+                    $isActive = $state->sort() !== '' && $state->sort() === $sortField;
+                    $nextDirection = $isActive && $state->direction() === 'asc' ? 'desc' : 'asc';
 
-                    $item['href'] = $this->buildUrl(array_merge($state, [
+                    $item['href'] = $this->buildUrl(array_merge($state->toArray(), [
                         'sort' => $sortField,
                         'direction' => $nextDirection,
                         'page' => 1,
                     ]), $visibleColumns);
                     $item['active'] = $isActive;
-                    $item['sort_direction'] = $isActive ? $state['direction'] : $this->defaultSortDirection;
+                    $item['sort_direction'] = $isActive ? $state->direction() : $this->defaultSortDirection;
                 }
 
                 $metadata[] = $item;
@@ -571,9 +577,9 @@ final class DataTable
     }
 
     /**
-     * @return array{search:string,sort:string,direction:string,page:int,filters:array<string,mixed>,columns:list<string>}
+     * @return DataTableState
      */
-    private function resolveState(): array
+    private function resolveState(): DataTableState
     {
         $input = $this->input();
 
@@ -582,25 +588,17 @@ final class DataTable
         $direction = strtolower(trim((string) ($input[$this->directionParameter] ?? 'asc')));
         $page = (int) ($input[$this->pageParameter] ?? 1);
 
-        if ($sort === '' && $this->defaultSortField !== '') {
-            $sort = $this->defaultSortField;
-        }
-
-        if (!in_array($direction, ['asc', 'desc'], true)) {
-            $direction = $this->defaultSortDirection;
-        }
-
         $filters = $this->resolveFilters($input);
         $columns = $this->resolveRequestedColumns($input);
 
-        return [
+        return DataTableState::fromArray([
             'search' => $search,
             'sort' => $sort,
             'direction' => $direction,
             'page' => max(1, $page),
             'filters' => $filters,
             'columns' => $columns,
-        ];
+        ], $this->defaultSortField, $this->defaultSortDirection);
     }
 
     /**
@@ -632,10 +630,6 @@ final class DataTable
                     $filters[$key] = $value;
                 }
             }
-        }
-
-        if ($filters === [] && isset($input['filter']) && count($this->filters) === 1) {
-            $filters[$this->filters[0]->name()] = $input['filter'];
         }
 
         foreach ($this->filters as $filter) {
@@ -674,11 +668,11 @@ final class DataTable
     }
 
     /**
-     * @param array{search:string,sort:string,direction:string,page:int,filters:array<string,mixed>,columns:list<string>} $state
+     * @param DataTableState $state
      * @param list<string> $visibleColumns
      * @return array<string, mixed>
      */
-    private function toolbar(array $state, array $visibleColumns): array
+    private function toolbar(DataTableState $state, array $visibleColumns): array
     {
         $exports = $this->exportsToolbar($state, $visibleColumns);
 
@@ -693,13 +687,13 @@ final class DataTable
     }
 
     /**
-     * @param array{search:string,sort:string,direction:string,page:int,filters:array<string,mixed>,columns:list<string>} $state
+     * @param DataTableState $state
      * @param list<string> $visibleColumns
      * @return array<string, mixed>
      */
-    private function searchToolbar(array $state, array $visibleColumns): array
+    private function searchToolbar(DataTableState $state, array $visibleColumns): array
     {
-        $search = new Search($state['search']);
+        $search = new Search($state->search());
 
         return [
             'action' => $this->path,
@@ -709,22 +703,22 @@ final class DataTable
             'aria_label' => $this->searchAriaLabel,
             'submit_label' => 'Search',
             'clear_label' => 'Clear search',
-            'clear_url' => $this->buildUrl(array_merge($state, ['search' => '', 'page' => 1]), $visibleColumns),
+            'clear_url' => $this->buildUrl(array_merge($state->toArray(), ['search' => '', 'page' => 1]), $visibleColumns),
             'hidden_fields' => $this->hiddenFields([
-                $this->sortParameter => $state['sort'],
-                $this->directionParameter => $state['direction'],
-                $this->filterParameter => $state['filters'],
+                $this->sortParameter => $state->sort(),
+                $this->directionParameter => $state->direction(),
+                $this->filterParameter => $state->filters(),
                 $this->columnsParameter => $visibleColumns,
             ], $visibleColumns),
         ];
     }
 
     /**
-     * @param array{search:string,sort:string,direction:string,page:int,filters:array<string,mixed>,columns:list<string>} $state
+     * @param DataTableState $state
      * @param list<string> $visibleColumns
      * @return array<string, mixed>
      */
-    private function filterToolbar(array $state, array $visibleColumns): array
+    private function filterToolbar(DataTableState $state, array $visibleColumns): array
     {
         $items = [];
         foreach ($this->filters as $filter) {
@@ -732,15 +726,15 @@ final class DataTable
                 continue;
             }
 
-            $value = $filter->extract($state['filters']);
+            $value = $filter->extract($state->filters());
             $options = $filter->optionsValue();
 
             if ($options !== []) {
                 foreach ($options as $optionValue => $optionLabel) {
                     $items[] = [
                         'label' => $optionLabel,
-                        'href' => $this->buildUrl(array_merge($state, [
-                            'filters' => array_merge($state['filters'], [$filter->name() => $optionValue]),
+                        'href' => $this->buildUrl(array_merge($state->toArray(), [
+                            'filters' => array_merge($state->filters(), [$filter->name() => $optionValue]),
                             'page' => 1,
                         ]), $visibleColumns),
                         'active' => (string) $value === (string) $optionValue,
@@ -753,8 +747,8 @@ final class DataTable
 
             $items[] = [
                 'label' => $filter->labelValue(),
-                'href' => $this->buildUrl(array_merge($state, [
-                    'filters' => array_merge($state['filters'], [$filter->name() => $value]),
+                'href' => $this->buildUrl(array_merge($state->toArray(), [
+                    'filters' => array_merge($state->filters(), [$filter->name() => $value]),
                     'page' => 1,
                 ]), $visibleColumns),
                 'active' => $filter->isActive($value),
@@ -770,11 +764,11 @@ final class DataTable
     }
 
     /**
-     * @param array{search:string,sort:string,direction:string,page:int,filters:array<string,mixed>,columns:list<string>} $state
+     * @param DataTableState $state
      * @param list<string> $visibleColumns
      * @return array<string, mixed>
      */
-    private function columnsToolbar(array $state, array $visibleColumns): array
+    private function columnsToolbar(DataTableState $state, array $visibleColumns): array
     {
         $items = [];
         foreach ($this->columns as $column) {
@@ -790,12 +784,12 @@ final class DataTable
             'legend' => 'Visible columns',
             'visible_count' => count($visibleColumns),
             'action' => $this->path,
-            'reset_url' => $this->buildUrl(array_merge($state, ['columns' => $this->allColumnFields()]), $this->allColumnFields()),
+            'reset_url' => $this->buildUrl(array_merge($state->toArray(), ['columns' => $this->allColumnFields()]), $this->allColumnFields()),
             'hidden_fields' => $this->hiddenFields([
-                $this->searchParameter => $state['search'],
-                $this->sortParameter => $state['sort'],
-                $this->directionParameter => $state['direction'],
-                $this->filterParameter => $state['filters'],
+                $this->searchParameter => $state->search(),
+                $this->sortParameter => $state->sort(),
+                $this->directionParameter => $state->direction(),
+                $this->filterParameter => $state->filters(),
             ], $visibleColumns),
             'items' => $items,
             'submit_label' => 'Apply',
@@ -838,11 +832,11 @@ final class DataTable
     }
 
     /**
-     * @param array<string, mixed> $state
+     * @param DataTableState $state
      * @param list<string> $visibleColumns
      * @return list<array<string, mixed>>
      */
-    private function exportsToolbar(array $state, array $visibleColumns): array
+    private function exportsToolbar(DataTableState $state, array $visibleColumns): array
     {
         $resolved = [];
 
@@ -857,10 +851,10 @@ final class DataTable
                 : rtrim($this->path, '/') . '/export/' . $format;
 
             $query = http_build_query([
-                $this->searchParameter => $state['search'],
-                $this->sortParameter => $state['sort'],
-                $this->directionParameter => $state['direction'],
-                $this->filterParameter => $this->buildFilterQueryValue($state['filters']),
+                $this->searchParameter => $state->search(),
+                $this->sortParameter => $state->sort(),
+                $this->directionParameter => $state->direction(),
+                $this->filterParameter => $this->buildFilterQueryValue($state->filters()),
                 $this->columnsParameter => $visibleColumns,
             ]);
 
@@ -877,12 +871,12 @@ final class DataTable
     }
 
     /**
-     * @param array{search:string,sort:string,direction:string,page:int,filters:array<string,mixed>,columns:list<string>} $state
+     * @param DataTableState $state
      * @param list<string> $visibleColumns
      * @param list<array<string, mixed>> $rows
      * @return array<string, mixed>
      */
-    private function bulk(array $state, array $visibleColumns, array $rows): array
+    private function bulk(DataTableState $state, array $visibleColumns, array $rows): array
     {
         return [
             'form_id' => 'datatable-bulk-form',
@@ -899,41 +893,25 @@ final class DataTable
             'action_delete_url' => $this->bulkDeleteUrl ?? '',
             'action_status_url' => $this->bulkStatusUrl ?? '',
             'hidden_fields' => $this->hiddenFields([
-                $this->searchParameter => $state['search'],
-                $this->sortParameter => $state['sort'],
-                $this->directionParameter => $state['direction'],
-                $this->filterParameter => $state['filters'],
-                $this->pageParameter => $state['page'],
+                $this->searchParameter => $state->search(),
+                $this->sortParameter => $state->sort(),
+                $this->directionParameter => $state->direction(),
+                $this->filterParameter => $state->filters(),
+                $this->pageParameter => $state->page(),
             ], $visibleColumns),
         ];
     }
 
     /**
-     * @param array{search:string,sort:string,direction:string,page:int,filters:array<string,mixed>,columns:list<string>} $state
-     * @param list<string> $visibleColumns
-     * @return array<string, mixed>
-     */
-    private function paginationQuery(array $state, array $visibleColumns): array
-    {
-        return [
-            $this->searchParameter => $state['search'],
-            $this->sortParameter => $state['sort'],
-            $this->directionParameter => $state['direction'],
-            $this->filterParameter => $this->buildFilterQueryValue($state['filters']),
-            $this->columnsParameter => $visibleColumns,
-        ];
-    }
-
-    /**
-     * @param array<string, mixed> $state
+     * @param DataTableState $state
      * @return array<int, array<string, mixed>>
      */
-    private function filtersPayload(array $state): array
+    private function filtersPayload(DataTableState $state): array
     {
         $filters = [];
 
         foreach ($this->filters as $filter) {
-            $value = $filter->extract($state['filters']);
+            $value = $filter->extract($state->filters());
             $filters[] = $filter->toArray($value);
         }
 
@@ -941,12 +919,12 @@ final class DataTable
     }
 
     /**
-     * @param array{search:string,sort:string,direction:string,page:int,filters:array<string,mixed>,columns:list<string>} $state
+     * @param DataTableState $state
      */
-    private function currentFilterLabel(array $state): string
+    private function currentFilterLabel(DataTableState $state): string
     {
         foreach ($this->filters as $filter) {
-            $value = $filter->extract($state['filters']);
+            $value = $filter->extract($state->filters());
             if ($filter->isActive($value)) {
                 $options = $filter->optionsValue();
                 if ($options !== [] && is_scalar($value) && isset($options[(string) $value])) {

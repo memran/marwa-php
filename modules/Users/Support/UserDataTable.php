@@ -37,7 +37,6 @@ final class UserDataTable
             ->sortParameter('sort')
             ->directionParameter('direction')
             ->pageParameter('page')
-            ->filterParameter('filter')
             ->columnsParameter('columns')
             ->selectedIdsParameter('ids')
             ->path('/admin/users')
@@ -74,7 +73,7 @@ final class UserDataTable
                     ->sortable(),
             ])
             ->filters([
-                Filter::select('filter')
+                Filter::select('status')
                     ->label('Status')
                     ->options([
                         'all' => 'All',

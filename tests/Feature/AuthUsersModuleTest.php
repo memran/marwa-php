@@ -545,11 +545,11 @@ TWIG
         self::assertStringContainsString('/admin/users', $disable->getHeaderLine('Location'));
         self::assertSame(0, (int) User::findBy('email', 'ops@example.test')->getAttribute('is_active'));
 
-        $activeUsersPage = $kernel->handle($this->request('GET', '/admin/users?filter=active'));
+        $activeUsersPage = $kernel->handle($this->request('GET', '/admin/users?filters[status]=active'));
         self::assertSame(200, $activeUsersPage->getStatusCode());
         self::assertStringNotContainsString('ops@example.test', (string) $activeUsersPage->getBody());
 
-        $disabledUsersPage = $kernel->handle($this->request('GET', '/admin/users?filter=disabled'));
+        $disabledUsersPage = $kernel->handle($this->request('GET', '/admin/users?filters[status]=disabled'));
         self::assertSame(200, $disabledUsersPage->getStatusCode());
         self::assertStringContainsString('ops@example.test', (string) $disabledUsersPage->getBody());
 
@@ -560,7 +560,7 @@ TWIG
         self::assertStringContainsString('/admin/users', $delete->getHeaderLine('Location'));
         self::assertNull(User::findBy('email', 'ops@example.test'));
 
-        $usersPageAfterDelete = $kernel->handle($this->request('GET', '/admin/users?filter=trashed'));
+        $usersPageAfterDelete = $kernel->handle($this->request('GET', '/admin/users?filters[status]=trashed'));
         self::assertSame(200, $usersPageAfterDelete->getStatusCode());
         self::assertStringContainsString('Trashed', (string) $usersPageAfterDelete->getBody());
 

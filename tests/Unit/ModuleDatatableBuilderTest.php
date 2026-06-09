@@ -104,7 +104,7 @@ PHP
             ],
             [
                 'q' => 'ada',
-                'filter' => 'active',
+                'filters' => ['status' => 'active'],
                 'sort' => 'name',
                 'direction' => 'asc',
                 'columns' => ['name', 'email', 'roleRelation.name', 'is_active', 'created_at'],
@@ -122,7 +122,7 @@ PHP
         self::assertSame('Protected', $table->rows()[0]['cells']['is_active']['items'][1]['value']);
         self::assertTrue($table->rows()[0]['bulk']['disabled']);
         self::assertStringContainsString('q=ada', $table->pagination()->pages()[0]->url);
-        self::assertStringContainsString('filter=active', $table->pagination()->pages()[0]->url);
+        self::assertStringContainsString('filters%5Bstatus%5D=active', $table->pagination()->pages()[0]->url);
     }
 
     public function testUsersDatatableExposesRowActionsForPermittedUsers(): void
@@ -208,7 +208,7 @@ PHP
                 'HTTP_HOST' => 'example.test',
             ],
             [
-                'filter' => 'custom',
+                'filters' => ['type' => 'custom'],
                 'sort' => 'level',
                 'direction' => 'desc',
                 'columns' => ['name', 'slug', 'level', 'permissions_count', 'is_system', 'users_count'],
@@ -225,7 +225,7 @@ PHP
         self::assertTrue($table->rows()[0]['bulk']['disabled']);
         self::assertCount(1, $table->rows()[0]['actions']);
         self::assertSame('edit', $table->rows()[0]['actions'][0]['name']);
-        self::assertStringContainsString('filter=custom', $table->pagination()->pages()[0]->url);
+        self::assertStringContainsString('filters%5Btype%5D=custom', $table->pagination()->pages()[0]->url);
     }
 
     private function bootstrapApp(): Application
