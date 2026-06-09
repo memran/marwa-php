@@ -31,4 +31,7 @@ return [
     'error404' => [
         'template' => 'errors/404.twig',
     ],
+    'error500' => [
+        'template' => 'errors/500.twig',
+    ],
 ];

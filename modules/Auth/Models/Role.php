@@ -6,6 +6,7 @@ namespace App\Modules\Auth\Models;
 
 use App\Models\Model;
 use Marwa\DB\ORM\Relations\BelongsToMany;
+use Marwa\DB\ORM\Relations\HasMany;
 
 final class Role extends Model
 {
@@ -57,6 +58,11 @@ final class Role extends Model
             'role_id',
             'permission_id'
         );
+    }
+
+    public function usersRelation(): HasMany
+    {
+        return $this->hasMany(\App\Modules\Users\Models\User::class, 'role_id');
     }
 
     /**

@@ -34,7 +34,7 @@ final class NotificationRepository
     public function paginatedForUser(int $userId, int $page = 1, ?int $perPage = null): array
     {
         $page = max(1, $page);
-        $perPage = max(1, (int) ($perPage ?? config('settings.lifecycle.pagination.default_per_page', config('pagination.default_per_page', 15))));
+        $perPage = max(1, (int) ($perPage ?? per_page(15)));
 
         $pageData = $this->forUser($userId)
             ->orderBy('created_at', 'desc')

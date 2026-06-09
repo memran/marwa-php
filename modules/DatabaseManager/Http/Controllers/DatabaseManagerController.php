@@ -93,7 +93,7 @@ final class DatabaseManagerController extends Controller
             'pagination' => $result !== null && ($result['is_result_set'] ?? false)
                 ? pagination_view_data([
                     'total' => (int) ($result['total_rows'] ?? 0),
-                    'per_page' => (int) ($result['per_page'] ?? config('settings.lifecycle.pagination.default_per_page', 25)),
+                    'per_page' => (int) ($result['per_page'] ?? per_page(25)),
                     'current_page' => (int) ($result['current_page'] ?? 1),
                     'last_page' => (int) ($result['last_page'] ?? 1),
                 ], '/admin/database')

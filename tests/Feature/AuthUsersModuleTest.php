@@ -399,6 +399,7 @@ TWIG
         $usersBody = (string) $usersPage->getBody();
         self::assertStringContainsString('admin@marwa.test', $usersBody);
         self::assertStringContainsString('Create user', $usersBody);
+        self::assertStringContainsString('Search users...', $usersBody);
         self::assertStringContainsString('/admin/users/export/csv', $usersBody);
         self::assertStringContainsString('/admin/users/export/pdf', $usersBody);
 
@@ -665,11 +666,18 @@ TWIG
         self::assertSame(302, $login->getStatusCode());
         self::assertNotSame('', $login->getHeaderLine('Location'));
         self::assertTrue($this->auth()->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+        self::assertSame(10, per_page());
 
         $permissionsPage = $kernel->handle($this->request('GET', '/admin/permissions'));
         self::assertSame(200, $permissionsPage->getStatusCode());
         self::assertStringContainsString('Permissions', (string) $permissionsPage->getBody());
         self::assertStringContainsString('View Dashboard', (string) $permissionsPage->getBody());
+
+        $roleEditPage = $kernel->handle($this->request('GET', '/admin/roles/2/edit'));
+        self::assertSame(200, $roleEditPage->getStatusCode());
+        self::assertStringContainsString('Edit Role', (string) $roleEditPage->getBody());
+        self::assertStringContainsString('Back to roles', (string) $roleEditPage->getBody());
+        self::assertStringContainsString('Save Changes', (string) $roleEditPage->getBody());
 
         $createPage = $kernel->handle($this->request('GET', '/admin/roles/create'));
         self::assertSame(200, $createPage->getStatusCode());

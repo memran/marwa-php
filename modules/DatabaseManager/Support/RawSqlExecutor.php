@@ -38,7 +38,7 @@ final class RawSqlExecutor
         $query = $sanitized['query'];
         $normalized = $sanitized['normalized'];
         $page = max(1, $page);
-        $perPage = max(1, min(100, (int) ($perPage ?? config('settings.lifecycle.pagination.default_per_page', 25))));
+        $perPage = max(1, min(100, (int) ($perPage ?? per_page(25))));
 
         $statement = $this->pdo()->prepare($normalized);
 

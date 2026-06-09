@@ -338,7 +338,13 @@
                         </div>
                       </div>
                     {% elseif cell.type == 'text' %}
-                      <span class="{% if cell.muted|default(false) %}text-app-muted{% else %}text-app-text{% endif %}">{{ cell.value }}</span>
+                      {% if cell.href is defined and cell.href %}
+                        <a class="{% if cell.muted|default(false) %}text-app-muted{% else %}text-app-text hover:text-app-accent transition{% endif %}" href="{{ cell.href }}">
+                          {{ cell.value }}
+                        </a>
+                      {% else %}
+                        <span class="{% if cell.muted|default(false) %}text-app-muted{% else %}text-app-text{% endif %}">{{ cell.value }}</span>
+                      {% endif %}
                     {% elseif cell.type == 'badge' %}
                       <span class="inline-flex rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] {{ tone_classes[cell.tone|default('accent')]|default(tone_classes.accent) }}">
                         {% if cell.icon is defined and cell.icon %}
@@ -368,52 +374,49 @@
                 <td class="px-3 py-3">
                   <div class="flex flex-wrap gap-2">
                     {% for action in row.actions|default([]) %}
-                      {% set action_permission = action.permission|default('') %}
-                      {% if action_permission == '' or can(action_permission) %}
-                        {% set action_variant = action.variant|default('secondary') %}
-                        {% set action_class = action_variant == 'primary'
-                          ? row_action_primary
-                          : action_variant == 'danger'
-                            ? row_action_danger
-                            : action_variant == 'ghost'
-                              ? row_action_ghost
-                              : row_action_secondary %}
+                      {% set action_variant = action.variant|default('secondary') %}
+                      {% set action_class = action_variant == 'primary'
+                        ? row_action_primary
+                        : action_variant == 'danger'
+                          ? row_action_danger
+                          : action_variant == 'ghost'
+                            ? row_action_ghost
+                            : row_action_secondary %}
 
-                        {% if action.disabled|default(false) %}
-                          <button class="{{ action_class }}" type="button" disabled {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}>
+                      {% if action.disabled|default(false) %}
+                        <button class="{{ action_class }}" type="button" disabled {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}>
+                          {% if action.icon is defined and action.icon %}
+                            {% include 'components/icon.twig' with { name: action.icon, class: 'h-4 w-4 shrink-0' } only %}
+                          {% endif %}
+                          <span>{{ action.label }}</span>
+                        </button>
+                      {% elseif action.type|default('link') == 'form_button' %}
+                        <form method="post" action="{{ action.action|default(action.href|default('#')) }}">
+                          {{ csrf_field() }}
+                          {% if action.method is defined and action.method|lower != 'post' %}
+                            <input type="hidden" name="_method" value="{{ action.method|upper }}">
+                          {% endif %}
+                          <button class="{{ action_class }}" type="submit" {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}{% if action.confirm is defined and action.confirm %} onclick="return confirm('{{ action.confirm|e('js') }}');"{% endif %}>
                             {% if action.icon is defined and action.icon %}
                               {% include 'components/icon.twig' with { name: action.icon, class: 'h-4 w-4 shrink-0' } only %}
                             {% endif %}
                             <span>{{ action.label }}</span>
                           </button>
-                        {% elseif action.type|default('link') == 'form_button' %}
-                          <form method="post" action="{{ action.action|default(action.href|default('#')) }}">
-                            {{ csrf_field() }}
-                            {% if action.method is defined and action.method|lower != 'post' %}
-                              <input type="hidden" name="_method" value="{{ action.method|upper }}">
-                            {% endif %}
-                            <button class="{{ action_class }}" type="submit" {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}{% if action.confirm is defined and action.confirm %} onclick="return confirm('{{ action.confirm|e('js') }}');"{% endif %}>
-                              {% if action.icon is defined and action.icon %}
-                                {% include 'components/icon.twig' with { name: action.icon, class: 'h-4 w-4 shrink-0' } only %}
-                              {% endif %}
-                              <span>{{ action.label }}</span>
-                            </button>
-                          </form>
-                        {% elseif action.type|default('link') == 'button' %}
-                          <button class="{{ action_class }}" type="{{ action.button_type|default('button') }}" {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}{% if action.onclick is defined and action.onclick %} onclick="{{ action.onclick }}"{% endif %}>
-                            {% if action.icon is defined and action.icon %}
-                              {% include 'components/icon.twig' with { name: action.icon, class: 'h-4 w-4 shrink-0' } only %}
-                            {% endif %}
-                            <span>{{ action.label }}</span>
-                          </button>
-                        {% else %}
-                          <a class="{{ action_class }}" href="{{ action.href|default('#') }}" {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}>
-                            {% if action.icon is defined and action.icon %}
-                              {% include 'components/icon.twig' with { name: action.icon, class: 'h-4 w-4 shrink-0' } only %}
-                            {% endif %}
-                            <span>{{ action.label }}</span>
-                          </a>
-                        {% endif %}
+                        </form>
+                      {% elseif action.type|default('link') == 'button' %}
+                        <button class="{{ action_class }}" type="{{ action.button_type|default('button') }}" {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}{% if action.onclick is defined and action.onclick %} onclick="{{ action.onclick }}"{% endif %}>
+                          {% if action.icon is defined and action.icon %}
+                            {% include 'components/icon.twig' with { name: action.icon, class: 'h-4 w-4 shrink-0' } only %}
+                          {% endif %}
+                          <span>{{ action.label }}</span>
+                        </button>
+                      {% else %}
+                        <a class="{{ action_class }}" href="{{ action.href|default('#') }}" {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}>
+                          {% if action.icon is defined and action.icon %}
+                            {% include 'components/icon.twig' with { name: action.icon, class: 'h-4 w-4 shrink-0' } only %}
+                          {% endif %}
+                          <span>{{ action.label }}</span>
+                        </a>
                       {% endif %}
                     {% endfor %}
                   </div>

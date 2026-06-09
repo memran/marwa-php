@@ -24,6 +24,7 @@ final class StarterConfigTest extends TestCase
         self::assertArrayNotHasKey('collectors', $config);
         self::assertSame('maintenance.twig', $config['maintenance']['template']);
         self::assertSame('errors/404.twig', $config['error404']['template']);
+        self::assertSame('errors/500.twig', $config['error500']['template']);
     }
 
     public function testDatabaseConfigUsesStarterDbEnvironmentVariablesAndFrameworkSqliteDefaults(): void

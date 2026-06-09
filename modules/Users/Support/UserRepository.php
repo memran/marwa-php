@@ -20,26 +20,6 @@ final class UserRepository
         return $builder->with('roleRelation')->whereKey($id)->first();
     }
 
-    /**
-     * @return list<User>
-     */
-    public function exportUsers(
-        string $query = '',
-        string $sort = 'created_at',
-        string $direction = 'desc',
-        UserStatus $status = UserStatus::All
-    ): array {
-        $rows = [];
-
-        foreach (User::listQuery($query, $sort, $direction, $status)->get() as $user) {
-            if ($user instanceof User) {
-                $rows[] = $user;
-            }
-        }
-
-        return $rows;
-    }
-
     public function createUser(array $data): User
     {
         $state = $this->normalizeUserState($data);

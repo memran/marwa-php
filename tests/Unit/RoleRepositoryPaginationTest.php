@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Support\RoleRepository;
 use Marwa\DB\Connection\ConnectionManager;
 use Marwa\Framework\Application;
@@ -142,94 +141,4 @@ SQL);
         self::assertCount(2, $page2['data']);
     }
 
-    public function testRoleDataTableRendersExpectedColumnsAndActions(): void
-    {
-        $app = new Application($this->basePath);
-        $GLOBALS['marwa_app'] = $app;
-        $app->make(AppBootstrapper::class)->bootstrap();
-
-        /** @var ConnectionManager $connections */
-        $connections = $app->make(ConnectionManager::class);
-        $pdo = $connections->getPdo();
-
-        $pdo->exec(<<<'SQL'
-CREATE TABLE roles (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    slug TEXT NOT NULL UNIQUE,
-    level INTEGER NOT NULL DEFAULT 1,
-    description TEXT NULL,
-    is_system INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NULL,
-    updated_at TEXT NULL
-)
-SQL);
-
-        $pdo->exec(<<<'SQL'
-CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT NOT NULL,
-    password TEXT NOT NULL,
-    role_id INTEGER NULL,
-    is_active INTEGER NOT NULL DEFAULT 1,
-    last_login_at TEXT NULL,
-    created_at TEXT NULL,
-    updated_at TEXT NULL,
-    deleted_at TEXT NULL
-)
-SQL);
-
-        $pdo->exec(<<<'SQL'
-CREATE TABLE permissions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    slug TEXT NOT NULL UNIQUE,
-    "group" TEXT NULL,
-    description TEXT NULL,
-    created_at TEXT NULL,
-    updated_at TEXT NULL
-)
-SQL);
-
-        $pdo->exec(<<<'SQL'
-CREATE TABLE role_permission (
-    role_id INTEGER NOT NULL,
-    permission_id INTEGER NOT NULL,
-    PRIMARY KEY (role_id, permission_id)
-)
-SQL);
-
-        $pdo->exec("INSERT INTO roles (name, slug, level, is_system) VALUES ('Admin', 'admin', 10, 1)");
-        $pdo->exec("INSERT INTO roles (name, slug, level, is_system) VALUES ('Custom', 'custom', 2, 0)");
-
-        $custom = Role::findBy('slug', 'custom');
-        self::assertInstanceOf(Role::class, $custom);
-
-        $dataTable = new \App\Modules\Roles\Support\RoleDataTable(
-            new RoleRepository(),
-            new \App\Support\DataTable\DataTableRowActions()
-        );
-
-        self::assertSame('/admin/roles', $dataTable->basePath());
-        self::assertSame('level', $dataTable->defaultSort());
-        self::assertContains('name', $dataTable->sortableKeys());
-        self::assertArrayHasKey('name', $dataTable->columnOptions());
-        self::assertArrayHasKey('users', $dataTable->columnOptions());
-        self::assertNull($dataTable->bulkDeletePath());
-        self::assertNull($dataTable->bulkStatusPath());
-
-        $customRow = $dataTable->buildRow($custom);
-        self::assertFalse($customRow['bulk']['disabled']);
-        self::assertCount(2, $customRow['actions']);
-        self::assertSame('Custom', $customRow['cells']['name']['value']);
-        self::assertSame('custom', $customRow['cells']['slug']['value']);
-        self::assertSame('2', $customRow['cells']['level']['value']);
-        self::assertSame('muted', $customRow['cells']['kind']['tone']);
-
-        $adminRow = $dataTable->buildRow(Role::findBy('slug', 'admin'));
-        self::assertTrue($adminRow['bulk']['disabled']);
-        self::assertCount(1, $adminRow['actions']);
-        self::assertSame('warning', $adminRow['cells']['kind']['tone']);
-    }
 }

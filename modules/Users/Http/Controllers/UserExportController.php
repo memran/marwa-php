@@ -4,57 +4,85 @@ declare(strict_types=1);
 
 namespace App\Modules\Users\Http\Controllers;
 
-use App\Modules\Users\Models\User;
 use App\Modules\Users\Support\UserDataTable;
-use App\Modules\Users\Support\UserRepository;
-use App\Modules\Users\Support\UserStatus;
-use App\Support\AdminListState;
-use App\Support\DataTable\DataTableView;
+use App\Support\Export\Column as ExportColumn;
+use App\Support\Export\CsvExporter;
+use App\Support\Export\Pdf\DompdfGenerator;
+use App\Support\Export\Pdf\TableHtmlBuilder;
+use App\Support\Export\PdfExporter;
 use Laminas\Diactoros\Response as HttpResponse;
 use Laminas\Diactoros\Stream;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 final class UserExportController extends Controller
 {
     public function __construct(
-        private readonly UserRepository $users,
-        private readonly AdminListState $listState,
         private readonly UserDataTable $userTable,
-        private readonly DataTableView $dataTable,
-    ) {}
-
-    public function csv(): ResponseInterface
-    {
-        return $this->export('csv');
+    ) {
     }
 
-    public function pdf(): ResponseInterface
+    public function csv(ServerRequestInterface $request): ResponseInterface
     {
-        return $this->export('pdf');
+        return $this->export('csv', $request);
     }
 
-    private function export(string $format): ResponseInterface
+    public function pdf(ServerRequestInterface $request): ResponseInterface
     {
-        $state = $this->listState->state();
-        $columns = $this->dataTable->normalizeVisibleColumns($this->userTable, request('columns', null));
-        $status = UserStatus::tryFromFilter($state['filter']);
-        $rows = $this->users->exportUsers($state['query'], $state['sort'], $state['direction'], $status);
+        return $this->export('pdf', $request);
+    }
+
+    private function export(string $format, ServerRequestInterface $request): ResponseInterface
+    {
+        $table = $this->userTable->make($request);
+        $rows = $table->exportRows();
+        $columns = $this->resolveExportColumns($request);
         $filename = 'users-' . date('Ymd-His') . '.' . $format;
-
-        if ($format === 'pdf') {
-            return $this->downloadContent(
-                $this->dataTable->buildPdf($this->userTable, $rows, $columns, $state),
-                $filename,
-                'application/pdf'
-            );
-        }
+        $csvExporter = new CsvExporter();
+        $pdfExporter = new PdfExporter(new DompdfGenerator(), new TableHtmlBuilder());
+        $content = $format === 'pdf'
+            ? $pdfExporter->build($rows, $columns, 'User accounts')
+            : $csvExporter->build($rows, $columns, 'User accounts');
 
         return $this->downloadContent(
-            $this->dataTable->buildCsv($this->userTable, $rows, $columns, $state),
+            $content,
             $filename,
-            'text/csv; charset=UTF-8'
+            $format === 'pdf' ? 'application/pdf' : 'text/csv; charset=UTF-8'
         );
+    }
+
+    /**
+     * @return list<ExportColumn>
+     */
+    private function resolveExportColumns(ServerRequestInterface $request): array
+    {
+        $requested = $request->getQueryParams()['columns'] ?? [];
+        if (is_string($requested)) {
+            $requested = array_filter(array_map('trim', explode(',', $requested)), static fn (string $value): bool => $value !== '');
+        }
+
+        if (!is_array($requested)) {
+            $requested = [];
+        }
+
+        $allowed = [];
+        foreach ($this->userTable->exportColumns() as $column) {
+            $allowed[$column->key] = $column;
+        }
+
+        if ($requested === []) {
+            return array_values($allowed);
+        }
+
+        $visible = [];
+        foreach ($requested as $key) {
+            if (is_string($key) && isset($allowed[$key])) {
+                $visible[] = $allowed[$key];
+            }
+        }
+
+        return $visible === [] ? array_values($allowed) : $visible;
     }
 
     private function downloadContent(string $content, string $filename, string $contentType): ResponseInterface

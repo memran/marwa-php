@@ -7,6 +7,7 @@ namespace App\Modules\Users\Http\Controllers;
 use App\Modules\Users\Support\UserIndexPage;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 final class UserIndexController extends Controller
 {
@@ -14,8 +15,8 @@ final class UserIndexController extends Controller
         private readonly UserIndexPage $indexPage,
     ) {}
 
-    public function index(): ResponseInterface
+    public function index(ServerRequestInterface $request): ResponseInterface
     {
-        return $this->view('@users/index', $this->indexPage->viewData());
+        return $this->view('@users/index', $this->indexPage->viewData($request));
     }
 }

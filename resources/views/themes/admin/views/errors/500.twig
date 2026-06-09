@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="color-scheme" content="dark light">
+  <title>500 Internal Server Error</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --bg: #020617;
+      --bg-soft: rgba(15, 23, 42, 0.95);
+      --border: rgba(148, 163, 184, 0.18);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #67e8f9;
+      --accent-soft: rgba(34, 211, 238, 0.12);
+      --link: #67e8f9;
+      --shadow: 0 28px 90px rgba(2, 6, 23, 0.55);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at top, rgba(34, 211, 238, 0.18), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(251, 113, 133, 0.1), transparent 24%),
+        var(--bg);
+      color: var(--text);
+    }
+
+    .card {
+      width: min(760px, calc(100vw - 2rem));
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      background: var(--bg-soft);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(18px);
+    }
+
+    .hero {
+      padding: 2rem 2rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .eyebrow {
+      margin: 0 0 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    .lede {
+      margin: 1rem 0 0;
+      max-width: 60ch;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    .content {
+      display: grid;
+      gap: 1rem;
+      padding: 1.5rem 2rem 2rem;
+    }
+
+    .meta-grid {
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .meta {
+      border: 1px solid var(--border);
+      background: rgba(2, 6, 23, 0.55);
+      border-radius: 18px;
+      padding: 1rem 1.1rem;
+    }
+
+    .meta-label {
+      margin: 0 0 0.45rem;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .meta-value {
+      margin: 0;
+      color: var(--text);
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 0.35rem;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      min-height: 2.8rem;
+      padding: 0.75rem 1rem;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 700;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(34, 211, 238, 0.5);
+    }
+
+    .button-primary {
+      background: linear-gradient(135deg, rgba(34, 211, 238, 0.18), rgba(59, 130, 246, 0.16));
+    }
+
+    .button-secondary {
+      background: rgba(15, 23, 42, 0.45);
+    }
+
+    .trace {
+      margin: 0.25rem 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .trace li {
+      border: 1px solid var(--border);
+      background: rgba(2, 6, 23, 0.55);
+      border-radius: 14px;
+      padding: 0.8rem 0.9rem;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      padding: 1rem 2rem 1.35rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    code {
+      color: var(--link);
+      background: rgba(2, 6, 23, 0.65);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.15rem 0.45rem;
+    }
+
+    @media (max-width: 680px) {
+      .hero,
+      .content,
+      .footer {
+        padding-left: 1.2rem;
+        padding-right: 1.2rem;
+      }
+
+      .meta-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="admin-theme">
+  <main class="card">
+    <section class="hero">
+      <p class="eyebrow">{{ app_name|default('MarwaPHP Admin') }}</p>
+      <h1>Something broke on our side.</h1>
+      <p class="lede">The admin console hit an unexpected error. Please try again in a moment. If the issue persists, share the reference ID with support.</p>
+    </section>
+
+    <section class="content">
+      <div class="meta-grid">
+        <div class="meta">
+          <p class="meta-label">Reference ID</p>
+          <p class="meta-value"><code>{{ request_id }}</code></p>
+        </div>
+        <div class="meta">
+          <p class="meta-label">Timestamp</p>
+          <p class="meta-value">{{ timestamp }}</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a class="button button-primary" href="/admin">Return to dashboard</a>
+        <a class="button button-secondary" href="/">Open site home</a>
+      </div>
+
+      {% if debug %}
+        <div class="meta">
+          <p class="meta-label">Exception</p>
+          <p class="meta-value">
+            <strong>{{ exception_class }}</strong><br>
+            {{ message }}<br>
+            {{ exception_file }}:{{ exception_line }}
+          </p>
+        </div>
+
+        <div class="meta">
+          <p class="meta-label">Trace</p>
+          <ul class="trace">
+            {% for frame in trace %}
+              <li>#{{ loop.index0 }} {{ frame.call }} @ {{ frame.file }}:{{ frame.line }}</li>
+            {% else %}
+              <li>No trace available.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </section>
+
+    <div class="footer">
+      <span>Status: 500 Internal Server Error</span>
+      <span>Admin console</span>
+    </div>
+  </main>
+</body>
+</html>

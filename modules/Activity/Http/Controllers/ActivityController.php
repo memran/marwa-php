@@ -16,7 +16,7 @@ final class ActivityController extends Controller
         /** @var AdminListState $listState */
         $listState = app(AdminListState::class);
         $state = $listState->state();
-        $perPage = (int) config('settings.lifecycle.pagination.default_per_page', config('pagination.default_per_page', 20));
+        $perPage = per_page(20);
 
         try {
             $activity = new Activity();

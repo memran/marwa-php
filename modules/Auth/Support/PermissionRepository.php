@@ -138,7 +138,7 @@ final class PermissionRepository
         string $direction = 'asc'
     ): array {
         $page = max(1, $page);
-        $perPage = max(1, (int) ($perPage ?? config('settings.lifecycle.pagination.default_per_page', config('pagination.default_per_page', 12))));
+        $perPage = max(1, (int) ($perPage ?? per_page(12)));
         $sort = trim($sort);
         $direction = strtolower(trim($direction)) === 'desc' ? 'desc' : 'asc';
 

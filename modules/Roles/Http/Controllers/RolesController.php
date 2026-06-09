@@ -8,8 +8,6 @@ use App\Modules\Auth\Support\RoleRepository;
 use App\Modules\Roles\Support\RoleActivityLogger;
 use App\Modules\Roles\Support\RoleDataTable;
 use App\Modules\Roles\Support\RoleFormData;
-use App\Support\AdminListState;
-use App\Support\DataTable\DataTableView;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -21,38 +19,14 @@ final class RolesController extends Controller
         private readonly RoleFormData $roleForms,
         private readonly RoleDataTable $roleTable,
         private readonly RoleActivityLogger $activity,
-        private readonly AdminListState $listState,
-        private readonly DataTableView $dataTable,
     ) {}
 
-    public function index(): ResponseInterface
+    public function index(ServerRequestInterface $request): ResponseInterface
     {
-        $state = $this->listState->state();
-        $tableParams = $this->listState->tableParams(
-            $state,
-            request('columns', null),
-            $this->dataTable->normalizeVisibleColumns($this->roleTable, request('columns', null))
-        );
-
-        $pageData = $this->roles->paginatedRoles(
-            $state['query'],
-            $state['page'],
-            null,
-            $state['sort'],
-            $state['direction'],
-            $state['filter']
-        );
-
-        $pagination = pagination_view_data(
-            $pageData,
-            '/admin/roles',
-            $tableParams['pagination']
-        );
-
         $notice = $this->consumeFlash('roles.notice');
 
         return $this->view('@roles/index', [
-            'table' => $this->dataTable->build($this->roleTable, $tableParams['request'], $pageData, $pagination),
+            'table' => $this->roleTable->make($request)->paginate(per_page())->result(),
             'notice' => $notice,
         ]);
     }

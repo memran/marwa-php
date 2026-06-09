@@ -150,7 +150,7 @@ final class RoleRepository
         string $direction = 'desc',
         string $filter = 'all'
     ): array {
-        $perPage = max(1, (int) ($perPage ?? config('settings.lifecycle.pagination.default_per_page', config('pagination.default_per_page', 12))));
+        $perPage = max(1, (int) ($perPage ?? per_page(12)));
 
         $builder = Role::newQuery()->getBaseBuilder();
 
