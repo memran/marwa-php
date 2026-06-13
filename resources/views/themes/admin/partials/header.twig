@@ -1,0 +1,158 @@
+<div class="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 sm:px-5 lg:px-6">
+  <div class="flex flex-wrap items-center gap-3">
+    <button
+      type="button"
+      class="inline-flex items-center justify-center rounded-xl border border-app-border bg-app-surface/60 p-2 text-app-muted transition hover:bg-app-surface-2/70 hover:text-app-text lg:hidden"
+      @click="toggleMobile()"
+      aria-label="Toggle menu"
+    >
+      {% include 'components/icon.twig' with { name: 'menu', class: 'h-5 w-5' } only %}
+    </button>
+
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-0.5">
+      {% if user_name|default('') %}
+        <span class="text-sm font-semibold text-app-text">Welcome, {{ user_name }}</span>
+      {% endif %}
+      {% if server_datetime|default('') %}
+        <span class="text-xs text-app-muted">Server: {{ server_datetime }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3">
+    {% set module_search_items = [] %}
+    {% for section in mainMenu|default([]) %}
+      {% for child in section.children|default([]) %}
+        {% set module_search_items = module_search_items|merge([{
+          label: child.label,
+          url: child.url,
+          section: section.label,
+          icon: child.icon|default(section.icon|default('layout-dashboard'))
+        }]) %}
+      {% endfor %}
+    {% endfor %}
+
+    <div
+      class="relative w-full max-w-[18rem] sm:flex-1 sm:w-[18rem]"
+      x-data='{
+        open: false,
+        query: "",
+        items: {{ module_search_items|json_encode|raw }},
+        get filteredItems() {
+          const query = this.query.trim().toLowerCase();
+          if (!query) return this.items;
+          return this.items.filter((item) => {
+            return item.label.toLowerCase().includes(query) || item.section.toLowerCase().includes(query);
+          });
+        }
+      }'
+      @click.outside="open = false"
+    >
+      <label class="sr-only" for="module-search">Search modules</label>
+      <div class="relative">
+        <span class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3 text-app-muted">
+          {% include 'components/icon.twig' with { name: 'search', class: 'h-4 w-4' } only %}
+        </span>
+        <input
+          id="module-search"
+          type="search"
+          class="block w-full rounded-xl border border-app-border bg-app-surface/70 py-2.5 pe-3 ps-9 text-sm text-app-text shadow-xs outline-none transition placeholder:text-app-muted focus:border-app-accent focus:ring-2 focus:ring-app-accent/20"
+          placeholder="Search modules"
+          autocomplete="off"
+          x-model="query"
+          @focus="open = true"
+          @input="open = true"
+          @keydown.escape="open = false"
+        >
+      </div>
+
+      <div
+        x-show="open"
+        x-cloak
+        x-transition
+        class="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-app-border bg-app-surface shadow-xl"
+      >
+        <template x-if="filteredItems.length === 0">
+          <div class="px-4 py-3 text-sm text-app-muted">No modules found.</div>
+        </template>
+        <template x-for="item in filteredItems" :key="item.url">
+          <a
+            :href="item.url"
+            class="flex items-center gap-3 px-4 py-3 text-sm text-app-text transition hover:bg-app-surface-2/70 hover:text-app-text"
+            @click="open = false"
+          >
+            <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-app-accent/10 text-app-accent">
+              {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-4 w-4 shrink-0' } only %}
+            </span>
+            <span class="grid min-w-0">
+              <span class="truncate font-semibold" x-text="item.label"></span>
+              <span class="truncate text-xs text-app-muted" x-text="item.section"></span>
+            </span>
+          </a>
+        </template>
+      </div>
+    </div>
+
+    {% if is_authenticated|default(false) %}
+      {% include '@notifications/partials/bell.twig' %}
+    {% endif %}
+
+    <button
+      class="inline-flex items-center justify-center rounded-xl border border-app-border bg-app-surface/60 p-2 text-app-muted transition hover:bg-app-surface hover:text-app-text"
+      type="button"
+      @click="toggle()"
+      aria-label="Toggle theme"
+      title="Toggle theme"
+    >
+      {% include 'components/icon.twig' with { name: 'moon', class: 'h-4 w-4 shrink-0 dark:hidden' } only %}
+      {% include 'components/icon.twig' with { name: 'sun', class: 'h-4 w-4 shrink-0 hidden dark:block' } only %}
+    </button>
+
+    {% if is_authenticated|default(false) %}
+      <div class="relative" x-data="{ profileOpen: false }">
+        <button
+          type="button"
+          class="inline-flex items-center justify-center rounded-full border border-app-border bg-app-surface/60 p-2 text-app-text transition hover:bg-app-surface-2/60 hover:text-app-text"
+          @click="profileOpen = !profileOpen"
+          @click.outside="profileOpen = false"
+          aria-label="Profile menu"
+          title="Profile"
+        >
+          {% include 'components/icon.twig' with { name: 'user', class: 'h-4 w-4 shrink-0' } only %}
+        </button>
+
+        <div
+          x-show="profileOpen"
+          x-cloak
+          x-transition:enter="transition ease-out duration-150"
+          x-transition:enter-start="opacity-0 scale-95"
+          x-transition:enter-end="opacity-100 scale-100"
+          x-transition:leave="transition ease-in duration-100"
+          x-transition:leave-start="opacity-100 scale-100"
+          x-transition:leave-end="opacity-0 scale-95"
+          class="absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-2xl border border-app-border bg-app-surface shadow-xl"
+        >
+          <div class="border-b border-app-border px-4 py-3">
+            <p class="text-sm font-semibold text-app-text">{{ user_name|default('Admin') }}</p>
+            <p class="text-xs text-app-muted truncate">{{ user_email|default('') }}</p>
+          </div>
+          <div class="py-2">
+            <a href="/admin/profile" class="flex items-center gap-3 px-4 py-2 text-sm text-app-text transition hover:bg-app-surface-2/60 hover:text-app-text">
+              {% include 'components/icon.twig' with { name: 'user', class: 'h-4 w-4 shrink-0' } only %}
+              <span>My Profile</span>
+            </a>
+          </div>
+          <div class="border-t border-app-border py-2">
+            <form method="post" action="/admin/logout">
+              {{ csrf_field() }}
+              <button type="submit" class="flex w-full items-center gap-3 px-4 py-2 text-sm text-app-text transition hover:bg-app-surface-2/60 hover:text-app-text">
+                {% include 'components/icon.twig' with { name: 'log-out', class: 'h-4 w-4 shrink-0' } only %}
+                <span>Sign out</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>

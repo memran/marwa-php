@@ -1,0 +1,30 @@
+{% set id = id|default(name|default('input')) %}
+{% set type = type|default('text') %}
+{% set label = label|default('') %}
+{% set value = value|default('') %}
+{% set placeholder = placeholder|default('') %}
+{% set help = help|default('') %}
+{% set error = error|default('') %}
+
+<label class="theme-field" for="{{ id }}">
+    {% if label %}
+        <span class="theme-field__label">{{ label }}</span>
+    {% endif %}
+
+    <input
+        id="{{ id }}"
+        name="{{ name }}"
+        type="{{ type }}"
+        value="{{ value }}"
+        placeholder="{{ placeholder }}"
+        class="theme-input{% if error %} theme-input--error{% endif %}"
+    >
+
+    {% if help %}
+        <small class="theme-field__help">{{ help }}</small>
+    {% endif %}
+
+    {% if error %}
+        <small class="theme-field__error">{{ error }}</small>
+    {% endif %}
+</label>

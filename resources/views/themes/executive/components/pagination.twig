@@ -1,0 +1,7 @@
+{% set pagination = pagination|default(null) %}
+
+{% if pagination %}
+  <nav class="mt-4 flex flex-wrap items-center gap-2 text-sm" aria-label="Pagination">
+    <span class="text-app-muted">{{ pagination.total }} total</span>
+  </nav>
+{% endif %}

@@ -27,6 +27,20 @@ final class StarterConfigTest extends TestCase
         self::assertSame('errors/500.twig', $config['error500']['template']);
     }
 
+    public function testConsoleConfigDiscoversLegacyAndThemeCommandDirectories(): void
+    {
+        $config = require __DIR__ . '/../../config/console.php';
+
+        self::assertIsArray($config);
+        self::assertArrayHasKey('discover', $config);
+        self::assertContains([
+            'path' => 'app/Commands',
+        ], $config['discover']);
+        self::assertContains([
+            'path' => 'app/Console/Commands',
+        ], $config['discover']);
+    }
+
     public function testDatabaseConfigUsesStarterDbEnvironmentVariablesAndFrameworkSqliteDefaults(): void
     {
         $basePath = sys_get_temp_dir() . '/marwa-config-' . bin2hex(random_bytes(6));

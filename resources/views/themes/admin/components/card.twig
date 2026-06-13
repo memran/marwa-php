@@ -1,0 +1,42 @@
+{% set shell_class = shell_class|default('theme-card') %}
+{% set header_class = header_class|default('theme-card__header') %}
+{% set body_class = body_class|default('theme-card__body') %}
+{% set footer_class = footer_class|default('theme-card__footer') %}
+{% set title = title|default('') %}
+{% set content = content|default('') %}
+
+{% set header_content %}
+  {% block header %}
+    {% if title %}
+      <h2 class="theme-card__title">{{ title }}</h2>
+    {% endif %}
+  {% endblock %}
+{% endset %}
+
+{% set body_content %}
+  {% block body %}
+    {{ content }}
+  {% endblock %}
+{% endset %}
+
+{% set footer_content %}
+  {% block footer %}{% endblock %}
+{% endset %}
+
+<section class="{{ shell_class }}">
+    {% if header_content|trim is not empty %}
+        <header class="{{ header_class }}">
+            {{ header_content|raw }}
+        </header>
+    {% endif %}
+
+    <div class="{{ body_class }}">
+        {{ body_content|raw }}
+    </div>
+
+    {% if footer_content|trim is not empty %}
+        <footer class="{{ footer_class }}">
+            {{ footer_content|raw }}
+        </footer>
+    {% endif %}
+</section>

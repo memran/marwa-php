@@ -1,0 +1,56 @@
+<form id="{{ bulk.form_id|default('bulk-table-form') }}" method="post" action="{{ bulk.action_delete_url|default(bulk.action_status_url|default('')) }}" class="hidden">
+  {{ csrf_field() }}
+  {% for field in bulk.hidden_fields|default([]) %}
+    <input type="hidden" name="{{ field.name }}" value="{{ field.value }}">
+  {% endfor %}
+</form>
+
+<div class="mt-5 flex flex-col gap-3 rounded-[1.35rem] border border-app-border bg-app-surface-2/60 p-3.5 lg:flex-row lg:items-center lg:justify-between">
+  <div class="flex flex-wrap items-center gap-3">
+    <label class="inline-flex items-center gap-2 text-sm font-semibold text-app-text">
+      <input
+        type="checkbox"
+        class="h-4 w-4 rounded border-app-border text-app-accent focus:ring-app-accent/20"
+        :checked="selected.length === selectableCount && selectableCount > 0"
+        @change="selected = $event.target.checked ? Array.from($root.querySelectorAll('[data-bulk-row]:not(:disabled)')).map((input) => input.value) : []"
+      >
+      <span>{{ bulk.select_all_label|default('Select all') }}</span>
+    </label>
+    <span class="rounded-full border border-app-border bg-app-surface/70 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-app-muted" x-text="selected.length + ' selected'"></span>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-2">
+    {% if bulk.action_status_url|default('') and bulk.status_options|default([]) is not empty %}
+      <select form="{{ bulk.form_id|default('bulk-table-form') }}" name="bulk_status" class="{{ bulk_control }} min-w-[11rem]">
+        <option value="">{{ bulk.status_placeholder|default('Bulk status') }}</option>
+        {% for option in bulk.status_options %}
+          <option value="{{ option.value }}">{{ option.label }}</option>
+        {% endfor %}
+      </select>
+      <button
+        type="submit"
+        form="{{ bulk.form_id|default('bulk-table-form') }}"
+        formaction="{{ bulk.action_status_url }}"
+        class="{{ toolbar_button_primary }} disabled:cursor-not-allowed disabled:opacity-50"
+        :disabled="selected.length === 0"
+      >
+        {% include '@Shared/components/icon.twig' with { name: bulk.status_icon|default('refresh-cw'), class: 'h-4 w-4 shrink-0' } only %}
+        <span>{{ bulk.status_label|default('Update status') }}</span>
+      </button>
+    {% endif %}
+
+    {% if bulk.action_delete_url|default('') %}
+      <button
+        type="submit"
+        form="{{ bulk.form_id|default('bulk-table-form') }}"
+        formaction="{{ bulk.action_delete_url }}"
+        class="{{ toolbar_button_danger }} disabled:cursor-not-allowed disabled:opacity-50"
+        :disabled="selected.length === 0"
+        {% if bulk.delete_confirm|default('') %}onclick="return confirm('{{ bulk.delete_confirm|e('js') }}');"{% endif %}
+      >
+        {% include '@Shared/components/icon.twig' with { name: bulk.delete_icon|default('trash-2'), class: 'h-4 w-4 shrink-0' } only %}
+        <span>{{ bulk.delete_label|default('Delete selected') }}</span>
+      </button>
+    {% endif %}
+  </div>
+</div>

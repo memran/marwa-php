@@ -1,4 +1,4 @@
-{% extends "layout.twig" %}
+{% extends "layouts/admin.twig" %}
 
 {% block title %}Database | MarwaPHP Admin{% endblock %}
 
@@ -105,7 +105,7 @@
           </div>
 
           {% if pagination %}
-            {% include 'components/pagination.twig' with { pagination: pagination } only %}
+            {% include '@Shared/components/pagination.twig' with { pagination: pagination } only %}
           {% endif %}
         {% endif %}
       {% else %}

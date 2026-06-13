@@ -21,6 +21,7 @@ final class UserIndexPage
         return [
             'stats' => $this->stats(),
             'table' => $this->userTable->make($request)->paginate(per_page())->result(),
+            'notice' => $this->consumeFlash('users.notice'),
         ];
     }
 
@@ -46,5 +47,18 @@ final class UserIndexPage
             'disabled' => $disabledUsers->count(),
             'trashed' => $trashedUsers->count(),
         ];
+    }
+
+    private function consumeFlash(string $key): ?string
+    {
+        $value = session()->get($key);
+
+        if (!is_string($value) || $value === '') {
+            return null;
+        }
+
+        session()->forget($key);
+
+        return $value;
     }
 }

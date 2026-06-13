@@ -261,6 +261,9 @@ TWIG
         self::assertContains($dashboard->getStatusCode(), [200, 302]);
         if ($dashboard->getStatusCode() === 302) {
             self::assertSame('/admin/login', $dashboard->getHeaderLine('Location'));
+        } else {
+            self::assertStringContainsString('MarwaPHP', (string) $dashboard->getBody());
+            self::assertStringContainsString('id="module-search"', (string) $dashboard->getBody());
         }
         self::assertSame(302, $logout->getStatusCode());
         self::assertSame('/admin/login', $logout->getHeaderLine('Location'));
@@ -270,7 +273,13 @@ TWIG
         } else {
             self::assertStringContainsString('Sign in to continue.', (string) $login->getBody());
             self::assertStringContainsString('Enter your credentials to access the admin console.', (string) $login->getBody());
+            self::assertStringContainsString('Built for teams that ship.', (string) $login->getBody());
+            self::assertStringContainsString('aria-label="Toggle theme"', (string) $login->getBody());
             self::assertStringContainsString('/themes/admin/css/app.css', (string) $login->getBody());
+            self::assertStringContainsString('/themes/admin/css/variables.css', (string) $login->getBody());
+            self::assertStringContainsString('/themes/admin/css/layout.css', (string) $login->getBody());
+            self::assertStringContainsString('/themes/admin/css/components.css', (string) $login->getBody());
+            self::assertStringContainsString('/themes/admin/js/theme.js', (string) $login->getBody());
         }
 
         self::assertSame(200, $forgot->getStatusCode());

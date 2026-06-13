@@ -1,0 +1,81 @@
+<tr class="align-top">
+  {% if has_bulk %}
+    {% set bulk_row = row.bulk|default({}) %}
+    <td class="px-3 py-3">
+      <label class="inline-flex items-center">
+        <span class="sr-only">{{ bulk_row.label|default('Select row') }}</span>
+        <input
+          form="{{ bulk.form_id|default('bulk-table-form') }}"
+          type="checkbox"
+          name="ids[]"
+          value="{{ bulk_row.id|default('') }}"
+          class="h-4 w-4 rounded border-app-border text-app-accent focus:ring-app-accent/20"
+          x-model="selected"
+          data-bulk-row
+          {% if bulk_row.disabled|default(false) %}disabled{% endif %}
+          {% if bulk_row.title is defined and bulk_row.title %}title="{{ bulk_row.title }}"{% endif %}
+        >
+      </label>
+    </td>
+  {% endif %}
+
+  {% for column in columns %}
+    {% set cell = row.cells[column.key]|default(null) %}
+    <td class="px-3 py-3 {% if cell is not null and cell.align is defined and cell.align == 'right' %}text-right{% endif %}">
+      {% include '@Shared/components/datatable/cell.twig' with { cell: cell, tone_classes: tone_classes } only %}
+    </td>
+  {% endfor %}
+
+  {% if features.actions|default(false) %}
+    <td class="px-3 py-3">
+      <div class="flex flex-wrap gap-2">
+        {% for action in row.actions %}
+          {% set action_variant = action.variant %}
+          {% set action_class = action_variant == 'primary'
+            ? row_action_primary
+            : action_variant == 'danger'
+              ? row_action_danger
+              : action_variant == 'ghost'
+                ? row_action_ghost
+                : row_action_secondary %}
+
+          {% if action.disabled|default(false) %}
+            <button class="{{ action_class }}" type="button" disabled {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}>
+              {% if action.icon is defined and action.icon %}
+                {% include '@Shared/components/icon.twig' with { name: action.icon, class: 'h-4 w-4 shrink-0' } only %}
+              {% endif %}
+              <span>{{ action.label }}</span>
+            </button>
+          {% elseif action.type|default('link') == 'form_button' %}
+            <form method="post" action="{{ action.action|default(action.href|default('#')) }}">
+              {{ csrf_field() }}
+              {% if action.method is defined and action.method|lower != 'post' %}
+                <input type="hidden" name="_method" value="{{ action.method|upper }}">
+              {% endif %}
+              <button class="{{ action_class }}" type="submit" {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}{% if action.confirm is defined and action.confirm %} onclick="return confirm('{{ action.confirm|e('js') }}');"{% endif %}>
+                {% if action.icon is defined and action.icon %}
+                  {% include '@Shared/components/icon.twig' with { name: action.icon, class: 'h-4 w-4 shrink-0' } only %}
+                {% endif %}
+                <span>{{ action.label }}</span>
+              </button>
+            </form>
+          {% elseif action.type|default('link') == 'button' %}
+            <button class="{{ action_class }}" type="{{ action.button_type|default('button') }}" {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}{% if action.onclick is defined and action.onclick %} onclick="{{ action.onclick }}"{% endif %}>
+              {% if action.icon is defined and action.icon %}
+                {% include '@Shared/components/icon.twig' with { name: action.icon, class: 'h-4 w-4 shrink-0' } only %}
+              {% endif %}
+              <span>{{ action.label }}</span>
+            </button>
+          {% else %}
+            <a class="{{ action_class }}" href="{{ action.href|default('#') }}" {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}>
+              {% if action.icon is defined and action.icon %}
+                {% include '@Shared/components/icon.twig' with { name: action.icon, class: 'h-4 w-4 shrink-0' } only %}
+              {% endif %}
+              <span>{{ action.label }}</span>
+            </a>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </td>
+  {% endif %}
+</tr>

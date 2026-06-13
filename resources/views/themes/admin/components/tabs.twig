@@ -1,0 +1,23 @@
+{% set tabs = tabs|default({}) %}
+{% set shell_class = tabs.shell_class|default('') %}
+{% set items = tabs.items|default([]) %}
+
+<div class="{{ shell_class }}" data-tabs>
+    <div class="theme-tabs" role="tablist">
+        {% for item in items %}
+            {% set is_active = item.active|default(false) %}
+            <button
+                type="button"
+                data-tab-target="{{ item.target|default(item.id|default('')) }}"
+                class="theme-tabs__tab{% if item.class is defined and item.class %} {{ item.class }}{% endif %}{% if is_active %} theme-tabs__tab--active{% endif %}"
+                role="tab"
+                aria-selected="{{ is_active ? 'true' : 'false' }}"
+            >
+                {% if item.icon is defined and item.icon %}
+                    {% include 'components/icon.twig' with { name: item.icon, class: 'theme-tabs__icon' } only %}
+                {% endif %}
+                <span>{{ item.label|default(item.id|default('')) }}</span>
+            </button>
+        {% endfor %}
+    </div>
+</div>

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{% block title %}Executive{% endblock %}</title>
+  {% include 'partials/head.twig' %}
+  {% block styles %}{% endblock %}
+</head>
+<body class="admin-theme executive-theme min-h-screen bg-app-bg text-app-text antialiased">
+  <main class="min-h-screen">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include 'partials/scripts.twig' %}
+  {% block scripts %}{% endblock %}
+</body>
+</html>

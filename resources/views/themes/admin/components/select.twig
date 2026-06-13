@@ -1,0 +1,32 @@
+{% set id = id|default(name|default('select')) %}
+{% set label = label|default('') %}
+{% set options = options|default({}) %}
+{% set value = value|default('') %}
+{% set help = help|default('') %}
+{% set error = error|default('') %}
+
+<label class="theme-field" for="{{ id }}">
+    {% if label %}
+        <span class="theme-field__label">{{ label }}</span>
+    {% endif %}
+
+    <select id="{{ id }}" name="{{ name }}" class="theme-select{% if error %} theme-select--error{% endif %}">
+        {% if placeholder is defined and placeholder %}
+            <option value="">{{ placeholder }}</option>
+        {% endif %}
+
+        {% for option_value, option_label in options %}
+            <option value="{{ option_value }}" {% if option_value == value %}selected{% endif %}>
+                {{ option_label }}
+            </option>
+        {% endfor %}
+    </select>
+
+    {% if help %}
+        <small class="theme-field__help">{{ help }}</small>
+    {% endif %}
+
+    {% if error %}
+        <small class="theme-field__error">{{ error }}</small>
+    {% endif %}
+</label>

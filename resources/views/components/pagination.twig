@@ -1,0 +1,21 @@
+{% set pagination = pagination|default(null) %}
+
+{% if pagination is not null %}
+    <nav class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-app-border pt-4 text-sm text-app-muted" aria-label="Pagination">
+        <div>{{ pagination.summary() }}</div>
+
+        {% if pagination.hasPages() %}
+            <div class="flex flex-wrap gap-2">
+                {% for page in pagination.pages() %}
+                    {% if page.disabled %}
+                        <span class="inline-flex min-w-9 items-center justify-center rounded-xl border border-app-border px-3 py-2 text-center text-app-muted" aria-hidden="true">{{ page.label }}</span>
+                    {% elseif page.active %}
+                        <span class="inline-flex min-w-9 items-center justify-center rounded-xl border border-app-accent bg-app-accent px-3 py-2 text-center font-semibold text-white" aria-current="page">{{ page.label }}</span>
+                    {% else %}
+                        <a class="inline-flex min-w-9 items-center justify-center rounded-xl border border-app-border px-3 py-2 text-center text-app-text transition hover:border-app-accent hover:text-app-accent" href="{{ page.url }}">{{ page.label }}</a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </nav>
+{% endif %}

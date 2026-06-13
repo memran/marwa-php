@@ -1,4 +1,4 @@
-{% extends "layout.twig" %}
+{% extends "layouts/admin.twig" %}
 
 {% block title %}Users | MarwaPHP Admin{% endblock %}
 
@@ -61,5 +61,14 @@
     </div>
   </div>
 
-  {% include 'components/data-table.twig' with { table: table } only %}
+  {% if notice is defined and notice %}
+    <div class="mt-6">
+      {% include 'components/alert.twig' with {
+        type: 'warning',
+        message: notice
+      } only %}
+    </div>
+  {% endif %}
+
+  {% include '@Shared/components/data-table.twig' with { table: table } only %}
 {% endblock %}

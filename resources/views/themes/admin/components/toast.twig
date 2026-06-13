@@ -1,0 +1,14 @@
+{% set toast = toast|default({}) %}
+{% set type = toast.type|default('info') %}
+{% set message = toast.message|default('') %}
+{% set title = toast.title|default('') %}
+
+<div class="theme-toast theme-toast--{{ type }}" role="status">
+    <div class="theme-toast__body">
+        {% if title %}
+            <strong class="theme-toast__title">{{ title }}</strong>
+        {% endif %}
+
+        <p class="theme-toast__message">{{ message }}</p>
+    </div>
+</div>

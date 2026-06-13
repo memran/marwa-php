@@ -1,0 +1,12 @@
+{% set title = title|default('') %}
+{% set content = content|default('') %}
+{% set class = class|default('') %}
+
+<section class="rounded-2xl border border-app-border bg-app-surface/80 p-5 shadow-sm {{ class }}">
+  {% if title %}
+    <h3 class="mb-3 text-base font-semibold text-app-text">{{ title }}</h3>
+  {% endif %}
+  <div class="text-sm text-app-muted">
+    {{ content|raw }}
+  </div>
+</section>

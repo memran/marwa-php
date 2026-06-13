@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="admin">
+<head>
+    {% include 'partials/head.twig' %}
+    <title>{% block title %}Admin Default{% endblock %}</title>
+    {% block styles %}{% endblock %}
+</head>
+<body class="theme-admin theme-admin--blank">
+    <main class="theme-blank">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include 'partials/scripts.twig' %}
+    {% block scripts %}{% endblock %}
+</body>
+</html>

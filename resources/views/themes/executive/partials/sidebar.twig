@@ -1,0 +1,112 @@
+{% set currentPath = _current_path|default('') %}
+{% set sections = mainMenu|default([]) %}
+{% set settings_ui = _settings.ui|default({}) %}
+{% set logo_value = settings_ui.logo_url|default('')|trim %}
+{% set logo_src = logo_value and not (logo_value starts with('http') or logo_value starts with('/')) ? '/' ~ logo_value : logo_value %}
+
+<div class="grid gap-3">
+  <div class="flex items-center justify-between gap-3">
+    <a href="/admin" class="inline-flex min-w-0 items-center gap-3 rounded-2xl border border-app-border bg-app-surface/70 px-3 py-2 shadow-sm transition hover:bg-app-surface">
+      {% if logo_src %}
+        <img src="{{ logo_src }}" alt="Executive logo" class="h-10 w-10 shrink-0 rounded-xl border border-app-border bg-app-surface object-contain p-1.5 shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
+      {% else %}
+        <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-app-border bg-app-accent/10 text-app-accent shadow-[0_20px_50px_rgba(2,6,23,0.18)]">
+          {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-5 w-5' } only %}
+        </span>
+      {% endif %}
+      <span class="grid min-w-0 gap-0.5 text-left">
+        <span class="truncate text-[0.82rem] font-black uppercase tracking-[0.18em] text-app-text">Executive</span>
+        <span class="truncate text-xs text-app-muted">Console</span>
+      </span>
+    </a>
+
+    <button
+      type="button"
+      class="rounded-lg p-2 text-app-muted hover:bg-app-surface-2/60 hover:text-app-text lg:hidden"
+      data-theme-sidebar-close
+      aria-label="Close sidebar"
+    >
+      {% include 'components/icon.twig' with { name: 'x', class: 'h-5 w-5' } only %}
+    </button>
+  </div>
+</div>
+
+{% set alpine_data = {} %}
+{% for section in sections %}
+  {% set children = section.children|default([]) %}
+  {% if children|length > 1 %}
+    {% set key = 'section_' ~ loop.index0 %}
+    {% set open = false %}
+    {% for child in children %}
+      {% if currentPath == child.url or currentPath starts with(child.url ~ '/') %}
+        {% set open = true %}
+      {% endif %}
+    {% endfor %}
+    {% set alpine_data = alpine_data|merge({(key): open}) %}
+  {% endif %}
+{% endfor %}
+
+<nav class="grid gap-1" aria-label="Primary">
+  {% for section in sections %}
+    {% set children = section.children|default([]) %}
+    {% if children|length > 0 %}
+      {% if children|length == 1 %}
+        {% set child = children[0] %}
+        {% set is_active = currentPath == child.url or currentPath starts with(child.url ~ '/') %}
+        <div class="grid gap-1">
+          <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition {% if is_active %}bg-app-accent/10 text-app-accent ring-1 ring-inset ring-app-accent/20{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="{{ child.url }}"{% if is_active %} aria-current="page"{% endif %}>
+            <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
+              {% if child.icon %}
+                {% include 'components/icon.twig' with { name: child.icon, class: 'h-4 w-4 shrink-0' } only %}
+              {% endif %}
+            </span>
+            <span class="truncate">{{ child.label }}</span>
+          </a>
+        </div>
+      {% else %}
+        {% set key = 'section_' ~ loop.index0 %}
+        <div class="grid gap-1" data-theme-dropdown>
+          <button
+            type="button"
+            class="inline-flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-[0.82rem] font-semibold transition text-app-muted hover:bg-app-surface-2/60 hover:text-app-text"
+            data-theme-dropdown-toggle
+            aria-expanded="false"
+          >
+            <span class="flex items-center gap-3">
+              <span class="inline-flex h-7 w-7 items-center justify-center rounded-xl">
+                {% include 'components/icon.twig' with { name: section.icon|default('folder'), class: 'h-4 w-4 shrink-0' } only %}
+              </span>
+              <span class="truncate">{{ section.label }}</span>
+            </span>
+            <span class="transition-transform duration-200" data-theme-dropdown-icon>
+              {% include 'components/icon.twig' with { name: 'chevron-down', class: 'h-4 w-4 shrink-0' } only %}
+            </span>
+          </button>
+          <div class="grid gap-1 pl-4" hidden data-theme-dropdown-menu>
+            {% for child in children %}
+              {% set is_active = currentPath == child.url or currentPath starts with(child.url ~ '/') %}
+              <a class="inline-flex items-center gap-3 rounded-xl px-3 py-2 text-[0.82rem] font-semibold transition {% if is_active %}bg-app-accent/10 text-app-accent{% else %}text-app-muted hover:bg-app-surface-2/60 hover:text-app-text{% endif %}" href="{{ child.url }}"{% if is_active %} aria-current="page"{% endif %}>
+                {% if child.icon %}
+                  <span class="inline-flex h-5 w-5 items-center justify-center">
+                    {% include 'components/icon.twig' with { name: child.icon, class: 'h-4 w-4 shrink-0' } only %}
+                  </span>
+                {% endif %}
+                <span class="truncate">{{ child.label }}</span>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+
+  <div class="mt-2 pt-2 border-t border-app-border">
+    <form method="post" action="/admin/logout">
+      {{ csrf_field() }}
+      <button type="submit" class="inline-flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[0.82rem] font-semibold text-app-muted hover:bg-app-surface-2/60 hover:text-app-text">
+        {% include 'components/icon.twig' with { name: 'log-out', class: 'h-5 w-5 shrink-0' } only %}
+        <span class="truncate">Logout</span>
+      </button>
+    </form>
+  </div>
+</nav>

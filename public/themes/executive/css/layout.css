@@ -1,0 +1,60 @@
+body.admin-theme.executive-theme {
+  background: rgb(var(--app-bg));
+  color: rgb(var(--app-text));
+}
+
+.admin-theme.executive-theme .admin-shell {
+  background-image:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 35%),
+    radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.06), transparent 30%),
+    linear-gradient(180deg, rgb(var(--app-bg)) 0%, rgb(var(--app-surface)) 55%, rgb(var(--app-bg)) 100%);
+}
+
+.admin-theme.executive-theme .admin-sidebar {
+  --app-bg: 3 10 24;
+  --app-surface: 3 10 24;
+  --app-surface-2: 15 23 42;
+  --app-border: 30 41 59;
+  --app-text: 226 232 240;
+  --app-muted: 148 163 184;
+  --app-accent: 96 165 250;
+  --app-accent-soft: 37 99 235;
+  background:
+    radial-gradient(circle at top, rgba(37, 99, 235, 0.22), transparent 35%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(3, 7, 18, 0.98) 100%);
+  box-shadow: 24px 0 70px rgba(15, 23, 42, 0.28);
+}
+
+.admin-theme.executive-theme .admin-topbar {
+  background-color: rgba(255, 255, 255, 0.82);
+  border-color: rgba(148, 163, 184, 0.20);
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.05);
+}
+
+html[data-admin-theme="dark"] body.admin-theme.executive-theme .admin-topbar {
+  background-color: rgba(15, 23, 42, 0.86);
+  border-color: rgba(51, 65, 85, 0.80);
+  box-shadow: 0 8px 30px rgba(2, 6, 23, 0.28);
+}
+
+.admin-theme.executive-theme .admin-content {
+  font-size: 0.95rem;
+}
+
+.admin-theme.executive-theme .admin-content h1 {
+  font-size: clamp(1.7rem, 2vw + 1rem, 2.35rem);
+  line-height: 1.08;
+}
+
+.admin-theme.executive-theme .admin-content h2 {
+  font-size: 1.2rem;
+  line-height: 1.15;
+}
+
+.admin-theme.executive-theme .admin-content table {
+  width: 100%;
+}
+
+.admin-theme.executive-theme .admin-content .admin-search {
+  max-width: 46rem;
+}

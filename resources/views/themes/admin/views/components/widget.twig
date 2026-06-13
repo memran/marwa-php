@@ -1,9 +1,0 @@
-{% set shell_class = shell_class|default('overflow-hidden rounded-[1.4rem] border border-white/10 bg-white/5 p-5 shadow-[0_24px_70px_rgba(2,6,23,0.35)] backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:border-cyan-300/20 hover:bg-white/[0.07]') %}
-{% set body_class = body_class|default('grid gap-4') %}
-{% set aria_label = aria_label|default('Dashboard widget') %}
-
-<article class="{{ shell_class }}" data-admin-widget aria-label="{{ aria_label }}">
-  <div class="{{ body_class }}">
-    {% block body %}{% endblock %}
-  </div>
-</article>

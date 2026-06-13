@@ -1,4 +1,4 @@
-{% extends "layout.twig" %}
+{% extends "layouts/admin.twig" %}
 
 {% block title %}Roles | MarwaPHP Admin{% endblock %}
 
@@ -24,5 +24,5 @@
     </div>
   {% endif %}
 
-  {% include 'components/data-table.twig' with { table: table } only %}
+  {% include '@Shared/components/data-table.twig' with { table: table } only %}
 {% endblock %}

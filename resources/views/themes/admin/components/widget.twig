@@ -1,0 +1,9 @@
+{% set shell_class = shell_class|default('theme-widget') %}
+{% set body_class = body_class|default('theme-widget__body') %}
+{% set aria_label = aria_label|default('Dashboard widget') %}
+
+<section class="{{ shell_class }}" aria-label="{{ aria_label }}">
+    <div class="{{ body_class }}">
+        {% block body %}{% endblock %}
+    </div>
+</section>

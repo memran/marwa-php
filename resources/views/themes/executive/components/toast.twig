@@ -1,0 +1,11 @@
+{% set toast = toast|default({}) %}
+{% set type = toast.type|default('info') %}
+{% set message = toast.message|default('') %}
+{% set title = toast.title|default('') %}
+
+<div class="rounded-2xl border border-app-border bg-app-surface px-4 py-3 shadow-lg">
+  {% if title %}
+    <strong class="block text-sm font-semibold text-app-text">{{ title }}</strong>
+  {% endif %}
+  <p class="text-sm text-app-muted">{{ message }}</p>
+</div>

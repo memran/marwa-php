@@ -1,0 +1,23 @@
+{% set label = label|default('') %}
+{% set value = value|default('') %}
+{% set status = status|default('') %}
+{% set meta = meta|default('') %}
+{% set tone = tone|default('neutral') %}
+
+<article class="theme-card theme-status-card theme-status-card--{{ tone }}">
+    <div class="theme-card__body">
+        {% if label %}
+            <p class="theme-status-card__label">{{ label }}</p>
+        {% endif %}
+
+        <div class="theme-status-card__value">{{ value }}</div>
+
+        {% if status %}
+            <div class="theme-status-card__status">{{ status }}</div>
+        {% endif %}
+
+        {% if meta %}
+            <div class="theme-status-card__meta">{{ meta }}</div>
+        {% endif %}
+    </div>
+</article>

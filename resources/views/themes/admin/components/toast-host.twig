@@ -1,0 +1,9 @@
+{% set toasts = toasts|default([]) %}
+
+{% if toasts is not empty %}
+    <div class="theme-toast-host" aria-live="polite" aria-atomic="true">
+        {% for toast in toasts %}
+            {% include 'components/toast.twig' with { toast: toast } only %}
+        {% endfor %}
+    </div>
+{% endif %}

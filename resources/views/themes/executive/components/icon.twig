@@ -1,0 +1,8 @@
+{% set iconName = name|default('circle-help') %}
+{% set iconClass = class|default('') %}
+
+{% if iconName %}
+  <svg{% if iconClass %} class="{{ iconClass }}"{% endif %} aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <use href="{{ theme_asset('assets/icons/lucide.svg') }}#{{ iconName }}"></use>
+  </svg>
+{% endif %}

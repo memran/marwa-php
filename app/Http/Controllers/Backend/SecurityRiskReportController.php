@@ -19,7 +19,7 @@ final class SecurityRiskReportController extends Controller
         $sinceHours = $this->positiveInt(request('since_hours', 24), 24, 1, 8760);
         $report = $this->riskAnalyzer->report($sinceHours);
 
-        return $this->view('security/risk', [
+        return $this->view('@security/risk', [
             'enabled' => $this->riskAnalyzer->enabled(),
             'log_path' => $this->riskAnalyzer->logPath(),
             'since_hours' => $sinceHours,

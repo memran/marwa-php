@@ -7,5 +7,8 @@ return [
         [
             'path' => 'app/Commands',
         ],
+        [
+            'path' => 'app/Console/Commands',
+        ],
     ],
 ];

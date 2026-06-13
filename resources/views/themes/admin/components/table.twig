@@ -1,0 +1,66 @@
+{% set caption = caption|default('') %}
+{% set headers = headers|default([]) %}
+{% set rows = rows|default([]) %}
+{% set empty_message = empty_message|default('No data available.') %}
+
+<div class="theme-table__wrap">
+    <table class="theme-table">
+        {% if caption %}
+            <caption>{{ caption }}</caption>
+        {% endif %}
+
+        {% if headers is not empty %}
+            <thead>
+                <tr>
+                    {% for header in headers %}
+                        {% if header is iterable %}
+                            <th scope="{{ header.scope|default('col') }}" class="{{ header.class|default('') }}">
+                                {{ header.label|default('') }}
+                            </th>
+                        {% else %}
+                            <th scope="col">{{ header }}</th>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            </thead>
+        {% endif %}
+
+        <tbody>
+            {% if rows is empty %}
+                <tr>
+                    <td colspan="{{ headers|length|default(1) }}" class="theme-table__empty">
+                        {{ empty_message }}
+                    </td>
+                </tr>
+            {% else %}
+                {% for row in rows %}
+                    <tr>
+                        {% for cell in row %}
+                            {% set cell_value = cell %}
+                            {% set cell_href = null %}
+                            {% set cell_raw = false %}
+                            {% set cell_align = 'left' %}
+
+                            {% if cell is iterable %}
+                                {% set cell_value = cell.content|default(cell.value|default('')) %}
+                                {% set cell_href = cell.href|default(null) %}
+                                {% set cell_raw = cell.raw|default(false) %}
+                                {% set cell_align = cell.align|default('left') %}
+                            {% endif %}
+
+                            <td class="theme-table__cell theme-table__cell--{{ cell_align }}">
+                                {% if cell_href %}
+                                    <a href="{{ cell_href }}">{{ cell_value }}</a>
+                                {% elseif cell_raw %}
+                                    {{ cell_value|raw }}
+                                {% else %}
+                                    {{ cell_value }}
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            {% endif %}
+        </tbody>
+    </table>
+</div>

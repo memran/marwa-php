@@ -1,0 +1,6 @@
+{% set type = type|default('info') %}
+{% set message = message|default('') %}
+
+<div class="theme-alert theme-alert--{{ type }}" role="alert">
+    {{ message }}
+</div>

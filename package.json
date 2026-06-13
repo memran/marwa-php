@@ -7,12 +7,15 @@
     "test": "tests"
   },
   "scripts": {
-    "icons:build:admin": "php scripts/build-admin-lucide-sprite.php",
+    "icons:build:admin": "php scripts/build-admin-lucide-sprite.php admin",
+    "icons:build:executive": "php scripts/build-admin-lucide-sprite.php executive",
     "css:dev": "NODE_OPTIONS=--disable-warning=DEP0205 tailwindcss -c tailwind.config.js -i ./resources/css/app.css -o ./public/assets/css/app.css --watch",
     "css:dev:admin": "npm run icons:build:admin && NODE_OPTIONS=--disable-warning=DEP0205 tailwindcss -c tailwind.config.js -i ./resources/views/themes/admin/assets/css/app.css -o ./public/themes/admin/assets/css/app.css --watch",
+    "css:dev:executive": "npm run icons:build:executive && NODE_OPTIONS=--disable-warning=DEP0205 tailwindcss -c tailwind.config.js -i ./resources/views/themes/executive/assets/css/app.css -o ./public/themes/executive/assets/css/app.css --watch",
     "css:build:default": "NODE_OPTIONS=--disable-warning=DEP0205 tailwindcss -c tailwind.config.js -i ./resources/css/app.css -o ./public/assets/css/app.css --minify",
     "css:build:admin": "npm run icons:build:admin && NODE_OPTIONS=--disable-warning=DEP0205 tailwindcss -c tailwind.config.js -i ./resources/views/themes/admin/assets/css/app.css -o ./public/themes/admin/assets/css/app.css --minify",
-    "css:build": "npm run css:build:default && npm run css:build:admin",
+    "css:build:executive": "npm run icons:build:executive && NODE_OPTIONS=--disable-warning=DEP0205 tailwindcss -c tailwind.config.js -i ./resources/views/themes/executive/assets/css/app.css -o ./public/themes/executive/assets/css/app.css --minify",
+    "css:build": "npm run css:build:default && npm run css:build:admin && npm run css:build:executive",
     "dev": "npm run css:dev",
     "build": "npm run css:build",
     "alpine:copy": "node -e \"require('fs').copyFileSync('node_modules/alpinejs/dist/cdn.min.js', 'public/themes/admin/assets/js/alpine.min.js')\"",

@@ -1,0 +1,17 @@
+{% set items = items|default([]) %}
+
+{% if items is not empty %}
+    <nav class="theme-breadcrumb" aria-label="Breadcrumb">
+        <ol class="theme-breadcrumb__list">
+            {% for item in items %}
+                <li class="theme-breadcrumb__item{% if item.active|default(false) %} theme-breadcrumb__item--active{% endif %}">
+                    {% if item.url is defined and item.url and not item.active|default(false) %}
+                        <a href="{{ item.url }}">{{ item.label }}</a>
+                    {% else %}
+                        <span>{{ item.label }}</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+    </nav>
+{% endif %}

@@ -1,0 +1,3 @@
+{% include 'components/breadcrumb.twig' with {
+    items: crumbs|default(items|default([]))
+} only %}

@@ -1,0 +1,38 @@
+<details class="group relative z-30">
+  <summary class="{{ toolbar_button_secondary }} list-none cursor-pointer">
+    {% include '@Shared/components/icon.twig' with { name: column_menu.icon|default('layout-grid'), class: 'h-4 w-4 shrink-0' } only %}
+    <span>{{ column_menu.label|default('Columns') }}</span>
+    <span class="rounded-full bg-app-surface-2/80 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.16em] text-app-muted">
+      {{ column_menu.visible_count|default(0) }} shown
+    </span>
+  </summary>
+  <form method="get" action="{{ column_menu.action|default('') }}" class="absolute right-0 z-50 mt-3 w-60 overflow-hidden rounded-[1.25rem] border border-app-border bg-app-surface/95 p-3 shadow-[0_24px_60px_rgba(2,6,23,0.35)] backdrop-blur-xl">
+    {% for field in column_menu.hidden_fields|default([]) %}
+      <input type="hidden" name="{{ field.name }}" value="{{ field.value }}">
+    {% endfor %}
+    <div class="grid gap-2">
+      <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-app-muted">{{ column_menu.legend|default('Visible columns') }}</p>
+      {% for item in column_menu.items %}
+        <label class="flex items-center justify-between gap-3 rounded-xl border border-app-border bg-app-surface/60 px-3 py-2 text-sm text-app-text transition hover:bg-app-surface-2/70">
+          <span>{{ item.label }}</span>
+          <input
+            type="checkbox"
+            name="columns[]"
+            value="{{ item.key }}"
+            class="h-4 w-4 rounded border-app-border bg-app-surface text-app-accent focus:ring-app-accent/20"
+            {% if item.checked|default(false) %}checked{% endif %}
+          >
+        </label>
+      {% endfor %}
+    </div>
+    <div class="mt-3 flex items-center gap-2">
+      <button type="submit" class="{{ toolbar_button_primary }} flex-1">
+        {% include '@Shared/components/icon.twig' with { name: 'check', class: 'h-4 w-4 shrink-0' } only %}
+        <span>{{ column_menu.submit_label|default('Apply') }}</span>
+      </button>
+      <a class="{{ toolbar_button_secondary }} flex-1" href="{{ column_menu.reset_url|default(column_menu.action|default('')) }}">
+        {{ column_menu.reset_label|default('Reset') }}
+      </a>
+    </div>
+  </form>
+</details>

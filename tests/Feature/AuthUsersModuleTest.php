@@ -58,13 +58,9 @@ final class AuthUsersModuleTest extends TestCase
         $this->copyDirectory(__DIR__ . '/../../config', $this->basePath . '/config');
         $this->copyDirectory(__DIR__ . '/../../database', $this->basePath . '/database');
         $this->copyDirectory(__DIR__ . '/../../resources/views/themes/default', $this->basePath . '/resources/views/themes/default');
+        $this->copyDirectory(__DIR__ . '/../../resources/views/components', $this->basePath . '/resources/views/components');
         $this->copyDirectory(__DIR__ . '/../../resources/views/themes/admin', $this->basePath . '/resources/views/themes/admin');
         $this->copyDirectory(__DIR__ . '/../../modules', $this->basePath . '/modules');
-
-        $widgetFile = __DIR__ . '/../../resources/views/components/ai-chat-widget.twig';
-        if (is_file($widgetFile)) {
-            copy($widgetFile, $this->basePath . '/resources/views/components/ai-chat-widget.twig');
-        }
 
         file_put_contents(
             $this->basePath . '/.env',
@@ -90,6 +86,7 @@ final class AuthUsersModuleTest extends TestCase
 declare(strict_types=1);
 
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Backend\SecurityRiskReportController;
 use App\Http\Middleware\AdminThemeMiddleware;
 use App\Modules\Auth\Http\Middleware\RequireAdminAuthentication;
 use App\Modules\Auth\Support\AuthManager;
@@ -100,10 +97,19 @@ Router::get('/', [HomeController::class, 'index'])->name('home')->register();
 
 Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class]], static function ($routes): void {
     $routes->get('/', static function (): \Psr\Http\Message\ResponseInterface {
-        return view('dashboard/index', [
+        return view('@dashboard/index', [
             'status_cards' => app(DashboardStatusCards::class)->cards(),
+            'activities' => [],
+            'widgets' => [],
+            'available_widgets' => [],
+            'size_options' => [],
+            'is_edit_mode' => false,
         ]);
     })->name('admin.dashboard')->register();
+
+    $routes->get('/security/risk', [SecurityRiskReportController::class, 'index'])
+        ->name('admin.security.risk')
+        ->register();
 });
 PHP
         );
@@ -316,7 +322,13 @@ TWIG
         $loginPage = $kernel->handle($this->request('GET', '/admin/login'));
         self::assertSame(200, $loginPage->getStatusCode());
         self::assertStringContainsString('Sign in to continue.', (string) $loginPage->getBody());
+        self::assertStringContainsString('Built for teams that ship.', (string) $loginPage->getBody());
+        self::assertStringContainsString('aria-label="Toggle theme"', (string) $loginPage->getBody());
         self::assertStringContainsString('/themes/admin/css/app.css', (string) $loginPage->getBody());
+        self::assertStringContainsString('/themes/admin/css/variables.css', (string) $loginPage->getBody());
+        self::assertStringContainsString('/themes/admin/css/layout.css', (string) $loginPage->getBody());
+        self::assertStringContainsString('/themes/admin/css/components.css', (string) $loginPage->getBody());
+        self::assertStringContainsString('/themes/admin/js/theme.js', (string) $loginPage->getBody());
         self::assertStringContainsString('name="_token"', (string) $loginPage->getBody());
         $csrf = $this->app->security()->csrfToken();
 
@@ -351,9 +363,14 @@ TWIG
         $dashboard = $kernel->handle($this->request('GET', '/admin'));
         self::assertSame(200, $dashboard->getStatusCode());
         $body = (string) $dashboard->getBody();
-        self::assertStringContainsString('Server and application status', $body);
+        self::assertStringContainsString('MarwaPHP', $body);
+        self::assertStringContainsString('id="module-search"', $body);
+        self::assertStringContainsString('Edit Dashboard', $body);
+        self::assertStringContainsString('Add Widgets', $body);
         self::assertStringContainsString('/admin/background-jobs', $body);
         self::assertStringContainsString('Background Jobs', $body);
+        self::assertStringContainsString('/admin/security/risk', $body);
+        self::assertStringContainsString('Security', $body);
 
         $profilePage = $kernel->handle($this->request('GET', '/admin/profile'));
         self::assertSame(200, $profilePage->getStatusCode());
@@ -372,7 +389,13 @@ TWIG
         self::assertStringContainsString('type="file"', $settingsBody);
         self::assertStringContainsString('Logo upload', $settingsBody);
 
-        unset($loginPage, $failedLogin, $loginWithoutCsrf, $login, $dashboard, $body, $profilePage, $profileBody, $settings, $settingsBody);
+        $securityPage = $kernel->handle($this->request('GET', '/admin/security/risk'));
+        self::assertSame(200, $securityPage->getStatusCode());
+        $securityBody = (string) $securityPage->getBody();
+        self::assertStringContainsString('Security Risk Report', $securityBody);
+        self::assertStringContainsString('Risk report and signal data.', $securityBody);
+
+        unset($loginPage, $failedLogin, $loginWithoutCsrf, $login, $dashboard, $body, $profilePage, $profileBody, $settings, $settingsBody, $securityPage, $securityBody);
 
         $bootstrapAdmin = User::findBy('email', 'admin@marwa.test');
         self::assertInstanceOf(User::class, $bootstrapAdmin);
@@ -397,13 +420,14 @@ TWIG
         $usersPage = $kernel->handle($this->request('GET', '/admin/users'));
         self::assertSame(200, $usersPage->getStatusCode());
         $usersBody = (string) $usersPage->getBody();
+        self::assertStringContainsString('MarwaPHP', $usersBody);
+        self::assertStringContainsString('id="module-search"', $usersBody);
+        self::assertStringContainsString('Showing', $usersBody);
+        self::assertStringContainsString('Powered by MarwaPHP', $usersBody);
         self::assertStringContainsString('admin@marwa.test', $usersBody);
         self::assertStringContainsString('Create user', $usersBody);
-        self::assertStringContainsString('Search users...', $usersBody);
         self::assertStringContainsString('/admin/users/export/csv', $usersBody);
         self::assertStringContainsString('/admin/users/export/pdf', $usersBody);
-        self::assertStringContainsString('admin-pagination', $usersBody);
-        self::assertMatchesRegularExpression('/Showing \d+-\d+ of \d+ results/', $usersBody);
 
         $sortedUsersPage = $kernel->handle($this->request('GET', '/admin/users?sort=name&direction=asc'));
         self::assertSame(200, $sortedUsersPage->getStatusCode());

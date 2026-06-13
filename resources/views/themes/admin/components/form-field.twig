@@ -1,0 +1,69 @@
+{% set resolved_field = field|default(null) %}
+{% set id = id|default(resolved_field.id|default(name|default('input'))) %}
+{% set name = name|default(resolved_field.name|default(id)) %}
+{% set label = label|default(resolved_field.label|default('')) %}
+{% set value = value|default(resolved_field.value|default('')) %}
+{% set type = type|default(resolved_field.type|default('text')) %}
+{% set error = error|default(resolved_field.error|default('')) %}
+{% set hint = hint|default(resolved_field.hint|default('')) %}
+{% set placeholder = placeholder|default(resolved_field.placeholder|default('')) %}
+{% set autocomplete = autocomplete|default(resolved_field.autocomplete|default('')) %}
+{% set disabled = disabled|default(resolved_field.disabled|default(false)) %}
+{% set readonly = readonly|default(resolved_field.readonly|default(false)) %}
+{% set rows = rows|default(resolved_field.rows|default(3)) %}
+{% set options = options|default(resolved_field.options|default([])) %}
+{% set wrapper_class = wrapper_class|default(resolved_field.wrapper_class|default('')) %}
+{% set success = success|default(resolved_field.success|default('')) %}
+
+{% if type == 'textarea' %}
+    <label class="theme-field{% if wrapper_class %} {{ wrapper_class }}{% endif %}" for="{{ id }}">
+        {% if label %}
+            <span class="theme-field__label">{{ label }}</span>
+        {% endif %}
+
+        <textarea
+            id="{{ id }}"
+            name="{{ name }}"
+            rows="{{ rows }}"
+            placeholder="{{ placeholder }}"
+            autocomplete="{{ autocomplete }}"
+            {% if disabled %}disabled{% endif %}
+            {% if readonly %}readonly{% endif %}
+            class="theme-input{% if error %} theme-input--error{% endif %}"
+        >{{ value }}</textarea>
+
+        {% if hint %}
+            <small class="theme-field__help">{{ hint }}</small>
+        {% endif %}
+
+        {% if success %}
+            <small class="theme-field__success">{{ success }}</small>
+        {% endif %}
+
+        {% if error %}
+            <small class="theme-field__error">{{ error }}</small>
+        {% endif %}
+    </label>
+{% elseif type == 'select' %}
+    {% include 'components/select.twig' with {
+        id: id,
+        name: name,
+        label: label,
+        options: options,
+        value: value,
+        help: hint,
+        error: error,
+        placeholder: placeholder
+    } only %}
+{% else %}
+    {% include 'components/input.twig' with {
+        id: id,
+        name: name,
+        type: type,
+        label: label,
+        value: value,
+        placeholder: placeholder,
+        help: hint,
+        error: error
+    } only %}
+{% endif %}

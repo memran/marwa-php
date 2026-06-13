@@ -1,0 +1,7 @@
+{% set class = class|default('') %}
+
+<div class="overflow-hidden rounded-2xl border border-app-border bg-app-surface/80 shadow-sm {{ class }}">
+  <table class="min-w-full divide-y divide-app-border text-sm">
+    {{ table|raw }}
+  </table>
+</div>

@@ -1,0 +1,12 @@
+{% set type = type|default('info') %}
+{% set message = message|default('') %}
+{% set variants = {
+  'success': 'border-emerald-200 bg-emerald-50 text-emerald-900',
+  'warning': 'border-amber-200 bg-amber-50 text-amber-900',
+  'danger': 'border-red-200 bg-red-50 text-red-900',
+  'info': 'border-app-border bg-app-surface text-app-text'
+} %}
+
+<div class="rounded-2xl border px-4 py-3 text-sm {{ variants[type]|default(variants.info) }}">
+  {{ message }}
+</div>

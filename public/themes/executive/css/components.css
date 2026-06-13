@@ -1,0 +1,12 @@
+.admin-theme.executive-theme .admin-pagination a,
+.admin-theme.executive-theme .admin-pagination button {
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.6rem;
+  border-radius: 0.75rem;
+}
+
+.admin-theme.executive-theme .theme-toast-host {
+  display: grid;
+  gap: 0.75rem;
+}

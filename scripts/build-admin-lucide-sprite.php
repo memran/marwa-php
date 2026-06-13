@@ -3,7 +3,13 @@
 declare(strict_types=1);
 
 $source = __DIR__ . '/../node_modules/lucide-static/sprite.svg';
-$targetDir = __DIR__ . '/../public/themes/admin/assets/icons';
+$theme = isset($argv[1]) ? trim((string) $argv[1]) : 'admin';
+
+if ($theme === '') {
+    $theme = 'admin';
+}
+
+$targetDir = __DIR__ . '/../public/themes/' . $theme . '/assets/icons';
 $target = $targetDir . '/lucide.svg';
 
 if (!is_file($source)) {

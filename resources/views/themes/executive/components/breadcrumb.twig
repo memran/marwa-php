@@ -1,0 +1,20 @@
+{% set items = items|default([]) %}
+
+{% if items is not empty %}
+  <nav class="mb-4 text-sm text-app-muted" aria-label="Breadcrumb">
+    <ol class="flex flex-wrap items-center gap-2">
+      {% for item in items %}
+        <li class="flex items-center gap-2">
+          {% if item.url is defined and item.url and not item.active|default(false) %}
+            <a href="{{ item.url }}" class="transition hover:text-app-text">{{ item.label }}</a>
+          {% else %}
+            <span class="font-semibold text-app-text">{{ item.label }}</span>
+          {% endif %}
+          {% if not loop.last %}
+            <span>/</span>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+  </nav>
+{% endif %}
