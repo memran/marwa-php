@@ -37,7 +37,7 @@ final class DashboardStatusCards
         $diskScore = $this->diskScore($this->safeDiskFreeSpace($basePath));
         $environment = (string) config('settings.lifecycle.app.env', config('app.env', 'production'));
         $debugMode = (bool) config('settings.lifecycle.app.debug', config('app.debug', false));
-        $theme = (string) config('settings.lifecycle.theme.admin', config('view.adminTheme', 'admin'));
+        $theme = (string) config('settings.lifecycle.theme.admin', config('view.adminTheme', 'executive'));
         $loadScore = $this->loadScore($loadAverage);
         $themeScore = $theme === 'admin' ? 90 : 78;
 

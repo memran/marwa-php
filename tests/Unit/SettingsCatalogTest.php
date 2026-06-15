@@ -39,7 +39,7 @@ final class SettingsCatalogTest extends TestCase
         self::assertSame(['default' => 'default'], $interfaceFields['theme']['options']);
         self::assertArrayHasKey('admin', $interfaceFields['admin_theme']['options']);
         self::assertArrayHasKey('executive', $interfaceFields['admin_theme']['options']);
-        self::assertSame('admin', $interfaceFields['admin_theme']['options']['admin']);
+        self::assertSame('Admin Default', $interfaceFields['admin_theme']['options']['admin']);
         self::assertSame('Executive', $interfaceFields['admin_theme']['options']['executive']);
     }
 
@@ -78,7 +78,7 @@ final class SettingsCatalogTest extends TestCase
             ],
             'ui' => [
                 'theme' => 'default',
-                'admin_theme' => 'admin',
+                'admin_theme' => 'executive',
                 'logo_url' => 'https://example.test/logo.svg',
             ],
             'cache' => [

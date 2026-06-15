@@ -6,11 +6,11 @@
 
 <label class="grid gap-1.5">
   {% if label %}
-    <span class="text-sm font-semibold text-app-text">{{ label }}</span>
+    <span class="text-sm font-medium text-slate-700">{{ label }}</span>
   {% endif %}
   <select
     name="{{ name }}"
-    class="w-full rounded-xl border border-app-border bg-app-surface/70 px-3 py-2.5 text-sm text-app-text outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/20 {{ class }}"
+    class="h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 {{ class }}"
   >
     {% for optionValue, optionLabel in options %}
       <option value="{{ optionValue }}"{% if optionValue == value %} selected{% endif %}>{{ optionLabel }}</option>

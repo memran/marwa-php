@@ -67,7 +67,7 @@ final class SettingsCatalog
                 'description' => 'Visual and layout defaults shared across starter UIs.',
                 'fields' => [
                     'theme' => ['label' => 'Frontend theme', 'input' => 'select', 'type' => 'string', 'default' => (string) env('FRONTEND_THEME', 'default'), 'options' => $this->themeOptions(self::THEME_TYPE_FRONT)],
-                    'admin_theme' => ['label' => 'Admin theme', 'input' => 'select', 'type' => 'string', 'default' => (string) env('ADMIN_THEME', 'admin'), 'options' => $this->themeOptions(self::THEME_TYPE_ADMIN)],
+                    'admin_theme' => ['label' => 'Admin theme', 'input' => 'select', 'type' => 'string', 'default' => (string) env('ADMIN_THEME', 'executive'), 'options' => $this->themeOptions(self::THEME_TYPE_ADMIN)],
                     'logo_url' => [
                         'label' => 'Logo upload',
                         'input' => 'file',
@@ -190,7 +190,7 @@ final class SettingsCatalog
                 continue;
             }
 
-            $name = trim((string) ($manifest['name'] ?? $entry));
+            $name = trim((string) (($manifest['meta']['label'] ?? null) ?: ($manifest['name'] ?? $entry)));
             if ($name === '') {
                 continue;
             }

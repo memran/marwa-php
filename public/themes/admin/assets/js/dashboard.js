@@ -340,4 +340,108 @@ document.addEventListener('alpine:init', function() {
       }
     };
   });
+
+  Alpine.data('notificationBell', function() {
+    return {
+      isOpen: false,
+      loaded: false,
+      loading: true,
+      unreadCount: 0,
+      notifications: [],
+      iconAsset: window.themeAsset ? window.themeAsset('assets/icons/lucide.svg') : '',
+
+      init() {
+        this.unreadCount = Number(this.$el.dataset.unreadCount || 0);
+        this.updateBadge();
+      },
+
+      async toggle() {
+        this.isOpen = !this.isOpen;
+        if (this.isOpen && !this.loaded) {
+          await this.loadNotifications();
+        }
+      },
+
+      close() {
+        this.isOpen = false;
+      },
+
+      async loadNotifications() {
+        this.loading = true;
+        try {
+          const response = await fetch('/admin/notifications/latest');
+          const data = await response.json();
+          this.notifications = data.notifications || [];
+          this.unreadCount = data.unread_count || 0;
+          this.loaded = true;
+        } catch (e) {
+          this.notifications = [];
+        } finally {
+          this.loading = false;
+        }
+      },
+
+      async markAsRead(notification) {
+        if (!notification.is_read) {
+          await fetch('/admin/notifications/' + notification.id + '/read', {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '' }
+          });
+          notification.is_read = true;
+          this.unreadCount = Math.max(0, this.unreadCount - 1);
+          this.updateBadge();
+        }
+      },
+
+      async markAllRead() {
+        await fetch('/admin/notifications/read-all', {
+          method: 'POST',
+          headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '' }
+        });
+        this.notifications.forEach(n => n.is_read = true);
+        this.unreadCount = 0;
+        this.updateBadge();
+      },
+
+      updateBadge() {
+        window.updateNotificationBadge && window.updateNotificationBadge(this.unreadCount);
+      },
+
+      getTypeClass(type) {
+        const colors = {
+          info: 'text-cyan-400 bg-cyan-400/10',
+          success: 'text-emerald-400 bg-emerald-400/10',
+          warning: 'text-amber-400 bg-amber-400/10',
+          error: 'text-rose-400 bg-rose-400/10'
+        };
+        return colors[type] || 'text-slate-400 bg-white/10';
+      },
+
+      getTypeIcon(type) {
+        const icons = {
+          info: 'info',
+          success: 'check-circle',
+          warning: 'alert-triangle',
+          error: 'x-circle'
+        };
+        return icons[type] || 'bell';
+      },
+
+      formatTime(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        const now = new Date();
+        const diff = now - d;
+        const mins = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+
+        if (mins < 1) return 'Just now';
+        if (mins < 60) return mins + 'm ago';
+        if (hours < 24) return hours + 'h ago';
+        if (days < 7) return days + 'd ago';
+        return d.toLocaleDateString();
+      }
+    };
+  });
 });

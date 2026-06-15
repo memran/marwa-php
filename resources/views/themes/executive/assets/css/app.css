@@ -20,6 +20,23 @@
     --app-danger: 248 113 113;
   }
 
+  .admin-theme.executive-theme,
+  html[data-admin-theme="light"] body.admin-theme.executive-theme,
+  html[data-admin-theme="dark"] body.admin-theme.executive-theme {
+    --app-bg: 248 250 252;
+    --app-surface: 255 255 255;
+    --app-surface-2: 241 245 249;
+    --app-border: 226 232 240;
+    --app-text: 15 23 42;
+    --app-muted: 71 85 105;
+    --app-accent: 37 99 235;
+    --app-accent-soft: 29 78 216;
+    --app-success: 22 163 74;
+    --app-warning: 245 158 11;
+    --app-danger: 220 38 38;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  }
+
   html[data-admin-theme="light"] body.admin-theme {
     --app-bg: 248 250 252;
     --app-surface: 255 255 255;
@@ -49,8 +66,15 @@
 @layer components {
   .admin-theme .admin-shell {
     background-image:
-      radial-gradient(circle at top, rgba(56, 189, 248, 0.16), transparent 34%),
-      radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.1), transparent 30%),
+      radial-gradient(circle at top left, rgba(37, 99, 235, 0.05), transparent 30%),
+      radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.03), transparent 28%),
+      linear-gradient(180deg, rgb(var(--app-bg)) 0%, rgb(var(--app-surface)) 48%, rgb(var(--app-bg)) 100%);
+  }
+
+  .admin-theme.executive-theme .admin-shell {
+    background-image:
+      radial-gradient(circle at top left, rgba(37, 99, 235, 0.05), transparent 30%),
+      radial-gradient(circle at top right, rgba(16, 185, 129, 0.03), transparent 28%),
       linear-gradient(180deg, rgb(var(--app-bg)) 0%, rgb(var(--app-surface)) 48%, rgb(var(--app-bg)) 100%);
   }
 
@@ -58,8 +82,16 @@
     background-color: rgb(var(--app-surface) / 0.72);
   }
 
+  .admin-theme.executive-theme .admin-sidebar {
+    background-color: #071b33;
+  }
+
   .admin-theme .admin-content {
     font-size: 0.95rem;
+  }
+
+  .admin-theme.executive-theme .admin-content {
+    font-size: 0.875rem;
   }
 
   .admin-theme .admin-content h1 {
@@ -67,8 +99,18 @@
     line-height: 1.08;
   }
 
+  .admin-theme.executive-theme .admin-content h1 {
+    font-size: clamp(1.85rem, 2vw + 1rem, 2.55rem);
+    line-height: 1.05;
+  }
+
   .admin-theme .admin-content h2 {
     font-size: 1.28rem;
+    line-height: 1.15;
+  }
+
+  .admin-theme.executive-theme .admin-content h2 {
+    font-size: 1.1rem;
     line-height: 1.15;
   }
 
@@ -110,5 +152,16 @@
     font-size: 0.82rem;
     line-height: 1.1;
     box-shadow: none;
+  }
+
+  .admin-theme.executive-theme .theme-button,
+  .admin-theme.executive-theme .theme-icon-button {
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+  }
+
+  .admin-theme.executive-theme .theme-button--primary {
+    background: rgb(var(--app-accent));
+    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.16);
   }
 }

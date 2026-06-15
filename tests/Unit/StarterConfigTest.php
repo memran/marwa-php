@@ -150,7 +150,7 @@ final class StarterConfigTest extends TestCase
             );
             self::assertSame('default', $config['activeTheme']);
             self::assertSame('default', $config['fallbackTheme']);
-            self::assertSame('admin', $config['adminTheme']);
+            self::assertSame('executive', $config['adminTheme']);
             self::assertContains(\App\View\Extensions\SecurityViewExtension::class, $config['extensions']);
         } finally {
             unset($GLOBALS['marwa_app']);

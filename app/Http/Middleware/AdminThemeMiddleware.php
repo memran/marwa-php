@@ -46,7 +46,7 @@ final class AdminThemeMiddleware implements MiddlewareInterface
         $view->raw()->engine();
         $previousTheme = $view->theme();
         $adminTheme = app(AdminThemeResolver::class)->resolve(
-            (string) config('settings.lifecycle.theme.admin', config('view.adminTheme', 'admin'))
+            (string) config('settings.lifecycle.theme.admin', config('view.adminTheme', 'executive'))
         );
 
         $view->theme($adminTheme);

@@ -8,12 +8,12 @@ use PHPUnit\Framework\TestCase;
 
 final class ExecutiveThemeUiAssetTest extends TestCase
 {
-    public function testExecutivePublicAppCssImportsTheAdminBaseBundle(): void
+    public function testExecutivePublicAppCssUsesTheExecutiveBundleOnly(): void
     {
         $appCss = file_get_contents(__DIR__ . '/../../public/themes/executive/css/app.css');
 
         self::assertIsString($appCss);
-        self::assertStringContainsString('/themes/admin/css/app.css', $appCss);
         self::assertStringContainsString('../assets/css/app.css', $appCss);
+        self::assertStringNotContainsString('/themes/admin/css/app.css', $appCss);
     }
 }

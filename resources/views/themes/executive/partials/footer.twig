@@ -1,3 +1,23 @@
-<footer class="mt-auto border-t border-app-border px-4 py-3 text-xs text-app-muted sm:px-5 lg:px-6">
-  <p>Powered by MarwaPHP</p>
+{% set user_name = user_name|default('John Doe') %}
+{% set user_role = user_role|default('Administrator') %}
+
+<footer class="mt-auto border-t border-slate-200 bg-white px-4 py-4 sm:px-6 lg:px-8">
+  <div class="flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="relative">
+        <div class="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-600">
+          {% include 'components/icon.twig' with { name: 'user', class: 'h-5 w-5' } only %}
+        </div>
+        <span class="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-400"></span>
+      </div>
+      <div>
+        <p class="text-sm font-semibold text-slate-950">{{ user_name }}</p>
+        <p class="text-xs text-slate-500">{{ user_role }}</p>
+      </div>
+    </div>
+
+    <button type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white p-2 text-slate-500 shadow-sm transition hover:border-slate-300 hover:text-slate-900" aria-label="Open profile">
+      {% include 'components/icon.twig' with { name: 'chevron-down', class: 'h-4 w-4' } only %}
+    </button>
+  </div>
 </footer>

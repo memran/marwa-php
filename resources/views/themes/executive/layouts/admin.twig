@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light dark">
+  <meta name="color-scheme" content="light">
   <title>{% block title %}Executive{% endblock %}</title>
   <meta name="description" content="Executive admin theme for MarwaPHP.">
   <script>
@@ -20,7 +20,7 @@
     document.addEventListener('alpine:init', function() {
       Alpine.data('adminTheme', function() {
         return {
-          theme: document.documentElement.dataset.adminTheme || 'dark',
+          theme: document.documentElement.dataset.adminTheme || 'light',
           mobileOpen: false,
           toggle() {
             var newTheme = this.theme === 'dark' ? 'light' : 'dark';
@@ -45,7 +45,7 @@
 </head>
 <body class="admin-theme executive-theme min-h-screen bg-app-bg text-app-text antialiased" @close-mobile.window="closeMobile()">
   <div class="hidden" aria-hidden="true">{{ csrf_field() }}</div>
-  <div class="admin-shell relative isolate min-h-screen overflow-hidden bg-app-bg">
+  <div class="admin-shell relative isolate min-h-screen bg-app-bg">
     <div
       x-show="mobileOpen"
       x-cloak
@@ -56,32 +56,30 @@
       x-transition:leave="transition ease-in duration-150"
       x-transition:leave-start="opacity-100"
       x-transition:leave-end="opacity-0"
-      class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+      class="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-sm lg:hidden"
     ></div>
 
-    <div class="grid min-h-screen lg:grid-cols-[16rem_minmax(0,1fr)]">
+    <div class="grid min-h-screen lg:grid-cols-[280px_minmax(0,1fr)]">
       <aside
         id="admin-sidebar"
         aria-label="Sidebar navigation"
-        class="admin-sidebar fixed top-0 left-0 z-50 h-screen w-64 transform border-b border-app-border bg-app-surface/80 backdrop-blur-xl transition-transform duration-300 lg:sticky lg:border-b-0 lg:border-r lg:translate-x-0"
+        class="admin-sidebar fixed inset-y-0 left-0 z-50 w-[280px] transform border-r border-white/8 bg-[#071B33] transition-transform duration-300 lg:sticky lg:translate-x-0"
         :class="mobileOpen ? 'translate-x-0' : '-translate-x-full'"
       >
-        <div class="flex h-full flex-col gap-7 p-4 lg:p-5">
+        <div class="flex h-full flex-col gap-6 px-5 py-6">
           {% include 'partials/sidebar.twig' %}
         </div>
       </aside>
 
       <div class="flex min-w-0 flex-col">
-        <header class="admin-topbar sticky top-0 z-30 border-b border-app-border bg-app-surface/75 backdrop-blur-xl overflow-visible">
+        <header class="admin-topbar sticky top-0 z-30 h-[72px] border-b border-slate-200 bg-white/95 backdrop-blur-xl">
           {% include 'partials/header.twig' %}
         </header>
 
-        <main class="admin-content flex-1 px-4 py-4 sm:px-5 lg:px-6">
+        <main class="admin-content flex-1 px-4 py-8 sm:px-6 lg:px-8">
           {% include 'components/breadcrumbs.twig' with { crumbs: admin_breadcrumbs(currentPath|default('')) } only %}
           {% block content %}{% endblock %}
         </main>
-
-        {% include 'partials/footer.twig' %}
       </div>
     </div>
   </div>

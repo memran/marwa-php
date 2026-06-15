@@ -6,6 +6,7 @@ namespace App\Modules\Dashboard\Http\Controllers;
 
 use App\Modules\Activity\Events\ActivityRecordingRequested;
 use App\Modules\Auth\Support\AuthManager;
+use App\Modules\DashboardStatus\DashboardStatusCards;
 use App\Modules\Dashboard\Support\WidgetRegistry;
 use App\Support\PermissionGate;
 use Marwa\Framework\Controllers\Controller;
@@ -21,6 +22,7 @@ final class DashboardController extends Controller
         private readonly WidgetRegistry $widgetRegistry,
         private readonly AuthManager $auth,
         private readonly PermissionGate $gate,
+        private readonly DashboardStatusCards $statusCards,
     ) {}
 
     public function index(): ResponseInterface
@@ -35,12 +37,11 @@ final class DashboardController extends Controller
             $this->getUserWidgets($userId)
         );
 
-        $sizeOptions = $this->widgetRegistry->getSizeOptions();
-
         return $this->view('@dashboard/index', [
+            'status_cards' => $this->statusCards->cards(),
             'widgets' => $widgets,
             'available_widgets' => $this->filteredWidgets(),
-            'size_options' => $sizeOptions,
+            'size_options' => $this->widgetRegistry->getSizeOptions(),
             'is_edit_mode' => false,
         ]);
     }

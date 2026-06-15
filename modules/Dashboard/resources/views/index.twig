@@ -3,179 +3,255 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div 
-  x-data="dashboardWidget()" 
-  x-init="init()"
-  data-widgets='{{ widgets|json_encode|escape }}'
-  data-available='{{ available_widgets|json_encode|escape }}'
-  data-sizes='{{ size_options|json_encode|escape }}'
->
-  <div class="transition-[padding-right] duration-200" :class="editMode ? 'lg:pr-80' : ''">
-    <div class="flex flex-col gap-4 mb-6 lg:flex-row lg:items-end lg:justify-end">
-      <div class="flex items-center gap-2">
-        <button 
-          x-show="!editMode"
-          @click="toggleEditMode()"
-          class="inline-flex items-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20"
-        >
-          {% include 'components/icon.twig' with { name: 'palette', class: 'h-4 w-4' } only %}
-          <span>Edit Dashboard</span>
-        </button>
-        <button 
-          x-show="editMode"
-          @click="toggleEditMode()"
-          class="dashboard-edit-done inline-flex items-center gap-2 rounded-xl border border-slate-600 bg-slate-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-600"
-        >
-          {% include 'components/icon.twig' with { name: 'x', class: 'h-4 w-4' } only %}
-          <span>Done</span>
-        </button>
-      </div>
-    </div>
+  {% set button_base = 'inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-500/20' %}
+  {% set button_primary = button_base ~ ' border-transparent bg-blue-600 text-white hover:bg-blue-700' %}
+  {% set button_secondary = button_base ~ ' border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50' %}
+  {% set panel_class = 'rounded-2xl border border-slate-200 bg-white p-6 shadow-sm' %}
 
-    <div 
-      x-ref="widgetGrid"
-      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4"
-      @dragover.prevent
-      @drop.prevent="dropOnGrid()"
-    >
-    {% for widget in widgets %}
-      {% if widget.enabled %}
-      <div 
-        class="widget-item dashboard-widget relative overflow-hidden rounded-[1.4rem] border border-white/10 bg-white/5 p-5 shadow-[0_24px_70px_rgba(2,6,23,0.35)] backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:border-cyan-300/20 hover:bg-white/[0.07]"
-        :class="[getWidthClass('{{ widget.width }}'), draggedWidgetId === '{{ widget.widget_id }}' ? 'opacity-50 ring-2 ring-cyan-300/40' : '']"
-        data-widget-id="{{ widget.widget_id }}"
-        data-position="{{ widget.position }}"
-        :draggable="editMode"
-        @dragstart="startDrag('{{ widget.widget_id }}')"
-        @dragend="endDrag()"
-        @dragover.prevent
-        @drop.prevent="dropOnWidget('{{ widget.widget_id }}')"
-      >
-        <div class="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/30 to-transparent"></div>
-        <div class="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-cyan-400/10 blur-3xl"></div>
-        <div class="pointer-events-none absolute -bottom-12 -left-12 h-28 w-28 rounded-full bg-emerald-400/10 blur-3xl"></div>
-
-        <div x-show="editMode" class="absolute top-3 right-3 flex items-center gap-1 z-10">
-          <div class="drag-handle cursor-grab p-1.5 text-slate-400 hover:text-white rounded hover:bg-white/10" title="Drag to reorder">
-            {% include 'components/icon.twig' with { name: 'grip-vertical', class: 'h-4 w-4' } only %}
-          </div>
-          <button 
-            @click="removeWidget('{{ widget.widget_id }}')" 
-            class="p-1.5 text-rose-400 hover:text-rose-300 rounded hover:bg-rose-500/20"
-          >
-            {% include 'components/icon.twig' with { name: 'trash-2', class: 'h-4 w-4' } only %}
-          </button>
-          <button 
-            @click="refreshWidget('{{ widget.widget_id }}')" 
-            class="p-1.5 text-slate-400 hover:text-white rounded hover:bg-white/10"
-            title="Refresh widget"
-          >
-            {% include 'components/icon.twig' with { name: 'refresh-cw', class: 'h-3 w-3' } only %}
-          </button>
-        </div>
-
-        <div class="flex items-start justify-between gap-3">
-          <div class="space-y-1">
-            <p class="dashboard-widget-kicker text-[0.65rem] font-extrabold uppercase tracking-[0.18em] text-cyan-100/70">Widget</p>
-            <h3 class="text-sm font-semibold text-white">{{ widget.title }}</h3>
-          </div>
-          <button 
-            x-show="!editMode"
-            @click="refreshWidget('{{ widget.widget_id }}')" 
-            class="rounded-lg border border-white/10 bg-white/5 p-1.5 text-slate-400 transition hover:border-cyan-300/20 hover:bg-cyan-400/10 hover:text-white"
-            title="Refresh widget"
-          >
-            {% include 'components/icon.twig' with { name: 'refresh-cw', class: 'h-3 w-3' } only %}
-          </button>
-        </div>
-
-        <div class="widget-content mt-4 rounded-[1rem] border border-white/10 bg-slate-950/20 p-4">
-          {{ widget.content|raw }}
-        </div>
-      </div>
-      {% endif %}
-    {% endfor %}
-    </div>
-  </div>
-
-  <div 
-    x-show="editMode"
-    x-cloak
-    x-transition:enter="transition ease-out duration-200"
-    x-transition:enter-start="opacity-0"
-    x-transition:enter-end="opacity-100"
-    x-transition:leave="transition ease-in duration-150"
-    x-transition:leave-start="opacity-100"
-    x-transition:leave-end="opacity-0"
-    class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
-    @click="toggleEditMode()"
-  ></div>
-
-  <div 
-    x-show="editMode"
-    x-cloak
-    class="fixed right-0 top-0 h-full w-80 max-w-full border-l border-slate-200 bg-white/95 p-4 overflow-y-auto z-50 backdrop-blur-xl shadow-2xl dark:border-white/10 dark:bg-slate-950/95"
+  <div
+    x-data="dashboardWidget()"
+    x-init="init()"
+    data-widgets='{{ widgets|json_encode|escape }}'
+    data-available='{{ available_widgets|json_encode|escape }}'
+    data-sizes='{{ size_options|json_encode|escape }}'
+    class="space-y-8"
   >
-    <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-200 dark:border-white/10">
-      <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Add Widgets</h3>
-      <button @click="toggleEditMode()" class="rounded-lg border border-slate-200 bg-slate-50 p-1.5 text-slate-500 transition hover:border-cyan-300/20 hover:bg-white hover:text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-400 dark:hover:border-cyan-300/20 dark:hover:bg-white/10 dark:hover:text-white">
-        {% include 'components/icon.twig' with { name: 'x', class: 'h-5 w-5' } only %}
-      </button>
-    </div>
+    <section class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div class="space-y-2">
+        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Executive dashboard</p>
+        <h1 class="text-[30px] font-semibold tracking-tight text-slate-950">Dashboard</h1>
+        <p class="max-w-2xl text-sm text-slate-600">
+          Live platform metrics, service signals, and executive quick actions for the Marwa-PHP Starter.
+        </p>
+      </div>
 
-    <div class="space-y-2 mb-6">
-      <template x-for="widget in availableWidgets" :key="widget.id">
-        <div 
-          class="rounded-xl border border-slate-200 bg-slate-50/90 p-4 cursor-pointer transition hover:border-cyan-300/30 hover:bg-cyan-50/70 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
-          @click="addWidget(widget.id)"
+      <div class="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          class="{{ button_secondary }}"
+          @click="toggleEditMode()"
+          x-show="!editMode"
         >
-          <div class="flex items-start justify-between gap-3">
-            <div class="space-y-1">
-              <span class="block text-sm font-medium text-slate-700 dark:text-slate-200" x-text="widget.name"></span>
-              <span class="text-xs text-slate-500 dark:text-slate-500" x-text="widget.size"></span>
+          {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-4 w-4 text-slate-500' } only %}
+          Customize widgets
+        </button>
+
+        <button
+          type="button"
+          class="{{ button_primary }}"
+          @click="toggleEditMode()"
+          x-show="editMode"
+        >
+          {% include 'components/icon.twig' with { name: 'check', class: 'h-4 w-4' } only %}
+          Done
+        </button>
+      </div>
+    </section>
+
+    <section class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+      {% set status_icons = ['server', 'cpu', 'memory-stick', 'hard-drive', 'gauge', 'palette'] %}
+      {% for card in status_cards %}
+        {% set icon = status_icons[loop.index0 % status_icons|length] %}
+        <article class="{{ panel_class }}">
+          <div class="space-y-4">
+            <div class="flex items-start justify-between gap-4">
+              <div class="space-y-2">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{{ card.label }}</p>
+                <div class="text-[28px] font-semibold tracking-tight text-slate-950">{{ card.value }}</div>
+                <p class="text-sm text-slate-500">{{ card.meta }}</p>
+              </div>
+              <span class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-slate-500">
+                {% include 'components/icon.twig' with { name: icon, class: 'h-6 w-6' } only %}
+              </span>
             </div>
-            <button
-              type="button"
-              class="inline-flex shrink-0 items-center rounded-lg border border-cyan-300/30 bg-cyan-500/10 px-2.5 py-1 text-xs font-semibold text-cyan-700 transition hover:bg-cyan-500/20 dark:text-cyan-100"
-              @click.stop="addWidget(widget.id)"
-            >
-              Add
-            </button>
+
+            <div class="flex items-center justify-between gap-3 text-xs font-medium text-slate-500">
+              <span>{{ card.status }}</span>
+              <span>{{ card.metric_percent }}%</span>
+            </div>
+
+            <div class="space-y-2">
+              {% for bar in card.metric_bars %}
+                <div class="h-2 rounded-full bg-slate-100">
+                  <span class="block h-2 rounded-full bg-blue-600/80" style="width: {{ bar }};"></span>
+                </div>
+              {% endfor %}
+            </div>
           </div>
-          <p class="mt-1 text-xs text-slate-500 dark:text-slate-400" x-text="widget.description"></p>
-        </div>
-      </template>
+        </article>
+      {% endfor %}
+    </section>
+
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.85fr)]">
+      <aside class="space-y-6 xl:col-span-2">
+        <section class="{{ panel_class }} space-y-4">
+          <div>
+            <h2 class="text-lg font-semibold tracking-tight text-slate-950">Quick actions</h2>
+            <p class="mt-1 text-sm text-slate-500">Common admin tasks and navigation shortcuts.</p>
+          </div>
+
+          <div class="grid gap-3">
+            <a href="/admin/users" class="inline-flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-blue-200 hover:bg-blue-50/70">
+              <span>Manage users</span>
+              {% include 'components/icon.twig' with { name: 'users', class: 'h-4 w-4 text-slate-400' } only %}
+            </a>
+            <a href="/admin/roles" class="inline-flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-blue-200 hover:bg-blue-50/70">
+              <span>Roles & permissions</span>
+              {% include 'components/icon.twig' with { name: 'shield', class: 'h-4 w-4 text-slate-400' } only %}
+            </a>
+            <a href="/admin/settings" class="inline-flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-blue-200 hover:bg-blue-50/70">
+              <span>Open settings</span>
+              {% include 'components/icon.twig' with { name: 'settings', class: 'h-4 w-4 text-slate-400' } only %}
+            </a>
+            <a href="/admin/notifications" class="inline-flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-blue-200 hover:bg-blue-50/70">
+              <span>Review notifications</span>
+              {% include 'components/icon.twig' with { name: 'bell', class: 'h-4 w-4 text-slate-400' } only %}
+            </a>
+          </div>
+        </section>
+      </aside>
     </div>
 
-    <div class="mt-6 space-y-2 border-t border-slate-200 pt-6 dark:border-white/10">
-      <button 
-        @click="toggleEditMode()"
-        class="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300/40 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-cyan-300/30 hover:bg-cyan-50 hover:text-slate-900 dark:border-slate-300/20 dark:bg-white/5 dark:text-slate-100 dark:hover:bg-white/10"
-      >
-        {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-4 w-4' } only %}
-        Back to normal mode
-      </button>
-      <button 
-        @click="saveWidgets()"
-        class="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-2.5 text-sm font-semibold text-cyan-700 transition hover:bg-cyan-500/20 dark:text-cyan-100"
-      >
-        {% include 'components/icon.twig' with { name: 'save', class: 'h-4 w-4' } only %}
-        Save Changes
-      </button>
-      <button 
-        @click="resetDashboard()"
-        class="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-2.5 text-sm font-semibold text-rose-700 transition hover:bg-rose-500/20 dark:text-rose-100"
-      >
-        {% include 'components/icon.twig' with { name: 'refresh-cw', class: 'h-3 w-3' } only %}
-        Reset to Default
-      </button>
+    <div
+      x-show="editMode"
+      x-cloak
+      x-transition.opacity.duration.150ms
+      class="fixed inset-0 z-50 flex justify-end"
+    >
+      <div class="absolute inset-0 bg-slate-950/45 backdrop-blur-sm" @click="toggleEditMode()"></div>
+
+      <div class="relative z-10 flex h-full w-full max-w-[42rem] flex-col overflow-hidden border-l border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.18)]">
+        <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+          <div>
+            <h3 class="text-lg font-semibold tracking-tight text-slate-950">Customize widgets</h3>
+            <p class="text-sm text-slate-500">Reorder cards and add default system widgets.</p>
+          </div>
+
+          <button
+            type="button"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
+            @click="toggleEditMode()"
+          >
+            {% include 'components/icon.twig' with { name: 'x', class: 'h-4 w-4' } only %}
+          </button>
+        </div>
+
+        <div class="grid flex-1 gap-6 overflow-hidden p-6 xl:grid-cols-[minmax(0,1fr)_19rem]">
+          <div
+            x-ref="widgetGrid"
+            class="grid max-h-[calc(100vh-14rem)] grid-cols-1 gap-4 overflow-y-auto pr-1 md:grid-cols-2 xl:grid-cols-2"
+            @dragover.prevent
+            @drop.prevent="dropOnGrid()"
+          >
+            {% for widget in widgets %}
+              {% if widget.enabled %}
+                <div
+                  class="widget-item relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                  :class="[getWidthClass('{{ widget.width }}'), draggedWidgetId === '{{ widget.widget_id }}' ? 'opacity-50 ring-2 ring-blue-300/40' : '']"
+                  data-widget-id="{{ widget.widget_id }}"
+                  data-position="{{ widget.position }}"
+                  :draggable="editMode"
+                  @dragstart="startDrag('{{ widget.widget_id }}')"
+                  @dragend="endDrag()"
+                  @dragover.prevent
+                  @drop.prevent="dropOnWidget('{{ widget.widget_id }}')"
+                >
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="space-y-1">
+                      <p class="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-blue-600/80">Widget</p>
+                      <h4 class="text-sm font-semibold text-slate-950">{{ widget.title }}</h4>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <button
+                        type="button"
+                        @click="refreshWidget('{{ widget.widget_id }}')"
+                        class="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 transition hover:border-blue-200 hover:text-blue-600"
+                        title="Refresh widget"
+                      >
+                        {% include 'components/icon.twig' with { name: 'refresh-cw', class: 'h-3.5 w-3.5' } only %}
+                      </button>
+                      <button
+                        type="button"
+                        @click="removeWidget('{{ widget.widget_id }}')"
+                        class="rounded-lg p-2 text-rose-500 transition hover:bg-rose-50"
+                        title="Remove widget"
+                      >
+                        {% include 'components/icon.twig' with { name: 'trash-2', class: 'h-4 w-4' } only %}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="widget-content mt-4 rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
+                    {{ widget.content|raw }}
+                  </div>
+
+                  <div class="absolute right-3 top-3 flex items-center gap-1">
+                    <div class="drag-handle cursor-grab rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" title="Drag to reorder">
+                      {% include 'components/icon.twig' with { name: 'grip-vertical', class: 'h-4 w-4' } only %}
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <aside class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+            <div class="flex items-center justify-between gap-3 border-b border-slate-200 pb-4">
+              <div>
+                <h3 class="text-base font-semibold text-slate-950">Add Widgets</h3>
+                <p class="text-xs text-slate-500">Drag them into the workspace</p>
+              </div>
+            </div>
+
+            <div class="mt-4 max-h-[calc(100vh-24rem)] space-y-2 overflow-y-auto pr-1">
+              {% for widget in available_widgets %}
+                <button
+                  type="button"
+                  class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left transition hover:border-blue-200 hover:bg-blue-50/70"
+                  @click="addWidget('{{ widget.id }}')"
+                >
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="min-w-0">
+                      <p class="truncate text-sm font-semibold text-slate-950">{{ widget.name }}</p>
+                      <p class="truncate text-xs text-slate-500">{{ widget.description }}</p>
+                    </div>
+                    <span class="rounded-lg bg-slate-100 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-slate-600">
+                      {{ widget.size }}
+                    </span>
+                  </div>
+                </button>
+              {% endfor %}
+            </div>
+
+            <div class="mt-6 grid gap-2">
+              <button
+                type="button"
+                class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                @click="toggleEditMode()"
+              >
+                {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-4 w-4' } only %}
+                Back to normal mode
+              </button>
+              <button
+                type="button"
+                class="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+                @click="saveWidgets()"
+              >
+                {% include 'components/icon.twig' with { name: 'save', class: 'h-4 w-4' } only %}
+                Save Changes
+              </button>
+              <button
+                type="button"
+                class="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-700 transition hover:bg-rose-100"
+                @click="resetDashboard()"
+              >
+                {% include 'components/icon.twig' with { name: 'refresh-cw', class: 'h-4 w-4' } only %}
+                Reset to Default
+              </button>
+            </div>
+          </aside>
+        </div>
+      </div>
     </div>
   </div>
-</div>
-
-<style>
-.dashboard-widget {
-  min-height: 160px;
-}
-</style>
 {% endblock %}

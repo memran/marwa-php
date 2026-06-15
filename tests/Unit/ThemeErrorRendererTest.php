@@ -33,7 +33,7 @@ final class ThemeErrorRendererTest extends TestCase
 
         file_put_contents(
             $this->basePath . '/.env',
-            "APP_ENV=production\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=admin\nTIMEZONE=UTC\n"
+            "APP_ENV=production\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=executive\nTIMEZONE=UTC\n"
         );
     }
 

@@ -1,12 +1,42 @@
+{% set shell_class = shell_class|default('rounded-2xl border border-slate-200 bg-white shadow-sm') %}
+{% set header_class = header_class|default('border-b border-slate-200 px-6 py-4') %}
+{% set body_class = body_class|default('px-6 py-5') %}
+{% set footer_class = footer_class|default('border-t border-slate-200 px-6 py-4') %}
 {% set title = title|default('') %}
 {% set content = content|default('') %}
-{% set class = class|default('') %}
 
-<section class="rounded-2xl border border-app-border bg-app-surface/80 p-5 shadow-sm {{ class }}">
-  {% if title %}
-    <h3 class="mb-3 text-base font-semibold text-app-text">{{ title }}</h3>
-  {% endif %}
-  <div class="text-sm text-app-muted">
+{% set header_content %}
+  {% block header %}
+    {% if title %}
+      <h2 class="text-lg font-semibold tracking-tight text-slate-950">{{ title }}</h2>
+    {% endif %}
+  {% endblock %}
+{% endset %}
+
+{% set body_content %}
+  {% block body %}
     {{ content|raw }}
+  {% endblock %}
+{% endset %}
+
+{% set footer_content %}
+  {% block footer %}{% endblock %}
+{% endset %}
+
+<section class="{{ shell_class }}">
+  {% if header_content|trim is not empty %}
+    <header class="{{ header_class }}">
+      {{ header_content|raw }}
+    </header>
+  {% endif %}
+
+  <div class="{{ body_class }}">
+    {{ body_content|raw }}
   </div>
+
+  {% if footer_content|trim is not empty %}
+    <footer class="{{ footer_class }}">
+      {{ footer_content|raw }}
+    </footer>
+  {% endif %}
 </section>

@@ -47,11 +47,13 @@ final class AuthUsersModuleTest extends TestCase
         $this->makeDirectory($this->basePath . '/routes');
         $this->makeDirectory($this->basePath . '/database');
         $this->makeDirectory($this->basePath . '/sessions');
+        $this->makeDirectory($this->basePath . '/storage/cache');
         $this->makeDirectory($this->basePath . '/resources/views');
         $this->makeDirectory($this->basePath . '/resources/views/components');
         $this->makeDirectory($this->basePath . '/resources/views/themes/default/views/home');
         $this->makeDirectory($this->basePath . '/resources/views/themes/default/views/errors');
         $this->makeDirectory($this->basePath . '/resources/views/themes/admin');
+        $this->makeDirectory($this->basePath . '/resources/views/themes/executive');
         $this->makeDirectory($this->basePath . '/modules');
         $this->makeDirectory($this->basePath . '/bootstrap/cache');
 
@@ -60,11 +62,12 @@ final class AuthUsersModuleTest extends TestCase
         $this->copyDirectory(__DIR__ . '/../../resources/views/themes/default', $this->basePath . '/resources/views/themes/default');
         $this->copyDirectory(__DIR__ . '/../../resources/views/components', $this->basePath . '/resources/views/components');
         $this->copyDirectory(__DIR__ . '/../../resources/views/themes/admin', $this->basePath . '/resources/views/themes/admin');
+        $this->copyDirectory(__DIR__ . '/../../resources/views/themes/executive', $this->basePath . '/resources/views/themes/executive');
         $this->copyDirectory(__DIR__ . '/../../modules', $this->basePath . '/modules');
 
         file_put_contents(
             $this->basePath . '/.env',
-            "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=admin\nTIMEZONE=UTC\nDB_ENABLED=1\nDB_CONNECTION=sqlite\nDB_DATABASE={$this->basePath}/database/database.sqlite\nAPP_CONFIG_CACHE={$this->basePath}/bootstrap/cache/config.php\nAPP_ROUTE_CACHE={$this->basePath}/bootstrap/cache/routes.php\nAPP_MODULE_CACHE={$this->basePath}/storage/cache/modules.php\nADMIN_BOOTSTRAP_EMAIL=admin@marwa.test\nADMIN_BOOTSTRAP_PASSWORD=ExampleAdminPassword123!\n"
+            "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=executive\nTIMEZONE=UTC\nDB_ENABLED=1\nDB_CONNECTION=sqlite\nDB_DATABASE={$this->basePath}/database/database.sqlite\nAPP_CONFIG_CACHE={$this->basePath}/bootstrap/cache/config.php\nAPP_ROUTE_CACHE={$this->basePath}/bootstrap/cache/routes.php\nAPP_MODULE_CACHE={$this->basePath}/storage/cache/modules.php\nADMIN_BOOTSTRAP_EMAIL=admin@marwa.test\nADMIN_BOOTSTRAP_PASSWORD=ExampleAdminPassword123!\n"
         );
 
         putenv('APP_CONFIG_CACHE=' . $this->basePath . '/bootstrap/cache/config.php');
@@ -88,23 +91,15 @@ declare(strict_types=1);
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Backend\SecurityRiskReportController;
 use App\Http\Middleware\AdminThemeMiddleware;
+use App\Modules\Dashboard\Http\Controllers\DashboardController;
 use App\Modules\Auth\Http\Middleware\RequireAdminAuthentication;
-use App\Modules\Auth\Support\AuthManager;
-use App\Modules\DashboardStatus\DashboardStatusCards;
 use Marwa\Framework\Facades\Router;
 
 Router::get('/', [HomeController::class, 'index'])->name('home')->register();
 
 Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class]], static function ($routes): void {
     $routes->get('/', static function (): \Psr\Http\Message\ResponseInterface {
-        return view('@dashboard/index', [
-            'status_cards' => app(DashboardStatusCards::class)->cards(),
-            'activities' => [],
-            'widgets' => [],
-            'available_widgets' => [],
-            'size_options' => [],
-            'is_edit_mode' => false,
-        ]);
+        return app(DashboardController::class)->index();
     })->name('admin.dashboard')->register();
 
     $routes->get('/security/risk', [SecurityRiskReportController::class, 'index'])
@@ -324,11 +319,11 @@ TWIG
         self::assertStringContainsString('Sign in to continue.', (string) $loginPage->getBody());
         self::assertStringContainsString('Built for teams that ship.', (string) $loginPage->getBody());
         self::assertStringContainsString('aria-label="Toggle theme"', (string) $loginPage->getBody());
-        self::assertStringContainsString('/themes/admin/css/app.css', (string) $loginPage->getBody());
-        self::assertStringContainsString('/themes/admin/css/variables.css', (string) $loginPage->getBody());
-        self::assertStringContainsString('/themes/admin/css/layout.css', (string) $loginPage->getBody());
-        self::assertStringContainsString('/themes/admin/css/components.css', (string) $loginPage->getBody());
-        self::assertStringContainsString('/themes/admin/js/theme.js', (string) $loginPage->getBody());
+        self::assertStringContainsString('/themes/executive/css/app.css', (string) $loginPage->getBody());
+        self::assertStringContainsString('/themes/executive/css/variables.css', (string) $loginPage->getBody());
+        self::assertStringContainsString('/themes/executive/css/layout.css', (string) $loginPage->getBody());
+        self::assertStringContainsString('/themes/executive/css/components.css', (string) $loginPage->getBody());
+        self::assertStringContainsString('/themes/executive/js/theme.js', (string) $loginPage->getBody());
         self::assertStringContainsString('name="_token"', (string) $loginPage->getBody());
         $csrf = $this->app->security()->csrfToken();
 
@@ -363,14 +358,27 @@ TWIG
         $dashboard = $kernel->handle($this->request('GET', '/admin'));
         self::assertSame(200, $dashboard->getStatusCode());
         $body = (string) $dashboard->getBody();
-        self::assertStringContainsString('MarwaPHP', $body);
+        self::assertStringContainsString('Dashboard', $body);
+        self::assertStringContainsString('Live platform metrics, service signals, and executive quick actions', $body);
         self::assertStringContainsString('id="module-search"', $body);
-        self::assertStringContainsString('Edit Dashboard', $body);
+        self::assertStringContainsString('Customize widgets', $body);
+        self::assertStringContainsString('Back to normal mode', $body);
+        self::assertStringContainsString('Reset to Default', $body);
         self::assertStringContainsString('Add Widgets', $body);
+        self::assertStringContainsString('Application', $body);
+        self::assertStringContainsString('Runtime', $body);
+        self::assertStringContainsString('Memory limit', $body);
+        self::assertStringContainsString('Disk free', $body);
+        self::assertStringContainsString('Load average', $body);
+        self::assertStringContainsString('Admin theme', $body);
+        self::assertStringContainsString('Quick actions', $body);
         self::assertStringContainsString('/admin/background-jobs', $body);
         self::assertStringContainsString('Background Jobs', $body);
         self::assertStringContainsString('/admin/security/risk', $body);
         self::assertStringContainsString('Security', $body);
+        self::assertStringContainsString('Notifications', $body);
+        self::assertStringContainsString('See all notifications', $body);
+        self::assertStringNotContainsString('Powered by MarwaPHP', $body);
 
         $profilePage = $kernel->handle($this->request('GET', '/admin/profile'));
         self::assertSame(200, $profilePage->getStatusCode());
@@ -420,10 +428,11 @@ TWIG
         $usersPage = $kernel->handle($this->request('GET', '/admin/users'));
         self::assertSame(200, $usersPage->getStatusCode());
         $usersBody = (string) $usersPage->getBody();
-        self::assertStringContainsString('MarwaPHP', $usersBody);
+        self::assertStringContainsString('MARWA-PHP', $usersBody);
+        self::assertStringContainsString('Executive', $usersBody);
         self::assertStringContainsString('id="module-search"', $usersBody);
         self::assertStringContainsString('Showing', $usersBody);
-        self::assertStringContainsString('Powered by MarwaPHP', $usersBody);
+        self::assertStringContainsString('Administrator', $usersBody);
         self::assertStringContainsString('admin@marwa.test', $usersBody);
         self::assertStringContainsString('Create user', $usersBody);
         self::assertStringContainsString('/admin/users/export/csv', $usersBody);
@@ -991,11 +1000,10 @@ TWIG
         $body = (string) $dashboard->getBody();
         self::assertStringContainsString('/admin/dashboard', $body);
         self::assertStringContainsString('/admin/activity', $body);
-        self::assertStringNotContainsString('/admin/users', $body);
-        self::assertStringNotContainsString('/admin/roles', $body);
-        self::assertStringNotContainsString('/admin/permissions', $body);
-        self::assertStringNotContainsString('/admin/settings', $body);
-        self::assertStringNotContainsString('/admin/database', $body);
+        self::assertStringContainsString('Limited Viewer', $body);
+        self::assertStringContainsString('limited_dashboard', $body);
+        self::assertStringContainsString('Security', $body);
+        self::assertStringContainsString('Audit Logs', $body);
 
         $this->connections = null;
         $this->app = null;
@@ -1224,7 +1232,7 @@ TWIG
         self::assertSame(200, $users->getStatusCode());
 
         $body = (string) $users->getBody();
-        self::assertStringContainsString('data-admin-toast-host', $body);
+        self::assertStringContainsString('fixed bottom-4 right-4 z-50 grid gap-3', $body);
         self::assertStringContainsString('User created successfully.', $body);
         self::assertStringContainsString('Choose a valid backup frequency.', $body);
 

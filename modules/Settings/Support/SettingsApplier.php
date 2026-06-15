@@ -41,7 +41,7 @@ final class SettingsApplier
         $appLocale = (string) ($values['app']['locale'] ?? ($items['app']['locale'] ?? 'en'));
         $maintenanceMode = (bool) ($values['app']['maintenance_mode'] ?? ($items['app']['maintenance_mode'] ?? false));
         $themeFrontend = (string) ($values['ui']['theme'] ?? ($items['view']['activeTheme'] ?? 'default'));
-        $themeAdmin = (string) ($values['ui']['admin_theme'] ?? ($items['view']['adminTheme'] ?? 'admin'));
+        $themeAdmin = (string) ($values['ui']['admin_theme'] ?? ($items['view']['adminTheme'] ?? 'executive'));
         $logoUrl = (string) ($values['ui']['logo_url'] ?? ($items['ui']['logo_url'] ?? ''));
         $smtpHost = (string) ($values['email']['smtp_host'] ?? ($items['mail']['smtp']['host'] ?? '127.0.0.1'));
         $smtpPort = (int) ($values['email']['smtp_port'] ?? ($items['mail']['smtp']['port'] ?? 1025));

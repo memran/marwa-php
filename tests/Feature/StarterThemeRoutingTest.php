@@ -33,20 +33,23 @@ final class StarterThemeRoutingTest extends TestCase
         $this->makeDirectory($this->basePath . '/config');
         $this->makeDirectory($this->basePath . '/routes');
         $this->makeDirectory($this->basePath . '/sessions');
+        $this->makeDirectory($this->basePath . '/storage/cache');
         $this->makeDirectory($this->basePath . '/resources/views');
         $this->makeDirectory($this->basePath . '/resources/views/components');
         $this->makeDirectory($this->basePath . '/resources/views/themes/default/views/home');
         $this->makeDirectory($this->basePath . '/resources/views/themes/default/views/errors');
         $this->makeDirectory($this->basePath . '/resources/views/themes/admin');
+        $this->makeDirectory($this->basePath . '/resources/views/themes/executive');
         $this->makeDirectory($this->basePath . '/modules');
         $this->makeDirectory($this->basePath . '/bootstrap/cache');
         copy(__DIR__ . '/../../config/view.php', $this->basePath . '/config/view.php');
         copy(__DIR__ . '/../../config/security.php', $this->basePath . '/config/security.php');
         copy(__DIR__ . '/../../config/error.php', $this->basePath . '/config/error.php');
+        $this->copyDirectory(__DIR__ . '/../../resources/views/themes/executive', $this->basePath . '/resources/views/themes/executive');
 
         file_put_contents(
             $this->basePath . '/.env',
-            "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=admin\nTIMEZONE=UTC\nAPP_CONFIG_CACHE={$this->basePath}/bootstrap/cache/config.php\nAPP_ROUTE_CACHE={$this->basePath}/bootstrap/cache/routes.php\nAPP_MODULE_CACHE={$this->basePath}/storage/cache/modules.php\n"
+            "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=executive\nTIMEZONE=UTC\nAPP_CONFIG_CACHE={$this->basePath}/bootstrap/cache/config.php\nAPP_ROUTE_CACHE={$this->basePath}/bootstrap/cache/routes.php\nAPP_MODULE_CACHE={$this->basePath}/storage/cache/modules.php\n"
         );
 
         putenv('APP_CONFIG_CACHE=' . $this->basePath . '/bootstrap/cache/config.php');
@@ -262,8 +265,14 @@ TWIG
         if ($dashboard->getStatusCode() === 302) {
             self::assertSame('/admin/login', $dashboard->getHeaderLine('Location'));
         } else {
-            self::assertStringContainsString('MarwaPHP', (string) $dashboard->getBody());
+            self::assertStringContainsString('Application', (string) $dashboard->getBody());
+            self::assertStringContainsString('Quick actions', (string) $dashboard->getBody());
             self::assertStringContainsString('id="module-search"', (string) $dashboard->getBody());
+            self::assertStringContainsString('Customize widgets', (string) $dashboard->getBody());
+            self::assertStringContainsString('Add Widgets', (string) $dashboard->getBody());
+            self::assertStringContainsString('Notifications', (string) $dashboard->getBody());
+            self::assertStringContainsString('See all notifications', (string) $dashboard->getBody());
+            self::assertStringNotContainsString('Powered by MarwaPHP', (string) $dashboard->getBody());
         }
         self::assertSame(302, $logout->getStatusCode());
         self::assertSame('/admin/login', $logout->getHeaderLine('Location'));
@@ -275,11 +284,11 @@ TWIG
             self::assertStringContainsString('Enter your credentials to access the admin console.', (string) $login->getBody());
             self::assertStringContainsString('Built for teams that ship.', (string) $login->getBody());
             self::assertStringContainsString('aria-label="Toggle theme"', (string) $login->getBody());
-            self::assertStringContainsString('/themes/admin/css/app.css', (string) $login->getBody());
-            self::assertStringContainsString('/themes/admin/css/variables.css', (string) $login->getBody());
-            self::assertStringContainsString('/themes/admin/css/layout.css', (string) $login->getBody());
-            self::assertStringContainsString('/themes/admin/css/components.css', (string) $login->getBody());
-            self::assertStringContainsString('/themes/admin/js/theme.js', (string) $login->getBody());
+            self::assertStringContainsString('/themes/executive/css/app.css', (string) $login->getBody());
+            self::assertStringContainsString('/themes/executive/css/variables.css', (string) $login->getBody());
+            self::assertStringContainsString('/themes/executive/css/layout.css', (string) $login->getBody());
+            self::assertStringContainsString('/themes/executive/css/components.css', (string) $login->getBody());
+            self::assertStringContainsString('/themes/executive/js/theme.js', (string) $login->getBody());
         }
 
         self::assertSame(200, $forgot->getStatusCode());
@@ -354,7 +363,7 @@ TWIG
     {
         file_put_contents(
             $this->basePath . '/.env',
-            "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=admin\nMAINTENANCE=1\nMAINTENANCE_TIME=120\nTIMEZONE=UTC\n"
+            "APP_ENV=testing\nAPP_NAME=\"Marwa Starter\"\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nFRONTEND_THEME=default\nADMIN_THEME=executive\nMAINTENANCE=1\nMAINTENANCE_TIME=120\nTIMEZONE=UTC\n"
         );
 
         $app = new Application($this->basePath);

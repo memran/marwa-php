@@ -44,5 +44,5 @@ return [
     'themePath' => resources_path('views/themes'),
     'activeTheme' => env('FRONTEND_THEME', 'default'),
     'fallbackTheme' => env('FRONTEND_THEME', 'default'),
-    'adminTheme' => env('ADMIN_THEME', 'admin'),
+    'adminTheme' => env('ADMIN_THEME', 'executive'),
 ];

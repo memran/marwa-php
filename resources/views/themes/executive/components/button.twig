@@ -2,11 +2,11 @@
 {% set type = type|default('button') %}
 {% set variant = variant|default('primary') %}
 {% set class = class|default('') %}
-{% set base = 'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-app-accent/20' %}
+{% set base = 'inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-500/20' %}
 {% set variants = {
-  'primary': 'bg-app-accent text-white hover:bg-app-accent-soft',
-  'secondary': 'border border-app-border bg-app-surface/70 text-app-text hover:bg-app-surface-2/70',
-  'danger': 'bg-app-danger text-white hover:opacity-90'
+  'primary': 'border border-transparent bg-blue-600 text-white hover:bg-blue-700',
+  'secondary': 'border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50',
+  'danger': 'border border-transparent bg-red-600 text-white hover:bg-red-700'
 } %}
 
 <button type="{{ type }}" class="{{ base }} {{ variants[variant]|default(variants.primary) }} {{ class }}">

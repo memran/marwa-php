@@ -4,9 +4,15 @@
   --color-background: #f8fafc;
   --color-surface: #ffffff;
   --color-text: #0f172a;
-  --color-muted: #64748b;
+  --color-muted: #475569;
   --color-border: #e2e8f0;
   --color-success: #16a34a;
-  --color-warning: #d97706;
+  --color-warning: #f59e0b;
   --color-danger: #dc2626;
+  --color-primary-soft: #dbeafe;
+  --color-primary-text: #1e40af;
+  --color-success-soft: #dcfce7;
+  --color-warning-soft: #fef3c7;
+  --color-danger-soft: #fee2e2;
+  --color-purple-soft: #ede9fe;
 }

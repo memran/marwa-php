@@ -1,53 +1,57 @@
 body.admin-theme.executive-theme {
   background: rgb(var(--app-bg));
   color: rgb(var(--app-text));
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .admin-theme.executive-theme .admin-shell {
   background-image:
-    radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 35%),
-    radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.06), transparent 30%),
-    linear-gradient(180deg, rgb(var(--app-bg)) 0%, rgb(var(--app-surface)) 55%, rgb(var(--app-bg)) 100%);
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.05), transparent 35%),
+    radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.03), transparent 30%),
+    linear-gradient(180deg, rgb(var(--app-bg)) 0%, rgb(var(--app-surface)) 56%, rgb(var(--app-bg)) 100%);
 }
 
 .admin-theme.executive-theme .admin-sidebar {
-  --app-bg: 3 10 24;
-  --app-surface: 3 10 24;
-  --app-surface-2: 15 23 42;
+  --app-bg: 7 27 51;
+  --app-surface: 7 27 51;
+  --app-surface-2: 16 43 78;
   --app-border: 30 41 59;
   --app-text: 226 232 240;
-  --app-muted: 148 163 184;
-  --app-accent: 96 165 250;
-  --app-accent-soft: 37 99 235;
+  --app-muted: 203 213 225;
+  --app-accent: 37 99 235;
+  --app-accent-soft: 29 78 216;
   background:
-    radial-gradient(circle at top, rgba(37, 99, 235, 0.22), transparent 35%),
-    linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(3, 7, 18, 0.98) 100%);
-  box-shadow: 24px 0 70px rgba(15, 23, 42, 0.28);
+    radial-gradient(circle at top, rgba(37, 99, 235, 0.14), transparent 34%),
+    linear-gradient(180deg, #071b33 0%, #041326 100%);
+  box-shadow: 24px 0 70px rgba(15, 23, 42, 0.2);
 }
 
 .admin-theme.executive-theme .admin-topbar {
-  background-color: rgba(255, 255, 255, 0.82);
-  border-color: rgba(148, 163, 184, 0.20);
-  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.05);
+  background-color: rgba(255, 255, 255, 0.95);
+  border-color: rgb(226 232 240);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
 }
 
 html[data-admin-theme="dark"] body.admin-theme.executive-theme .admin-topbar {
-  background-color: rgba(15, 23, 42, 0.86);
-  border-color: rgba(51, 65, 85, 0.80);
-  box-shadow: 0 8px 30px rgba(2, 6, 23, 0.28);
+  background-color: rgba(255, 255, 255, 0.95);
+  border-color: rgb(226 232 240);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
 }
 
 .admin-theme.executive-theme .admin-content {
-  font-size: 0.95rem;
+  font-size: 0.875rem;
+  color: rgb(15 23 42);
 }
 
 .admin-theme.executive-theme .admin-content h1 {
-  font-size: clamp(1.7rem, 2vw + 1rem, 2.35rem);
-  line-height: 1.08;
+  font-size: clamp(1.85rem, 2vw + 1rem, 2.55rem);
+  line-height: 1.05;
 }
 
 .admin-theme.executive-theme .admin-content h2 {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   line-height: 1.15;
 }
 
@@ -57,4 +61,11 @@ html[data-admin-theme="dark"] body.admin-theme.executive-theme .admin-topbar {
 
 .admin-theme.executive-theme .admin-content .admin-search {
   max-width: 46rem;
+}
+
+.admin-theme.executive-theme .admin-content p,
+.admin-theme.executive-theme .admin-content li,
+.admin-theme.executive-theme .admin-content td,
+.admin-theme.executive-theme .admin-content label {
+  letter-spacing: -0.01em;
 }

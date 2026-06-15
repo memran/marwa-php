@@ -42,4 +42,35 @@ final class ExecutiveThemePackageTest extends TestCase
         self::assertStringContainsString('marwa-admin-theme', $layout);
         self::assertStringContainsString('lg:grid-cols-[1.05fr_0.95fr]', $layout);
     }
+
+    public function testExecutiveHeadLoadsTheInterFont(): void
+    {
+        $head = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/partials/head.twig');
+
+        self::assertIsString($head);
+        self::assertStringContainsString('fonts.googleapis.com', $head);
+        self::assertStringContainsString('Inter:wght@400;500;600;700;800', $head);
+    }
+
+    public function testExecutiveSidebarUsesTheNewExecutiveBranding(): void
+    {
+        $sidebar = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/partials/sidebar.twig');
+
+        self::assertIsString($sidebar);
+        self::assertStringContainsString('MARWA-PHP', $sidebar);
+        self::assertStringContainsString('theme-sidebar__brand-panel', $sidebar);
+        self::assertStringContainsString('theme-sidebar__link', $sidebar);
+        self::assertStringNotContainsString('theme-sidebar__footer', $sidebar);
+        self::assertStringContainsString('bg-[#1E3A8A]', $sidebar);
+    }
+
+    public function testExecutiveCardSupportsLegacyEmbedBlocks(): void
+    {
+        $card = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/components/card.twig');
+
+        self::assertIsString($card);
+        self::assertStringContainsString('block header', $card);
+        self::assertStringContainsString('block body', $card);
+        self::assertStringContainsString('block footer', $card);
+    }
 }
