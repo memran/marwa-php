@@ -268,6 +268,8 @@ TWIG
             self::assertStringContainsString('Application', (string) $dashboard->getBody());
             self::assertStringContainsString('Quick actions', (string) $dashboard->getBody());
             self::assertStringContainsString('id="module-search"', (string) $dashboard->getBody());
+            self::assertStringContainsString('Dashboard widgets', (string) $dashboard->getBody());
+            self::assertStringContainsString('Refresh widget', (string) $dashboard->getBody());
             self::assertStringContainsString('Customize widgets', (string) $dashboard->getBody());
             self::assertStringContainsString('Add Widgets', (string) $dashboard->getBody());
             self::assertStringContainsString('Notifications', (string) $dashboard->getBody());

@@ -361,6 +361,8 @@ TWIG
         self::assertStringContainsString('Dashboard', $body);
         self::assertStringContainsString('Live platform metrics, service signals, and executive quick actions', $body);
         self::assertStringContainsString('id="module-search"', $body);
+        self::assertStringContainsString('Dashboard widgets', $body);
+        self::assertStringContainsString('Refresh widget', $body);
         self::assertStringContainsString('Customize widgets', $body);
         self::assertStringContainsString('Back to normal mode', $body);
         self::assertStringContainsString('Reset to Default', $body);
