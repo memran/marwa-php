@@ -9,6 +9,7 @@ vendor/
 .idea/
 node_modules/
 .phpunit.result.cache
+.php-cs-fixer.cache
 /storage/*
 !/storage/.gitignore
 !/storage/logs/
