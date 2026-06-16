@@ -3,66 +3,118 @@
 {% block title %}Sign in | MarwaPHP Admin{% endblock %}
 
 {% block content %}
-  {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5' %}
-  {% set button_primary = button_base ~ ' w-full border-transparent bg-app-accent text-white hover:bg-app-accent-soft' %}
+  {% set field_class = 'w-full rounded-xl border border-app-border bg-app-surface px-4 py-3 text-sm text-app-text placeholder:text-app-muted outline-none transition focus:border-app-accent focus:ring-0 focus-visible:outline-none focus-visible:border-app-accent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-app-accent/20' %}
+  {% set button_primary = 'inline-flex w-full items-center justify-center gap-2 rounded-xl border border-transparent bg-app-accent px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-app-accent-soft active:translate-y-0' %}
 
-  <div class="space-y-3">
-    <span class="inline-flex w-fit items-center rounded-full border border-app-accent/20 bg-app-accent/10 px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-app-accent">Secure login</span>
-    <h2 class="text-2xl font-bold tracking-tight text-app-text sm:text-3xl">Sign in to continue.</h2>
-    <p class="text-sm leading-6 text-app-muted">Enter your credentials to access the admin console.</p>
+  <div class="relative">
+    <div class="mb-8 text-center">
+      <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-app-accent/20 bg-app-accent/10 shadow-[0_0_40px_rgb(var(--app-accent)/0.18)]">
+        <svg class="h-8 w-8 text-app-accent" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+        </svg>
+      </div>
+      <h2 class="text-3xl font-black tracking-tight text-app-text sm:text-4xl">Welcome back</h2>
+      <p class="mt-2 text-sm text-app-muted">Sign in to manage your workspace.</p>
+    </div>
+
+    {% if _security_two_factor_enabled is defined and _security_two_factor_enabled %}
+      <div class="mb-5 rounded-2xl border border-app-accent/20 bg-app-accent/10 p-4 text-app-accent">
+        <div class="flex items-start gap-3">
+          <svg class="mt-0.5 h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+          </svg>
+          <div>
+            <p class="text-sm font-semibold">Two-factor authentication</p>
+            <p class="mt-1 text-xs opacity-90">2FA is enabled for the application settings.</p>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if notice is defined and notice %}
+      <div class="mb-5 rounded-2xl border border-app-success/20 bg-app-success/10 p-4 text-app-success">
+        <p class="text-sm font-semibold">Session update</p>
+        <p class="mt-1 text-xs opacity-90">{{ notice }}</p>
+      </div>
+    {% endif %}
+
+    {% if errors is defined and errors.email is defined %}
+      <div class="mb-5 rounded-2xl border border-app-danger/20 bg-app-danger/10 p-4 text-app-danger">
+        <div class="flex items-start gap-3">
+          <svg class="mt-0.5 h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+          </svg>
+          <div>
+            <p class="text-sm font-semibold">Unable to sign in</p>
+            <p class="mt-1 text-xs opacity-90">{{ errors.email|first }}</p>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <form class="space-y-5" method="post" action="/admin/login">
+      {{ csrf_field() }}
+
+      <div class="space-y-1.5">
+        <label class="text-xs font-semibold uppercase tracking-wider text-app-muted" for="email">Email address</label>
+        <div class="relative">
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+            <svg class="h-5 w-5 text-app-muted/60" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+            </svg>
+          </div>
+          <input
+            class="{{ field_class }} pl-11"
+            id="email"
+            name="email"
+            type="email"
+            value="{{ old.email|default('') }}"
+            placeholder="admin@marwa.test"
+            autocomplete="email"
+          >
+        </div>
+        {% if errors.email|default([])|length > 0 %}
+          <p class="text-xs text-app-danger">{{ errors.email|first }}</p>
+        {% endif %}
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="text-xs font-semibold uppercase tracking-wider text-app-muted" for="password">Password</label>
+        <div class="relative">
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+            <svg class="h-5 w-5 text-app-muted/60" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+            </svg>
+          </div>
+          <input
+            class="{{ field_class }} pl-11"
+            id="password"
+            name="password"
+            type="password"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+          >
+        </div>
+        {% if errors.password|default([])|length > 0 %}
+          <p class="text-xs text-app-danger">{{ errors.password|first }}</p>
+        {% endif %}
+      </div>
+
+      <div class="flex items-center justify-between gap-3">
+        <label class="inline-flex cursor-pointer items-center gap-2.5 text-sm text-app-muted transition hover:text-app-text">
+          <input type="checkbox" name="remember" value="1" class="h-4 w-4 rounded border-app-border bg-app-surface text-app-accent focus:ring-app-accent/20" {% if old.remember|default(false) %}checked{% endif %}>
+          <span>Remember me</span>
+        </label>
+        <a class="text-sm font-semibold text-app-accent transition hover:text-app-accent-soft" href="/admin/forgot-password">Forgot password?</a>
+      </div>
+
+      <button class="{{ button_primary }}" type="submit">
+        <span>Sign in</span>
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+        </svg>
+      </button>
+    </form>
+
   </div>
-
-  {% if _security_two_factor_enabled is defined and _security_two_factor_enabled %}
-    <div class="mt-5 rounded-2xl border border-app-accent/20 bg-app-accent/10 p-4 text-app-accent">
-      <p class="text-sm font-semibold">Two-factor authentication</p>
-      <p class="mt-1 text-sm text-app-accent">2FA is enabled for the application settings.</p>
-    </div>
-  {% endif %}
-
-  {% if notice is defined and notice %}
-    <div class="mt-5 rounded-2xl border border-app-success/20 bg-app-success/10 p-4 text-app-success">
-      <p class="text-sm font-semibold">Session update</p>
-      <p class="mt-1 text-sm text-app-success">{{ notice }}</p>
-    </div>
-  {% endif %}
-
-  {% if errors is defined and errors.email is defined %}
-    <div class="mt-5 rounded-2xl border border-app-danger/20 bg-app-danger/10 p-4 text-app-danger">
-      <p class="text-sm font-semibold">Unable to sign in</p>
-      <p class="mt-1 text-sm text-app-danger">{{ errors.email|first }}</p>
-    </div>
-  {% endif %}
-
-  <form class="mt-6 grid gap-5" method="post" action="/admin/login">
-    {{ csrf_field() }}
-
-    {% include "components/form-field.twig" with {
-      id: 'email',
-      label: 'Email address',
-      type: 'email',
-      autocomplete: 'email',
-      placeholder: 'admin@marwa.test',
-      value: old.email|default(''),
-      error: errors.email|default([])|first
-    } only %}
-
-    {% include "components/form-field.twig" with {
-      id: 'password',
-      label: 'Password',
-      type: 'password',
-      autocomplete: 'current-password',
-      placeholder: 'Enter your password',
-      error: errors.password|default([])|first
-    } only %}
-
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <label class="inline-flex items-center gap-3 text-sm text-app-muted">
-        <input type="checkbox" name="remember" value="1" class="form-checkbox h-4 w-4 rounded border-app-border bg-app-surface text-app-accent focus:ring-app-accent/20" {% if old.remember|default(false) %}checked{% endif %}>
-        <span>Remember me</span>
-      </label>
-      <a class="text-sm font-semibold text-app-accent transition hover:text-app-accent-soft" href="/admin/forgot-password">Forgot password?</a>
-    </div>
-
-    <button class="{{ button_primary }}" type="submit">Sign in</button>
-  </form>
 {% endblock %}

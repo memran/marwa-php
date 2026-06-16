@@ -283,9 +283,9 @@ TWIG
         if ($login->getStatusCode() === 302) {
             self::assertSame('/admin', $login->getHeaderLine('Location'));
         } else {
-            self::assertStringContainsString('Sign in to continue.', (string) $login->getBody());
-            self::assertStringContainsString('Enter your credentials to access the admin console.', (string) $login->getBody());
-            self::assertStringContainsString('Built for teams that ship.', (string) $login->getBody());
+            self::assertStringContainsString('Welcome back', (string) $login->getBody());
+            self::assertStringContainsString('Sign in to manage your workspace.', (string) $login->getBody());
+            self::assertStringContainsString('Secure executive access', (string) $login->getBody());
             self::assertStringContainsString('aria-label="Toggle theme"', (string) $login->getBody());
             self::assertStringContainsString('/themes/executive/css/app.css', (string) $login->getBody());
             self::assertStringContainsString('/themes/executive/css/variables.css', (string) $login->getBody());

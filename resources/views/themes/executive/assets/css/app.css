@@ -20,9 +20,11 @@
     --app-danger: 248 113 113;
   }
 
-  .admin-theme.executive-theme,
-  html[data-admin-theme="light"] body.admin-theme.executive-theme,
-  html[data-admin-theme="dark"] body.admin-theme.executive-theme {
+  .admin-theme.executive-theme {
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  }
+
+  html[data-admin-theme="light"] body.admin-theme.executive-theme {
     --app-bg: 248 250 252;
     --app-surface: 255 255 255;
     --app-surface-2: 241 245 249;
@@ -34,7 +36,6 @@
     --app-success: 22 163 74;
     --app-warning: 245 158 11;
     --app-danger: 220 38 38;
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
   }
 
   html[data-admin-theme="light"] body.admin-theme {

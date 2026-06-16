@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="admin" class="admin-theme">
+<html lang="en" data-theme="admin">
 <head>
     {% include 'partials/head.twig' %}
     <title>{% block title %}Admin Access{% endblock %}</title>
@@ -16,7 +16,7 @@
         })();
     </script>
 </head>
-<body class="auth-theme min-h-screen bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+<body class="auth-theme admin-theme min-h-screen bg-app-bg text-app-text antialiased">
         <div class="relative isolate min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f8fafc_0%,#e2e8f0_45%,#cbd5e1_100%)] dark:bg-[linear-gradient(180deg,#020617_0%,#0b1220_48%,#020617_100%)]">
         <div class="pointer-events-none absolute inset-0 opacity-40 dark:opacity-50" style="background-image: linear-gradient(rgba(148,163,184,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.12) 1px, transparent 1px); background-size: 4rem 4rem;"></div>
         <div class="pointer-events-none absolute left-[-6rem] top-12 h-72 w-72 rounded-full blur-3xl" style="background-color: rgba(var(--app-accent), 0.16);"></div>

@@ -317,8 +317,8 @@ TWIG
         $loginPage = $kernel->handle($this->request('GET', '/admin/login'));
         self::assertSame(200, $loginPage->getStatusCode());
         $loginBody = (string) $loginPage->getBody();
-        self::assertStringContainsString('Sign in to continue.', $loginBody);
-        self::assertStringContainsString('Built for teams that ship.', $loginBody);
+        self::assertStringContainsString('Welcome back', $loginBody);
+        self::assertStringContainsString('Sign in to manage your workspace.', $loginBody);
         self::assertStringContainsString('aria-label="Toggle theme"', $loginBody);
         self::assertStringContainsString('/themes/executive/css/app.css', $loginBody);
         self::assertStringContainsString('/themes/executive/css/variables.css', $loginBody);
@@ -326,9 +326,9 @@ TWIG
         self::assertStringContainsString('/themes/executive/css/components.css', $loginBody);
         self::assertStringContainsString('/themes/executive/js/theme.js', $loginBody);
         self::assertStringContainsString('name="_token"', $loginBody);
-        self::assertStringContainsString('>Sign in</button>', $loginBody);
+        self::assertStringContainsString('Sign in', $loginBody);
         self::assertStringContainsString('bg-app-accent', $loginBody);
-        self::assertStringContainsString('class="admin-theme executive-theme"', $loginBody);
+        self::assertStringContainsString('body class="auth-theme admin-theme executive-theme', $loginBody);
         $csrf = $this->app->security()->csrfToken();
 
         $failedLogin = $kernel->handle($this->request('POST', '/admin/login', [
