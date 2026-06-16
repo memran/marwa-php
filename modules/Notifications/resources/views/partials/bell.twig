@@ -7,7 +7,7 @@
     {% include 'components/icon.twig' with { name: 'bell', class: 'h-5 w-5' } only %}
     <span 
       :class="unreadCount > 0 ? 'animate-ping' : ''"
-      class="absolute -right-1 -top-1 flex items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[0.65rem] font-bold text-white min-w-[1.25rem]"
+      class="absolute -right-1 -top-1 flex items-center justify-center rounded-full bg-app-danger px-1.5 py-0.5 text-[0.65rem] font-bold text-white min-w-[1.25rem]"
       x-text="unreadCount > 9 ? '9+' : unreadCount"
     >
       0
@@ -32,7 +32,7 @@
         <button 
           x-show="unreadCount > 0" 
           @click="markAllRead()" 
-          class="text-xs font-medium text-cyan-600 hover:text-cyan-700 dark:text-cyan-300 dark:hover:text-cyan-200"
+          class="text-xs font-medium text-app-accent hover:text-app-accent-soft"
         >Mark all read</button>
       </div>
       
@@ -61,7 +61,7 @@
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2">
                     <span class="truncate text-sm font-medium text-slate-700 dark:text-slate-100" x-text="notification.title"></span>
-                    <span x-show="!notification.is_read" class="h-2 w-2 rounded-full bg-cyan-500 dark:bg-cyan-400"></span>
+                    <span x-show="!notification.is_read" class="h-2 w-2 rounded-full bg-app-accent"></span>
                   </div>
                   <p class="truncate text-xs text-slate-500 dark:text-slate-400" x-text="notification.message"></p>
                   <span class="mt-1 block text-xs text-slate-400 dark:text-slate-500" x-text="formatTime(notification.created_at)"></span>
@@ -73,7 +73,7 @@
       </div>
       
       <div class="border-t border-slate-200 px-4 py-3 dark:border-white/10">
-        <a href="/admin/notifications" class="flex items-center justify-center gap-1 text-sm font-medium text-cyan-600 hover:text-cyan-700 dark:text-cyan-300 dark:hover:text-cyan-200">
+        <a href="/admin/notifications" class="flex items-center justify-center gap-1 text-sm font-medium text-app-accent hover:text-app-accent-soft">
           See all notifications
           {% include 'components/icon.twig' with { name: 'arrow-right', class: 'h-4 w-4' } only %}
         </a>

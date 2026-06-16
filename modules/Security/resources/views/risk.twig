@@ -11,35 +11,35 @@
   {% set enabled = enabled|default(false) %}
   {% set log_path = log_path|default('') %}
   {% set since_hours = since_hours|default(24) %}
-  {% set stat_panel = 'rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_18px_40px_rgba(2,6,23,0.22)]' %}
-  {% set stat_label = 'text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-slate-400' %}
-  {% set stat_value = 'mt-2 text-2xl font-black tracking-tight text-white' %}
-  {% set badge = 'inline-flex items-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-cyan-100' %}
-  {% set form_input = 'w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 outline-none ring-0 transition placeholder:text-slate-500 focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20' %}
-  {% set form_button = 'inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3.5 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-400/15' %}
+  {% set stat_panel = 'rounded-2xl border border-app-border bg-app-surface/80 p-4 shadow-[0_18px_40px_rgba(2,6,23,0.12)]' %}
+  {% set stat_label = 'text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-app-muted' %}
+  {% set stat_value = 'mt-2 text-2xl font-black tracking-tight text-app-text' %}
+  {% set badge = 'inline-flex items-center rounded-xl border border-app-accent/20 bg-app-accent/10 px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-app-accent' %}
+  {% set form_input = 'w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 text-sm text-app-text outline-none ring-0 transition placeholder:text-app-muted focus:border-app-accent focus:ring-2 focus:ring-app-accent/20' %}
+  {% set form_button = 'inline-flex items-center justify-center gap-2 rounded-xl border border-app-accent/20 bg-app-accent/10 px-3.5 py-2 text-sm font-semibold text-app-accent transition hover:bg-app-accent/15' %}
 
   <section class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
     <div class="max-w-3xl space-y-2">
       <span class="{{ badge }}">Security</span>
-      <h1 class="text-2xl font-black tracking-tight text-white sm:text-3xl">Risk report and signal data.</h1>
-      <p class="max-w-2xl text-sm leading-6 text-slate-300">
+      <h1 class="text-2xl font-black tracking-tight text-app-text sm:text-3xl">Risk report and signal data.</h1>
+      <p class="max-w-2xl text-sm leading-6 text-app-muted">
         Reads the framework security risk log and surfaces the latest entries with score, category, and context.
       </p>
-      <div class="flex flex-wrap items-center gap-2 text-xs text-slate-400">
-        <span class="inline-flex items-center rounded-xl border border-white/10 bg-white/5 px-2.5 py-1">
+      <div class="flex flex-wrap items-center gap-2 text-xs text-app-muted">
+        <span class="inline-flex items-center rounded-xl border border-app-border bg-app-surface/70 px-2.5 py-1">
           {% include 'components/icon.twig' with { name: enabled ? 'shield-check' : 'shield-alert', class: 'mr-1.5 h-3.5 w-3.5' } only %}
           {{ enabled ? 'Risk analysis enabled' : 'Risk analysis disabled' }}
         </span>
-        <span class="inline-flex items-center rounded-xl border border-white/10 bg-white/5 px-2.5 py-1">
+        <span class="inline-flex items-center rounded-xl border border-app-border bg-app-surface/70 px-2.5 py-1">
           {% include 'components/icon.twig' with { name: 'file-text', class: 'mr-1.5 h-3.5 w-3.5' } only %}
           {{ log_path }}
         </span>
       </div>
     </div>
 
-    <form class="grid gap-3 rounded-[1.25rem] border border-white/10 bg-white/5 p-4 shadow-[0_18px_40px_rgba(2,6,23,0.22)] backdrop-blur-xl sm:min-w-[18rem]" method="get" action="/admin/security/risk">
+    <form class="grid gap-3 rounded-[1.25rem] border border-app-border bg-app-surface/80 p-4 shadow-[0_18px_40px_rgba(2,6,23,0.12)] backdrop-blur-xl sm:min-w-[18rem]" method="get" action="/admin/security/risk">
       <div>
-        <label class="mb-1.5 block text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-slate-400" for="since_hours">Lookback hours</label>
+        <label class="mb-1.5 block text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-app-muted" for="since_hours">Lookback hours</label>
         <input id="since_hours" name="since_hours" type="number" min="1" max="8760" value="{{ since_hours }}" class="{{ form_input }}">
       </div>
       <button type="submit" class="{{ form_button }}">
@@ -49,11 +49,11 @@
     </form>
   </section>
 
-  <section class="mt-6 overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/5 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-5">
-    <div class="flex flex-col gap-2 border-b border-white/10 pb-4 sm:flex-row sm:items-end sm:justify-between">
+  <section class="mt-6 overflow-hidden rounded-[1.25rem] border border-app-border bg-app-surface/80 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.12)] backdrop-blur-xl sm:p-5">
+    <div class="flex flex-col gap-2 border-b border-app-border pb-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h2 class="text-xl font-bold tracking-tight text-white">Signal summary</h2>
-        <p class="mt-1 text-sm text-slate-400">Grouped by severity and category for the selected time window.</p>
+        <h2 class="text-xl font-bold tracking-tight text-app-text">Signal summary</h2>
+        <p class="mt-1 text-sm text-app-muted">Grouped by severity and category for the selected time window.</p>
       </div>
       <span class="{{ badge }}">{{ total_signals }} total signals</span>
     </div>
@@ -77,58 +77,58 @@
       </div>
     </div>
 
-    <div class="mt-4 rounded-2xl border border-white/10 bg-slate-950/35 p-4">
+    <div class="mt-4 rounded-2xl border border-app-border bg-app-surface-2/50 p-4">
       <div class="flex flex-wrap gap-2">
         {% for category, count in by_category %}
-          <span class="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-200">
+          <span class="inline-flex items-center gap-2 rounded-xl border border-app-border bg-app-surface/70 px-3 py-1.5 text-sm text-app-text">
             <span class="font-semibold">{{ category }}</span>
-            <span class="rounded-lg bg-cyan-400/10 px-2 py-0.5 text-xs font-bold text-cyan-100">{{ count }}</span>
+            <span class="rounded-lg bg-app-accent/10 px-2 py-0.5 text-xs font-bold text-app-accent">{{ count }}</span>
           </span>
         {% else %}
-          <span class="text-sm text-slate-400">No category breakdown available yet.</span>
+          <span class="text-sm text-app-muted">No category breakdown available yet.</span>
         {% endfor %}
       </div>
     </div>
   </section>
 
-  <section class="mt-6 overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/5 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-5">
-    <div class="flex flex-col gap-2 border-b border-white/10 pb-4 sm:flex-row sm:items-end sm:justify-between">
+  <section class="mt-6 overflow-hidden rounded-[1.25rem] border border-app-border bg-app-surface/80 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.12)] backdrop-blur-xl sm:p-5">
+    <div class="flex flex-col gap-2 border-b border-app-border pb-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h2 class="text-xl font-bold tracking-tight text-white">Latest signals</h2>
-        <p class="mt-1 text-sm text-slate-400">Most recent entries from the framework security risk log.</p>
+        <h2 class="text-xl font-bold tracking-tight text-app-text">Latest signals</h2>
+        <p class="mt-1 text-sm text-app-muted">Most recent entries from the framework security risk log.</p>
       </div>
       <span class="{{ badge }}">{{ latest|length }} shown</span>
     </div>
 
     {% if latest is empty %}
-      <div class="mt-4 rounded-2xl border border-cyan-300/20 bg-cyan-400/10 p-4 text-cyan-100">
+      <div class="mt-4 rounded-2xl border border-app-accent/20 bg-app-accent/10 p-4 text-app-accent">
         <p class="text-sm font-semibold">No risk data yet.</p>
-        <p class="mt-1 text-sm text-cyan-100/80">Generate traffic or record a signal to populate the report.</p>
+        <p class="mt-1 text-sm text-app-accent">Generate traffic or record a signal to populate the report.</p>
       </div>
     {% else %}
-      <div class="mt-4 overflow-hidden rounded-[1rem] border border-white/10">
+      <div class="mt-4 overflow-hidden rounded-[1rem] border border-app-border">
         <table class="admin-table w-full border-collapse">
           <thead>
-            <tr class="bg-white/5">
-              <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Timestamp</th>
-              <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Category</th>
-              <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Score</th>
-              <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Message</th>
-              <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Context</th>
+            <tr class="bg-app-surface-2/60">
+              <th class="border-b border-app-border px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-app-muted">Timestamp</th>
+              <th class="border-b border-app-border px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-app-muted">Category</th>
+              <th class="border-b border-app-border px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-app-muted">Score</th>
+              <th class="border-b border-app-border px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-app-muted">Message</th>
+              <th class="border-b border-app-border px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-app-muted">Context</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-white/10">
+          <tbody class="divide-y divide-app-border">
             {% for entry in latest %}
               <tr class="align-top">
-                <td class="px-3 py-3 text-sm text-slate-300">{{ entry.timestamp|default('') }}</td>
+                <td class="px-3 py-3 text-sm text-app-muted">{{ entry.timestamp|default('') }}</td>
                 <td class="px-3 py-3">
-                  <span class="inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-100">
+                  <span class="inline-flex rounded-full border border-app-accent/20 bg-app-accent/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-app-accent">
                     {{ entry.category|default('unknown') }}
                   </span>
                 </td>
-                <td class="px-3 py-3 text-sm text-slate-200">{{ entry.score|default(0) }}</td>
-                <td class="px-3 py-3 text-sm text-slate-200">{{ entry.message|default('') }}</td>
-                <td class="px-3 py-3 text-xs leading-5 text-slate-400">
+                <td class="px-3 py-3 text-sm text-app-text">{{ entry.score|default(0) }}</td>
+                <td class="px-3 py-3 text-sm text-app-text">{{ entry.message|default('') }}</td>
+                <td class="px-3 py-3 text-xs leading-5 text-app-muted">
                   <pre class="whitespace-pre-wrap break-words font-sans">{{ entry.context_display|default('{}') }}</pre>
                 </td>
               </tr>

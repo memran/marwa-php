@@ -46,7 +46,7 @@ final class UserDataTable
             ->bulkStatusUrl('/admin/users/bulk-status')
             ->bulkStatusOptions([
                 ['value' => 'active', 'label' => 'Activate'],
-                ['value' => 'inactive', 'label' => 'Disable'],
+                ['value' => 'disabled', 'label' => 'Disable'],
             ])
             ->columns([
                 Column::make('name')

@@ -1,0 +1,205 @@
+{% set button_base = 'inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-app-accent/20' %}
+{% set button_primary = button_base ~ ' border-transparent bg-app-accent text-white hover:bg-app-accent-soft' %}
+{% set button_secondary = button_base ~ ' border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50' %}
+
+<div
+  x-data="dashboardWidget()"
+  x-init="init()"
+  data-widgets='{{ widgets|json_encode|escape }}'
+  data-available='{{ available_widgets|json_encode|escape }}'
+  data-sizes='{{ size_options|json_encode|escape }}'
+  :class="editMode ? 'xl:pr-[25rem]' : ''"
+  class="space-y-8 transition-[padding] duration-200"
+>
+  <section class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div class="space-y-2">
+      <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Dashboard workspace</p>
+      <h1 class="text-[30px] font-semibold tracking-tight text-slate-950">Dashboard</h1>
+      <p class="max-w-2xl text-sm text-slate-600">
+        Live module widgets and service signals for the Marwa-PHP Starter.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3">
+      <button
+        type="button"
+        class="{{ button_secondary }}"
+        @click="toggleEditMode()"
+        x-show="!editMode"
+      >
+        {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-4 w-4 text-slate-500' } only %}
+        Customize widgets
+      </button>
+
+      <button
+        type="button"
+        class="{{ button_primary }}"
+        @click="toggleEditMode()"
+        x-show="editMode"
+      >
+        {% include 'components/icon.twig' with { name: 'check', class: 'h-4 w-4' } only %}
+        Done
+      </button>
+    </div>
+  </section>
+
+  <section class="space-y-4">
+    <div class="flex items-end justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-semibold tracking-tight text-slate-950">Dashboard widgets</h2>
+        <p class="mt-1 text-sm text-slate-500">Widgets are provided by enabled modules and can be reordered for each user.</p>
+      </div>
+    </div>
+
+    <div
+      x-ref="widgetGrid"
+      class="grid gap-6 md:grid-cols-2 xl:grid-cols-2"
+      @dragover.prevent
+      @drop.prevent="dropOnGrid()"
+    >
+      {% for widget in widgets %}
+        {% if widget.enabled %}
+          <article
+            class="widget-item relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+            :class="[getWidthClass('{{ widget.width }}'), draggedWidgetId === '{{ widget.widget_id }}' ? 'opacity-50 ring-2 ring-app-accent/30' : '']"
+            data-widget-id="{{ widget.widget_id }}"
+            data-position="{{ widget.position }}"
+            :draggable="editMode"
+            @dragstart="startDrag('{{ widget.widget_id }}')"
+            @dragend="endDrag()"
+            @dragover.prevent
+            @drop.prevent="dropOnWidget('{{ widget.widget_id }}')"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div class="space-y-1">
+                <p class="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-slate-500">Widget</p>
+                <h3 class="text-sm font-semibold text-slate-950">{{ widget.title }}</h3>
+              </div>
+              <div class="flex items-center gap-1">
+                <button
+                  type="button"
+                  @click="refreshWidget('{{ widget.widget_id }}')"
+                  :disabled="isRefreshingWidget('{{ widget.widget_id }}')"
+                  :class="isRefreshingWidget('{{ widget.widget_id }}') ? 'border-app-accent bg-app-accent text-white shadow-sm' : 'border-slate-200 bg-white text-slate-500 hover:border-app-accent/30 hover:bg-slate-50 hover:text-app-accent'"
+                  class="group inline-flex h-9 w-9 items-center justify-center rounded-lg border transition disabled:cursor-wait disabled:opacity-100"
+                  title="Refresh widget"
+                >
+                  {% include 'components/icon.twig' with { name: 'refresh-cw', class: 'h-5 w-5 transition duration-150' } only %}
+                </button>
+                <button
+                  type="button"
+                  @click="removeWidget('{{ widget.widget_id }}')"
+                  x-show="editMode"
+                  class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-app-danger/20 bg-app-danger/10 text-app-danger transition hover:bg-app-danger/15"
+                  title="Remove widget"
+                >
+                  {% include 'components/icon.twig' with { name: 'trash-2', class: 'h-4 w-4' } only %}
+                </button>
+              </div>
+            </div>
+
+            <div class="widget-content mt-4 rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
+              {{ widget.content|raw }}
+            </div>
+
+            <div class="absolute right-3 top-3 flex items-center gap-1" x-show="editMode">
+              <div class="drag-handle cursor-grab rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" title="Drag to reorder">
+                {% include 'components/icon.twig' with { name: 'grip-vertical', class: 'h-4 w-4' } only %}
+              </div>
+            </div>
+          </article>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </section>
+
+  <div
+    x-show="editMode"
+    x-cloak
+    x-transition.opacity.duration.150ms
+    class="pointer-events-none fixed inset-y-0 right-0 z-50 flex justify-end"
+  >
+    <div class="pointer-events-auto relative z-10 flex h-full w-[22rem] max-w-[calc(100vw-1rem)] flex-col overflow-hidden border-l border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.18)] sm:w-[24rem]">
+      <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+        <div>
+          <h3 class="text-lg font-semibold tracking-tight text-slate-950">Customize widgets</h3>
+          <p class="text-sm text-slate-500">Reorder cards and add default system widgets.</p>
+        </div>
+
+        <button
+          type="button"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
+          @click="toggleEditMode()"
+        >
+          {% include 'components/icon.twig' with { name: 'x', class: 'h-4 w-4' } only %}
+        </button>
+      </div>
+
+      <div class="flex flex-1 overflow-hidden p-6">
+        <aside class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+          <div class="flex items-center justify-between gap-3 border-b border-slate-200 pb-4">
+            <div>
+              <h3 class="text-base font-semibold text-slate-950">Add Widgets</h3>
+              <p class="text-xs text-slate-500">Add more cards to the dashboard workspace</p>
+            </div>
+          </div>
+
+          <div class="mt-4 max-h-[calc(100vh-24rem)] space-y-2 overflow-y-auto pr-1">
+            {% for widget in available_widgets %}
+              <button
+                type="button"
+                :class="isWidgetActive('{{ widget.id }}') ? 'border-app-success/20 bg-app-success/10' : 'border-slate-200 bg-white hover:border-app-accent/20 hover:bg-app-accent/5'"
+                class="w-full rounded-2xl border px-4 py-3 text-left transition"
+                @click="addWidget('{{ widget.id }}')"
+              >
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-semibold text-slate-950">{{ widget.name }}</p>
+                    <p class="truncate text-xs text-slate-500">{{ widget.description }}</p>
+                  </div>
+                  <div class="flex shrink-0 flex-col items-end gap-1.5">
+                    <span class="rounded-lg bg-slate-100 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-slate-600">
+                      {{ widget.size }}
+                    </span>
+                    <span
+                      :class="isWidgetActive('{{ widget.id }}') ? 'border-app-success/20 bg-app-success/10 text-app-success' : 'border-slate-200 bg-white text-slate-500'"
+                      class="rounded-lg border px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em]"
+                      x-text="isWidgetActive('{{ widget.id }}') ? 'Active' : 'Inactive'"
+                    ></span>
+                  </div>
+                </div>
+              </button>
+            {% endfor %}
+          </div>
+
+          <div class="mt-6 grid gap-2">
+            <button
+              type="button"
+              class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              @click="toggleEditMode()"
+            >
+              {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-4 w-4' } only %}
+              Back to normal mode
+            </button>
+            <button
+              type="button"
+              class="inline-flex items-center justify-center gap-2 rounded-xl border border-app-accent/20 bg-app-accent/10 px-4 py-2.5 text-sm font-medium text-app-accent transition hover:bg-app-accent/15"
+              @click="saveWidgets()"
+            >
+              {% include 'components/icon.twig' with { name: 'save', class: 'h-4 w-4' } only %}
+              Save Changes
+            </button>
+            <button
+              type="button"
+              class="group inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+              @click="resetDashboard()"
+            >
+              {% include 'components/icon.twig' with { name: 'refresh-cw', class: 'h-5 w-5 text-slate-500 transition group-hover:text-slate-900' } only %}
+              Reset to Default
+            </button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>

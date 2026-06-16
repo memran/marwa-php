@@ -266,7 +266,8 @@ TWIG
             self::assertSame('/admin/login', $dashboard->getHeaderLine('Location'));
         } else {
             self::assertStringContainsString('Application', (string) $dashboard->getBody());
-            self::assertStringContainsString('Quick actions', (string) $dashboard->getBody());
+            self::assertStringContainsString('Application Status', (string) $dashboard->getBody());
+            self::assertStringNotContainsString('Quick actions', (string) $dashboard->getBody());
             self::assertStringContainsString('id="module-search"', (string) $dashboard->getBody());
             self::assertStringContainsString('Dashboard widgets', (string) $dashboard->getBody());
             self::assertStringContainsString('Refresh widget', (string) $dashboard->getBody());

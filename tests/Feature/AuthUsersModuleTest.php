@@ -359,7 +359,7 @@ TWIG
         self::assertSame(200, $dashboard->getStatusCode());
         $body = (string) $dashboard->getBody();
         self::assertStringContainsString('Dashboard', $body);
-        self::assertStringContainsString('Live platform metrics, service signals, and executive quick actions', $body);
+        self::assertStringContainsString('Live module widgets and service signals', $body);
         self::assertStringContainsString('id="module-search"', $body);
         self::assertStringContainsString('Dashboard widgets', $body);
         self::assertStringContainsString('Refresh widget', $body);
@@ -373,7 +373,9 @@ TWIG
         self::assertStringContainsString('Disk free', $body);
         self::assertStringContainsString('Load average', $body);
         self::assertStringContainsString('Admin theme', $body);
-        self::assertStringContainsString('Quick actions', $body);
+        self::assertStringContainsString('Application Status', $body);
+        self::assertStringNotContainsString('Quick actions', $body);
+        self::assertStringNotContainsString('Manage users', $body);
         self::assertStringContainsString('/admin/background-jobs', $body);
         self::assertStringContainsString('Background Jobs', $body);
         self::assertStringContainsString('/admin/security/risk', $body);
@@ -705,6 +707,13 @@ TWIG
         self::assertTrue($this->auth()->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
         self::assertSame(10, per_page());
 
+        $rolesPage = $kernel->handle($this->request('GET', '/admin/roles'));
+        self::assertSame(200, $rolesPage->getStatusCode());
+        $rolesBody = (string) $rolesPage->getBody();
+        self::assertStringContainsString('Roles', $rolesBody);
+        self::assertStringContainsString('Create role', $rolesBody);
+        self::assertStringContainsString('/admin/roles/create', $rolesBody);
+
         $permissionsPage = $kernel->handle($this->request('GET', '/admin/permissions'));
         self::assertSame(200, $permissionsPage->getStatusCode());
         self::assertStringContainsString('Permissions', (string) $permissionsPage->getBody());
@@ -718,9 +727,14 @@ TWIG
 
         $createPage = $kernel->handle($this->request('GET', '/admin/roles/create'));
         self::assertSame(200, $createPage->getStatusCode());
-        self::assertStringContainsString('Create Role', (string) $createPage->getBody());
-        self::assertStringContainsString('View Users', (string) $createPage->getBody());
-        self::assertStringContainsString('name="permissions[]"', (string) $createPage->getBody());
+        $createBody = (string) $createPage->getBody();
+        self::assertStringContainsString('Create Role', $createBody);
+        self::assertStringContainsString('View Users', $createBody);
+        self::assertStringContainsString('name="permissions[]"', $createBody);
+        self::assertStringContainsString('bg-app-surface/60', $createBody);
+        self::assertStringContainsString('focus:border-app-accent', $createBody);
+        self::assertStringNotContainsString('theme-input', $createBody);
+        self::assertStringNotContainsString('theme-field__label', $createBody);
 
         $dashboardPermission = Permission::findBy('slug', 'dashboard.view');
         $usersPermission = Permission::findBy('slug', 'users.view');
@@ -1003,7 +1017,6 @@ TWIG
         self::assertStringContainsString('/admin/dashboard', $body);
         self::assertStringContainsString('/admin/activity', $body);
         self::assertStringContainsString('Limited Viewer', $body);
-        self::assertStringContainsString('limited_dashboard', $body);
         self::assertStringContainsString('Security', $body);
         self::assertStringContainsString('Audit Logs', $body);
 
@@ -1266,6 +1279,72 @@ TWIG
         self::assertStringContainsString('Dashboard', $body);
         self::assertStringContainsString('Users', $body);
         self::assertStringContainsString('Create user', $body);
+
+        $this->connections = null;
+        $this->app = null;
+    }
+
+    public function testBulkStatusUpdateActivatesAndDisablesSelectedUsers(): void
+    {
+        $this->app = new Application($this->basePath);
+        $this->app->make(AppBootstrapper::class)->bootstrap();
+        $this->migrateAuthAndUserModules($this->app);
+        $this->seedAuthAndUsers();
+        $this->auth()->logout();
+        $kernel = $this->app->make(HttpKernel::class);
+
+        $loginPage = $kernel->handle($this->request('GET', '/admin/login'));
+        self::assertSame(200, $loginPage->getStatusCode());
+        $csrf = $this->app->security()->csrfToken();
+
+        $login = $kernel->handle($this->request('POST', '/admin/login', [
+            '_token' => $csrf,
+            'email' => 'admin@marwa.test',
+            'password' => 'ExampleAdminPassword123!',
+        ]));
+        self::assertSame(302, $login->getStatusCode());
+        self::assertTrue($this->auth()->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+        $csrf = $this->app->security()->csrfToken();
+
+        $user = User::create([
+            'name' => 'Bulk Status User',
+            'email' => 'bulk-status@example.test',
+            'role_id' => $this->roleId('user'),
+            'is_active' => true,
+            'password' => password_hash('BulkStatus123!', PASSWORD_DEFAULT),
+        ]);
+        self::assertInstanceOf(User::class, $user);
+
+        $disable = $kernel->handle($this->request('POST', '/admin/users/bulk-status', [
+            '_token' => $csrf,
+            'ids' => [(int) $user->getKey()],
+            'bulk_status' => 'disabled',
+        ]));
+        self::assertSame(302, $disable->getStatusCode());
+        self::assertStringContainsString('/admin/users', $disable->getHeaderLine('Location'));
+        self::assertSame(0, (int) User::find($user->getKey())?->getAttribute('is_active'));
+
+        $disabledUsersPage = $kernel->handle($this->request('GET', '/admin/users?filters[status]=disabled'));
+        self::assertSame(200, $disabledUsersPage->getStatusCode());
+        self::assertStringContainsString('bulk-status@example.test', (string) $disabledUsersPage->getBody());
+
+        $activate = $kernel->handle($this->request('POST', '/admin/users/bulk-status', [
+            '_token' => $csrf,
+            'ids' => [(int) $user->getKey()],
+            'bulk_status' => 'active',
+        ]));
+        self::assertSame(302, $activate->getStatusCode());
+        self::assertStringContainsString('/admin/users', $activate->getHeaderLine('Location'));
+        self::assertSame(1, (int) User::find($user->getKey())?->getAttribute('is_active'));
+
+        $invalid = $kernel->handle($this->request('POST', '/admin/users/bulk-status', [
+            '_token' => $csrf,
+            'ids' => [(int) $user->getKey()],
+            'bulk_status' => 'inactive',
+        ]));
+        self::assertSame(302, $invalid->getStatusCode());
+        self::assertStringContainsString('/admin/users', $invalid->getHeaderLine('Location'));
+        self::assertSame(1, (int) User::find($user->getKey())?->getAttribute('is_active'));
 
         $this->connections = null;
         $this->app = null;

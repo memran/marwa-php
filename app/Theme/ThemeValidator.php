@@ -37,6 +37,7 @@ final class ThemeValidator
         'components/select.twig',
         'components/table.twig',
         'components/breadcrumb.twig',
+        'components/dashboard-widgets.twig',
     ];
 
     /**

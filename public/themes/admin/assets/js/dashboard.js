@@ -7,6 +7,7 @@ document.addEventListener('alpine:init', function() {
       availableWidgetMap: {},
       sizeOptions: {},
       draggedWidgetId: null,
+      refreshingWidgetIds: [],
 
       init() {
         try {
@@ -117,6 +118,14 @@ document.addEventListener('alpine:init', function() {
         return this.widgets.findIndex(widget => widget.widget_id === widgetId);
       },
 
+      isRefreshingWidget(widgetId) {
+        return this.refreshingWidgetIds.includes(widgetId);
+      },
+
+      isWidgetActive(widgetId) {
+        return this.widgets.some(widget => widget.widget_id === widgetId && widget.enabled !== false);
+      },
+
       insertWidgetAt(widgetId, index) {
         const widgetDef = this.availableWidgetMap[widgetId] || this.availableWidgets.find(widget => widget.id === widgetId);
         if (!widgetDef) return;
@@ -136,10 +145,15 @@ document.addEventListener('alpine:init', function() {
       },
 
       async refreshWidget(widgetId) {
+        if (this.isRefreshingWidget(widgetId)) {
+          return;
+        }
+
         const widgetEl = document.querySelector(`[data-widget-id="${widgetId}"] .widget-content`);
         if (!widgetEl) return;
 
         try {
+          this.refreshingWidgetIds.push(widgetId);
           widgetEl.innerHTML = '<div class="p-4 text-center text-slate-400">Refreshing...</div>';
 
           const response = await fetch(`/admin/dashboard/widget/${widgetId}/refresh`);
@@ -150,6 +164,8 @@ document.addEventListener('alpine:init', function() {
             : `<div class="p-4 text-red-400">${data.message}</div>`;
         } catch (error) {
           widgetEl.innerHTML = `<div class="p-4 text-red-400">Error</div>`;
+        } finally {
+          this.refreshingWidgetIds = this.refreshingWidgetIds.filter(id => id !== widgetId);
         }
       },
 
@@ -194,45 +210,45 @@ document.addEventListener('alpine:init', function() {
         const config = {
           app_status: {
             icon: 'server',
-            labelTone: 'text-emerald-100/75',
-            iconTone: 'border-emerald-400/20 bg-emerald-400/10 text-emerald-100',
-            bar: 'bg-gradient-to-r from-cyan-300 via-emerald-300 to-cyan-300',
+            labelTone: 'text-slate-500',
+            iconTone: 'border-emerald-200 bg-emerald-50 text-emerald-600',
+            bar: 'bg-gradient-to-r from-emerald-400 via-blue-400 to-emerald-400',
             valueFallback: 'MarwaPHP',
             statusFallback: 'Active',
           },
           runtime_info: {
             icon: 'cpu',
-            labelTone: 'text-violet-100/75',
-            iconTone: 'border-violet-400/20 bg-violet-400/10 text-violet-100',
-            bar: 'bg-gradient-to-r from-violet-300 via-cyan-300 to-violet-300',
+            labelTone: 'text-slate-500',
+            iconTone: 'border-violet-200 bg-violet-50 text-violet-600',
+            bar: 'bg-gradient-to-r from-violet-400 via-blue-400 to-violet-400',
             valueFallback: 'PHP',
           },
           memory_usage: {
             icon: 'memory-stick',
-            labelTone: 'text-amber-100/75',
-            iconTone: 'border-amber-400/20 bg-amber-400/10 text-amber-100',
-            bar: 'bg-gradient-to-r from-amber-300 via-orange-300 to-amber-300',
+            labelTone: 'text-slate-500',
+            iconTone: 'border-amber-200 bg-amber-50 text-amber-600',
+            bar: 'bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400',
             valueFallback: '--',
           },
           disk_space: {
             icon: 'hard-drive',
-            labelTone: 'text-emerald-100/75',
-            iconTone: 'border-emerald-400/20 bg-emerald-400/10 text-emerald-100',
-            bar: 'bg-gradient-to-r from-emerald-300 via-cyan-300 to-emerald-300',
+            labelTone: 'text-slate-500',
+            iconTone: 'border-emerald-200 bg-emerald-50 text-emerald-600',
+            bar: 'bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-400',
             valueFallback: 'Storage',
           },
           load_average: {
             icon: 'gauge',
-            labelTone: 'text-cyan-100/75',
-            iconTone: 'border-cyan-400/20 bg-cyan-400/10 text-cyan-100',
-            bar: 'bg-gradient-to-r from-cyan-300 via-sky-300 to-cyan-300',
+            labelTone: 'text-slate-500',
+            iconTone: 'border-sky-200 bg-sky-50 text-sky-600',
+            bar: 'bg-gradient-to-r from-sky-400 via-blue-400 to-sky-400',
             valueFallback: '--',
           },
           theme_info: {
             icon: 'palette',
-            labelTone: 'text-fuchsia-100/75',
-            iconTone: 'border-fuchsia-400/20 bg-fuchsia-400/10 text-fuchsia-100',
-            bar: 'bg-gradient-to-r from-fuchsia-300 via-purple-300 to-fuchsia-300',
+            labelTone: 'text-slate-500',
+            iconTone: 'border-fuchsia-200 bg-fuchsia-50 text-fuchsia-600',
+            bar: 'bg-gradient-to-r from-fuchsia-400 via-violet-400 to-fuchsia-400',
             valueFallback: 'Admin',
           },
         };
@@ -243,6 +259,7 @@ document.addEventListener('alpine:init', function() {
         const label = this.escapeHtml(card.label || this.defaultWidgetLabel(widgetId));
         const value = this.escapeHtml(card.value || theme.valueFallback || '');
         const status = this.escapeHtml(card.status || theme.statusFallback || '');
+        const meta = this.escapeHtml(card.meta || '');
         const iconMarkup = this.renderIcon(theme.icon, 'h-5 w-5');
 
         if (widgetId === 'theme_info') {
@@ -254,8 +271,9 @@ document.addEventListener('alpine:init', function() {
             `      ${iconMarkup}`,
             '    </span>',
             '    <div class="space-y-1">',
-            `      <p class="dashboard-widget-label text-[0.65rem] font-extrabold uppercase tracking-[0.18em] ${labelTone}">${label}</p>`,
-            `      <div class="dashboard-widget-value text-2xl font-black tracking-tight text-white">${value}</div>`,
+            `      <p class="dashboard-widget-label text-[0.65rem] font-semibold uppercase tracking-[0.18em] ${labelTone}">${label}</p>`,
+            `      <div class="dashboard-widget-value text-2xl font-semibold tracking-tight text-slate-950">${value}</div>`,
+            meta ? `      <p class="text-sm text-slate-500">${meta}</p>` : '',
             '    </div>',
             '  </div>',
             '</div>'
@@ -272,11 +290,12 @@ document.addEventListener('alpine:init', function() {
             `        ${iconMarkup}`,
             '      </span>',
             '      <div class="space-y-1">',
-            `        <p class="dashboard-widget-label text-[0.65rem] font-extrabold uppercase tracking-[0.18em] ${labelTone}">${label}</p>`,
-            `        <div class="dashboard-widget-value text-2xl font-black tracking-tight text-white">${value}</div>`,
+            `        <p class="dashboard-widget-label text-[0.65rem] font-semibold uppercase tracking-[0.18em] ${labelTone}">${label}</p>`,
+            `        <div class="dashboard-widget-value text-2xl font-semibold tracking-tight text-slate-950">${value}</div>`,
+            meta ? `        <p class="text-sm text-slate-500">${meta}</p>` : '',
             '      </div>',
             '    </div>',
-            `    <span class="dashboard-widget-status inline-flex items-center rounded-full border ${iconTone} px-2.5 py-1 text-[0.68rem] font-bold uppercase tracking-[0.14em]">${status}</span>`,
+            `    <span class="dashboard-widget-status inline-flex items-center rounded-lg border ${iconTone} px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em]">${status}</span>`,
             '  </div>',
             '</div>'
           ].join('');
@@ -290,8 +309,9 @@ document.addEventListener('alpine:init', function() {
           `      ${iconMarkup}`,
           '    </span>',
           '    <div class="space-y-1">',
-          `      <p class="dashboard-widget-label text-[0.65rem] font-extrabold uppercase tracking-[0.18em] ${labelTone}">${label}</p>`,
-          `      <div class="dashboard-widget-value text-2xl font-black tracking-tight text-white">${value}</div>`,
+          `      <p class="dashboard-widget-label text-[0.65rem] font-semibold uppercase tracking-[0.18em] ${labelTone}">${label}</p>`,
+          `      <div class="dashboard-widget-value text-2xl font-semibold tracking-tight text-slate-950">${value}</div>`,
+          meta ? `      <p class="text-sm text-slate-500">${meta}</p>` : '',
           '    </div>',
           '  </div>',
           '</div>'

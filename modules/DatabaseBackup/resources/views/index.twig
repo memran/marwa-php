@@ -4,15 +4,15 @@
 
 {% block content %}
   {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
-  {% set button_primary = button_base ~ ' border-transparent bg-white text-slate-950 hover:bg-cyan-200' %}
-  {% set button_secondary = button_base ~ ' border-white/10 bg-white/5 text-slate-100 hover:bg-white/10' %}
-  {% set control = 'admin-control w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10' %}
+  {% set button_primary = button_base ~ ' border-transparent bg-app-accent text-white hover:bg-app-accent-soft' %}
+  {% set button_secondary = button_base ~ ' border-app-border bg-app-surface/80 text-app-text hover:bg-app-surface-2/70' %}
+  {% set control = 'admin-control w-full rounded-xl border border-app-border bg-app-surface px-3 py-2.5 text-sm text-app-text placeholder:text-app-muted outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/10' %}
 
   <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
     <div class="max-w-3xl space-y-2">
-      <span class="inline-flex w-fit items-center rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-cyan-100">Backup tools</span>
-      <h1 class="text-2xl font-black tracking-tight text-white sm:text-3xl">Database Backups</h1>
-      <p class="max-w-2xl text-sm leading-6 text-slate-300">Schedule backups, store them on a configured disk, and restore from an uploaded archive or a backup already saved in storage.</p>
+      <span class="inline-flex w-fit items-center rounded-xl border border-app-accent/20 bg-app-accent/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-app-accent">Backup tools</span>
+      <h1 class="text-2xl font-black tracking-tight text-app-text sm:text-3xl">Database Backups</h1>
+      <p class="max-w-2xl text-sm leading-6 text-app-muted">Schedule backups, store them on a configured disk, and restore from an uploaded archive or a backup already saved in storage.</p>
     </div>
 
     <div class="flex flex-wrap gap-2">
@@ -25,16 +25,16 @@
   </section>
 
   <div class="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-    <section class="overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/5 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-5">
-      <div class="border-b border-white/10 pb-4">
-        <h2 class="text-xl font-bold tracking-tight text-white">Schedule</h2>
-        <p class="mt-1 text-sm text-slate-400">The scheduler checks this module every minute and runs the backup when the configured window matches.</p>
+    <section class="overflow-hidden rounded-[1.25rem] border border-app-border bg-app-surface/80 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.12)] backdrop-blur-xl sm:p-5">
+      <div class="border-b border-app-border pb-4">
+        <h2 class="text-xl font-bold tracking-tight text-app-text">Schedule</h2>
+        <p class="mt-1 text-sm text-app-muted">The scheduler checks this module every minute and runs the backup when the configured window matches.</p>
       </div>
 
       <form class="mt-4 grid gap-4" method="post" action="/admin/database-backups/settings">
         {{ csrf_field() }}
         <div class="grid gap-4 md:grid-cols-2">
-          <label class="grid gap-2 text-sm text-slate-200">
+          <label class="grid gap-2 text-sm text-app-text">
             <span class="font-semibold">Enabled</span>
             <select class="{{ control }}" name="backup_settings[enabled]">
               <option value="1" {% if settings.enabled %}selected{% endif %}>Enabled</option>
@@ -42,7 +42,7 @@
             </select>
           </label>
 
-          <label class="grid gap-2 text-sm text-slate-200">
+          <label class="grid gap-2 text-sm text-app-text">
             <span class="font-semibold">Frequency</span>
             <select class="{{ control }}" name="backup_settings[mode]">
               {% for value, label in modes %}
@@ -53,29 +53,29 @@
         </div>
 
         <div class="grid gap-4 md:grid-cols-3">
-          <label class="grid gap-2 text-sm text-slate-200">
+          <label class="grid gap-2 text-sm text-app-text">
             <span class="font-semibold">Time</span>
             <input class="{{ control }}" name="backup_settings[time]" type="time" value="{{ settings.time }}">
           </label>
 
-          <label class="grid gap-2 text-sm text-slate-200">
+          <label class="grid gap-2 text-sm text-app-text">
             <span class="font-semibold">Week day</span>
             <input class="{{ control }}" name="backup_settings[day_of_week]" min="1" max="7" type="number" value="{{ settings.day_of_week }}">
           </label>
 
-          <label class="grid gap-2 text-sm text-slate-200">
+          <label class="grid gap-2 text-sm text-app-text">
             <span class="font-semibold">Month day</span>
             <input class="{{ control }}" name="backup_settings[day_of_month]" min="1" max="31" type="number" value="{{ settings.day_of_month }}">
           </label>
         </div>
 
-        <label class="grid gap-2 text-sm text-slate-200">
+        <label class="grid gap-2 text-sm text-app-text">
           <span class="font-semibold">Every N minutes</span>
           <input class="{{ control }}" name="backup_settings[interval_minutes]" min="1" type="number" value="{{ settings.interval_minutes }}">
         </label>
 
         <div class="grid gap-4 md:grid-cols-2">
-          <label class="grid gap-2 text-sm text-slate-200">
+          <label class="grid gap-2 text-sm text-app-text">
             <span class="font-semibold">Storage disk</span>
             <select class="{{ control }}" name="backup_settings[storage_disk]">
               {% for disk in storage_disks %}
@@ -84,7 +84,7 @@
             </select>
           </label>
 
-          <label class="grid gap-2 text-sm text-slate-200">
+          <label class="grid gap-2 text-sm text-app-text">
             <span class="font-semibold">Archive type</span>
             <select class="{{ control }}" name="backup_settings[archive_format]">
               {% for format in formats %}
@@ -94,13 +94,13 @@
           </label>
         </div>
 
-        <label class="grid gap-2 text-sm text-slate-200">
+        <label class="grid gap-2 text-sm text-app-text">
           <span class="font-semibold">Storage location</span>
           <input class="{{ control }}" name="backup_settings[storage_path]" type="text" value="{{ settings.storage_path }}" placeholder="database-backups">
         </label>
 
         <div class="grid gap-4 md:grid-cols-2">
-          <label class="grid gap-2 text-sm text-slate-200">
+          <label class="grid gap-2 text-sm text-app-text">
             <span class="font-semibold">Backup scope</span>
             <select class="{{ control }}" name="backup_settings[scope]">
               <option value="full" {% if settings.scope == 'full' %}selected{% endif %}>Full database</option>
@@ -108,13 +108,13 @@
             </select>
           </label>
 
-          <label class="grid gap-2 text-sm text-slate-200">
+          <label class="grid gap-2 text-sm text-app-text">
             <span class="font-semibold">Selected tables</span>
             <input class="{{ control }}" name="backup_settings[tables]" type="text" value="{{ settings.tables is iterable ? settings.tables|join(', ') : '' }}" placeholder="users, roles, permissions">
           </label>
         </div>
 
-        <p class="text-sm text-slate-400">Current schedule: <span class="font-semibold text-slate-200">{{ schedule_label }}</span></p>
+        <p class="text-sm text-app-muted">Current schedule: <span class="font-semibold text-app-text">{{ schedule_label }}</span></p>
 
         <div>
           <button class="{{ button_primary }}" type="submit">Save backup settings</button>
@@ -122,25 +122,25 @@
       </form>
     </section>
 
-    <section class="overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/5 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-5">
-      <div class="border-b border-white/10 pb-4">
-        <h2 class="text-xl font-bold tracking-tight text-white">Restore</h2>
-        <p class="mt-1 text-sm text-slate-400">Restoring deletes all current database data before the backup snapshot is applied.</p>
+    <section class="overflow-hidden rounded-[1.25rem] border border-app-border bg-app-surface/80 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.12)] backdrop-blur-xl sm:p-5">
+      <div class="border-b border-app-border pb-4">
+        <h2 class="text-xl font-bold tracking-tight text-app-text">Restore</h2>
+        <p class="mt-1 text-sm text-app-muted">Restoring deletes all current database data before the backup snapshot is applied.</p>
       </div>
 
-      <div class="mt-4 rounded-xl border border-rose-400/20 bg-rose-500/10 p-4 text-rose-100">
+      <div class="mt-4 rounded-xl border border-app-danger/20 bg-app-danger/10 p-4 text-app-danger">
         <p class="text-sm font-semibold">Warning</p>
-        <p class="mt-1 text-sm text-rose-100/85">The restore process replaces every current table and row. Use it only when you are certain the uploaded or selected archive is the one you want.</p>
+        <p class="mt-1 text-sm text-app-danger">The restore process replaces every current table and row. Use it only when you are certain the uploaded or selected archive is the one you want.</p>
       </div>
 
       <form class="mt-4 grid gap-4" method="post" action="/admin/database-backups/restore" enctype="multipart/form-data">
         {{ csrf_field() }}
-        <label class="grid gap-2 text-sm text-slate-200">
+        <label class="grid gap-2 text-sm text-app-text">
           <span class="font-semibold">Upload archive</span>
           <input class="{{ control }}" type="file" name="restore_archive" accept=".zip,.tar">
         </label>
 
-        <label class="grid gap-2 text-sm text-slate-200">
+        <label class="grid gap-2 text-sm text-app-text">
           <span class="font-semibold">Or choose from storage</span>
           <select class="{{ control }}" name="selected_backup">
             <option value="">Select a stored backup</option>
@@ -150,7 +150,7 @@
           </select>
         </label>
 
-        <label class="inline-flex items-start gap-3 text-sm text-slate-300">
+        <label class="inline-flex items-start gap-3 text-sm text-app-muted">
           <input type="checkbox" id="confirm_restore" name="confirm_restore" value="1">
           <span>I understand this restore will delete all existing data before the archive is applied.</span>
         </label>
@@ -162,35 +162,35 @@
     </section>
   </div>
 
-  <section class="mt-6 overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/5 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-5">
-    <div class="border-b border-white/10 pb-4">
-      <h2 class="text-xl font-bold tracking-tight text-white">Stored backups</h2>
-      <p class="mt-1 text-sm text-slate-400">Files are listed from the configured storage directory for the selected disk.</p>
+  <section class="mt-6 overflow-hidden rounded-[1.25rem] border border-app-border bg-app-surface/80 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.12)] backdrop-blur-xl sm:p-5">
+    <div class="border-b border-app-border pb-4">
+      <h2 class="text-xl font-bold tracking-tight text-app-text">Stored backups</h2>
+      <p class="mt-1 text-sm text-app-muted">Files are listed from the configured storage directory for the selected disk.</p>
     </div>
 
     {% if backups is empty %}
-      <div class="mt-4 rounded-xl border border-cyan-300/20 bg-cyan-400/10 p-3.5 text-cyan-100">
+      <div class="mt-4 rounded-xl border border-app-accent/20 bg-app-accent/10 p-3.5 text-app-accent">
         <p class="text-sm font-semibold">No backups found</p>
-        <p class="mt-1 text-sm text-cyan-100/80">Run a backup to create the first archive.</p>
+        <p class="mt-1 text-sm text-app-accent">Run a backup to create the first archive.</p>
       </div>
     {% else %}
-      <div class="mt-4 overflow-x-auto rounded-[1rem] border border-white/10">
+      <div class="mt-4 overflow-x-auto rounded-[1rem] border border-app-border">
         <table class="admin-table w-full border-collapse">
           <thead>
-            <tr class="bg-white/5">
-              <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Filename</th>
-              <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Type</th>
-              <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Size</th>
-              <th class="border-b border-white/10 px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-slate-300">Modified</th>
+            <tr class="bg-app-surface-2/60">
+              <th class="border-b border-app-border px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-app-muted">Filename</th>
+              <th class="border-b border-app-border px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-app-muted">Type</th>
+              <th class="border-b border-app-border px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-app-muted">Size</th>
+              <th class="border-b border-app-border px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-app-muted">Modified</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-white/10">
+          <tbody class="divide-y divide-app-border">
             {% for backup in backups %}
               <tr>
-                <td class="px-3 py-3 text-sm text-slate-200">{{ backup.filename }}</td>
-                <td class="px-3 py-3 text-sm text-slate-200">{{ backup.format|upper }}</td>
-                <td class="px-3 py-3 text-sm text-slate-200">{{ backup.size }} bytes</td>
-                <td class="px-3 py-3 text-sm text-slate-200">{{ backup.modified_at ? backup.modified_at|date('Y-m-d H:i') : '-' }}</td>
+                <td class="px-3 py-3 text-sm text-app-text">{{ backup.filename }}</td>
+                <td class="px-3 py-3 text-sm text-app-text">{{ backup.format|upper }}</td>
+                <td class="px-3 py-3 text-sm text-app-text">{{ backup.size }} bytes</td>
+                <td class="px-3 py-3 text-sm text-app-text">{{ backup.modified_at ? backup.modified_at|date('Y-m-d H:i') : '-' }}</td>
               </tr>
             {% endfor %}
           </tbody>

@@ -25,26 +25,22 @@
   {% set activity_total = activity_total|default(0) %}
   {% set activity_pagination = activity_pagination|default({ links: [], summary: '' }) %}
   {% set status_label = is_trashed ? 'Trashed' : (user.getAttribute('is_active') ? 'Active' : 'Disabled') %}
-  {% set status_tone = is_trashed ? 'border-rose-400/20 bg-rose-500/10 text-rose-100' : (user.getAttribute('is_active') ? 'border-emerald-400/20 bg-emerald-500/10 text-emerald-100' : 'border-amber-400/20 bg-amber-500/10 text-amber-100') %}
-  {% set status_value_tone = is_trashed ? 'text-rose-100' : (user.getAttribute('is_active') ? 'text-emerald-100' : 'text-amber-100') %}
-  {% set avatar_gradients = ['from-blue-500 to-cyan-400', 'from-purple-500 to-pink-400', 'from-emerald-500 to-teal-400', 'from-orange-500 to-amber-400', 'from-rose-500 to-red-400', 'from-indigo-500 to-violet-400', 'from-sky-500 to-blue-400', 'from-teal-500 to-emerald-400'] %}
-  {% set avatar_gradient = avatar_gradients[user.getKey() % avatar_gradients|length] %}
+  {% set status_tone = is_trashed ? 'border-app-danger/20 bg-app-danger/10 text-app-danger' : (user.getAttribute('is_active') ? 'border-app-success/20 bg-app-success/10 text-app-success' : 'border-app-warning/20 bg-app-warning/10 text-app-warning') %}
+  {% set status_value_tone = is_trashed ? 'text-app-danger' : (user.getAttribute('is_active') ? 'text-app-success' : 'text-app-warning') %}
   {% set last_login_label = lastLogin ? lastLogin|date('M j, Y \\a\\t g:i A') : 'Never logged in' %}
   {% set account_age_label = created ? (accountAge == 0 ? 'Created today' : accountAge ~ ' day' ~ (accountAge != 1 ? 's' : '') ~ ' old') : 'No creation date' %}
 
   <div {{ ui().data('{ activeTab: "' ~ default_tab ~ '" }') }}>
     <section class="relative overflow-hidden rounded-[2rem] border border-app-border bg-app-surface/85 shadow-[0_30px_80px_rgba(2,6,23,0.35)] backdrop-blur-xl">
-      <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_28%),radial-gradient(circle_at_85%_12%,rgba(16,185,129,0.14),transparent_20%),radial-gradient(circle_at_bottom_right,rgba(244,63,94,0.08),transparent_22%)]"></div>
-
       <div class="relative flex flex-col gap-6 p-6 lg:flex-row lg:items-start lg:justify-between lg:p-8">
         <div class="flex min-w-0 items-start gap-5">
-          <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1.5rem] bg-gradient-to-br {{ avatar_gradient }} text-2xl font-black tracking-tight text-white shadow-[0_20px_50px_rgba(14,165,233,0.32)] ring-2 ring-white/20">
+          <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1.5rem] bg-app-accent text-2xl font-black tracking-tight text-white shadow-[0_20px_50px_rgba(15,23,42,0.18)] ring-2 ring-app-border/60">
             {{ initials }}
           </div>
 
           <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="inline-flex items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.18em] text-cyan-100">
+              <span class="inline-flex items-center rounded-full border border-app-accent/20 bg-app-accent/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.18em] text-app-accent">
                 Identity management
               </span>
               <span class="inline-flex items-center rounded-full border px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.18em] {{ status_tone }}">
@@ -133,7 +129,7 @@
           <article class="rounded-[1.25rem] border border-app-border bg-app-surface/80 p-4 shadow-[0_24px_70px_rgba(2,6,23,0.18)] backdrop-blur-xl">
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold uppercase tracking-[0.18em] text-app-muted">Status</span>
-              <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl {{ is_trashed ? 'bg-rose-500/10 text-rose-400' : (user.getAttribute('is_active') ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400') }}">
+              <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl {{ is_trashed ? 'bg-app-danger/10 text-app-danger' : (user.getAttribute('is_active') ? 'bg-app-success/10 text-app-success' : 'bg-app-warning/10 text-app-warning') }}">
                 {% include 'components/icon.twig' with { name: is_trashed ? 'archive' : (user.getAttribute('is_active') ? 'badge-check' : 'ban'), class: 'h-4 w-4' } %}
               </span>
             </div>
@@ -144,7 +140,7 @@
           <article class="rounded-[1.25rem] border border-app-border bg-app-surface/80 p-4 shadow-[0_24px_70px_rgba(2,6,23,0.18)] backdrop-blur-xl">
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold uppercase tracking-[0.18em] text-app-muted">Age</span>
-              <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-400">
+              <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-app-success/10 text-app-success">
                 {% include 'components/icon.twig' with { name: 'calendar-days', class: 'h-4 w-4' } %}
               </span>
             </div>

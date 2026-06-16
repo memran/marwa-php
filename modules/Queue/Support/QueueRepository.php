@@ -320,11 +320,11 @@ final class QueueRepository
     private function statusClass(string $status): string
     {
         return match ($status) {
-            'completed' => 'text-emerald-700 bg-emerald-50 ring-emerald-200',
-            'processing' => 'text-sky-700 bg-sky-50 ring-sky-200',
-            'failed' => 'text-red-700 bg-red-50 ring-red-200',
-            'pending' => 'text-amber-700 bg-amber-50 ring-amber-200',
-            default => 'text-slate-700 bg-slate-50 ring-slate-200',
+            'completed' => 'text-app-success bg-app-success/10 ring-app-success/20',
+            'processing' => 'text-app-accent bg-app-accent/10 ring-app-accent/20',
+            'failed' => 'text-app-danger bg-app-danger/10 ring-app-danger/20',
+            'pending' => 'text-app-warning bg-app-warning/10 ring-app-warning/20',
+            default => 'text-app-muted bg-app-surface-2/70 ring-app-border',
         };
     }
 
@@ -341,10 +341,10 @@ final class QueueRepository
     private function notificationClass(string $status): string
     {
         return match ($status) {
-            'completed' => 'text-emerald-700 bg-emerald-50 ring-emerald-200',
-            'failed' => 'text-red-700 bg-red-50 ring-red-200',
-            'processing' => 'text-sky-700 bg-sky-50 ring-sky-200',
-            default => 'text-slate-700 bg-slate-50 ring-slate-200',
+            'completed' => 'text-app-success bg-app-success/10 ring-app-success/20',
+            'failed' => 'text-app-danger bg-app-danger/10 ring-app-danger/20',
+            'processing' => 'text-app-accent bg-app-accent/10 ring-app-accent/20',
+            default => 'text-app-muted bg-app-surface-2/70 ring-app-border',
         };
     }
 

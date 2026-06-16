@@ -6,7 +6,7 @@
   {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
   {% set button_primary = button_base ~ ' border-transparent bg-app-accent text-white hover:bg-app-accent-soft' %}
   <section class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-    <span class="inline-flex w-fit items-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-cyan-100">Identity management</span>
+    <span class="inline-flex w-fit items-center rounded-xl border border-app-accent/20 bg-app-accent/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-app-accent">Identity management</span>
 
     <div class="flex flex-wrap gap-2">
       {% if gate.allows('users.create') %}

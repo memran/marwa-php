@@ -154,6 +154,111 @@
     box-shadow: none;
   }
 
+  /* Global theme token bridge for module views that still use hardcoded Tailwind colors. */
+  .admin-theme .admin-content .bg-white,
+  .admin-theme .admin-content .dark\:bg-slate-900\/60,
+  .admin-theme .admin-content .dark\:bg-slate-950\/60,
+  .admin-theme .admin-content .bg-white\/5,
+  .admin-theme .admin-content .bg-white\/10,
+  .admin-theme .admin-content .bg-white\/50,
+  .admin-theme .admin-content .bg-white\/95,
+  .admin-theme .admin-content .bg-slate-900,
+  .admin-theme .admin-content .bg-slate-900\/60,
+  .admin-theme .admin-content .bg-slate-950,
+  .admin-theme .admin-content .bg-slate-950\/35,
+  .admin-theme .admin-content .bg-slate-950\/40,
+  .admin-theme .admin-content .bg-slate-950\/60,
+  .admin-theme .admin-content .bg-slate-50,
+  .admin-theme .admin-content .dark\:bg-slate-950\/40 {
+    background-color: rgb(var(--app-surface)) !important;
+    background-image: none !important;
+  }
+
+  .admin-theme .admin-content .text-white,
+  .admin-theme .admin-content .text-slate-950,
+  .admin-theme .admin-content .text-slate-900,
+  .admin-theme .admin-content .text-slate-800,
+  .admin-theme .admin-content .text-slate-700,
+  .admin-theme .admin-content .text-slate-300,
+  .admin-theme .admin-content .text-slate-200,
+  .admin-theme .admin-content .text-slate-100,
+  .admin-theme .admin-content .dark\:text-white,
+  .admin-theme .admin-content .dark\:text-slate-100,
+  .admin-theme .admin-content .dark\:text-slate-200,
+  .admin-theme .admin-content .dark\:text-slate-300 {
+    color: rgb(var(--app-text)) !important;
+  }
+
+  .admin-theme .admin-content .text-slate-600,
+  .admin-theme .admin-content .text-slate-500,
+  .admin-theme .admin-content .text-slate-400,
+  .admin-theme .admin-content .dark\:text-slate-400,
+  .admin-theme .admin-content .dark\:text-slate-500 {
+    color: rgb(var(--app-muted)) !important;
+  }
+
+  .admin-theme .admin-content .border-slate-200,
+  .admin-theme .admin-content .border-slate-200\/70,
+  .admin-theme .admin-content .border-slate-300,
+  .admin-theme .admin-content .border-white\/5,
+  .admin-theme .admin-content .border-white\/10,
+  .admin-theme .admin-content .border-white\/20,
+  .admin-theme .admin-content .dark\:border-slate-800,
+  .admin-theme .admin-content .dark\:border-white\/5,
+  .admin-theme .admin-content .dark\:border-white\/10 {
+    border-color: rgb(var(--app-border) / 0.75) !important;
+  }
+
+  .admin-theme .admin-content .ring-slate-100,
+  .admin-theme .admin-content .dark\:ring-white\/5 {
+    --tw-ring-color: rgb(var(--app-border) / 0.18) !important;
+  }
+
+  .admin-theme .admin-content .text-emerald-600,
+  .admin-theme .admin-content .text-emerald-700,
+  .admin-theme .admin-content .text-emerald-800,
+  .admin-theme .admin-content .dark\:text-emerald-400,
+  .admin-theme .admin-content .dark\:text-emerald-100 {
+    color: rgb(var(--app-success)) !important;
+  }
+
+  .admin-theme .admin-content .bg-emerald-50,
+  .admin-theme .admin-content .bg-emerald-400\/10,
+  .admin-theme .admin-content .dark\:bg-emerald-400\/10 {
+    background-color: rgb(var(--app-success) / 0.10) !important;
+  }
+
+  .admin-theme .admin-content .border-emerald-200,
+  .admin-theme .admin-content .border-emerald-400\/20,
+  .admin-theme .admin-content .dark\:border-emerald-400\/20 {
+    border-color: rgb(var(--app-success) / 0.24) !important;
+  }
+
+  .admin-theme .admin-content .text-cyan-400,
+  .admin-theme .admin-content .text-cyan-300,
+  .admin-theme .admin-content .text-sky-700,
+  .admin-theme .admin-content .dark\:text-sky-400,
+  .admin-theme .admin-content .dark\:text-cyan-100,
+  .admin-theme .admin-content .dark\:text-cyan-200,
+  .admin-theme .admin-content .dark\:text-cyan-300,
+  .admin-theme .admin-content .dark\:text-cyan-400 {
+    color: rgb(var(--app-accent)) !important;
+  }
+
+  .admin-theme .admin-content .bg-cyan-400\/10,
+  .admin-theme .admin-content .bg-sky-500\/10,
+  .admin-theme .admin-content .dark\:bg-cyan-400\/10,
+  .admin-theme .admin-content .dark\:bg-sky-500\/10 {
+    background-color: rgb(var(--app-accent) / 0.10) !important;
+  }
+
+  .admin-theme .admin-content .border-cyan-400\/20,
+  .admin-theme .admin-content .border-cyan-500\/20,
+  .admin-theme .admin-content .dark\:border-cyan-300\/20,
+  .admin-theme .admin-content .dark\:border-cyan-500\/20 {
+    border-color: rgb(var(--app-accent) / 0.22) !important;
+  }
+
   .admin-theme.executive-theme .theme-button,
   .admin-theme.executive-theme .theme-icon-button {
     border-radius: 1rem;

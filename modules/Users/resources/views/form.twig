@@ -6,7 +6,7 @@
   {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
   {% set button_primary = button_base ~ ' border-transparent bg-app-accent text-white hover:bg-app-accent-soft' %}
   {% set button_secondary = button_base ~ ' border-app-border bg-app-surface/80 text-app-text hover:bg-app-surface-2/70' %}
-  {% set field_class = 'w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 text-sm text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-300 outline-none transition focus:border-app-accent focus:ring-0 focus-visible:outline-none focus-visible:border-app-accent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-app-accent/20 disabled:cursor-not-allowed disabled:opacity-60' %}
+  {% set field_class = 'w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 text-sm text-app-text placeholder:text-app-muted outline-none transition focus:border-app-accent focus:ring-0 focus-visible:outline-none focus-visible:border-app-accent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-app-accent/20 disabled:cursor-not-allowed disabled:opacity-60' %}
   {% set select_class = field_class %}
   {% set user = user|default(null) %}
   {% set form = form|default({}) %}
@@ -14,7 +14,7 @@
   {% set is_edit = user is not null %}
 
   <section class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-    <span class="inline-flex w-fit items-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-cyan-100">Identity management</span>
+    <span class="inline-flex w-fit items-center rounded-xl border border-app-accent/20 bg-app-accent/10 px-3 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-app-accent">Identity management</span>
 
     <div class="flex flex-wrap gap-2">
       <a class="{{ button_secondary }}" href="/admin/users">Back to users</a>
@@ -43,10 +43,10 @@
             return ["", "Weak", "Fair", "Good", "Strong", "Very strong"][this.score]
           },
           get strengthBar() {
-            return ["", "bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-lime-500", "bg-emerald-500"][this.score]
+            return ["", "bg-app-danger", "bg-app-warning", "bg-app-warning", "bg-app-accent", "bg-app-success"][this.score]
           },
           get strengthText() {
-            return ["", "text-red-400", "text-orange-400", "text-yellow-400", "text-lime-400", "text-emerald-400"][this.score]
+            return ["", "text-app-danger", "text-app-warning", "text-app-warning", "text-app-accent", "text-app-success"][this.score]
           },
           generatePassword() {
             const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?"
@@ -70,10 +70,10 @@
     <div class="grid gap-6 lg:grid-cols-2">
       <div class="rounded-[1.25rem] border border-app-border bg-app-surface/80 p-6 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
         <div class="mb-5 flex items-center gap-2.5">
-          <svg class="h-5 w-5 shrink-0 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <svg class="h-5 w-5 shrink-0 text-app-accent" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
           </svg>
-          <h2 class="text-lg font-semibold text-slate-100">Account Details</h2>
+          <h2 class="text-lg font-semibold text-app-text">Account Details</h2>
         </div>
 
         <div class="space-y-5">
@@ -132,13 +132,13 @@
             <label class="text-[0.82rem] font-semibold text-app-text">Account status</label>
             <p class="text-xs leading-5 text-app-muted">Active users can log in and access the system.</p>
             <div class="mt-1 flex gap-3">
-              <label class="dashboard-status-option flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-cyan-300/30 hover:bg-cyan-400/5 has-[:checked]:border-cyan-400/40 has-[:checked]:bg-cyan-400/10">
-                <input type="radio" name="is_active" value="1" {% if form.is_active|default(1) == 1 %}checked{% endif %} class="h-4 w-4 accent-cyan-400 outline-none focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-cyan-400/20">
-                <span class="text-sm font-medium text-slate-200">Active</span>
+              <label class="dashboard-status-option flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-app-border bg-app-surface p-3 transition hover:border-app-accent/30 hover:bg-app-accent/5 has-[:checked]:border-app-accent/40 has-[:checked]:bg-app-accent/10">
+                <input type="radio" name="is_active" value="1" {% if form.is_active|default(1) == 1 %}checked{% endif %} class="h-4 w-4 accent-[rgb(var(--app-accent))] outline-none focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-app-accent/20">
+                <span class="text-sm font-medium text-app-text">Active</span>
               </label>
-              <label class="dashboard-status-option flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-rose-300/30 hover:bg-rose-400/5 has-[:checked]:border-rose-400/40 has-[:checked]:bg-rose-400/10">
-                <input type="radio" name="is_active" value="0" {% if form.is_active|default(1) == 0 %}checked{% endif %} class="h-4 w-4 accent-cyan-400 outline-none focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-cyan-400/20">
-                <span class="text-sm font-medium text-slate-200">Disabled</span>
+              <label class="dashboard-status-option flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-app-border bg-app-surface p-3 transition hover:border-app-danger/30 hover:bg-app-danger/5 has-[:checked]:border-app-danger/40 has-[:checked]:bg-app-danger/10">
+                <input type="radio" name="is_active" value="0" {% if form.is_active|default(1) == 0 %}checked{% endif %} class="h-4 w-4 accent-[rgb(var(--app-accent))] outline-none focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-app-accent/20">
+                <span class="text-sm font-medium text-app-text">Disabled</span>
               </label>
             </div>
             {% if errors.is_active|default([])|length > 0 %}
@@ -153,10 +153,10 @@
 
       <div class="rounded-[1.25rem] border border-app-border bg-app-surface/80 p-6 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
         <div class="mb-5 flex items-center gap-2.5">
-          <svg class="h-5 w-5 shrink-0 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <svg class="h-5 w-5 shrink-0 text-app-accent" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
           </svg>
-          <h2 class="text-lg font-semibold text-slate-100">
+          <h2 class="text-lg font-semibold text-app-text">
             {% if is_edit %}Change Password{% else %}Set Password{% endif %}
           </h2>
         </div>
@@ -169,13 +169,13 @@
             {% else %}
               <p class="text-xs leading-5 text-app-muted">Minimum 8 characters with a mix of letters, numbers &amp; symbols.</p>
             {% endif %}
-            <button type="button" {{ ui().click('generatePassword()') }} class="inline-flex items-center gap-1.5 text-xs font-medium text-cyan-400 hover:text-cyan-300 transition">
+            <button type="button" {{ ui().click('generatePassword()') }} class="inline-flex items-center gap-1.5 text-xs font-medium text-app-accent hover:text-app-accent-soft transition">
               <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456Z" /></svg>
               Generate password
             </button>
             <div class="relative">
               <input
-                class="w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 pr-10 text-sm text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-300 outline-none transition focus:border-app-accent focus:ring-0 focus-visible:outline-none focus-visible:border-app-accent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-app-accent/20"
+                class="w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 pr-10 text-sm text-app-text placeholder:text-app-muted outline-none transition focus:border-app-accent focus:ring-0 focus-visible:outline-none focus-visible:border-app-accent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-app-accent/20"
                 id="password"
                 name="password"
                 {{ ui().bind('type', "showPassword ? 'text' : 'password'") }}
@@ -185,9 +185,9 @@
                 autocomplete="new-password"
               >
               <div class="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
-                <button type="button" {{ ui().click('copyPassword()') }} {{ ui().show('hasPassword') }} {{ ui().cloak() }} class="p-1.5 text-app-muted hover:text-cyan-400 transition" tabindex="-1" aria-label="Copy password" {{ ui().bind('title', "copied ? 'Copied!' : 'Copy password'") }}>
+                <button type="button" {{ ui().click('copyPassword()') }} {{ ui().show('hasPassword') }} {{ ui().cloak() }} class="p-1.5 text-app-muted hover:text-app-accent transition" tabindex="-1" aria-label="Copy password" {{ ui().bind('title', "copied ? 'Copied!' : 'Copy password'") }}>
                   <svg {{ ui().show('!copied') }} class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" /></svg>
-                  <svg {{ ui().show('copied') }} class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" {{ ui().cloak() }}><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                  <svg {{ ui().show('copied') }} class="h-4 w-4 text-app-success" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" {{ ui().cloak() }}><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                 </button>
                 <button type="button" {{ ui().click('showPassword = !showPassword') }} class="p-1.5 text-app-muted hover:text-app-text transition" tabindex="-1" aria-label="Toggle password visibility" title="Toggle password visibility">
                   <svg {{ ui().show('!showPassword') }} class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -202,21 +202,21 @@
             </div>
             <div {{ ui().show('hasPassword') }} {{ ui().cloak() }} class="mt-2 space-y-1.5">
               <div class="flex items-center justify-between gap-3">
-                <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
+                <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-app-border/30">
                   <div class="h-full rounded-full transition-all duration-300" {{ ui().bind('style', "'width: ' + (score * 20) + '%'") }} {{ ui().bind('class', 'strengthBar') }}></div>
                 </div>
                 <span class="text-xs font-medium" {{ ui().bind('class', 'strengthText') }} {{ ui().text('strengthLabel') }}></span>
               </div>
               <ul class="space-y-1">
-                <li class="flex items-center gap-1.5 text-xs" {{ ui().bind('class', "password.length >= 8 ? 'text-emerald-400' : 'text-app-muted'") }}>
+                <li class="flex items-center gap-1.5 text-xs" {{ ui().bind('class', "password.length >= 8 ? 'text-app-success' : 'text-app-muted'") }}>
                   <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                   At least 8 characters
                 </li>
-                <li class="flex items-center gap-1.5 text-xs" {{ ui().bind('class', "/[a-z]/.test(password) && /[A-Z]/.test(password) ? 'text-emerald-400' : 'text-app-muted'") }}>
+                <li class="flex items-center gap-1.5 text-xs" {{ ui().bind('class', "/[a-z]/.test(password) && /[A-Z]/.test(password) ? 'text-app-success' : 'text-app-muted'") }}>
                   <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                   Uppercase &amp; lowercase
                 </li>
-                <li class="flex items-center gap-1.5 text-xs" {{ ui().bind('class', "/\\d/.test(password) ? 'text-emerald-400' : 'text-app-muted'") }}>
+                <li class="flex items-center gap-1.5 text-xs" {{ ui().bind('class', "/\\d/.test(password) ? 'text-app-success' : 'text-app-muted'") }}>
                   <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                   At least one number
                 </li>
@@ -234,7 +234,7 @@
             <label class="text-[0.82rem] font-semibold text-app-text" for="password_confirmation">Confirm password</label>
             <div class="relative">
               <input
-                class="w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 pr-10 text-sm text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-300 outline-none transition focus:border-app-accent focus:ring-0 focus-visible:outline-none focus-visible:border-app-accent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-app-accent/20"
+                class="w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 pr-10 text-sm text-app-text placeholder:text-app-muted outline-none transition focus:border-app-accent focus:ring-0 focus-visible:outline-none focus-visible:border-app-accent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-app-accent/20"
                 id="password_confirmation"
                 name="password_confirmation"
                 {{ ui().bind('type', "showConfirm ? 'text' : 'password'") }}
@@ -264,7 +264,7 @@
       </div>
     </div>
 
-    <div class="flex items-center justify-end gap-3 rounded-xl border border-white/5 bg-white/[0.02] px-6 py-4">
+    <div class="flex items-center justify-end gap-3 rounded-xl border border-app-border bg-app-surface/60 px-6 py-4">
       <a href="/admin/users" class="{{ button_secondary }}">Cancel</a>
       <button type="submit" class="{{ button_primary }}">{{ submit_label }}</button>
     </div>
