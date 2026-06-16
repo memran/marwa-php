@@ -17,82 +17,59 @@ final class UserBulkActionController extends Controller
 
     public function delete(ServerRequestInterface $request): ResponseInterface
     {
-        /** @var list<string> $ids */
+        /** @var list<int|string> $ids */
         $ids = (array) ($request->getParsedBody()['ids'] ?? []);
-        $deleted = 0;
-        $skipped = 0;
+        $result = $this->users->bulkDelete($ids);
 
-        foreach ($ids as $id) {
-            $userId = (int) $id;
-            if ($userId <= 0) {
-                continue;
-            }
-
-            $user = $this->users->findById($userId);
-            if ($user === null || $this->users->isLastAdminUser($user)) {
-                $skipped++;
-                continue;
-            }
-
-            $this->users->deleteUser($user);
-            $deleted++;
-        }
-
-        $parts = [];
-        if ($deleted > 0) {
-            $parts[] = $deleted . ' user' . ($deleted !== 1 ? 's' : '') . ' deleted.';
-        }
-        if ($skipped > 0) {
-            $parts[] = $skipped . ' skipped (protected or not found).';
-        }
-
-        $this->flash('users.notice', implode(' ', $parts));
+        $this->flash('users.notice', $this->formatBulkNotice(
+            $result['deleted'],
+            $result['skipped'],
+            'deleted',
+            static fn (int $count): string => $count . ' user' . ($count !== 1 ? 's' : '') . ' deleted.',
+        ));
 
         return $this->redirect('/admin/users');
     }
 
     public function status(ServerRequestInterface $request): ResponseInterface
     {
-        /** @var list<string> $ids */
+        /** @var list<int|string> $ids */
         $ids = (array) ($request->getParsedBody()['ids'] ?? []);
         $status = strtolower(trim((string) ($request->getParsedBody()['bulk_status'] ?? '')));
 
         if (!in_array($status, ['active', 'disabled'], true)) {
             $this->flash('users.notice', 'Invalid status value.');
+
             return $this->redirect('/admin/users');
         }
 
-        $isActive = $status === 'active' ? 1 : 0;
-        $updated = 0;
-        $skipped = 0;
+        $result = $this->users->bulkStatus($ids, $status === 'active');
 
-        foreach ($ids as $id) {
-            $userId = (int) $id;
-            if ($userId <= 0) {
-                continue;
-            }
-
-            $user = $this->users->findById($userId);
-            if ($user === null || $this->users->isLastAdminUser($user)) {
-                $skipped++;
-                continue;
-            }
-
-            $user->setAttribute('is_active', $isActive);
-            $user->save();
-            $updated++;
-        }
-
-        $parts = [];
-        if ($updated > 0) {
-            $parts[] = $updated . ' user' . ($updated !== 1 ? 's' : '') . ' set to ' . $status . '.';
-        }
-        if ($skipped > 0) {
-            $parts[] = $skipped . ' skipped (protected or not found).';
-        }
-
-        $this->flash('users.notice', implode(' ', $parts));
+        $this->flash('users.notice', $this->formatBulkNotice(
+            $result['updated'],
+            $result['skipped'],
+            $status,
+            static fn (int $count): string => $count . ' user' . ($count !== 1 ? 's' : '') . ' set to ' . $status . '.',
+        ));
 
         return $this->redirect('/admin/users');
+    }
+
+    /**
+     * @param callable(int): string $successMessage
+     */
+    private function formatBulkNotice(int $successCount, int $skippedCount, string $context, callable $successMessage): string
+    {
+        $parts = [];
+
+        if ($successCount > 0) {
+            $parts[] = $successMessage($successCount);
+        }
+
+        if ($skippedCount > 0) {
+            $parts[] = $skippedCount . ' skipped (protected or not found).';
+        }
+
+        return implode(' ', $parts);
     }
 }

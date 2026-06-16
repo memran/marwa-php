@@ -19,8 +19,7 @@ final class UserDataTable
     public function __construct(
         private readonly UserRepository $users,
         private readonly AuthManager $auth,
-    ) {
-    }
+    ) {}
 
     public function make(ServerRequestInterface $request): DataTable
     {
@@ -206,5 +205,34 @@ final class UserDataTable
                 return (int) $user->getAttribute('is_active') === 1 ? 'Active' : 'Disabled';
             }),
         ];
+    }
+
+    /**
+     * @param list<string>|string $requested
+     * @return list<ExportColumn>
+     */
+    public function resolveExportColumns(array|string $requested): array
+    {
+        $keys = is_string($requested)
+            ? array_filter(array_map('trim', explode(',', $requested)), static fn (string $value): bool => $value !== '')
+            : $requested;
+
+        $allowed = [];
+        foreach ($this->exportColumns() as $column) {
+            $allowed[$column->key] = $column;
+        }
+
+        if ($keys === []) {
+            return array_values($allowed);
+        }
+
+        $visible = [];
+        foreach ($keys as $key) {
+            if (isset($allowed[$key])) {
+                $visible[] = $allowed[$key];
+            }
+        }
+
+        return $visible === [] ? array_values($allowed) : $visible;
     }
 }

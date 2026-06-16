@@ -14,14 +14,15 @@ final class UserIndexPage
     ) {}
 
     /**
-     * @return array{stats:array{total:int,active:int,disabled:int,trashed:int},table:\App\Support\Datatables\Contracts\DataTableResultInterface}
+     * @param array<string, mixed> $flash
+     * @return array{stats:array{total:int,active:int,disabled:int,trashed:int},table:\App\Support\Datatables\Contracts\DataTableResultInterface,notice:?string}
      */
-    public function viewData(ServerRequestInterface $request): array
+    public function viewData(ServerRequestInterface $request, array $flash = []): array
     {
         return [
             'stats' => $this->stats(),
             'table' => $this->userTable->make($request)->paginate(per_page())->result(),
-            'notice' => $this->consumeFlash('users.notice'),
+            'notice' => $flash['users.notice'] ?? null,
         ];
     }
 
@@ -30,35 +31,15 @@ final class UserIndexPage
      */
     private function stats(): array
     {
-        $users = User::collect();
-        $activeUsers = $users->filter(static fn (User $user): bool =>
-            trim((string) $user->getAttribute('deleted_at')) === '' && (int) $user->getAttribute('is_active') === 1
-        );
-        $disabledUsers = $users->filter(static fn (User $user): bool =>
-            trim((string) $user->getAttribute('deleted_at')) === '' && (int) $user->getAttribute('is_active') === 0
-        );
-        $trashedUsers = $users->filter(static fn (User $user): bool =>
-            trim((string) $user->getAttribute('deleted_at')) !== ''
-        );
+        $active = User::query()->where('is_active', '=', 1)->count();
+        $disabled = User::query()->where('is_active', '=', 0)->count();
+        $trashed = User::onlyTrashed()->count();
 
         return [
-            'total' => $activeUsers->count() + $disabledUsers->count(),
-            'active' => $activeUsers->count(),
-            'disabled' => $disabledUsers->count(),
-            'trashed' => $trashedUsers->count(),
+            'total' => $active + $disabled,
+            'active' => $active,
+            'disabled' => $disabled,
+            'trashed' => $trashed,
         ];
-    }
-
-    private function consumeFlash(string $key): ?string
-    {
-        $value = session()->get($key);
-
-        if (!is_string($value) || $value === '') {
-            return null;
-        }
-
-        session()->forget($key);
-
-        return $value;
     }
 }

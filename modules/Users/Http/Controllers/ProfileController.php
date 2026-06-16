@@ -7,6 +7,7 @@ namespace App\Modules\Users\Http\Controllers;
 use App\Modules\Activity\Support\ActivityTimeline;
 use App\Modules\Auth\Contracts\AdminAuthenticatableInterface;
 use App\Modules\Auth\Support\AuthManager;
+use App\Modules\Users\Support\UserPasswordRules;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -16,6 +17,7 @@ final class ProfileController extends Controller
     public function __construct(
         private readonly AuthManager $auth,
         private readonly ActivityTimeline $activities,
+        private readonly UserPasswordRules $passwordRules,
     ) {}
 
     public function show(ServerRequestInterface $request): ResponseInterface
@@ -58,28 +60,10 @@ final class ProfileController extends Controller
         $body = $request->getParsedBody();
         $input = is_array($body) ? $body : [];
 
-        $currentPassword = trim((string) ($input['current_password'] ?? ''));
-        $newPassword = trim((string) ($input['new_password'] ?? ''));
-        $newPasswordConfirmation = trim((string) ($input['new_password_confirmation'] ?? ''));
+        $errors = $this->passwordRules->validateProfilePassword($input);
 
-        $errors = [];
-
-        if ($currentPassword === '') {
-            $errors['current_password'][] = 'Your current password is required.';
-        } elseif (!password_verify($currentPassword, (string) $user->getPasswordHash())) {
+        if ($errors === [] && !$this->currentPasswordMatches($user, $input)) {
             $errors['current_password'][] = 'The current password you entered is incorrect.';
-        }
-
-        if ($newPassword === '') {
-            $errors['new_password'][] = 'The new password field is required.';
-        } elseif (mb_strlen($newPassword) < 8) {
-            $errors['new_password'][] = 'The new password must be at least 8 characters.';
-        }
-
-        if ($newPasswordConfirmation === '') {
-            $errors['new_password_confirmation'][] = 'Please confirm your new password.';
-        } elseif ($newPassword !== '' && $newPassword !== $newPasswordConfirmation) {
-            $errors['new_password_confirmation'][] = 'The new password confirmation does not match.';
         }
 
         if ($errors !== []) {
@@ -88,11 +72,26 @@ final class ProfileController extends Controller
             return $this->redirect('/admin/profile');
         }
 
+        $newPassword = trim((string) ($input['new_password'] ?? ''));
         $user->updatePasswordHash(password_hash($newPassword, PASSWORD_DEFAULT));
 
         $this->flash('users.notice', 'Password updated successfully.');
 
         return $this->redirect('/admin/profile');
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     */
+    private function currentPasswordMatches(AdminAuthenticatableInterface $user, array $input): bool
+    {
+        $currentPassword = trim((string) ($input['current_password'] ?? ''));
+
+        if ($currentPassword === '') {
+            return false;
+        }
+
+        return password_verify($currentPassword, (string) $user->getPasswordHash());
     }
 
 }

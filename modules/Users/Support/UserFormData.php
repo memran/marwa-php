@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace App\Modules\Users\Support;
 
 use App\Modules\Users\Models\User;
+use Marwa\Framework\Validation\RequestValidator;
+use Marwa\Support\Validation\ValidationException;
 use Psr\Http\Message\ServerRequestInterface;
 
 final class UserFormData
 {
     public function __construct(
         private readonly UserRepository $users,
-    ) {
-    }
+        private readonly UserPasswordRules $passwordRules,
+    ) {}
 
     /**
      * @param array{mode:string,title:string,action:string,submit_label:string,user:?User} $extra
@@ -83,41 +85,52 @@ final class UserFormData
      */
     public function validate(array $payload, ?User $user = null): array
     {
-        $errors = [];
-
-        if ($payload['name'] === '') {
-            $errors['name'][] = 'The name field is required.';
-        } elseif (mb_strlen($payload['name']) > 120) {
-            $errors['name'][] = 'The name must not exceed 120 characters.';
-        }
-
-        if ($payload['email'] === '') {
-            $errors['email'][] = 'The email field is required.';
-        } elseif (filter_var($payload['email'], FILTER_VALIDATE_EMAIL) === false) {
-            $errors['email'][] = 'The email must be a valid email address.';
-        } else {
-            $ignoreId = $user instanceof User ? (int) $user->getKey() : null;
-            if ($this->users->isDuplicateEmail($payload['email'], $ignoreId)) {
-                $errors['email'][] = 'The email has already been taken.';
-            }
-        }
-
-        if ($payload['role_id'] <= 0) {
-            $errors['role_id'][] = 'The role field is required.';
-        }
-
         $isEdit = $user instanceof User;
-        $password = $payload['password'];
+        $errors = $this->runStandardValidation($payload);
 
-        if (!$isEdit && $password === '') {
-            $errors['password'][] = 'The password field is required.';
-        } elseif ($password !== '' && mb_strlen($password) < 8) {
-            $errors['password'][] = 'The password must be at least 8 characters.';
-        } elseif ($password !== '' && $password !== $payload['password_confirmation']) {
-            $errors['password_confirmation'][] = 'The password confirmation does not match.';
+        if (!isset($errors['email']) && $this->isDuplicateEmail($payload['email'], $user)) {
+            $errors['email'][] = 'The email has already been taken.';
         }
 
-        return $errors;
+        $passwordErrors = $this->passwordRules->validateUserFormPassword($payload, $isEdit);
+
+        return array_merge($errors, $passwordErrors);
+    }
+
+    /**
+     * @param array{name:string,email:string,role_id:int,is_active:int,password:string,password_confirmation:string} $payload
+     * @return array<string, array<int, string>>
+     */
+    private function runStandardValidation(array $payload): array
+    {
+        $rules = [
+            'name' => 'required|string|max:120',
+            'email' => 'required|email',
+            'role_id' => 'integer|min:1',
+        ];
+
+        $messages = [
+            'name.required' => 'The name field is required.',
+            'name.max' => 'The name must not exceed 120 characters.',
+            'email.required' => 'The email field is required.',
+            'email.email' => 'The email must be a valid email address.',
+            'role_id.min' => 'The role field is required.',
+        ];
+
+        try {
+            (new RequestValidator())->validateInput($payload, $rules, $messages);
+        } catch (ValidationException $e) {
+            return $e->errors()->all();
+        }
+
+        return [];
+    }
+
+    private function isDuplicateEmail(string $email, ?User $user): bool
+    {
+        $ignoreId = $user instanceof User ? (int) $user->getKey() : null;
+
+        return $this->users->isDuplicateEmail($email, $ignoreId);
     }
 
     private function attr(?User $user, string $key, mixed $default): mixed

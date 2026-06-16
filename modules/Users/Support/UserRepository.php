@@ -58,6 +58,63 @@ final class UserRepository
         $user->restore();
     }
 
+    /**
+     * @param list<int|string> $ids
+     * @return array{deleted:int, skipped:int}
+     */
+    public function bulkDelete(array $ids): array
+    {
+        $deleted = 0;
+        $skipped = 0;
+
+        foreach ($ids as $id) {
+            $userId = (int) $id;
+            if ($userId <= 0) {
+                continue;
+            }
+
+            $user = $this->findById($userId);
+            if ($user === null || $this->isLastAdminUser($user)) {
+                $skipped++;
+                continue;
+            }
+
+            $this->deleteUser($user);
+            $deleted++;
+        }
+
+        return ['deleted' => $deleted, 'skipped' => $skipped];
+    }
+
+    /**
+     * @param list<int|string> $ids
+     * @return array{updated:int, skipped:int}
+     */
+    public function bulkStatus(array $ids, bool $isActive): array
+    {
+        $updated = 0;
+        $skipped = 0;
+
+        foreach ($ids as $id) {
+            $userId = (int) $id;
+            if ($userId <= 0) {
+                continue;
+            }
+
+            $user = $this->findById($userId);
+            if ($user === null || $this->isLastAdminUser($user)) {
+                $skipped++;
+                continue;
+            }
+
+            $user->setAttribute('is_active', $isActive ? 1 : 0);
+            $user->save();
+            $updated++;
+        }
+
+        return ['updated' => $updated, 'skipped' => $skipped];
+    }
+
     public function isDuplicateEmail(string $email, ?int $ignoreId = null): bool
     {
         $email = User::normalizeEmail($email);
