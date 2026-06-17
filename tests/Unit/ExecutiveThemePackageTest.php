@@ -38,9 +38,9 @@ final class ExecutiveThemePackageTest extends TestCase
         $layout = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/layouts/auth.twig');
 
         self::assertIsString($layout);
-        self::assertStringContainsString('Built for teams that ship.', $layout);
         self::assertStringContainsString('marwa-admin-theme', $layout);
-        self::assertStringContainsString('lg:grid-cols-[1.05fr_0.95fr]', $layout);
+        self::assertStringContainsString('Secure executive access. Authorized personnel only.', $layout);
+        self::assertStringContainsString('bg-app-surface/70', $layout);
     }
 
     public function testExecutiveHeadLoadsTheInterFont(): void
@@ -72,5 +72,16 @@ final class ExecutiveThemePackageTest extends TestCase
         self::assertStringContainsString('block header', $card);
         self::assertStringContainsString('block body', $card);
         self::assertStringContainsString('block footer', $card);
+    }
+
+    public function testExecutiveDashboardWidgetsUseThemeAwareSurfaces(): void
+    {
+        $widgets = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/components/dashboard-widgets.twig');
+
+        self::assertIsString($widgets);
+        self::assertStringContainsString('widget-content mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4', $widgets);
+        self::assertStringContainsString('rounded-2xl border border-slate-200 bg-slate-50 p-4', $widgets);
+        self::assertStringNotContainsString('bg-slate-50/70', $widgets);
+        self::assertStringNotContainsString('border-slate-100', $widgets);
     }
 }
