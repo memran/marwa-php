@@ -72,6 +72,25 @@ final class ThemeErrorRendererTest extends TestCase
         self::assertStringContainsString('Reference ID', $adminHtml);
     }
 
+    public function testRendersAdminDebugTraceWhenDebugIsEnabled(): void
+    {
+        $app = new Application($this->basePath);
+        $GLOBALS['marwa_app'] = $app;
+        $app->make(AppBootstrapper::class)->bootstrap();
+
+        $renderer = new ThemeErrorRenderer();
+        $exception = new RuntimeException('Database connection failed');
+
+        View::theme('admin');
+        ob_start();
+        $renderer->renderException($exception, 'Marwa Starter', true);
+        $adminHtml = (string) ob_get_clean();
+
+        self::assertStringContainsString('RuntimeException', $adminHtml);
+        self::assertStringContainsString('Database connection failed', $adminHtml);
+        self::assertStringContainsString('Trace', $adminHtml);
+    }
+
     private function copyDirectory(string $source, string $destination): void
     {
         if (!is_dir($destination)) {

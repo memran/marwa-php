@@ -200,7 +200,7 @@
     <section class="hero">
       <p class="eyebrow">{{ app_name|default('MarwaPHP Admin') }}</p>
       <h1>Something broke on our side.</h1>
-      <p class="lede">The admin console hit an unexpected error. Please try again in a moment. If the issue persists, share the reference ID with support.</p>
+      <p class="lede">The Admin console hit an unexpected error. Please try again in a moment. If the issue persists, share the reference ID with support.</p>
     </section>
 
     <section class="content">
@@ -227,12 +227,12 @@
         </div>
       {% endif %}
 
-      {% if traces is defined and traces %}
+      {% if trace is defined and trace %}
         <div>
           <p class="meta-label">Trace</p>
           <ul class="trace">
-            {% for trace in traces %}
-              <li>{{ trace }}</li>
+            {% for frame in trace %}
+              <li>#{{ loop.index0 }} {{ frame.call }} @ {{ frame.file }}:{{ frame.line }}</li>
             {% endfor %}
           </ul>
         </div>
