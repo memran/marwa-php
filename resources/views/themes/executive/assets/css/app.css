@@ -260,6 +260,71 @@
     border-color: rgb(var(--app-accent) / 0.22) !important;
   }
 
+  /* Executive shell controls live outside .admin-content and need their own token bridge. */
+  .admin-theme.executive-theme .admin-topbar .bg-white,
+  .admin-theme.executive-theme .admin-topbar .bg-white\/95,
+  .admin-theme.executive-theme .admin-topbar .bg-slate-50,
+  .admin-theme.executive-theme .admin-topbar .bg-slate-100,
+  .admin-theme.executive-theme footer .bg-white,
+  .admin-theme.executive-theme footer .bg-slate-100 {
+    background-color: rgb(var(--app-surface)) !important;
+    background-image: none !important;
+  }
+
+  .admin-theme.executive-theme .admin-topbar .text-slate-950,
+  .admin-theme.executive-theme .admin-topbar .text-slate-900,
+  .admin-theme.executive-theme .admin-topbar .text-slate-700,
+  .admin-theme.executive-theme .admin-topbar .text-white,
+  .admin-theme.executive-theme footer .text-slate-950,
+  .admin-theme.executive-theme footer .text-slate-900,
+  .admin-theme.executive-theme footer .text-slate-700,
+  .admin-theme.executive-theme footer .text-white {
+    color: rgb(var(--app-text)) !important;
+  }
+
+  .admin-theme.executive-theme .admin-topbar .text-slate-600,
+  .admin-theme.executive-theme .admin-topbar .text-slate-500,
+  .admin-theme.executive-theme .admin-topbar .text-slate-400,
+  .admin-theme.executive-theme footer .text-slate-600,
+  .admin-theme.executive-theme footer .text-slate-500,
+  .admin-theme.executive-theme footer .text-slate-400 {
+    color: rgb(var(--app-muted)) !important;
+  }
+
+  .admin-theme.executive-theme .admin-topbar .border-slate-100,
+  .admin-theme.executive-theme .admin-topbar .border-slate-200,
+  .admin-theme.executive-theme .admin-topbar .border-slate-300,
+  .admin-theme.executive-theme footer .border-slate-100,
+  .admin-theme.executive-theme footer .border-slate-200,
+  .admin-theme.executive-theme footer .border-slate-300,
+  .admin-theme.executive-theme footer .border-white {
+    border-color: rgb(var(--app-border) / 0.75) !important;
+  }
+
+  .admin-theme.executive-theme .admin-topbar .bg-blue-50 {
+    background-color: rgb(var(--app-accent) / 0.12) !important;
+  }
+
+  .admin-theme.executive-theme .admin-topbar .text-blue-600 {
+    color: rgb(var(--app-accent)) !important;
+  }
+
+  .admin-theme.executive-theme .admin-topbar .hover\:bg-slate-50:hover,
+  .admin-theme.executive-theme .admin-topbar .hover\:bg-slate-100:hover,
+  .admin-theme.executive-theme .admin-topbar .hover\:bg-slate-200:hover,
+  .admin-theme.executive-theme footer .hover\:bg-slate-50:hover,
+  .admin-theme.executive-theme footer .hover\:bg-slate-100:hover,
+  .admin-theme.executive-theme footer .hover\:bg-slate-200:hover {
+    background-color: rgb(var(--app-surface-2)) !important;
+  }
+
+  .admin-theme.executive-theme .admin-topbar .hover\:text-slate-900:hover,
+  .admin-theme.executive-theme .admin-topbar .hover\:text-slate-950:hover,
+  .admin-theme.executive-theme footer .hover\:text-slate-900:hover,
+  .admin-theme.executive-theme footer .hover\:text-slate-950:hover {
+    color: rgb(var(--app-text)) !important;
+  }
+
   .admin-theme.executive-theme .theme-button,
   .admin-theme.executive-theme .theme-icon-button {
     border-radius: 1rem;
