@@ -158,27 +158,3 @@
     text-align: center;
     color: var(--color-muted);
 }
-
-.theme-breadcrumb__list {
-    list-style: none;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0;
-    margin: 0 0 1rem;
-}
-
-.theme-breadcrumb__item::after {
-    content: "/";
-    margin-left: 0.5rem;
-    color: var(--color-muted);
-}
-
-.theme-breadcrumb__item:last-child::after {
-    content: "";
-}
-
-.theme-breadcrumb__item a {
-    color: var(--color-primary);
-    text-decoration: none;
-}

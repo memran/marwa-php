@@ -29,4 +29,14 @@ final class AdminBreadcrumbsTest extends TestCase
             ['label' => 'Settings', 'url' => '/admin/settings', 'active' => true],
         ], $crumbs);
     }
+
+    public function testItDeduplicatesConsecutiveBreadcrumbLabels(): void
+    {
+        $crumbs = AdminBreadcrumbs::fromRequestPath('/admin/settings/settings');
+
+        self::assertSame([
+            ['label' => 'Dashboard', 'url' => '/admin', 'active' => false],
+            ['label' => 'Settings', 'url' => '/admin/settings', 'active' => true],
+        ], $crumbs);
+    }
 }

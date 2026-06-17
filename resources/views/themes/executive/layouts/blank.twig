@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light dark">
-  <title>{% block title %}Executive{% endblock %}</title>
   {% include 'partials/head.twig' %}
+  <title>{% block title %}Executive{% endblock %}</title>
+  <script>
+    (function() {
+      var theme = localStorage.getItem('marwa-admin-theme');
+      var preferred = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      var finalTheme = (theme === 'light' || theme === 'dark') ? theme : preferred;
+      document.documentElement.dataset.adminTheme = finalTheme;
+      document.documentElement.style.colorScheme = finalTheme;
+    })();
+  </script>
   {% block styles %}{% endblock %}
 </head>
 <body class="admin-theme executive-theme min-h-screen bg-app-bg text-app-text antialiased">

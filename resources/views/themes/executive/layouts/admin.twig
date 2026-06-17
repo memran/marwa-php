@@ -1,11 +1,8 @@
 <!DOCTYPE html>
 <html lang="en" x-data="adminTheme()">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
+  {% include 'partials/head.twig' %}
   <title>{% block title %}Executive{% endblock %}</title>
-  <meta name="description" content="Executive admin theme for MarwaPHP.">
   <script>
     (function() {
       var theme = localStorage.getItem('marwa-admin-theme');
@@ -15,7 +12,6 @@
       document.documentElement.style.colorScheme = finalTheme;
     })();
   </script>
-  <script defer src="{{ theme_asset('assets/js/dashboard.js') }}"></script>
   <script>
     document.addEventListener('alpine:init', function() {
       Alpine.data('adminTheme', function() {
@@ -39,8 +35,6 @@
       });
     });
   </script>
-  <script defer src="{{ theme_asset('assets/js/alpine.min.js') }}"></script>
-  <link rel="stylesheet" href="{{ theme_asset('css/app.css') }}">
   {% block styles %}{% endblock %}
 </head>
 <body class="admin-theme executive-theme min-h-screen bg-app-bg text-app-text antialiased" @close-mobile.window="closeMobile()">

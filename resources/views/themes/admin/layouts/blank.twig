@@ -1,12 +1,21 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="admin">
+<html lang="en">
 <head>
     {% include 'partials/head.twig' %}
     <title>{% block title %}Admin Default{% endblock %}</title>
     {% block styles %}{% endblock %}
+    <script>
+        (function() {
+            var theme = localStorage.getItem('marwa-admin-theme');
+            var preferred = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+            var finalTheme = (theme === 'light' || theme === 'dark') ? theme : preferred;
+            document.documentElement.dataset.adminTheme = finalTheme;
+            document.documentElement.style.colorScheme = finalTheme;
+        })();
+    </script>
 </head>
-<body class="theme-admin theme-admin--blank">
-    <main class="theme-blank">
+<body class="admin-theme min-h-screen bg-app-bg text-app-text antialiased">
+    <main class="theme-blank min-h-screen">
         {% block content %}{% endblock %}
     </main>
 

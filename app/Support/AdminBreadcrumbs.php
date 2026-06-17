@@ -56,7 +56,7 @@ final class AdminBreadcrumbs
         if ($pageLabel === null || $pageLabel === $module['module']) {
             $trail[array_key_last($trail)]['active'] = true;
 
-            return $trail;
+            return self::normalizeTrail($trail);
         }
 
         $trail[array_key_last($trail)]['active'] = false;
@@ -66,7 +66,37 @@ final class AdminBreadcrumbs
             'active' => true,
         ];
 
-        return $trail;
+        return self::normalizeTrail($trail);
+    }
+
+    /**
+     * @param list<array{label:string,url:?string,active:bool}> $trail
+     * @return list<array{label:string,url:?string,active:bool}>
+     */
+    private static function normalizeTrail(array $trail): array
+    {
+        $normalized = [];
+
+        foreach ($trail as $item) {
+            $lastIndex = array_key_last($normalized);
+
+            if (
+                $lastIndex !== null
+                && strcasecmp($normalized[$lastIndex]['label'], $item['label']) === 0
+            ) {
+                $normalized[$lastIndex] = [
+                    'label' => $normalized[$lastIndex]['label'],
+                    'url' => $item['url'] ?? $normalized[$lastIndex]['url'],
+                    'active' => (bool) ($normalized[$lastIndex]['active'] || $item['active']),
+                ];
+
+                continue;
+            }
+
+            $normalized[] = $item;
+        }
+
+        return $normalized;
     }
 
     /**

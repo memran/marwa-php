@@ -10,10 +10,16 @@ final class ExecutiveThemeAssetContractTest extends TestCase
 {
     public function testExecutiveHeadLoadsTheAppCssBundle(): void
     {
+        $layout = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/layouts/admin.twig');
         $head = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/partials/head.twig');
 
+        self::assertIsString($layout);
         self::assertIsString($head);
+        self::assertStringContainsString("{% include 'partials/head.twig' %}", $layout);
         self::assertStringContainsString("theme_asset('css/app.css')", $head);
+        self::assertStringContainsString("theme_asset('css/variables.css')", $head);
+        self::assertStringContainsString("theme_asset('css/layout.css')", $head);
+        self::assertStringContainsString("theme_asset('css/components.css')", $head);
     }
 
     public function testExecutiveThemeUsesTheExecutivePaletteAndDashboardContract(): void
@@ -42,6 +48,31 @@ final class ExecutiveThemeAssetContractTest extends TestCase
         self::assertIsString($scripts);
         self::assertStringContainsString("theme_asset('assets/js/dashboard.js')", $scripts);
         self::assertStringContainsString("theme_asset('assets/js/alpine.min.js')", $scripts);
+    }
+
+    public function testExecutiveLayoutsUseSharedPartialsWithoutDuplicateRuntimeTags(): void
+    {
+        $adminLayout = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/layouts/admin.twig');
+        $authLayout = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/layouts/auth.twig');
+        $blankLayout = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/layouts/blank.twig');
+
+        self::assertIsString($adminLayout);
+        self::assertIsString($authLayout);
+        self::assertIsString($blankLayout);
+
+        self::assertStringContainsString("{% include 'partials/head.twig' %}", $adminLayout);
+        self::assertStringContainsString("{% include 'partials/scripts.twig' %}", $adminLayout);
+        self::assertStringNotContainsString("theme_asset('assets/js/dashboard.js')", $adminLayout);
+        self::assertStringNotContainsString("theme_asset('assets/js/alpine.min.js')", $adminLayout);
+        self::assertStringNotContainsString("theme_asset('css/app.css')", $adminLayout);
+
+        self::assertStringContainsString("{% include 'partials/head.twig' %}", $authLayout);
+        self::assertStringContainsString("{% include 'partials/scripts.twig' %}", $authLayout);
+
+        self::assertStringContainsString("{% include 'partials/head.twig' %}", $blankLayout);
+        self::assertStringContainsString("{% include 'partials/scripts.twig' %}", $blankLayout);
+        self::assertStringContainsString('document.documentElement.dataset.adminTheme = finalTheme;', $blankLayout);
+        self::assertStringContainsString('class="admin-theme executive-theme min-h-screen bg-app-bg text-app-text antialiased"', $blankLayout);
     }
 
     public function testExecutiveLayoutUsesTheAdminThemeShell(): void
