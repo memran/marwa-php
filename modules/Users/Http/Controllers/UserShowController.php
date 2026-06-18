@@ -22,7 +22,7 @@ final class UserShowController extends Controller
      */
     public function show(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        $user = $this->users->findById((int) ($vars['id'] ?? 0));
+        $user = $this->users->findByIdWithRolePermissions((int) ($vars['id'] ?? 0));
 
         if ($user === null) {
             return $this->redirect('/admin/users');

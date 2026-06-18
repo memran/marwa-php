@@ -6,8 +6,9 @@ namespace App\Modules\Roles\Http\Controllers;
 
 use App\Modules\Auth\Support\RoleRepository;
 use App\Modules\Roles\Support\RoleActivityLogger;
-use App\Modules\Roles\Support\RoleDataTable;
 use App\Modules\Roles\Support\RoleFormData;
+use App\Modules\Roles\Support\RoleIndexPage;
+use App\Modules\Roles\Support\RoleModuleNotice;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -17,18 +18,14 @@ final class RolesController extends Controller
     public function __construct(
         private readonly RoleRepository $roles,
         private readonly RoleFormData $roleForms,
-        private readonly RoleDataTable $roleTable,
+        private readonly RoleIndexPage $indexPage,
         private readonly RoleActivityLogger $activity,
+        private readonly RoleModuleNotice $notice,
     ) {}
 
     public function index(ServerRequestInterface $request): ResponseInterface
     {
-        $notice = $this->consumeFlash('roles.notice');
-
-        return $this->view('@roles/index', [
-            'table' => $this->roleTable->make($request)->paginate(per_page())->result(),
-            'notice' => $notice,
-        ]);
+        return $this->view('@roles/index', $this->indexPage->viewData($request));
     }
 
     public function create(ServerRequestInterface $request, array $vars = []): ResponseInterface
@@ -45,16 +42,11 @@ final class RolesController extends Controller
 
     public function store(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        $payload = $this->roleForms->payload();
-        $errors = $this->roleForms->validate($payload);
-
-        if ($errors !== []) {
-            $this->withErrors($errors)->withInput($payload);
-            return $this->redirect('/admin/roles/create');
-        }
+        $validated = $this->validate($this->roleForms->rules(), $this->roleForms->messages(), request: $request);
+        $payload = $this->roleForms->normalize($validated, $this->input('permissions', []));
 
         if ($this->roles->hasSlug($payload['slug'])) {
-            $this->withErrors(['slug' => ['The slug has already been taken.']])->withInput($payload);
+            $this->withErrors(['slug' => ['The slug has already been taken.']])->withInput();
             return $this->redirect('/admin/roles/create');
         }
 
@@ -68,7 +60,7 @@ final class RolesController extends Controller
         $this->roles->syncPermissions((int) $role->getKey(), $payload['permissions']);
         $this->activity->refreshPolicy();
         $this->activity->roleCreated($role, $payload);
-        session()->flash('roles.notice', 'Role created successfully.');
+        $this->notice->flash('roles.notice', 'Role created successfully.');
 
         return $this->redirect('/admin/roles');
     }
@@ -78,7 +70,7 @@ final class RolesController extends Controller
         $id = (int) ($vars['id'] ?? 0);
         $role = $this->roles->findById($id);
         if ($role === null) {
-            session()->flash('roles.notice', 'Role not found.');
+            $this->notice->flash('roles.notice', 'Role not found.');
             return $this->redirect('/admin/roles');
         }
 
@@ -97,20 +89,21 @@ final class RolesController extends Controller
         $id = (int) ($vars['id'] ?? 0);
         $role = $this->roles->findById($id);
         if ($role === null) {
-            session()->flash('roles.notice', 'Role not found.');
+            $this->notice->flash('roles.notice', 'Role not found.');
             return $this->redirect('/admin/roles');
         }
 
-        $payload = $this->roleForms->payload();
-        $errors = $this->roleForms->validate($payload, $role);
+        $validated = $this->validate($this->roleForms->rules(), $this->roleForms->messages(), request: $request);
+        $payload = $this->roleForms->normalize($validated, $this->input('permissions', []));
+        $reservedSlugError = $this->roleForms->reservedSlugError($payload, $role);
 
-        if ($errors !== []) {
-            $this->withErrors($errors)->withInput($payload);
+        if ($reservedSlugError !== null) {
+            $this->withErrors(['slug' => [$reservedSlugError]])->withInput();
             return $this->redirect('/admin/roles/' . $id . '/edit');
         }
 
         if ($this->roles->hasSlug($payload['slug'], $id)) {
-            $this->withErrors(['slug' => ['The slug has already been taken.']])->withInput($payload);
+            $this->withErrors(['slug' => ['The slug has already been taken.']])->withInput();
             return $this->redirect('/admin/roles/' . $id . '/edit');
         }
 
@@ -123,7 +116,7 @@ final class RolesController extends Controller
         $this->roles->syncPermissions($id, $payload['permissions']);
         $this->activity->refreshPolicy();
         $this->activity->roleUpdated($role, $payload);
-        session()->flash('roles.notice', 'Role updated successfully.');
+        $this->notice->flash('roles.notice', 'Role updated successfully.');
 
         return $this->redirect('/admin/roles');
     }
@@ -133,17 +126,17 @@ final class RolesController extends Controller
         $id = (int) ($vars['id'] ?? 0);
         $role = $this->roles->findById($id);
         if ($role === null) {
-            session()->flash('roles.notice', 'Role not found.');
+            $this->notice->flash('roles.notice', 'Role not found.');
             return $this->redirect('/admin/roles');
         }
 
         if ($role->getAttribute('is_system')) {
-            session()->flash('roles.notice', 'Cannot delete a system role.');
+            $this->notice->flash('roles.notice', 'Cannot delete a system role.');
             return $this->redirect('/admin/roles');
         }
 
         if ($this->roles->countUsers($id) > 0) {
-            session()->flash('roles.notice', 'This role is still assigned to users and cannot be deleted.');
+            $this->notice->flash('roles.notice', 'This role is still assigned to users and cannot be deleted.');
             return $this->redirect('/admin/roles');
         }
 
@@ -151,21 +144,8 @@ final class RolesController extends Controller
         $this->roles->delete($id);
         $this->activity->refreshPolicy();
         $this->activity->roleDeleted($id, $state);
-        session()->flash('roles.notice', 'Role deleted successfully.');
+        $this->notice->flash('roles.notice', 'Role deleted successfully.');
 
         return $this->redirect('/admin/roles');
-    }
-
-    private function consumeFlash(string $key): ?string
-    {
-        $value = $this->session($key);
-
-        if (!is_string($value) || $value === '') {
-            return null;
-        }
-
-        session()->forget($key);
-
-        return $value;
     }
 }

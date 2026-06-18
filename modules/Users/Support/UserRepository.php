@@ -20,6 +20,17 @@ final class UserRepository
         return $builder->with('roleRelation')->whereKey($id)->first();
     }
 
+    public function findByIdWithRolePermissions(int $id, bool $includeTrashed = false): ?User
+    {
+        if ($id <= 0) {
+            return null;
+        }
+
+        $builder = $includeTrashed ? User::withTrashed() : User::query();
+
+        return $builder->with('roleRelation', 'roleRelation.permissionsRelation')->whereKey($id)->first();
+    }
+
     public function createUser(array $data): User
     {
         $state = $this->normalizeUserState($data);

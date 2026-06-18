@@ -19,11 +19,11 @@ final class UserStoreController extends Controller
 
     public function store(ServerRequestInterface $request): ResponseInterface
     {
-        $payload = $this->forms->payload($request);
-        $errors = $this->forms->validate($payload);
+        $validated = $this->validate($this->forms->rules(), $this->forms->messages(), request: $request);
+        $payload = $this->forms->normalize($validated);
 
-        if ($errors !== []) {
-            $this->withErrors($errors)->withInput($payload);
+        if (($duplicateEmailError = $this->forms->duplicateEmailError($payload['email'])) !== null) {
+            $this->withErrors(['email' => [$duplicateEmailError]])->withInput();
 
             return $this->redirect('/admin/users/create');
         }

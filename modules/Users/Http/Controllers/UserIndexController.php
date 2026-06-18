@@ -17,11 +17,6 @@ final class UserIndexController extends Controller
 
     public function index(ServerRequestInterface $request): ResponseInterface
     {
-        $notice = $this->session('users.notice');
-        session()->forget('users.notice');
-
-        return $this->view('@users/index', $this->indexPage->viewData($request, [
-            'users.notice' => is_string($notice) && $notice !== '' ? $notice : null,
-        ]));
+        return $this->view('@users/index', $this->indexPage->viewData($request));
     }
 }

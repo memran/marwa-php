@@ -33,6 +33,11 @@ final class PermissionRepository
         return Permission::findBy('slug', $slug);
     }
 
+    public function count(): int
+    {
+        return (int) Permission::query()->count();
+    }
+
     /**
      * @param array<string, mixed> $data
      */

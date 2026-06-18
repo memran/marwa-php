@@ -24,9 +24,11 @@ final class AuthController extends Controller
             return $this->redirect('/admin/');
         }
 
-        return $this->view('@auth/login', $this->sharedViewData([
+        return $this->view('login', [
+            'errors' => session('errors', []),
+            'old' => session('_old_input', []),
             'notice' => session('auth.notice'),
-        ]));
+        ]);
     }
 
     public function authenticate(): ResponseInterface
@@ -60,9 +62,11 @@ final class AuthController extends Controller
 
     public function forgotPassword(): ResponseInterface
     {
-        return $this->view('@auth/forgot-password', $this->sharedViewData([
+        return $this->view('forgot-password', [
+            'errors' => session('errors', []),
+            'old' => session('_old_input', []),
             'notice' => session('auth.notice'),
-        ]));
+        ]);
     }
 
     public function sendForgotPasswordLink(): ResponseInterface
@@ -96,11 +100,13 @@ final class AuthController extends Controller
     {
         $token = $this->resolveResetToken($request, $vars);
 
-        return $this->view('@auth/reset-password', $this->sharedViewData([
+        return $this->view('reset-password', [
+            'errors' => session('errors', []),
+            'old' => session('_old_input', []),
             'token' => $token,
             'notice' => session('auth.notice'),
             'recovery_link' => session('auth.recovery_link'),
-        ]));
+        ]);
     }
 
     /**
@@ -136,18 +142,6 @@ final class AuthController extends Controller
         $this->flash('auth.notice', 'Signed out successfully.');
 
         return $this->redirect('/admin/login');
-    }
-
-    /**
-     * @param array<string, mixed> $extra
-     * @return array<string, mixed>
-     */
-    private function sharedViewData(array $extra = []): array
-    {
-        return array_replace([
-            'errors' => session('errors', []),
-            'old' => session('_old_input', []),
-        ], $extra);
     }
 
     /**

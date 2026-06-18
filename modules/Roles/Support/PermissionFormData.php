@@ -54,14 +54,39 @@ final class PermissionFormData
     }
 
     /**
+     * @return array<string, string>
+     */
+    public function rules(): array
+    {
+        return [
+            'name' => 'trim|required|string|max:120',
+            'slug' => 'trim|string|max:120',
+            'group' => 'trim|required|string|max:120',
+            'description' => 'trim|string',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'The name field is required.',
+            'name.max' => 'The name must not exceed 120 characters.',
+            'group.required' => 'The group field is required.',
+            'group.max' => 'The group must not exceed 120 characters.',
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $validated
      * @return array{name:string,slug:string,group:string,description:string}
      */
-    public function payload(): array
+    public function normalize(array $validated): array
     {
-        $name = trim((string) request('name', ''));
-        $slug = trim((string) request('slug', ''));
-        $group = trim((string) request('group', ''));
-        $description = trim((string) request('description', ''));
+        $name = trim((string) ($validated['name'] ?? ''));
+        $slug = trim((string) ($validated['slug'] ?? ''));
 
         if ($slug === '') {
             $slug = $this->slugger->slugify($name, 'custom-permission');
@@ -70,32 +95,8 @@ final class PermissionFormData
         return [
             'name' => $name,
             'slug' => $slug,
-            'group' => $group,
-            'description' => $description,
+            'group' => trim((string) ($validated['group'] ?? '')),
+            'description' => trim((string) ($validated['description'] ?? '')),
         ];
     }
-
-    /**
-     * @param array{name:string,slug:string,group:string,description:string} $payload
-     * @return array<string, array<int, string>>
-     */
-    public function validate(array $payload): array
-    {
-        $errors = [];
-
-        if ($payload['name'] === '') {
-            $errors['name'][] = 'The name field is required.';
-        }
-
-        if ($payload['slug'] === '') {
-            $errors['slug'][] = 'The slug field is required.';
-        }
-
-        if ($payload['group'] === '') {
-            $errors['group'][] = 'The group field is required.';
-        }
-
-        return $errors;
-    }
-
 }

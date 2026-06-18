@@ -5,6 +5,9 @@
 {% set placeholder = placeholder|default('') %}
 {% set help = help|default('') %}
 {% set error = error|default('') %}
+{% set class = class|default('') %}
+{% set disabled = disabled|default(false) %}
+{% set readonly = readonly|default(false) %}
 
 <label class="theme-field" for="{{ id }}">
     {% if label %}
@@ -17,7 +20,9 @@
         type="{{ type }}"
         value="{{ value }}"
         placeholder="{{ placeholder }}"
-        class="theme-input{% if error %} theme-input--error{% endif %}"
+        class="theme-input{% if error %} theme-input--error{% endif %} {{ class }}"
+        {% if disabled %}disabled{% endif %}
+        {% if readonly %}readonly{% endif %}
     >
 
     {% if help %}

@@ -42,9 +42,11 @@ final class RoleFormData
         $old = session('_old_input', []);
         if (is_array($old)) {
             foreach (['name', 'slug', 'level', 'description'] as $field) {
-                if (array_key_exists($field, $old)) {
-                    $defaults[$field] = $field === 'level' ? (int) $old[$field] : (string) $old[$field];
+                if (!array_key_exists($field, $old)) {
+                    continue;
                 }
+
+                $defaults[$field] = $field === 'level' ? (int) $old[$field] : (string) $old[$field];
             }
 
             if (array_key_exists('permissions', $old) && is_array($old['permissions'])) {
@@ -63,15 +65,39 @@ final class RoleFormData
     }
 
     /**
+     * @return array<string, string>
+     */
+    public function rules(): array
+    {
+        return [
+            'name' => 'trim|required|string|max:120',
+            'slug' => 'trim|string|max:120',
+            'level' => 'integer|min:1',
+            'description' => 'trim|string',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'The name field is required.',
+            'name.max' => 'The name must not exceed 120 characters.',
+            'level.min' => 'The level must be at least 1.',
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $validated
+     * @param mixed $permissions
      * @return array{name:string,slug:string,level:int,description:string,permissions:array<int,int>}
      */
-    public function payload(): array
+    public function normalize(array $validated, mixed $permissions = []): array
     {
-        $name = trim((string) request('name', ''));
-        $slug = trim((string) request('slug', ''));
-        $level = max(1, (int) request('level', 1));
-        $description = trim((string) request('description', ''));
-        $permissions = request('permissions', []);
+        $name = trim((string) ($validated['name'] ?? ''));
+        $slug = trim((string) ($validated['slug'] ?? ''));
 
         if ($slug === '') {
             $slug = $this->slugger->slugify($name, 'custom-role');
@@ -84,41 +110,23 @@ final class RoleFormData
         return [
             'name' => $name,
             'slug' => $slug,
-            'level' => $level,
-            'description' => $description,
+            'level' => max(1, (int) ($validated['level'] ?? 1)),
+            'description' => trim((string) ($validated['description'] ?? '')),
             'permissions' => array_values(array_unique(array_map('intval', $permissions))),
         ];
     }
 
     /**
      * @param array{name:string,slug:string,level:int,description:string,permissions:array<int,int>} $payload
-     * @return array<string, array<int, string>>
      */
-    public function validate(array $payload, ?Role $role = null): array
+    public function reservedSlugError(array $payload, ?Role $role = null): ?string
     {
-        $errors = [];
-
-        if ($payload['name'] === '') {
-            $errors['name'][] = 'The name field is required.';
+        if (!$role instanceof Role || !(bool) $role->getAttribute('is_system')) {
+            return null;
         }
 
-        if ($payload['slug'] === '') {
-            $errors['slug'][] = 'The slug field is required.';
-        }
-
-        if ($payload['level'] < 1) {
-            $errors['level'][] = 'The level must be at least 1.';
-        }
-
-        if ($role instanceof Role && (bool) $role->getAttribute('is_system')) {
-            $reserved = $this->roles->systemSlugs();
-
-            if (!in_array($payload['slug'], $reserved, true)) {
-                $errors['slug'][] = 'System roles must keep a reserved slug.';
-            }
-        }
-
-        return $errors;
+        return in_array($payload['slug'], $this->roles->systemSlugs(), true)
+            ? null
+            : 'System roles must keep a reserved slug.';
     }
-
 }

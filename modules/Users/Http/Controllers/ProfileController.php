@@ -28,6 +28,9 @@ final class ProfileController extends Controller
             return $this->redirect('/admin/login');
         }
 
+        if (method_exists($user, 'loadMissing')) {
+            $user->loadMissing('roleRelation', 'roleRelation.permissionsRelation');
+        }
         $queryParams = $request->getQueryParams();
         $activityPage = max(1, (int) ($queryParams['activity_page'] ?? 1));
         $activity = $this->activities->actorEmail(
@@ -57,22 +60,15 @@ final class ProfileController extends Controller
             return $this->redirect('/admin/login');
         }
 
-        $body = $request->getParsedBody();
-        $input = is_array($body) ? $body : [];
+        $validated = $this->validate($this->passwordRules->profileRules(), $this->passwordRules->profileMessages(), request: $request);
 
-        $errors = $this->passwordRules->validateProfilePassword($input);
-
-        if ($errors === [] && !$this->currentPasswordMatches($user, $input)) {
-            $errors['current_password'][] = 'The current password you entered is incorrect.';
-        }
-
-        if ($errors !== []) {
-            $this->withErrors($errors)->withInput($input);
+        if (!$this->currentPasswordMatches($user, $validated)) {
+            $this->withErrors(['current_password' => ['The current password you entered is incorrect.']])->withInput();
 
             return $this->redirect('/admin/profile');
         }
 
-        $newPassword = trim((string) ($input['new_password'] ?? ''));
+        $newPassword = trim((string) ($validated['new_password'] ?? ''));
         $user->updatePasswordHash(password_hash($newPassword, PASSWORD_DEFAULT));
 
         $this->flash('users.notice', 'Password updated successfully.');

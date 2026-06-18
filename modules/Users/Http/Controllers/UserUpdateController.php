@@ -29,11 +29,11 @@ final class UserUpdateController extends Controller
             return $this->redirect('/admin/users');
         }
 
-        $payload = $this->forms->payload($request);
-        $errors = $this->forms->validate($payload, $user);
+        $validated = $this->validate($this->forms->rules(true), $this->forms->messages(), request: $request);
+        $payload = $this->forms->normalize($validated);
 
-        if ($errors !== []) {
-            $this->withErrors($errors)->withInput($payload);
+        if (($duplicateEmailError = $this->forms->duplicateEmailError($payload['email'], $user)) !== null) {
+            $this->withErrors(['email' => [$duplicateEmailError]])->withInput();
 
             return $this->redirect('/admin/users/' . $id . '/edit');
         }

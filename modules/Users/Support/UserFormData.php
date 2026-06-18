@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Users\Support;
 
 use App\Modules\Users\Models\User;
-use Marwa\Framework\Validation\RequestValidator;
-use Marwa\Support\Validation\ValidationException;
-use Psr\Http\Message\ServerRequestInterface;
 
 final class UserFormData
 {
@@ -18,13 +15,16 @@ final class UserFormData
 
     /**
      * @param array{mode:string,title:string,action:string,submit_label:string,user:?User} $extra
-     * @param array<string, mixed> $old
-     * @param array<string, list<string>> $errors
      * @return array<string, mixed>
      */
-    public function formViewData(array $extra, array $old = [], array $errors = []): array
+    public function formViewData(array $extra): array
     {
         $user = $extra['user'] ?? null;
+        $old = session('_old_input', []);
+        $errors = session('errors', []);
+
+        $old = is_array($old) ? $old : [];
+        $errors = is_array($errors) ? $errors : [];
 
         $defaults = [
             'name' => $this->attr($user, 'name', ''),
@@ -59,78 +59,56 @@ final class UserFormData
     }
 
     /**
-     * @return array{name:string,email:string,role_id:int,is_active:int,password:string,password_confirmation:string}
+     * @return array<string, string>
      */
-    public function payload(ServerRequestInterface $request): array
+    public function rules(bool $isEdit = false): array
     {
-        $body = $request->getParsedBody();
-        $input = is_array($body) ? $body : [];
-
-        $password = trim((string) ($input['password'] ?? ''));
-        $passwordConfirmation = trim((string) ($input['password_confirmation'] ?? ''));
-
-        return [
-            'name' => trim((string) ($input['name'] ?? '')),
-            'email' => trim((string) ($input['email'] ?? '')),
-            'role_id' => (int) ($input['role_id'] ?? 0),
-            'is_active' => (int) ($input['is_active'] ?? 1),
-            'password' => $password,
-            'password_confirmation' => $passwordConfirmation,
-        ];
-    }
-
-    /**
-     * @param array{name:string,email:string,role_id:int,is_active:int,password:string,password_confirmation:string} $payload
-     * @return array<string, array<int, string>>
-     */
-    public function validate(array $payload, ?User $user = null): array
-    {
-        $isEdit = $user instanceof User;
-        $errors = $this->runStandardValidation($payload);
-
-        if (!isset($errors['email']) && $this->isDuplicateEmail($payload['email'], $user)) {
-            $errors['email'][] = 'The email has already been taken.';
-        }
-
-        $passwordErrors = $this->passwordRules->validateUserFormPassword($payload, $isEdit);
-
-        return array_merge($errors, $passwordErrors);
-    }
-
-    /**
-     * @param array{name:string,email:string,role_id:int,is_active:int,password:string,password_confirmation:string} $payload
-     * @return array<string, array<int, string>>
-     */
-    private function runStandardValidation(array $payload): array
-    {
-        $rules = [
+        return array_replace([
             'name' => 'required|string|max:120',
             'email' => 'required|email',
             'role_id' => 'integer|min:1',
-        ];
+            'is_active' => 'integer|min:0',
+        ], $this->passwordRules->formRules($isEdit));
+    }
 
-        $messages = [
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return array_replace([
             'name.required' => 'The name field is required.',
             'name.max' => 'The name must not exceed 120 characters.',
             'email.required' => 'The email field is required.',
             'email.email' => 'The email must be a valid email address.',
             'role_id.min' => 'The role field is required.',
-        ];
-
-        try {
-            (new RequestValidator())->validateInput($payload, $rules, $messages);
-        } catch (ValidationException $e) {
-            return $e->errors()->all();
-        }
-
-        return [];
+            'is_active.min' => 'The status field must be valid.',
+        ], $this->passwordRules->formMessages());
     }
 
-    private function isDuplicateEmail(string $email, ?User $user): bool
+    /**
+     * @param array<string, mixed> $validated
+     * @return array{name:string,email:string,role_id:int,is_active:int,password:string,password_confirmation:string}
+     */
+    public function normalize(array $validated): array
+    {
+        return [
+            'name' => trim((string) ($validated['name'] ?? '')),
+            'email' => User::normalizeEmail((string) ($validated['email'] ?? '')),
+            'role_id' => (int) ($validated['role_id'] ?? 0),
+            'is_active' => (int) ($validated['is_active'] ?? 1),
+            'password' => trim((string) ($validated['password'] ?? '')),
+            'password_confirmation' => trim((string) ($validated['password_confirmation'] ?? '')),
+        ];
+    }
+
+    public function duplicateEmailError(string $email, ?User $user = null): ?string
     {
         $ignoreId = $user instanceof User ? (int) $user->getKey() : null;
 
-        return $this->users->isDuplicateEmail($email, $ignoreId);
+        return $this->users->isDuplicateEmail($email, $ignoreId)
+            ? 'The email has already been taken.'
+            : null;
     }
 
     private function attr(?User $user, string $key, mixed $default): mixed

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Users\Http\Controllers;
 
-use App\Modules\Users\Http\Controllers\Concerns\RendersUserFormTrait;
 use App\Modules\Users\Support\UserFormData;
 use App\Modules\Users\Support\UserRepository;
 use Marwa\Framework\Controllers\Controller;
@@ -13,8 +12,6 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class UserEditController extends Controller
 {
-    use RendersUserFormTrait;
-
     public function __construct(
         private readonly UserRepository $users,
         private readonly UserFormData $forms,
@@ -31,7 +28,7 @@ final class UserEditController extends Controller
             return $this->redirect('/admin/users');
         }
 
-        return $this->view('@users/form', $this->userFormViewData($this->forms, [
+        return $this->view('@users/form', $this->forms->formViewData([
             'mode' => 'edit',
             'title' => 'Edit user',
             'action' => '/admin/users/' . $user->getKey(),

@@ -1,9 +1,10 @@
 {% set variant = variant|default('primary') %}
 {% set type = type|default('button') %}
 {% set label = label|default('Button') %}
+{% set class = class|default('') %}
 
 {% if href is defined and href %}
-    <a href="{{ href }}" class="theme-button theme-button--{{ variant }}">{{ label }}</a>
+    <a href="{{ href }}" class="theme-button theme-button--{{ variant }} {{ class }}">{{ label }}</a>
 {% else %}
-    <button type="{{ type }}" class="theme-button theme-button--{{ variant }}">{{ label }}</button>
+    <button type="{{ type }}" class="theme-button theme-button--{{ variant }} {{ class }}">{{ label }}</button>
 {% endif %}

@@ -12,7 +12,6 @@ use App\Modules\Auth\Support\NullAdminUserProvider;
 use App\Modules\Auth\Support\PasswordResetMailer;
 use App\Modules\Auth\Support\RolePolicy;
 use App\Support\ModuleDatabaseDependency;
-use Marwa\Framework\Views\View;
 use Marwa\Module\Contracts\ModuleServiceProviderInterface;
 
 final class AuthServiceProvider implements ModuleServiceProviderInterface
@@ -49,10 +48,6 @@ final class AuthServiceProvider implements ModuleServiceProviderInterface
 
     public function boot($app): void
     {
-        if ($app->has(View::class)) {
-            $app->make(View::class)->addNamespace('auth', __DIR__ . '/resources/views');
-        }
-
         ModuleDatabaseDependency::boot(__DIR__, $app, static function (): void {
             RolePolicy::loadFromDatabase();
         });

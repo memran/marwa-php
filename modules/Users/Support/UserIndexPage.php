@@ -11,18 +11,18 @@ final class UserIndexPage
 {
     public function __construct(
         private readonly UserDataTable $userTable,
+        private readonly UserNotice $notices,
     ) {}
 
     /**
-     * @param array<string, mixed> $flash
      * @return array{stats:array{total:int,active:int,disabled:int,trashed:int},table:\App\Support\Datatables\Contracts\DataTableResultInterface,notice:?string}
      */
-    public function viewData(ServerRequestInterface $request, array $flash = []): array
+    public function viewData(ServerRequestInterface $request): array
     {
         return [
             'stats' => $this->stats(),
             'table' => $this->userTable->make($request)->paginate(per_page())->result(),
-            'notice' => $flash['users.notice'] ?? null,
+            'notice' => $this->notices->pull(),
         ];
     }
 
