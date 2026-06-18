@@ -17,7 +17,7 @@ body.admin-theme.executive-theme {
   --app-bg: 7 27 51;
   --app-surface: 7 27 51;
   --app-surface-2: 16 43 78;
-  --app-border: 30 41 59;
+  --app-border: 255 255 255;
   --app-text: 226 232 240;
   --app-muted: 203 213 225;
   --app-accent: 37 99 235;
@@ -35,9 +35,9 @@ body.admin-theme.executive-theme {
 }
 
 html[data-admin-theme="dark"] body.admin-theme.executive-theme .admin-topbar {
-  background-color: rgba(255, 255, 255, 0.95);
-  border-color: rgb(226 232 240);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+  background-color: rgba(15, 23, 42, 0.86);
+  border-color: rgba(51, 65, 85, 0.80);
+  box-shadow: 0 8px 30px rgba(2, 6, 23, 0.28);
 }
 
 .admin-theme.executive-theme .admin-content {

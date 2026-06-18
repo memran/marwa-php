@@ -287,10 +287,10 @@ TWIG
             self::assertStringContainsString('Sign in to manage your workspace.', (string) $login->getBody());
             self::assertStringContainsString('Secure executive access', (string) $login->getBody());
             self::assertStringContainsString('aria-label="Toggle theme"', (string) $login->getBody());
-            self::assertStringContainsString('/themes/executive/css/app.css', (string) $login->getBody());
-            self::assertStringContainsString('/themes/executive/css/variables.css', (string) $login->getBody());
-            self::assertStringContainsString('/themes/executive/css/layout.css', (string) $login->getBody());
-            self::assertStringContainsString('/themes/executive/css/components.css', (string) $login->getBody());
+            self::assertStringContainsString('/themes/executive/assets/css/app.css', (string) $login->getBody());
+            self::assertStringContainsString('/themes/executive/assets/css/variables.css', (string) $login->getBody());
+            self::assertStringContainsString('/themes/executive/assets/css/layout.css', (string) $login->getBody());
+            self::assertStringContainsString('/themes/executive/assets/css/components.css', (string) $login->getBody());
             self::assertStringContainsString('/themes/executive/js/theme.js', (string) $login->getBody());
         }
 
@@ -342,6 +342,13 @@ TWIG
             'settings',
         ] as $slug) {
             self::assertArrayHasKey($slug, $modules);
+            if ($slug === 'auth') {
+                self::assertFileExists($this->basePath . '/resources/views/themes/executive/login.twig');
+                self::assertFileExists($this->basePath . '/resources/views/themes/executive/forgot-password.twig');
+                self::assertFileExists($this->basePath . '/resources/views/themes/executive/reset-password.twig');
+                continue;
+            }
+
             $viewsPath = $modules[$slug]->path('views');
             if (is_string($viewsPath)) {
                 self::assertDirectoryExists($viewsPath);

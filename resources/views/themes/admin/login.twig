@@ -1,0 +1,69 @@
+{% extends "layouts/auth.twig" %}
+
+{% block title %}Sign in | MarwaPHP Admin{% endblock %}
+
+{% block content %}
+  <div class="space-y-3">
+    <span class="inline-flex w-fit items-center gap-2 rounded-full border border-app-accent/20 bg-app-accent/10 px-4 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-app-accent">
+      <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+      Admin Access
+    </span>
+    <div class="space-y-2">
+      <h2 class="text-3xl font-semibold tracking-tight text-app-text sm:text-4xl">Welcome back</h2>
+      <p class="max-w-xl text-sm leading-6 text-app-muted">
+        Sign in to manage users, settings, and the full admin workspace from a single secure console.
+      </p>
+    </div>
+  </div>
+
+  {% if notice is defined and notice %}
+    <div class="mt-8 rounded-2xl border border-app-success/20 bg-app-success/10 p-4 text-app-success">
+      <p class="text-sm font-semibold">Session update</p>
+      <p class="mt-1 text-sm">{{ notice }}</p>
+    </div>
+  {% endif %}
+
+  {% if errors is defined and errors.email is defined %}
+    <div class="mt-8 rounded-2xl border border-app-danger/20 bg-app-danger/10 p-4 text-app-danger">
+      <p class="text-sm font-semibold">Unable to sign in</p>
+      <p class="mt-1 text-sm">{{ errors.email|first }}</p>
+    </div>
+  {% endif %}
+
+  <form method="post" action="/admin/login" class="mt-8 grid gap-5">
+    {{ csrf_field() }}
+
+    {% include "components/input.twig" with {
+      name: 'email',
+      label: 'Email address',
+      type: 'email',
+      value: old.email|default(''),
+      placeholder: 'admin@marwa.test',
+      help: 'Use the administrator email address.',
+      error: errors.email|default([])|first
+    } only %}
+
+    {% include "components/input.twig" with {
+      name: 'password',
+      label: 'Password',
+      type: 'password',
+      placeholder: 'Enter your password',
+      error: errors.password|default([])|first
+    } only %}
+
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-app-muted transition hover:text-app-text">
+        <input type="checkbox" name="remember" value="1" class="h-4 w-4 rounded border-app-border bg-app-surface text-app-accent focus:ring-app-accent/20" {% if old.remember|default(false) %}checked{% endif %}>
+        <span>Remember me</span>
+      </label>
+      <a class="text-sm font-semibold text-app-accent transition hover:text-app-accent-soft" href="/admin/forgot-password">Forgot password?</a>
+    </div>
+
+    {% include "components/button.twig" with {
+      label: 'Sign in',
+      type: 'submit',
+      variant: 'primary',
+      class: 'w-full'
+    } only %}
+  </form>
+{% endblock %}

@@ -16,32 +16,27 @@
         })();
     </script>
 </head>
-<body class="auth-theme admin-theme executive-theme min-h-screen bg-app-bg text-app-text antialiased">
-    <div class="relative isolate flex min-h-screen items-center justify-center overflow-hidden px-4 py-10 sm:px-6 lg:px-8">
-        {# Ambient background orbs #}
-        <div class="pointer-events-none absolute inset-0 overflow-hidden">
-            <div class="absolute -left-[10%] -top-[10%] h-[50rem] w-[50rem] rounded-full opacity-20 blur-[128px]" style="background: radial-gradient(circle, rgb(var(--app-accent)) 0%, transparent 70%);"></div>
-            <div class="absolute -right-[10%] top-[20%] h-[40rem] w-[40rem] rounded-full opacity-15 blur-[112px]" style="background: radial-gradient(circle, rgb(var(--app-success)) 0%, transparent 70%);"></div>
-            <div class="absolute bottom-[-10%] left-[30%] h-[35rem] w-[35rem] rounded-full opacity-10 blur-[96px]" style="background: radial-gradient(circle, rgb(var(--app-accent-soft)) 0%, transparent 70%);"></div>
-        </div>
+<body class="auth-theme admin-theme executive-theme theme-auth min-h-screen bg-app-bg text-app-text antialiased">
+    <div class="relative isolate min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f8fafc_0%,#eef2ff_45%,#cbd5e1_100%)] dark:bg-[linear-gradient(180deg,#020617_0%,#0b1220_48%,#020617_100%)]">
+        <div class="pointer-events-none absolute inset-0 opacity-40 dark:opacity-50" style="background-image: linear-gradient(rgba(148,163,184,0.10) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.10) 1px, transparent 1px); background-size: 4rem 4rem;"></div>
+        <div class="pointer-events-none absolute left-[-8rem] top-16 h-80 w-80 rounded-full blur-3xl" style="background-color: rgba(var(--app-accent), 0.15);"></div>
+        <div class="pointer-events-none absolute right-[-10rem] top-24 h-96 w-96 rounded-full blur-3xl" style="background-color: rgba(var(--app-success), 0.12);"></div>
+        <div class="pointer-events-none absolute bottom-[-9rem] left-1/2 h-96 w-96 -translate-x-1/2 rounded-full blur-3xl" style="background-color: rgba(var(--app-accent), 0.10);"></div>
 
-        {# Fine grid overlay #}
-        <div class="pointer-events-none absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" style="background-image: linear-gradient(rgba(var(--app-text), 0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--app-text), 0.4) 1px, transparent 1px); background-size: 3rem 3rem;"></div>
-
-        {# Top bar: brand + theme toggle #}
         <div class="absolute left-0 right-0 top-0 z-20 flex items-center justify-between px-6 py-5 sm:px-10">
             <a href="/" class="group flex items-center gap-3">
-                <div class="flex h-9 w-9 items-center justify-center rounded-xl border border-app-accent/20 bg-app-accent/10 shadow-[0_0_20px_rgb(var(--app-accent)/0.15)] transition group-hover:shadow-[0_0_30px_rgb(var(--app-accent)/0.25)]">
-                    <svg class="h-5 w-5 text-app-accent" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
-                    </svg>
+                <div class="flex h-10 w-10 items-center justify-center rounded-2xl border border-app-accent/20 bg-app-accent/10 shadow-[0_0_18px_rgb(var(--app-accent)/0.12)] transition group-hover:shadow-[0_0_28px_rgb(var(--app-accent)/0.22)]">
+                    {% include 'components/icon.twig' with { name: 'gem', class: 'h-5 w-5 text-app-accent' } only %}
                 </div>
-                <span class="text-lg font-black tracking-tight text-app-text">Marwa<span class="text-app-accent">.</span></span>
+                <div>
+                    <p class="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Marwa-PHP Starter</p>
+                    <span class="text-lg font-semibold tracking-tight text-app-text">Executive Console</span>
+                </div>
             </a>
 
             <button
                 type="button"
-                class="inline-flex items-center justify-center gap-2 rounded-xl border border-app-border bg-app-surface/60 px-3 py-2 text-sm font-medium text-app-text shadow-sm backdrop-blur-xl transition hover:border-app-accent/30 hover:bg-app-surface hover:text-app-accent"
+                class="inline-flex items-center justify-center gap-2 rounded-xl border border-app-border bg-app-surface/70 px-3 py-2 text-sm font-medium text-app-text shadow-sm backdrop-blur-xl transition hover:border-app-accent/30 hover:bg-app-surface hover:text-app-accent"
                 aria-label="Toggle theme"
                 title="Toggle theme"
                 onclick="
@@ -61,16 +56,80 @@
             </button>
         </div>
 
-        {# Main content card #}
-        <main class="relative z-10 w-full max-w-md">
-            <section class="rounded-[2rem] border border-app-border/60 bg-app-surface/70 p-8 shadow-[0_35px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl dark:bg-app-surface/50 dark:shadow-[0_35px_90px_rgba(0,0,0,0.45)] sm:p-10">
-                {% block content %}{% endblock %}
-            </section>
+        <div class="grid min-h-screen lg:grid-cols-[minmax(26rem,34rem)_minmax(0,1fr)]">
+            <aside class="relative hidden min-h-screen flex-col justify-between overflow-hidden border-r border-white/10 bg-[linear-gradient(180deg,#071b33_0%,#041326_100%)] px-10 py-10 text-white lg:flex">
+                <div class="pointer-events-none absolute inset-0 opacity-30" style="background-image: linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px); background-size: 3rem 3rem;"></div>
 
-            <p class="mt-6 text-center text-xs text-app-muted/80">
-                Secure executive access. Authorized personnel only.
-            </p>
-        </main>
+                <div class="relative space-y-10">
+                    <div class="space-y-6">
+                        <div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-slate-200">
+                            <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+                            Premium access
+                        </div>
+                        <div class="space-y-4">
+                            <h1 class="max-w-sm text-4xl font-semibold tracking-tight text-white">
+                                Built for leaders, approvals, and controlled execution.
+                            </h1>
+                            <p class="max-w-md text-sm leading-6 text-slate-300">
+                                Access the executive workspace from a wide, premium auth shell that keeps the interface calm and the important actions visible.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-3">
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                            <p class="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-slate-300">Approvals</p>
+                            <p class="mt-2 text-sm font-semibold text-white">Clear decision points</p>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                            <p class="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-slate-300">Compliance</p>
+                            <p class="mt-2 text-sm font-semibold text-white">Designed for oversight</p>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                            <p class="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-slate-300">Visibility</p>
+                            <p class="mt-2 text-sm font-semibold text-white">Fast access to live systems</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative mt-10 grid gap-4 rounded-[28px] border border-white/10 bg-white/5 p-5 shadow-[0_16px_48px_rgba(15,23,42,0.18)] backdrop-blur-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-slate-300">Marwa-PHP</p>
+                            <p class="mt-1 text-lg font-semibold text-white">Executive Console</p>
+                        </div>
+                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/10">
+                            {% include 'components/icon.twig' with { name: 'shield-check', class: 'h-6 w-6 text-sky-200' } only %}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="rounded-2xl border border-white/10 bg-white/5 px-3 py-4">
+                            <p class="text-[0.68rem] uppercase tracking-[0.22em] text-slate-300">Policy</p>
+                            <p class="mt-2 text-xl font-semibold text-white">On</p>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 px-3 py-4">
+                            <p class="text-[0.68rem] uppercase tracking-[0.22em] text-slate-300">Reviews</p>
+                            <p class="mt-2 text-xl font-semibold text-white">12</p>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 px-3 py-4">
+                            <p class="text-[0.68rem] uppercase tracking-[0.22em] text-slate-300">Signals</p>
+                            <p class="mt-2 text-xl font-semibold text-white">5</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="{% block auth_main_class %}relative z-10 flex min-h-screen w-full items-center justify-center px-4 py-10 sm:px-8 lg:px-12{% endblock %}">
+                <section class="{% block auth_card_class %}theme-auth__card w-full max-w-[40rem]{% endblock %}">
+                    <div class="w-full rounded-[28px] border border-slate-200 bg-white/90 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:p-8 lg:p-10">
+                        <div class="w-full">
+                            {% block content %}{% endblock %}
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
     </div>
 
     {% include 'partials/scripts.twig' %}

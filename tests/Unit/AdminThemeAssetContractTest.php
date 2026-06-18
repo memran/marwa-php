@@ -16,10 +16,10 @@ final class AdminThemeAssetContractTest extends TestCase
         self::assertIsString($layout);
         self::assertIsString($head);
         self::assertStringContainsString("{% include 'partials/head.twig' %}", $layout);
-        self::assertStringContainsString("theme_asset('css/app.css')", $head);
-        self::assertStringContainsString("theme_asset('css/variables.css')", $head);
-        self::assertStringContainsString("theme_asset('css/layout.css')", $head);
-        self::assertStringContainsString("theme_asset('css/components.css')", $head);
+        self::assertStringContainsString("theme_asset('assets/css/app.css')", $head);
+        self::assertStringContainsString("theme_asset('assets/css/variables.css')", $head);
+        self::assertStringContainsString("theme_asset('assets/css/layout.css')", $head);
+        self::assertStringContainsString("theme_asset('assets/css/components.css')", $head);
     }
 
     public function testAdminLayoutsUseSharedHeadAndScriptPartialsWithoutDuplicateRuntimeTags(): void
@@ -39,11 +39,29 @@ final class AdminThemeAssetContractTest extends TestCase
 
         self::assertStringContainsString("{% include 'partials/head.twig' %}", $authLayout);
         self::assertStringContainsString("{% include 'partials/scripts.twig' %}", $authLayout);
+        self::assertStringContainsString('theme-auth', $authLayout);
+        self::assertStringContainsString('theme-auth__card', $authLayout);
+        self::assertStringContainsString('auth_card_class', $authLayout);
+        self::assertStringNotContainsString('max-w-xl', $authLayout);
+        self::assertStringNotContainsString('max-w-2xl', $authLayout);
 
         self::assertStringContainsString("{% include 'partials/head.twig' %}", $blankLayout);
         self::assertStringContainsString("{% include 'partials/scripts.twig' %}", $blankLayout);
         self::assertStringContainsString('document.documentElement.dataset.adminTheme = finalTheme;', $blankLayout);
         self::assertStringContainsString('class="admin-theme min-h-screen bg-app-bg text-app-text antialiased"', $blankLayout);
+    }
+
+    public function testAdminAuthViewsLiveInsideTheThemePackage(): void
+    {
+        self::assertFileExists(__DIR__ . '/../../resources/views/themes/admin/login.twig');
+        self::assertFileExists(__DIR__ . '/../../resources/views/themes/admin/forgot-password.twig');
+        self::assertFileExists(__DIR__ . '/../../resources/views/themes/admin/reset-password.twig');
+        self::assertFileDoesNotExist(__DIR__ . '/../../resources/views/themes/admin/modules/Auth/login.twig');
+        self::assertFileDoesNotExist(__DIR__ . '/../../resources/views/themes/admin/modules/Auth/forgot-password.twig');
+        self::assertFileDoesNotExist(__DIR__ . '/../../resources/views/themes/admin/modules/Auth/reset-password.twig');
+        self::assertFileDoesNotExist(__DIR__ . '/../../modules/Auth/resources/views/login.twig');
+        self::assertFileDoesNotExist(__DIR__ . '/../../modules/Auth/resources/views/forgot-password.twig');
+        self::assertFileDoesNotExist(__DIR__ . '/../../modules/Auth/resources/views/reset-password.twig');
     }
 
     public function testAdminBreadcrumbUsesUtilityMarkupThatWorksWithTheLoadedBundle(): void
