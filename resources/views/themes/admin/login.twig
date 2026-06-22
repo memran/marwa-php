@@ -3,16 +3,33 @@
 {% block title %}Sign in | MarwaPHP Admin{% endblock %}
 
 {% block content %}
-  <div class="space-y-3">
-    <span class="inline-flex w-fit items-center gap-2 rounded-full border border-app-accent/20 bg-app-accent/10 px-4 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-app-accent">
-      <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-      Admin Access
-    </span>
-    <div class="space-y-2">
-      <h2 class="text-3xl font-semibold tracking-tight text-app-text sm:text-4xl">Welcome back</h2>
-      <p class="max-w-xl text-sm leading-6 text-app-muted">
-        Sign in to manage users, settings, and the full admin workspace from a single secure console.
-      </p>
+  <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_13rem] lg:items-start">
+    <div class="space-y-4">
+      <span class="inline-flex w-fit items-center gap-2 rounded-full border border-app-accent/20 bg-app-accent/10 px-4 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-app-accent">
+        <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.12)]"></span>
+        Admin Access
+      </span>
+      <div class="space-y-3">
+        <h2 class="text-3xl font-semibold tracking-tight text-app-text sm:text-4xl">Welcome back</h2>
+        <p class="max-w-2xl text-sm leading-6 text-app-muted">
+          Sign in to manage users, roles, permissions, settings, and the application workspace.
+        </p>
+      </div>
+    </div>
+
+    <div class="hidden rounded-2xl border border-app-border bg-app-surface-2/45 p-4 lg:block">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-app-accent/10 text-app-accent">
+          {% include "components/icon.twig" with { name: 'shield-check', class: 'h-5 w-5' } only %}
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-app-text">Protected</p>
+          <p class="text-xs text-app-muted">Admin area</p>
+        </div>
+      </div>
+      <div class="mt-4 h-1.5 overflow-hidden rounded-full bg-app-border/60">
+        <div class="h-full w-4/5 rounded-full bg-app-accent"></div>
+      </div>
     </div>
   </div>
 
@@ -33,25 +50,28 @@
   <form method="post" action="/admin/login" class="mt-8 grid gap-5">
     {{ csrf_field() }}
 
-    {% include "components/input.twig" with {
-      name: 'email',
-      label: 'Email address',
-      type: 'email',
-      value: old.email|default(''),
-      placeholder: 'admin@marwa.test',
-      help: 'Use the administrator email address.',
-      error: errors.email|default([])|first
-    } only %}
+    <div class="grid gap-5 md:grid-cols-2">
+      {% include "components/input.twig" with {
+        name: 'email',
+        label: 'Email address',
+        type: 'email',
+        value: old.email|default(''),
+        placeholder: 'admin@marwa.test',
+        help: 'Use the administrator email address.',
+        error: errors.email|default([])|first
+      } only %}
 
-    {% include "components/input.twig" with {
-      name: 'password',
-      label: 'Password',
-      type: 'password',
-      placeholder: 'Enter your password',
-      error: errors.password|default([])|first
-    } only %}
+      {% include "components/input.twig" with {
+        name: 'password',
+        label: 'Password',
+        type: 'password',
+        placeholder: 'Enter your password',
+        help: 'Keep your password private.',
+        error: errors.password|default([])|first
+      } only %}
+    </div>
 
-    <div class="flex flex-wrap items-center justify-between gap-4">
+    <div class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-app-border bg-app-surface-2/35 px-4 py-3">
       <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-app-muted transition hover:text-app-text">
         <input type="checkbox" name="remember" value="1" class="h-4 w-4 rounded border-app-border bg-app-surface text-app-accent focus:ring-app-accent/20" {% if old.remember|default(false) %}checked{% endif %}>
         <span>Remember me</span>
@@ -66,4 +86,12 @@
       class: 'w-full'
     } only %}
   </form>
+
+  <div class="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-app-border pt-5 text-xs text-app-muted">
+    <span class="inline-flex items-center gap-2">
+      {% include "components/icon.twig" with { name: 'lock-keyhole', class: 'h-4 w-4 text-app-accent' } only %}
+      Encrypted admin session
+    </span>
+    <a href="/" class="font-semibold text-app-accent transition hover:text-app-accent-soft">Return to site</a>
+  </div>
 {% endblock %}

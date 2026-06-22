@@ -465,6 +465,38 @@
     color: rgb(var(--app-text)) !important;
   }
 
+  html[data-admin-theme="light"] body.admin-theme.theme-auth .theme-auth__brand-panel :where(.bg-white\/5) {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  html[data-admin-theme="light"] body.admin-theme.theme-auth .theme-auth__brand-panel :where(.bg-white\/10) {
+    background-color: rgba(255, 255, 255, 0.10) !important;
+  }
+
+  html[data-admin-theme="light"] body.admin-theme.theme-auth .theme-auth__brand-panel :where(.border-white\/10) {
+    border-color: rgba(255, 255, 255, 0.10) !important;
+  }
+
+  html[data-admin-theme="light"] body.admin-theme.theme-auth .theme-auth__brand-panel :where(.text-white) {
+    color: rgb(255 255 255) !important;
+  }
+
+  html[data-admin-theme="light"] body.admin-theme.theme-auth .theme-auth__brand-panel :where(.text-slate-200) {
+    color: rgb(226 232 240) !important;
+  }
+
+  html[data-admin-theme="light"] body.admin-theme.theme-auth .theme-auth__brand-panel :where(.text-slate-300) {
+    color: rgb(203 213 225) !important;
+  }
+
+  html[data-admin-theme="light"] body.admin-theme.theme-auth .theme-auth__brand-panel :where(.text-sky-100, .text-sky-200) {
+    color: rgb(224 242 254) !important;
+  }
+
+  html[data-admin-theme="light"] body.admin-theme.theme-auth .theme-auth__brand-panel :where(.text-emerald-100) {
+    color: rgb(209 250 229) !important;
+  }
+
   html[data-admin-theme="light"] body.admin-theme .admin-content input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
   html[data-admin-theme="light"] body.admin-theme .admin-content select,
   html[data-admin-theme="light"] body.admin-theme .admin-content textarea {

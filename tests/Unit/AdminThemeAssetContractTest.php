@@ -41,6 +41,7 @@ final class AdminThemeAssetContractTest extends TestCase
         self::assertStringContainsString("{% include 'partials/scripts.twig' %}", $authLayout);
         self::assertStringContainsString('theme-auth', $authLayout);
         self::assertStringContainsString('theme-auth__card', $authLayout);
+        self::assertStringContainsString('theme-auth__brand-panel', $authLayout);
         self::assertStringContainsString('auth_card_class', $authLayout);
         self::assertStringNotContainsString('max-w-xl', $authLayout);
         self::assertStringNotContainsString('max-w-2xl', $authLayout);
@@ -87,5 +88,15 @@ final class AdminThemeAssetContractTest extends TestCase
         self::assertStringNotContainsString('body.theme-admin', $layoutCss);
         self::assertStringNotContainsString('.theme-shell', $layoutCss);
         self::assertStringNotContainsString('.theme-sidebar__brand-link', $layoutCss);
+    }
+
+    public function testAdminAuthBrandPanelKeepsReadableColorsInLightMode(): void
+    {
+        $appCss = file_get_contents(__DIR__ . '/../../resources/views/themes/admin/assets/css/app.css');
+
+        self::assertIsString($appCss);
+        self::assertStringContainsString('body.admin-theme.theme-auth .theme-auth__brand-panel :where(.text-white)', $appCss);
+        self::assertStringContainsString('body.admin-theme.theme-auth .theme-auth__brand-panel :where(.text-slate-300)', $appCss);
+        self::assertStringContainsString('body.admin-theme.theme-auth .theme-auth__brand-panel :where(.bg-white\/5)', $appCss);
     }
 }
