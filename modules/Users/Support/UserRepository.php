@@ -77,20 +77,23 @@ final class UserRepository
     {
         $deleted = 0;
         $skipped = 0;
+        $userIds = $this->positiveIds($ids);
+        if ($userIds === []) {
+            return ['deleted' => 0, 'skipped' => 0];
+        }
 
-        foreach ($ids as $id) {
-            $userId = (int) $id;
-            if ($userId <= 0) {
-                continue;
-            }
+        $usersById = $this->usersById($userIds);
+        $protectedId = $this->protectedAdminId();
 
-            $user = $this->findById($userId);
-            if ($user === null || $this->isLastAdminUser($user)) {
+        foreach ($userIds as $userId) {
+            $user = $usersById[$userId] ?? null;
+            if ($user === null || $userId === $protectedId) {
                 $skipped++;
                 continue;
             }
 
             $this->deleteUser($user);
+            unset($usersById[$userId]);
             $deleted++;
         }
 
@@ -105,21 +108,24 @@ final class UserRepository
     {
         $updated = 0;
         $skipped = 0;
+        $userIds = $this->positiveIds($ids);
+        if ($userIds === []) {
+            return ['updated' => 0, 'skipped' => 0];
+        }
 
-        foreach ($ids as $id) {
-            $userId = (int) $id;
-            if ($userId <= 0) {
-                continue;
-            }
+        $usersById = $this->usersById($userIds);
+        $protectedId = $this->protectedAdminId();
 
-            $user = $this->findById($userId);
-            if ($user === null || $this->isLastAdminUser($user)) {
+        foreach ($userIds as $userId) {
+            $user = $usersById[$userId] ?? null;
+            if ($user === null || $userId === $protectedId) {
                 $skipped++;
                 continue;
             }
 
             $user->setAttribute('is_active', $isActive ? 1 : 0);
             $user->save();
+            unset($usersById[$userId]);
             $updated++;
         }
 
@@ -186,6 +192,51 @@ final class UserRepository
         $role = Role::findBy('slug', 'admin');
 
         return $role !== null ? (int) $role->getKey() : null;
+    }
+
+    /**
+     * @param list<int|string> $ids
+     * @return list<int>
+     */
+    private function positiveIds(array $ids): array
+    {
+        $positiveIds = [];
+
+        foreach ($ids as $id) {
+            $userId = (int) $id;
+
+            if ($userId > 0) {
+                $positiveIds[] = $userId;
+            }
+        }
+
+        return $positiveIds;
+    }
+
+    /**
+     * @param list<int> $ids
+     * @return array<int, User>
+     */
+    private function usersById(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $users = User::query()
+            ->with('roleRelation')
+            ->whereIn('id', array_values(array_unique($ids)))
+            ->get();
+
+        $indexed = [];
+
+        foreach ($users as $user) {
+            if ($user instanceof User) {
+                $indexed[(int) $user->getKey()] = $user;
+            }
+        }
+
+        return $indexed;
     }
 
     /**

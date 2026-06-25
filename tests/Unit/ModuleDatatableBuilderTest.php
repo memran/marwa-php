@@ -193,6 +193,36 @@ PHP
         self::assertSame('delete', $table->rows()[0]['actions'][2]['name']);
     }
 
+    public function testUserRepositoryBulkStatusSkipsProtectedAndMissingUsers(): void
+    {
+        $app = $this->bootstrapApp();
+        $pdo = $this->connections($app)->getPdo();
+
+        $this->createUsersSchema($pdo);
+        $this->seedUserData($pdo);
+
+        $result = (new UserRepository())->bulkStatus([1, 2, 999, 0], true);
+
+        self::assertSame(['updated' => 1, 'skipped' => 2], $result);
+        self::assertSame('1', (string) $pdo->query('SELECT is_active FROM users WHERE id = 1')->fetchColumn());
+        self::assertSame('1', (string) $pdo->query('SELECT is_active FROM users WHERE id = 2')->fetchColumn());
+    }
+
+    public function testUserRepositoryBulkDeleteSkipsProtectedAndMissingUsers(): void
+    {
+        $app = $this->bootstrapApp();
+        $pdo = $this->connections($app)->getPdo();
+
+        $this->createUsersSchema($pdo);
+        $this->seedUserData($pdo);
+
+        $result = (new UserRepository())->bulkDelete([2, 1, 999, 0]);
+
+        self::assertSame(['deleted' => 1, 'skipped' => 2], $result);
+        self::assertNull($pdo->query('SELECT deleted_at FROM users WHERE id = 1')->fetchColumn());
+        self::assertNotEmpty($pdo->query('SELECT deleted_at FROM users WHERE id = 2')->fetchColumn());
+    }
+
     public function testRolesDatatableUsesWithCountAndHidesProtectedDeleteAction(): void
     {
         $app = $this->bootstrapApp();
