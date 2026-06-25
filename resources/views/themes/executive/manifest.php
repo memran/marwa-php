@@ -7,7 +7,6 @@ return [
     'slug' => 'executive',
     'version' => '1.0.0',
     'type' => 'admin',
-    'parent' => 'admin',
     'meta' => [
         'label' => 'Executive',
         'description' => 'Executive admin theme package for Marwa PHP.',

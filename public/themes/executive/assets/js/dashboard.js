@@ -321,7 +321,7 @@ document.addEventListener('alpine:init', function() {
       renderIcon(name, className) {
         const safeName = this.escapeHtml(name);
         const safeClass = this.escapeHtml(className);
-        const spriteUrl = '/themes/admin/assets/icons/lucide.svg';
+        const spriteUrl = '/themes/executive/assets/icons/lucide.svg';
 
         return `<svg class="${safeClass}" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="${spriteUrl}#${safeName}"></use></svg>`;
       },

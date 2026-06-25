@@ -1,0 +1,8 @@
+{% set query = query|default('') %}
+{% set placeholder = placeholder|default('Search...') %}
+
+<form class="theme-search-bar" method="get" action="">
+    <label class="sr-only" for="theme-search">Search</label>
+    <input id="theme-search" name="q" type="search" value="{{ query }}" placeholder="{{ placeholder }}" class="theme-input">
+    <button class="theme-button theme-button--primary" type="submit">Search</button>
+</form>

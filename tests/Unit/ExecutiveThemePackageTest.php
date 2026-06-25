@@ -18,6 +18,7 @@ final class ExecutiveThemePackageTest extends TestCase
         self::assertSame('executive', $manifest['slug']);
         self::assertSame('1.0.0', $manifest['version']);
         self::assertSame('admin', $manifest['type']);
+        self::assertArrayNotHasKey('parent', $manifest);
         self::assertArrayHasKey('layouts', $manifest);
         self::assertArrayHasKey('assets', $manifest);
         self::assertSame('layouts/admin.twig', $manifest['layouts']['admin']);
@@ -39,7 +40,7 @@ final class ExecutiveThemePackageTest extends TestCase
 
         self::assertIsString($layout);
         self::assertStringContainsString('marwa-admin-theme', $layout);
-        self::assertStringContainsString('Secure executive access. Authorized personnel only.', $layout);
+        self::assertStringContainsString('Premium access', $layout);
         self::assertStringContainsString('bg-app-surface/70', $layout);
     }
 

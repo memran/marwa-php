@@ -115,4 +115,32 @@ final class ExecutiveThemeAssetContractTest extends TestCase
         self::assertFileExists(__DIR__ . '/../../public/themes/executive/assets/js/dashboard.js');
         self::assertFileExists(__DIR__ . '/../../public/themes/executive/assets/js/alpine.min.js');
     }
+
+    public function testExecutivePublicDashboardRuntimeUsesExecutiveAssets(): void
+    {
+        $dashboardJs = file_get_contents(__DIR__ . '/../../public/themes/executive/assets/js/dashboard.js');
+
+        self::assertIsString($dashboardJs);
+        self::assertStringContainsString('/themes/executive/assets/icons/lucide.svg', $dashboardJs);
+        self::assertStringNotContainsString('/themes/admin/assets/icons/lucide.svg', $dashboardJs);
+    }
+
+    public function testExecutiveThemeOwnsModuleFacingComponents(): void
+    {
+        $componentsPath = __DIR__ . '/../../resources/views/themes/executive/components';
+
+        foreach ([
+            'activity-log.twig',
+            'button-styles.twig',
+            'form-field.twig',
+            'permission-panel.twig',
+            'search-bar.twig',
+            'status-badge.twig',
+            'status-card.twig',
+            'tabs.twig',
+            'widget.twig',
+        ] as $component) {
+            self::assertFileExists($componentsPath . '/' . $component);
+        }
+    }
 }

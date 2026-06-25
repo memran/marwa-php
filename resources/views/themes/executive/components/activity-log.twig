@@ -1,0 +1,103 @@
+{% set title = title|default('Recent activity') %}
+{% set description = description|default('Recent activity records') %}
+{% set rows = rows|default(activities|default([])) %}
+{% set pagination = pagination|default(null) %}
+{% set empty_message = empty_message|default('No activity recorded yet.') %}
+{% set count_label = count_label|default('') %}
+{% set compact = compact|default(false) %}
+{% set show_source = show_source is defined ? show_source : true %}
+{% set show_actor = show_actor is defined ? show_actor : true %}
+{% set show_description = show_description is defined ? show_description : true %}
+{% set show_header = show_header is defined ? show_header : true %}
+
+<section class="theme-card theme-activity-log">
+    {% if show_header %}
+        <header class="theme-card__header">
+            <div class="theme-activity-log__header">
+                <div>
+                    <h2 class="theme-card__title">{{ title }}</h2>
+                    {% if description %}
+                        <p class="theme-activity-log__description">{{ description }}</p>
+                    {% endif %}
+                </div>
+
+                {% if count_label %}
+                    <span class="theme-activity-log__count">{{ count_label }}</span>
+                {% endif %}
+            </div>
+        </header>
+    {% endif %}
+
+    <div class="theme-card__body">
+        {% if rows is empty %}
+            <div class="theme-activity-log__empty">{{ empty_message }}</div>
+        {% else %}
+            <div class="theme-table__wrap">
+                <table class="theme-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Action</th>
+                            {% if show_description %}<th scope="col">Description</th>{% endif %}
+                            <th scope="col">Details</th>
+                            {% if show_actor %}<th scope="col">Actor</th>{% endif %}
+                            {% if show_source %}<th scope="col">Source</th>{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                            <tr>
+                                <td>
+                                    {% if row is iterable %}
+                                        {{ row.action|default(row.getAttribute('action')|default('')) }}
+                                    {% else %}
+                                        {{ row.getAttribute('action')|default('') }}
+                                    {% endif %}
+                                </td>
+                                {% if show_description %}
+                                    <td>
+                                        {% if row is iterable %}
+                                            {{ row.description|default(row.getAttribute('description')|default('')) }}
+                                        {% else %}
+                                            {{ row.getAttribute('description')|default('') }}
+                                        {% endif %}
+                                    </td>
+                                {% endif %}
+                                <td>
+                                    {% if row is iterable %}
+                                        {{ row.details|default(row.readableDetails()|default('')) }}
+                                    {% else %}
+                                        {{ row.readableDetails()|default('') }}
+                                    {% endif %}
+                                </td>
+                                {% if show_actor %}
+                                    <td>
+                                        {% if row is iterable %}
+                                            {{ row.actor_email|default(row.getAttribute('actor_email')|default('System')) }}
+                                        {% else %}
+                                            {{ row.getAttribute('actor_email')|default('System') }}
+                                        {% endif %}
+                                    </td>
+                                {% endif %}
+                                {% if show_source %}
+                                    <td>
+                                        {% if row is iterable %}
+                                            {{ row.source|default(row.getAttribute('source')|default('')) }}
+                                        {% else %}
+                                            {{ row.getAttribute('source')|default('') }}
+                                        {% endif %}
+                                    </td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if pagination is not null %}
+                <div class="theme-activity-log__pagination">
+                    {% include '@Shared/components/pagination.twig' with { pagination: pagination } only %}
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</section>

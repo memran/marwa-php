@@ -284,8 +284,8 @@ TWIG
             self::assertSame('/admin', $login->getHeaderLine('Location'));
         } else {
             self::assertStringContainsString('Welcome back', (string) $login->getBody());
-            self::assertStringContainsString('Sign in to manage your workspace.', (string) $login->getBody());
-            self::assertStringContainsString('Secure executive access', (string) $login->getBody());
+            self::assertStringContainsString('Access the executive workspace from a wide, premium auth shell.', (string) $login->getBody());
+            self::assertStringContainsString('Executive Access', (string) $login->getBody());
             self::assertStringContainsString('aria-label="Toggle theme"', (string) $login->getBody());
             self::assertStringContainsString('/themes/executive/assets/css/app.css', (string) $login->getBody());
             self::assertStringContainsString('/themes/executive/assets/css/variables.css', (string) $login->getBody());

@@ -1,0 +1,61 @@
+{% set title = title|default('Permissions') %}
+{% set description = description|default('') %}
+{% set role_name = role_name|default('') %}
+{% set role_slug = role_slug|default('') %}
+{% set permissions = permissions|default([]) %}
+{% set limit = limit|default(permissions|length) %}
+{% set empty_message = empty_message|default('No permissions available.') %}
+{% set count_label = count_label|default('') %}
+
+<section class="theme-card theme-permission-panel">
+    <header class="theme-card__header">
+        <div class="theme-permission-panel__header">
+            <div>
+                <h2 class="theme-card__title">{{ title }}</h2>
+                {% if description %}
+                    <p class="theme-permission-panel__description">{{ description }}</p>
+                {% endif %}
+            </div>
+
+            {% if count_label %}
+                <span class="theme-permission-panel__count">{{ count_label }}</span>
+            {% endif %}
+        </div>
+    </header>
+
+    <div class="theme-card__body">
+        {% if role_name or role_slug %}
+            <dl class="theme-permission-panel__meta">
+                {% if role_name %}
+                    <div>
+                        <dt>Role</dt>
+                        <dd>{{ role_name }}</dd>
+                    </div>
+                {% endif %}
+
+                {% if role_slug %}
+                    <div>
+                        <dt>Slug</dt>
+                        <dd>{{ role_slug }}</dd>
+                    </div>
+                {% endif %}
+            </dl>
+        {% endif %}
+
+        {% if permissions is empty %}
+            <div class="theme-permission-panel__empty">{{ empty_message }}</div>
+        {% else %}
+            <div class="theme-permission-panel__list">
+                {% for permission in permissions|slice(0, limit) %}
+                    <span class="theme-permission-panel__item">
+                        {% if permission is iterable %}
+                            {{ permission.name|default(permission.slug|default('')) }}
+                        {% else %}
+                            {{ permission.getAttribute('name')|default(permission.getAttribute('slug')|default('')) }}
+                        {% endif %}
+                    </span>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</section>

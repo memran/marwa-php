@@ -1,0 +1,19 @@
+{% set status = status|default('') %}
+{% set tone = tone|default('neutral') %}
+{% set is_protected = is_protected|default(false) %}
+
+{% set badge_class = 'theme-status-badge' %}
+{% if status == 'active' %}
+    {% set badge_class = badge_class ~ ' theme-status-badge--success' %}
+{% elseif status == 'disabled' or status == 'inactive' %}
+    {% set badge_class = badge_class ~ ' theme-status-badge--warning' %}
+{% elseif status == 'trashed' %}
+    {% set badge_class = badge_class ~ ' theme-status-badge--danger' %}
+{% endif %}
+
+<span class="{{ badge_class }}">
+    {{ status|default('Unknown')|capitalize }}
+    {% if is_protected %}
+        <span class="theme-status-badge__lock">Protected</span>
+    {% endif %}
+</span>
