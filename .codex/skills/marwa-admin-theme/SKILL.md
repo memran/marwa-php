@@ -15,6 +15,38 @@ Use With:
 - marwa-bug-fix
 - marwa-starter
 
+Theme Creation Workflow:
+
+- Prefer the built-in console command for new themes:
+  - `php marwa theme:make <theme-name>`
+  - example: `php marwa theme:make admin-modern`
+- Use lowercase folder names with numbers and hyphens only.
+- Confirm command registration before debugging manually:
+  - `php marwa list theme`
+  - expected commands: `theme:make`, `theme:publish`, `theme:validate`
+- The make command scaffolds from the current `admin` theme template and creates:
+  - `resources/views/themes/<theme-name>/`
+  - `public/themes/<theme-name>/`
+- After scaffolding, always run:
+  - `php marwa theme:validate <theme-name>`
+- Do not hand-create a new theme package unless the command is missing or broken; if it is broken, fix the command/scaffolder first.
+- Do not modify framework core, theme registry, or view engine to create a theme.
+
+Scaffolder Rules:
+
+- Keep creation logic in app-level theme support classes:
+  - `App\Console\Commands\ThemeMakeCommand`
+  - `App\Theme\ThemeScaffolder`
+  - `App\Theme\ThemeScaffoldResult`
+  - `App\Theme\ThemeValidator`
+- Keep command registration discoverable through `config/console.php`.
+- The scaffolder must rewrite cloned asset references from `/themes/admin/...` to `/themes/<theme-name>/...`.
+- The scaffolded manifest `slug` must match the theme folder name exactly.
+- The scaffolded public wrapper assets must point only to the new theme's own assets.
+- Add or update focused tests when changing the command or scaffolder:
+  - `tests/Unit/ThemeMakeCommandTest.php`
+  - `tests/Unit/ThemeValidatorTest.php`
+
 Theme Rules:
 
 - Keep the theme package under `resources/views/themes/<theme>/`.
@@ -171,8 +203,11 @@ Validation:
 
 Required Checks:
 
+- For new theme creation, run `php marwa theme:make <theme-name>` before manual edits.
 - Run `php marwa theme:validate <theme>`.
+- Run `php marwa list theme` if the command is reported missing.
 - Run focused PHPUnit tests for theme package and theme routing when those tests exist.
+- Run `vendor/bin/phpunit tests/Unit/ThemeMakeCommandTest.php tests/Unit/ThemeValidatorTest.php` after changing theme creation or validation code.
 - Run the relevant UI asset tests when theme CSS or public wrappers change.
 - Grep for accidental references to another theme name after cloning or renaming a theme.
 - Verify the theme works for:
