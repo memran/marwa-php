@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\Modules\Auth\database\seeders\RolesPermissionsSeeder;
 use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Models\Permission;
 use Marwa\DB\Connection\ConnectionManager;
@@ -145,10 +144,10 @@ SQL);
             null,
             'default',
             __DIR__ . '/../../modules/Auth/database/seeders',
-            'App\\Modules\\Auth\\database\\seeders'
+            'Database\\Seeders'
         );
 
-        $runner->runOne(RolesPermissionsSeeder::class);
+        $runner->runAll();
 
         $role = Role::findBy('slug', 'user');
         self::assertInstanceOf(Role::class, $role);

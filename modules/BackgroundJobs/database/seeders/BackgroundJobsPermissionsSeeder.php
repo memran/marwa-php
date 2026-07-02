@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\BackgroundJobs\database\seeders;
+namespace Database\Seeders;
 
 use App\Modules\Auth\Support\PermissionMigrationHelper;
 use Marwa\DB\Seeder\Seeder;
 
-if (!class_exists(\App\Modules\BackgroundJobs\database\seeders\BackgroundJobsPermissionsSeeder::class, false)) {
+if (!class_exists(BackgroundJobsPermissionsSeeder::class, false)) {
     final class BackgroundJobsPermissionsSeeder implements Seeder
     {
         public function run(): void

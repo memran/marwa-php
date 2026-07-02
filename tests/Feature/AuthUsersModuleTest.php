@@ -9,9 +9,9 @@ use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Models\Permission;
 use App\Modules\Notifications\Models\Notification;
 use App\Modules\Auth\Support\AuthManager;
-use App\Modules\Auth\database\seeders\RolesPermissionsSeeder;
 use App\Modules\Auth\Support\RoleRepository;
-use App\Modules\Users\database\seeders\AdminUserSeeder;
+use Database\Seeders\AdminUserSeeder;
+use Database\Seeders\RolesPermissionsSeeder;
 use Marwa\DB\Connection\ConnectionManager;
 use Marwa\DB\Schema\MigrationRepository;
 use Marwa\Framework\Application;
@@ -333,6 +333,12 @@ TWIG
         ]));
         self::assertSame(302, $failedLogin->getStatusCode());
 
+        $loginPageAfterInvalidCredentials = $kernel->handle($this->request('GET', '/admin/login'));
+        self::assertSame(200, $loginPageAfterInvalidCredentials->getStatusCode());
+        $failedLoginBody = (string) $loginPageAfterInvalidCredentials->getBody();
+        self::assertStringContainsString('Unable to sign in', $failedLoginBody);
+        self::assertStringContainsString('The provided credentials are invalid.', $failedLoginBody);
+
         $loginWithoutCsrf = $kernel->handle($this->request('POST', '/admin/login', [
             'email' => 'admin@marwa.test',
             'password' => 'ExampleAdminPassword123!',
@@ -389,6 +395,10 @@ TWIG
         self::assertStringContainsString('My Profile', $profileBody);
         self::assertStringContainsString('admin@marwa.test', $profileBody);
         self::assertStringContainsString('Administrator', $profileBody);
+        self::assertStringContainsString('Role &amp; Permissions', $profileBody);
+        self::assertStringContainsString('<table class="min-w-full divide-y divide-app-border text-left">', $profileBody);
+        self::assertStringContainsString('dashboard.view', $profileBody);
+        self::assertStringNotContainsString('theme-permission-panel', $profileBody);
 
         $settings = $kernel->handle($this->request('GET', '/admin/settings'));
         self::assertSame(200, $settings->getStatusCode());

@@ -19,7 +19,6 @@ return new class extends AbstractMigration {
             $table->string('action_url', 255)->nullable();
             $table->timestamps();
 
-            $table->foreign('user_id', 'users', 'id', null, ['onDelete' => 'cascade']);
             $table->index('user_id');
             $table->index('is_read');
             $table->index('created_at');

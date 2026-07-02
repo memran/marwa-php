@@ -1,6 +1,10 @@
+name: marwa-nginx
+
 services:
   php:
-    build: ./php-fpm
+    build:
+      context: .
+      dockerfile: php-fpm/Dockerfile
     env_file:
       - ./docker.env
     volumes:
@@ -30,6 +34,11 @@ services:
     image: mariadb:11.4
     env_file:
       - ./docker.env
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-super-secret}
+      MARIADB_DATABASE: ${DB_NAME:-marwa}
+      MARIADB_USER: ${DB_USER:-marwa}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-super-secret}
     volumes:
       - mariadb-data:/var/lib/mysql
     healthcheck:
@@ -45,7 +54,7 @@ services:
     working_dir: /workspace
     volumes:
       - ../:/workspace
-    command: sh -c "npm ci --no-audit --no-fund && npm run dev"
+    command: sh -c "npm ci --no-audit --no-fund && npm run build"
     profiles:
       - assets
     networks:

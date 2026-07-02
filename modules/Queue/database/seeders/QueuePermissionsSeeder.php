@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Queue\database\seeders;
+namespace Database\Seeders;
 
 use App\Modules\Auth\Support\PermissionMigrationHelper;
 use Marwa\DB\Seeder\Seeder;
 
-if (!class_exists(\App\Modules\Queue\database\seeders\QueuePermissionsSeeder::class, false)) {
+if (!class_exists(QueuePermissionsSeeder::class, false)) {
     final class QueuePermissionsSeeder implements Seeder
     {
         public function run(): void

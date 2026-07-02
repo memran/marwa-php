@@ -425,27 +425,39 @@ cp -r resources/views/themes/default/views/* resources/views/themes/my-theme/vie
 ```bash
 cd docker
 cp docker.env.example docker.env
-docker compose -f docker-compose.yml up -d --build
+docker compose --env-file docker.env -f docker-compose.nginx.yml up -d --build
 ```
 
 Access at http://localhost:8080
+
+For the Caddy stack:
+
+```bash
+cd docker
+cp docker.caddy.env.example docker.caddy.env
+docker compose --env-file docker.caddy.env -f docker-compose.caddy.yml up -d --build
+```
+
+Access at http://localhost
 
 ### Available Stacks
 
 | Stack | Compose File | Port |
 |-------|--------------|------|
-| Nginx + PHP-FPM | `docker-compose.yml` | 8080 |
-| Caddy + PHP-FPM | `docker-compose.fpm.yml` | 80 |
+| Nginx + PHP-FPM | `docker-compose.nginx.yml` | 8080 |
+| Caddy + PHP-FPM | `docker-compose.caddy.yml` | 80 |
 
 ### Environment Variables
 
 ```env
+DB_ENABLED=1
 DB_CONNECTION=mysql
 DB_HOST=mariadb
 DB_PORT=3306
 DB_NAME=marwa
 DB_USER=marwa
 DB_PASSWORD=secret
+DB_ROOT_PASSWORD=secret
 
 ADMIN_BOOTSTRAP_EMAIL=admin@example.com
 ADMIN_BOOTSTRAP_PASSWORD=SecurePassword123!
@@ -454,23 +466,25 @@ APP_ENV=production
 APP_DEBUG=0
 ```
 
+Use the `DB_*` variables as the single source of truth. The Docker Compose files map these values to the MariaDB container bootstrap variables.
+
 ### Common Operations
 
 ```bash
 # View logs
-docker compose -f docker-compose.yml logs -f
+docker compose --env-file docker.env -f docker-compose.nginx.yml logs -f
 
 # Restart
-docker compose -f docker-compose.yml restart
+docker compose --env-file docker.env -f docker-compose.nginx.yml restart
 
 # Stop
-docker compose -f docker-compose.yml down
+docker compose --env-file docker.env -f docker-compose.nginx.yml down
 
 # Reset database
-docker compose -f docker-compose.yml down -v
+docker compose --env-file docker.env -f docker-compose.nginx.yml down -v
 
 # Rebuild
-docker compose -f docker-compose.yml up -d --build
+docker compose --env-file docker.env -f docker-compose.nginx.yml up -d --build
 ```
 
 ### What Happens on Startup

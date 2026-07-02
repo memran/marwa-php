@@ -15,6 +15,7 @@ final class BackgroundJobsManifestTest extends TestCase
         self::assertIsArray($manifest);
         self::assertArrayNotHasKey('commands', $manifest['paths']);
         self::assertArrayNotHasKey('database/migrations', $manifest['paths']);
+        self::assertSame('database/seeders', $manifest['paths']['database/seeders']);
         self::assertArrayNotHasKey('tasks', $manifest);
         self::assertArrayHasKey('permissions', $manifest);
         self::assertArrayHasKey('seeders', $manifest);

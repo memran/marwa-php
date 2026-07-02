@@ -7,55 +7,70 @@
 {% set empty_message = empty_message|default('No permissions available.') %}
 {% set count_label = count_label|default('') %}
 
-<section class="theme-card theme-permission-panel">
-    <header class="theme-card__header">
-        <div class="theme-permission-panel__header">
-            <div>
-                <h2 class="theme-card__title">{{ title }}</h2>
-                {% if description %}
-                    <p class="theme-permission-panel__description">{{ description }}</p>
-                {% endif %}
-            </div>
-
-            {% if count_label %}
-                <span class="theme-permission-panel__count">{{ count_label }}</span>
-            {% endif %}
-        </div>
-    </header>
-
-    <div class="theme-card__body">
-        {% if role_name or role_slug %}
-            <dl class="theme-permission-panel__meta">
-                {% if role_name %}
-                    <div>
-                        <dt>Role</dt>
-                        <dd>{{ role_name }}</dd>
-                    </div>
-                {% endif %}
-
-                {% if role_slug %}
-                    <div>
-                        <dt>Slug</dt>
-                        <dd>{{ role_slug }}</dd>
-                    </div>
-                {% endif %}
-            </dl>
+<section class="overflow-hidden rounded-2xl border border-app-border bg-app-surface shadow-sm">
+  <header class="border-b border-app-border px-5 py-4 sm:px-6">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div class="min-w-0">
+        <h2 class="text-base font-semibold tracking-tight text-app-text">{{ title }}</h2>
+        {% if description %}
+          <p class="mt-1 max-w-3xl text-sm leading-6 text-app-muted">{{ description }}</p>
         {% endif %}
+      </div>
 
-        {% if permissions is empty %}
-            <div class="theme-permission-panel__empty">{{ empty_message }}</div>
-        {% else %}
-            <div class="theme-permission-panel__list">
-                {% for permission in permissions|slice(0, limit) %}
-                    <span class="theme-permission-panel__item">
-                        {% if permission is iterable %}
-                            {{ permission.name|default(permission.slug|default('')) }}
-                        {% else %}
-                            {{ permission.getAttribute('name')|default(permission.getAttribute('slug')|default('')) }}
-                        {% endif %}
-                    </span>
-                {% endfor %}
-            </div>
-        {% endif %}
+      {% if count_label %}
+        <span class="inline-flex w-fit shrink-0 items-center rounded-full border border-app-accent/20 bg-app-accent/10 px-3 py-1 text-xs font-semibold text-app-accent">
+          {{ count_label }}
+        </span>
+      {% endif %}
     </div>
+  </header>
+
+  <div class="p-5 sm:p-6">
+    {% if role_name or role_slug %}
+      <dl class="grid gap-3 sm:grid-cols-2">
+        {% if role_name %}
+          <div class="rounded-2xl border border-app-border bg-app-surface-2/60 p-4">
+            <dt class="text-[11px] font-bold uppercase tracking-[0.16em] text-app-muted">Role</dt>
+            <dd class="mt-2 text-sm font-semibold text-app-text">{{ role_name }}</dd>
+          </div>
+        {% endif %}
+
+        {% if role_slug %}
+          <div class="rounded-2xl border border-app-border bg-app-surface-2/60 p-4">
+            <dt class="text-[11px] font-bold uppercase tracking-[0.16em] text-app-muted">Slug</dt>
+            <dd class="mt-2 break-all font-mono text-sm text-app-text">{{ role_slug }}</dd>
+          </div>
+        {% endif %}
+      </dl>
+    {% endif %}
+
+    {% if permissions is empty %}
+      <div class="{{ role_name or role_slug ? 'mt-5 ' : '' }}rounded-2xl border border-dashed border-app-border bg-app-surface-2/50 p-8 text-center text-sm text-app-muted">
+        {{ empty_message }}
+      </div>
+    {% else %}
+      <div class="{{ role_name or role_slug ? 'mt-5 ' : '' }}overflow-hidden rounded-2xl border border-app-border">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-app-border text-left">
+            <thead class="bg-app-surface-2/70">
+              <tr>
+                <th scope="col" class="px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] text-app-muted">Permission</th>
+                <th scope="col" class="px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] text-app-muted">Key</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-app-border bg-app-surface">
+              {% for permission in permissions|slice(0, limit) %}
+                {% set permission_name = permission is iterable ? permission.name|default(permission.slug|default('')) : permission.getAttribute('name')|default(permission.getAttribute('slug')|default('')) %}
+                {% set permission_slug = permission is iterable ? permission.slug|default(permission_name) : permission.getAttribute('slug')|default(permission_name) %}
+                <tr class="transition hover:bg-app-surface-2/60">
+                  <td class="px-4 py-3 text-sm font-medium text-app-text">{{ permission_name }}</td>
+                  <td class="px-4 py-3 font-mono text-xs text-app-muted">{{ permission_slug }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endif %}
+  </div>
 </section>

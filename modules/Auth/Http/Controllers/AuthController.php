@@ -24,8 +24,11 @@ final class AuthController extends Controller
             return $this->redirect('/admin/');
         }
 
+        $errors = session('errors', []);
+
         return $this->view('login', [
-            'errors' => session('errors', []),
+            'errors' => $errors,
+            'login_error' => $this->loginErrorMessage($errors),
             'old' => session('_old_input', []),
             'notice' => session('auth.notice'),
         ]);
@@ -147,5 +150,31 @@ final class AuthController extends Controller
         $params = $request->getServerParams();
 
         return trim((string) ($params['REMOTE_ADDR'] ?? ''));
+    }
+
+    /**
+     * @param mixed $errors
+     */
+    private function loginErrorMessage(mixed $errors): ?string
+    {
+        if (!is_array($errors)) {
+            return null;
+        }
+
+        $messages = $errors['email'] ?? $errors['password'] ?? null;
+
+        if (is_string($messages) && trim($messages) !== '') {
+            return trim($messages);
+        }
+
+        if (is_array($messages)) {
+            $message = reset($messages);
+
+            if (is_string($message) && trim($message) !== '') {
+                return trim($message);
+            }
+        }
+
+        return null;
     }
 }

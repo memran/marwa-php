@@ -21,7 +21,7 @@ WORKDIR /var/www/html
 
 # Optional: install Composer inside container (useful for CI/build)
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY php-fpm/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # You can add custom ini files here later, e.g.:

@@ -14,6 +14,7 @@ return [
     ],
     'paths' => [
         'views' => 'resources/views',
+        'database/seeders' => 'database/seeders',
     ],
     'permissions' => [
         'background_jobs.view' => 'View Background Jobs',

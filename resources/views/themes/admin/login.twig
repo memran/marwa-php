@@ -40,10 +40,10 @@
     </div>
   {% endif %}
 
-  {% if errors is defined and errors.email is defined %}
+  {% if login_error is defined and login_error %}
     <div class="mt-8 rounded-2xl border border-app-danger/20 bg-app-danger/10 p-4 text-app-danger">
       <p class="text-sm font-semibold">Unable to sign in</p>
-      <p class="mt-1 text-sm">{{ errors.email|first }}</p>
+      <p class="mt-1 text-sm">{{ login_error }}</p>
     </div>
   {% endif %}
 

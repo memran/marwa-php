@@ -152,4 +152,19 @@ final class ExecutiveThemeAssetContractTest extends TestCase
             self::assertFileExists($componentsPath . '/' . $component);
         }
     }
+
+    public function testExecutivePermissionPanelDoesNotUseLegacyThemePanelClasses(): void
+    {
+        $panel = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/components/permission-panel.twig');
+        $componentsCss = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/assets/css/components.css');
+
+        self::assertIsString($panel);
+        self::assertIsString($componentsCss);
+        self::assertStringContainsString('divide-y divide-app-border', $panel);
+        self::assertStringContainsString('overflow-x-auto', $panel);
+        self::assertStringNotContainsString('theme-permission-panel', $panel);
+        self::assertStringNotContainsString('theme-permission-panel', $componentsCss);
+        self::assertStringNotContainsString('permission-panel__', $panel);
+        self::assertStringNotContainsString('permission-panel__', $componentsCss);
+    }
 }

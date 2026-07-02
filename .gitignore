@@ -4,6 +4,7 @@
 .env
 .env.testing
 docker/docker.env
+docker/docker.caddy.env
 bootstrap/cache/*
 vendor/
 .idea/

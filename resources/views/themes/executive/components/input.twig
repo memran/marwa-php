@@ -2,6 +2,8 @@
 {% set label = label|default('') %}
 {% set type = type|default('text') %}
 {% set value = value|default('') %}
+{% set placeholder = placeholder|default('') %}
+{% set error = error|default('') %}
 {% set class = class|default('') %}
 {% set disabled = disabled|default(false) %}
 {% set readonly = readonly|default(false) %}
@@ -14,8 +16,12 @@
     name="{{ name }}"
     type="{{ type }}"
     value="{{ value }}"
-    class="h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 {{ class }}"
+    placeholder="{{ placeholder }}"
+    class="h-11 w-full rounded-xl border {% if error %}border-red-300 focus:border-red-500 focus:ring-red-500/20{% else %}border-slate-200 focus:border-blue-500 focus:ring-blue-500/20{% endif %} bg-white px-3.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:ring-2 {{ class }}"
     {% if disabled %}disabled{% endif %}
     {% if readonly %}readonly{% endif %}
   >
+  {% if error %}
+    <small class="text-sm text-red-600">{{ error }}</small>
+  {% endif %}
 </label>

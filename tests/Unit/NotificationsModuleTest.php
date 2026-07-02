@@ -52,6 +52,17 @@ final class NotificationsModuleTest extends TestCase
         self::assertStringContainsString('create_notifications_table', $manifest['migrations'][0]);
     }
 
+    public function test_notifications_migration_does_not_depend_on_users_table_order(): void
+    {
+        $migration = file_get_contents(
+            __DIR__ . '/../../modules/Notifications/database/migrations/2026_04_14_000002_create_notifications_table.php'
+        );
+
+        self::assertIsString($migration);
+        self::assertStringContainsString("\$table->index('user_id')", $migration);
+        self::assertStringNotContainsString("\$table->foreign('user_id'", $migration);
+    }
+
     public function test_notification_created_event_exposes_payload(): void
     {
         $notification = Notification::newInstance([
