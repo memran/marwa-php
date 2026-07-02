@@ -16,13 +16,14 @@ Do not create a mini-framework inside the application.
 
 Before Any Change:
 
-1. Read AGENTS.md
-2. Inspect existing modules
-3. Inspect Users module
-4. Follow existing conventions
-5. Reuse framework capabilities first
-6. Produce implementation plan
-7. Only then modify code
+1. Read the starter `AGENTS.md`
+2. Read `vendor/memran/marwa-framework/docs/tutorials/modules.md` for framework module rules when needed
+3. Inspect existing modules
+4. Inspect Users module
+5. Follow existing conventions
+6. Reuse framework capabilities first
+7. Produce implementation plan
+8. Only then modify code
 
 Framework First:
 

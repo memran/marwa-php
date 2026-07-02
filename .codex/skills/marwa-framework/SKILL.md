@@ -24,12 +24,17 @@ Never write generic PHP when Marwa framework APIs already exist.
 
 Before Any Coding:
 
-1. Read AGENTS.md
-2. Inspect existing framework APIs
-3. Inspect existing module structure
-4. Identify correct Marwa services, contracts, helpers, providers, routes, requests, responses, database abstractions, events, middleware and testing tools
-5. Produce an API usage plan
-6. Only then write code
+1. Read the starter `AGENTS.md`
+2. Read framework core guidance when framework/module rules are needed:
+   - `vendor/memran/marwa-framework/AGENTS.md`
+   - `vendor/memran/marwa-framework/docs/architecture.md`
+   - `vendor/memran/marwa-framework/docs/tutorials/modules.md`
+   - `vendor/memran/marwa-framework/docs/recipes/testing.md`
+3. Inspect existing framework APIs
+4. Inspect existing module structure
+5. Identify correct Marwa services, contracts, helpers, providers, routes, requests, responses, database abstractions, events, middleware and testing tools
+6. Produce an API usage plan
+7. Only then write code
 
 Mandatory Standards:
 

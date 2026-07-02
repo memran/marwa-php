@@ -44,11 +44,17 @@ The application owns:
 
 Before any task:
 
-1. Read AGENTS.md
-2. Read ARCHITECTURE.md
-3. Read MODULE_AUTHORING.md
-4. Read CODING_STANDARDS.md
-5. Read TESTING.md
+1. Read this starter `AGENTS.md`
+2. Read `ARCHITECTURE.md` for starter-owned architecture notes
+3. Read framework core guidance when framework/module rules are needed:
+   - `vendor/memran/marwa-framework/AGENTS.md`
+   - `vendor/memran/marwa-framework/docs/architecture.md`
+   - `vendor/memran/marwa-framework/docs/tutorials/modules.md`
+   - `vendor/memran/marwa-framework/docs/recipes/testing.md`
+
+The framework core owns the detailed architecture, module-authoring, coding,
+and testing guidance. Do not expect `MODULE_AUTHORING.md`,
+`CODING_STANDARDS.md`, or `TESTING.md` at the starter root.
 
 ---
 

@@ -33,11 +33,13 @@ function main(string $projectRoot, array $argv): void
     ensureEnvFile($projectRoot);
     ensureAppKey($projectRoot);
     prepareRuntimeDirectories($projectRoot);
-    buildFrontendAssets($projectRoot);
 
-    if (!$isRootInstall) {
-        printSuccessMessage();
+    if ($isRootInstall) {
+        return;
     }
+
+    buildFrontendAssets($projectRoot);
+    printSuccessMessage();
 }
 
 /**
@@ -123,16 +125,23 @@ function prepareRuntimeDirectories(string $projectRoot): void
 {
     $dirs = [
         $projectRoot . DIRECTORY_SEPARATOR . 'bootstrap' . DIRECTORY_SEPARATOR . 'cache',
+        $projectRoot . DIRECTORY_SEPARATOR . 'database',
         $projectRoot . DIRECTORY_SEPARATOR . 'storage',
         $projectRoot . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'cache',
         $projectRoot . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'logs',
         $projectRoot . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'sessions',
-      ];
+    ];
 
     foreach ($dirs as $dir) {
         if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
             throw new RuntimeException(sprintf('Directory "%s" was not created', $dir));
         }
+    }
+
+    $sqlitePath = $projectRoot . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'database.sqlite';
+
+    if (!file_exists($sqlitePath) && touch($sqlitePath) === false) {
+        throw new RuntimeException(sprintf('SQLite database "%s" was not created', $sqlitePath));
     }
 
     echo " - Ensured runtime directories exist" . PHP_EOL;
@@ -234,8 +243,9 @@ function printSuccessMessage(): void
     echo "MarwaPHP is ready." . PHP_EOL;
     echo "Next steps:" . PHP_EOL;
     echo "  1. Review .env and set your application values." . PHP_EOL;
-    echo "  2. Start the Nginx stack: docker compose -f docker/docker-compose.yml up -d" . PHP_EOL;
-    echo "  3. Or start the Caddy stack: docker compose -f docker/docker-compose.fpm.yml up -d" . PHP_EOL;
-    echo "  4. If you skipped Node.js during setup, run npm ci && npm run build for Tailwind assets." . PHP_EOL;
+    echo "  2. Run migrations: php marwa migrate && php marwa module:migrate && php marwa module:seed" . PHP_EOL;
+    echo "  3. Start the Nginx stack: cd docker && docker compose --env-file docker.env -f docker-compose.nginx.yml up -d" . PHP_EOL;
+    echo "  4. Or start the Caddy stack: cd docker && docker compose --env-file docker.caddy.env -f docker-compose.caddy.yml up -d" . PHP_EOL;
+    echo "  5. If you skipped Node.js during setup, run npm ci && npm run build for Tailwind assets." . PHP_EOL;
     echo PHP_EOL;
 }
