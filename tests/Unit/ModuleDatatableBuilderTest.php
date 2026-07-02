@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use App\Modules\Auth\Support\AuthManager;
+use App\Modules\Auth\Support\PermissionRepository;
+use App\Modules\Roles\Support\PermissionDataTable;
 use App\Modules\Roles\Support\RoleDataTable;
 use App\Modules\Users\Support\UserDataTable;
 use App\Modules\Users\Support\UserRepository;
@@ -258,6 +260,40 @@ PHP
         self::assertStringContainsString('filters%5Btype%5D=custom', $table->pagination()->pages()[0]->url);
     }
 
+    public function testPermissionsDatatableSearchesWithinSelectedGroup(): void
+    {
+        $app = $this->bootstrapApp();
+        $pdo = $this->connections($app)->getPdo();
+
+        $this->createRolesSchema($pdo);
+        $this->seedPermissionData($pdo);
+
+        $table = (new PermissionDataTable(new PermissionRepository()))->make(RequestFactory::fromArrays(
+            [
+                'REQUEST_METHOD' => 'GET',
+                'REQUEST_URI' => '/admin/permissions',
+                'HTTP_HOST' => 'example.test',
+            ],
+            [
+                'q' => 'view',
+                'filters' => ['group' => 'beta'],
+                'sort' => 'name',
+                'direction' => 'asc',
+                'columns' => ['name', 'slug', 'group', 'description'],
+            ],
+            []
+        ))->paginate(10)->result();
+
+        self::assertSame(1, $table->pagination()->total());
+        self::assertCount(1, $table->rows());
+        self::assertSame('Beta View', $table->rows()[0]['cells']['name']['value']);
+        self::assertSame('/admin/permissions/2/edit', $table->rows()[0]['cells']['name']['href']);
+        self::assertSame('beta', $table->rows()[0]['cells']['group']['value']);
+        self::assertSame('edit', $table->rows()[0]['actions'][0]['name']);
+        self::assertStringContainsString('q=view', $table->pagination()->pages()[0]->url);
+        self::assertStringContainsString('filters%5Bgroup%5D=beta', $table->pagination()->pages()[0]->url);
+    }
+
     private function bootstrapApp(): Application
     {
         $app = new Application($this->basePath);
@@ -369,8 +405,15 @@ SQL);
     {
         $pdo->exec("INSERT INTO roles (name, slug, level, is_system) VALUES ('Admin', 'admin', 10, 1)");
         $pdo->exec("INSERT INTO roles (name, slug, level, is_system) VALUES ('Editor', 'editor', 2, 0)");
-        $pdo->exec("INSERT INTO permissions (name, slug) VALUES ('Manage Posts', 'posts.manage')");
+        $pdo->exec("INSERT INTO permissions (name, slug, \"group\") VALUES ('Manage Posts', 'posts.manage', 'posts')");
         $pdo->exec("INSERT INTO role_permission (role_id, permission_id) VALUES (2, 1)");
         $pdo->exec("INSERT INTO users (name, email, password, role_id, is_active) VALUES ('Editor User', 'editor@example.test', 'hash', 2, 1)");
+    }
+
+    private function seedPermissionData(\PDO $pdo): void
+    {
+        $pdo->exec("INSERT INTO permissions (name, slug, \"group\", description) VALUES ('Alpha View', 'alpha.view', 'alpha', 'View alpha records')");
+        $pdo->exec("INSERT INTO permissions (name, slug, \"group\", description) VALUES ('Beta View', 'beta.view', 'beta', 'View beta records')");
+        $pdo->exec("INSERT INTO permissions (name, slug, \"group\", description) VALUES ('Beta Manage', 'beta.manage', 'beta', 'Manage beta records')");
     }
 }

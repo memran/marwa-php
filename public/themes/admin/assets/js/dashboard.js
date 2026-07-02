@@ -429,12 +429,12 @@ document.addEventListener('alpine:init', function() {
 
       getTypeClass(type) {
         const colors = {
-          info: 'text-cyan-400 bg-cyan-400/10',
-          success: 'text-emerald-400 bg-emerald-400/10',
-          warning: 'text-amber-400 bg-amber-400/10',
-          error: 'text-rose-400 bg-rose-400/10'
+          info: 'text-app-accent bg-app-accent/10',
+          success: 'text-app-success bg-app-success/10',
+          warning: 'text-app-warning bg-app-warning/10',
+          error: 'text-app-danger bg-app-danger/10'
         };
-        return colors[type] || 'text-slate-400 bg-white/10';
+        return colors[type] || 'text-app-muted bg-app-surface-2/70';
       },
 
       getTypeIcon(type) {

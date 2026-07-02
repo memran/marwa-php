@@ -70,7 +70,7 @@
 
                   {% if field.input == 'textarea' %}
                     <textarea
-                      class="admin-control w-full rounded-xl border border-app-border bg-app-surface-2/80 px-3 py-2 text-sm text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-300 outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/10"
+                      class="admin-control w-full rounded-xl border border-app-border bg-app-surface-2/80 px-3 py-2 text-sm text-app-text placeholder:text-app-muted outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/10"
                       id="{{ field_id }}"
                       name="{{ field_name }}"
                       rows="4"
@@ -142,7 +142,7 @@
                     {% endif %}
                   {% else %}
                     <input
-                      class="admin-control w-full rounded-xl border border-app-border bg-app-surface-2/80 px-3 py-2 text-sm text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-300 outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/10"
+                      class="admin-control w-full rounded-xl border border-app-border bg-app-surface-2/80 px-3 py-2 text-sm text-app-text placeholder:text-app-muted outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/10"
                       id="{{ field_id }}"
                       name="{{ field_name }}"
                       type="{{ field.input }}"
@@ -170,7 +170,9 @@
       </form>
     {% endblock %}
   {% endembed %}
+{% endblock %}
 
+{% block scripts %}
   <script>
     (function() {
       const tabs = document.querySelectorAll('[data-tabs] [data-tab-target]');

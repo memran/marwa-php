@@ -12,6 +12,7 @@ return [
     'paths' => [
         'views' => 'resources/views',
     ],
+    'routes' => [],
     'menu' => [
         'section' => 'Administration',
         'label' => 'Security',

@@ -5,12 +5,14 @@ declare(strict_types=1);
 return [
     'name' => 'Dashboard Status',
     'slug' => 'dashboard-status',
+    'version' => '1.0.0',
     'providers' => [
         App\Modules\DashboardStatus\DashboardStatusServiceProvider::class,
     ],
     'paths' => [
         'views' => 'resources/views',
     ],
+    'routes' => [],
     'widgets' => [
         'app_status' => [
             'name' => 'Application Status',

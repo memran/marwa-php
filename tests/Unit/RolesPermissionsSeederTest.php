@@ -19,6 +19,8 @@ final class RolesPermissionsSeederTest extends TestCase
 
     protected function setUp(): void
     {
+        $this->resetDatabaseStatics();
+
         $this->basePath = sys_get_temp_dir() . '/marwa-roles-permissions-' . bin2hex(random_bytes(6));
 
         mkdir($this->basePath, 0777, true);
@@ -58,6 +60,8 @@ PHP
 
     protected function tearDown(): void
     {
+        $this->resetDatabaseStatics();
+
         foreach ([
             $this->basePath . '/config/database.php',
             $this->basePath . '/database/database.sqlite',
@@ -144,7 +148,7 @@ SQL);
             'App\\Modules\\Auth\\database\\seeders'
         );
 
-        $runner->runAll();
+        $runner->runOne(RolesPermissionsSeeder::class);
 
         $role = Role::findBy('slug', 'user');
         self::assertInstanceOf(Role::class, $role);
@@ -152,5 +156,24 @@ SQL);
             static fn (Permission $permission): string => (string) $permission->getAttribute('slug'),
             $role->permissions()
         ));
+    }
+
+    private function resetDatabaseStatics(): void
+    {
+        foreach ([
+            [\Marwa\DB\Facades\DB::class, 'cm'],
+            [\Marwa\DB\ORM\Model::class, 'cm'],
+            [\Marwa\DB\ORM\Model::class, 'connection'],
+            [\Marwa\DB\Schema\Schema::class, 'factory'],
+        ] as [$class, $property]) {
+            $reflection = new \ReflectionProperty($class, $property);
+            $reflection->setAccessible(true);
+            if ($property === 'connection') {
+                $reflection->setValue(null, 'default');
+                continue;
+            }
+
+            $reflection->setValue(null);
+        }
     }
 }

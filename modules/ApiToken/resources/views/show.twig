@@ -38,18 +38,18 @@
       </svg>
       <div class="ml-3 w-full">
         <p class="text-sm font-medium text-app-warning">Make sure to copy your token now. You won't be able to see it again!</p>
-        <div class="mt-2 flex items-center gap-2">
+        <div class="mt-2 flex items-center gap-2" x-data="{ copied: false, copyTimer: null, copy(token) { navigator.clipboard.writeText(token).then(() => { this.copied = true; clearTimeout(this.copyTimer); this.copyTimer = setTimeout(() => { this.copied = false; }, 1600); }); } }">
           <code class="flex-1 break-all rounded bg-app-surface px-3 py-2 text-sm font-mono text-app-text">{{ display_token }}</code>
           <button
             type="button"
             data-token="{{ display_token }}"
-            onclick="navigator.clipboard.writeText(this.dataset.token).then(() => { const label = this.querySelector('[data-copy-label]'); if (!label) return; const original = label.textContent; label.textContent = 'Copied'; clearTimeout(this._copyTimer); this._copyTimer = setTimeout(() => { label.textContent = original; }, 1600); })"
+            @click="copy($el.dataset.token)"
             class="shrink-0 inline-flex items-center gap-1 rounded-full border border-app-warning/20 bg-app-warning/10 px-3 py-2 text-sm font-semibold text-app-warning hover:bg-app-warning/20"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
             </svg>
-            <span data-copy-label>Copy</span>
+            <span x-text="copied ? 'Copied' : 'Copy'">Copy</span>
           </button>
         </div>
       </div>

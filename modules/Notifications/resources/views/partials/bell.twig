@@ -1,7 +1,7 @@
 <div class="relative" x-data="notificationBell()" data-unread-count="{{ unread_notification_count|default(0) }}" @click.outside="close()">
   <button 
     type="button" 
-    class="relative rounded-xl border border-slate-300/20 bg-white/50 p-2.5 text-slate-600 transition hover:bg-white hover:text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+    class="relative rounded-xl border border-app-border bg-app-surface/60 p-2.5 text-app-muted transition hover:bg-app-surface hover:text-app-text"
     @click="toggle()"
   >
     {% include 'components/icon.twig' with { name: 'bell', class: 'h-5 w-5' } only %}
@@ -26,9 +26,9 @@
     class="absolute right-0 top-full z-[9999] mt-2 w-80 sm:w-96"
     role="menu"
   >
-    <div class="overflow-hidden rounded-xl border border-slate-300/20 bg-white/95 backdrop-blur-xl shadow-lg dark:border-white/10 dark:bg-slate-950/95 dark:shadow-[0_30px_80px_rgba(2,6,23,0.45)]">
-      <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-white/10">
-        <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-100">Notifications</h3>
+    <div class="overflow-hidden rounded-xl border border-app-border bg-app-surface/95 shadow-xl backdrop-blur-xl">
+      <div class="flex items-center justify-between border-b border-app-border px-4 py-3">
+        <h3 class="text-sm font-semibold text-app-text">Notifications</h3>
         <button 
           x-show="unreadCount > 0" 
           @click="markAllRead()" 
@@ -38,12 +38,12 @@
       
       <div class="max-h-96 overflow-y-auto">
         <template x-if="loading">
-          <div class="flex items-center justify-center py-8 text-slate-400 dark:text-slate-500">
+          <div class="flex items-center justify-center py-8 text-app-muted">
             <span class="text-sm">Loading...</span>
           </div>
         </template>
         <template x-if="!loading && notifications.length === 0">
-          <div class="flex items-center justify-center py-8 text-slate-400 dark:text-slate-500">
+          <div class="flex items-center justify-center py-8 text-app-muted">
             <span class="text-sm">No notifications</span>
           </div>
         </template>
@@ -52,7 +52,7 @@
             <template x-for="notification in notifications" :key="notification.id">
               <a 
                 :href="notification.action_url || '/admin/notifications'" 
-                class="flex items-start gap-3 border-b border-slate-100 px-4 py-3 transition hover:bg-slate-50 dark:border-white/5 dark:hover:bg-white/5"
+                class="flex items-start gap-3 border-b border-app-border px-4 py-3 transition hover:bg-app-surface-2/70"
                 @click="markAsRead(notification)"
               >
                 <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" :class="getTypeClass(notification.type)">
@@ -60,11 +60,11 @@
                 </div>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2">
-                    <span class="truncate text-sm font-medium text-slate-700 dark:text-slate-100" x-text="notification.title"></span>
+                    <span class="truncate text-sm font-medium text-app-text" x-text="notification.title"></span>
                     <span x-show="!notification.is_read" class="h-2 w-2 rounded-full bg-app-accent"></span>
                   </div>
-                  <p class="truncate text-xs text-slate-500 dark:text-slate-400" x-text="notification.message"></p>
-                  <span class="mt-1 block text-xs text-slate-400 dark:text-slate-500" x-text="formatTime(notification.created_at)"></span>
+                  <p class="truncate text-xs text-app-muted" x-text="notification.message"></p>
+                  <span class="mt-1 block text-xs text-app-muted" x-text="formatTime(notification.created_at)"></span>
                 </div>
               </a>
             </template>
@@ -72,7 +72,7 @@
         </template>
       </div>
       
-      <div class="border-t border-slate-200 px-4 py-3 dark:border-white/10">
+      <div class="border-t border-app-border px-4 py-3">
         <a href="/admin/notifications" class="flex items-center justify-center gap-1 text-sm font-medium text-app-accent hover:text-app-accent-soft">
           See all notifications
           {% include 'components/icon.twig' with { name: 'arrow-right', class: 'h-4 w-4' } only %}

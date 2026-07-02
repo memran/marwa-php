@@ -871,8 +871,8 @@ TWIG
         self::assertSame(200, $filteredPermissionsPage->getStatusCode());
         self::assertStringContainsString('View Audit Reports', (string) $filteredPermissionsPage->getBody());
         self::assertStringContainsString('reports.view', (string) $filteredPermissionsPage->getBody());
-        self::assertStringContainsString('Apply filters', (string) $filteredPermissionsPage->getBody());
-        self::assertStringContainsString('name="group"', (string) $filteredPermissionsPage->getBody());
+        self::assertStringContainsString('Search permissions', (string) $filteredPermissionsPage->getBody());
+        self::assertStringContainsString('filters%5Bgroup%5D=reports', (string) $filteredPermissionsPage->getBody());
 
         $editPage = $kernel->handle($this->request('GET', '/admin/permissions/' . $updatedPermission->getKey() . '/edit'));
         self::assertSame(200, $editPage->getStatusCode());

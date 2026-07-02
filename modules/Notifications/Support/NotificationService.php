@@ -12,6 +12,7 @@ final class NotificationService
 {
     public function __construct(
         private readonly NotificationRepository $repository,
+        private readonly NotificationActivityLogger $activity,
     ) {}
 
     public function send(
@@ -31,6 +32,7 @@ final class NotificationService
         ]);
 
         event(new NotificationCreated($notification));
+        $this->activity->notificationCreated($notification);
 
         return $notification;
     }

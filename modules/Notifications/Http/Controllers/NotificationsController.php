@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Notifications\Http\Controllers;
 
-use App\Modules\Activity\Events\ActivityRecordingRequested;
 use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Notifications\Models\Notification;
+use App\Modules\Notifications\Support\NotificationActivityLogger;
 use App\Modules\Notifications\Support\NotificationRepository;
 use App\Modules\Notifications\Support\NotificationService;
 use App\Modules\Users\Models\User;
@@ -21,6 +21,7 @@ final class NotificationsController extends Controller
         private readonly NotificationRepository $repository,
         private readonly NotificationService $service,
         private readonly AuthManager $auth,
+        private readonly NotificationActivityLogger $activity,
     ) {}
 
     public function index(): ResponseInterface
@@ -127,22 +128,7 @@ final class NotificationsController extends Controller
         $result = $this->repository->delete($id, $user->getKey());
 
         if ($result && $notification instanceof Notification) {
-            event(new ActivityRecordingRequested(
-                'notification.deleted',
-                'Deleted notification.',
-                'notification',
-                (int) $notification->getKey(),
-                [
-                    'state' => [
-                        'user_id' => $notification->getAttribute('user_id'),
-                        'type' => $notification->getAttribute('type'),
-                        'title' => $notification->getAttribute('title'),
-                        'message' => $notification->getAttribute('message'),
-                        'action_url' => $notification->getAttribute('action_url'),
-                        'is_read' => $notification->getAttribute('is_read'),
-                    ],
-                ]
-            ));
+            $this->activity->notificationDeleted($notification);
             session()->flash('notifications.notice', 'Notification deleted successfully.');
             return $this->redirect('/admin/notifications');
         }
