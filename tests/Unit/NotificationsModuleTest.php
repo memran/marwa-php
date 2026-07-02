@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use App\Modules\Notifications\Events\NotificationCreated;
-use App\Modules\Notifications\Events\NotificationDeleted;
 use App\Modules\Notifications\Models\Notification;
 use PHPUnit\Framework\TestCase;
 
@@ -74,24 +73,4 @@ final class NotificationsModuleTest extends TestCase
         self::assertSame('Build complete', $event->payload['title']);
     }
 
-    public function test_notification_deleted_event_exposes_payload(): void
-    {
-        $notification = Notification::newInstance([
-            'id' => 12,
-            'user_id' => 7,
-            'type' => 'info',
-            'title' => 'Cleanup',
-            'message' => 'The item was removed.',
-            'action_url' => null,
-            'is_read' => 0,
-        ], true);
-
-        $event = new NotificationDeleted($notification);
-
-        self::assertSame('notification.deleted', $event->getName());
-        self::assertSame(12, $event->payload['id']);
-        self::assertSame(7, $event->payload['user_id']);
-        self::assertSame('info', $event->payload['type']);
-        self::assertSame('Cleanup', $event->payload['title']);
-    }
 }

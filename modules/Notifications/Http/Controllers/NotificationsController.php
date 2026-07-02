@@ -11,7 +11,9 @@ use App\Modules\Notifications\Support\NotificationActivityLogger;
 use App\Modules\Notifications\Support\NotificationRepository;
 use App\Modules\Notifications\Support\NotificationService;
 use App\Modules\Users\Models\User;
+use App\Support\Pagination\PaginationResult;
 use Marwa\Framework\Controllers\Controller;
+use Marwa\Router\Http\Input;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -24,19 +26,28 @@ final class NotificationsController extends Controller
         private readonly NotificationActivityLogger $activity,
     ) {}
 
-    public function index(): ResponseInterface
+    public function index(ServerRequestInterface $request): ResponseInterface
     {
+        Input::setRequest($request);
+
         $user = $this->getUser();
 
         if ($user === null) {
             return $this->redirect('/admin/login');
         }
 
-        $filter = request('filter', 'all');
-        $page = (int) request('page', 1);
+        $filter = $this->filterValue((string) Input::query('filter', 'all'));
+        $page = max(1, (int) Input::query('page', 1));
 
         $grouped = $this->getGroupedNotifications($user->getKey(), $filter, $page);
         $unreadCount = $this->repository->unreadCountForUser($user->getKey());
+        $pagination = PaginationResult::fromArray([
+            'data' => $grouped['data'],
+            'total' => $grouped['total'],
+            'per_page' => $grouped['per_page'],
+            'current_page' => $grouped['current_page'],
+            'last_page' => $grouped['last_page'],
+        ], '/admin/notifications', ['filter' => $filter]);
 
         return $this->view('@notifications/index', [
             'notifications' => $grouped['notifications'],
@@ -45,8 +56,10 @@ final class NotificationsController extends Controller
             'current_page' => $grouped['current_page'],
             'last_page' => $grouped['last_page'],
             'filter' => $filter,
+            'pagination' => $pagination,
             'unread_count' => $unreadCount,
             'is_admin' => $this->isAdmin($user),
+            'notice' => session('notifications.notice'),
         ]);
     }
 
@@ -80,33 +93,60 @@ final class NotificationsController extends Controller
         ]);
     }
 
-    public function markRead(int $id): ResponseInterface
+    public function markRead(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
         $user = $this->getUser();
 
         if ($user === null) {
+            if (!$this->expectsJson($request)) {
+                return $this->redirect('/admin/login');
+            }
+
             return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
+        $id = (int) ($vars['id'] ?? 0);
         $result = $this->repository->markAsRead($id, $user->getKey());
 
         if ($result) {
             $unreadCount = $this->repository->unreadCountForUser($user->getKey());
+            if (!$this->expectsJson($request)) {
+                session()->flash('notifications.notice', 'Notification marked as read.');
+
+                return $this->redirect('/admin/notifications');
+            }
+
             return $this->json(['success' => true, 'unread_count' => $unreadCount]);
+        }
+
+        if (!$this->expectsJson($request)) {
+            session()->flash('notifications.notice', 'Notification not found.');
+
+            return $this->redirect('/admin/notifications');
         }
 
         return $this->json(['success' => false, 'message' => 'Notification not found'], 404);
     }
 
-    public function markAllRead(): ResponseInterface
+    public function markAllRead(ServerRequestInterface $request): ResponseInterface
     {
         $user = $this->getUser();
 
         if ($user === null) {
+            if (!$this->expectsJson($request)) {
+                return $this->redirect('/admin/login');
+            }
+
             return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
         $count = $this->repository->markAllAsRead($user->getKey());
+
+        if (!$this->expectsJson($request)) {
+            session()->flash('notifications.notice', $count > 0 ? 'All notifications marked as read.' : 'No unread notifications to update.');
+
+            return $this->redirect('/admin/notifications');
+        }
 
         return $this->json([
             'success' => true,
@@ -137,19 +177,21 @@ final class NotificationsController extends Controller
         return $this->redirect('/admin/notifications');
     }
 
-    public function store(): ResponseInterface
+    public function store(ServerRequestInterface $request): ResponseInterface
     {
+        Input::setRequest($request);
+
         $user = $this->getUser();
 
         if ($user === null) {
             return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
-        $type = request('type', 'info');
-        $title = request('title', '');
-        $message = request('message', '');
-        $targetUserId = request('user_id');
-        $actionUrl = request('action_url');
+        $type = (string) Input::post('type', 'info');
+        $title = trim((string) Input::post('title', ''));
+        $message = trim((string) Input::post('message', ''));
+        $targetUserId = Input::post('user_id');
+        $actionUrl = trim((string) Input::post('action_url', ''));
 
         if ($title === '' || $message === '') {
             return $this->json(['success' => false, 'message' => 'Title and message are required'], 422);
@@ -158,6 +200,8 @@ final class NotificationsController extends Controller
         if (!in_array($type, [Notification::TYPE_INFO, Notification::TYPE_SUCCESS, Notification::TYPE_WARNING, Notification::TYPE_ERROR], true)) {
             $type = Notification::TYPE_INFO;
         }
+
+        $actionUrl = $this->safeActionUrl($actionUrl);
 
         if ($targetUserId !== null) {
             $this->service->send((int) $targetUserId, $type, $title, $message, $actionUrl);
@@ -170,19 +214,7 @@ final class NotificationsController extends Controller
 
     private function getGroupedNotifications(int $userId, string $filter, int $page): array
     {
-        $notifications = $this->repository->paginatedForUser($userId, $page, 15);
-
-        if ($filter === 'unread') {
-            $notifications['data'] = array_filter(
-                $notifications['data'],
-                static fn (Notification $n) => !$n->getAttribute('is_read')
-            );
-        } elseif ($filter === 'read') {
-            $notifications['data'] = array_filter(
-                $notifications['data'],
-                static fn (Notification $n) => (bool) $n->getAttribute('is_read')
-            );
-        }
+        $notifications = $this->repository->paginatedForUser($userId, $page, 15, $filter);
 
         $groups = [
             'today' => [],
@@ -215,6 +247,7 @@ final class NotificationsController extends Controller
 
         return [
             'notifications' => $groups,
+            'data' => $notifications['data'],
             'total' => $notifications['total'],
             'per_page' => $notifications['per_page'],
             'current_page' => $notifications['current_page'],
@@ -240,6 +273,37 @@ final class NotificationsController extends Controller
         }
 
         return $user;
+    }
+
+    private function filterValue(string $filter): string
+    {
+        $filter = trim($filter);
+
+        return in_array($filter, ['all', 'unread', 'read'], true) ? $filter : 'all';
+    }
+
+    private function safeActionUrl(string $actionUrl): ?string
+    {
+        if ($actionUrl === '') {
+            return null;
+        }
+
+        if (str_starts_with($actionUrl, '/') && !str_starts_with($actionUrl, '//')) {
+            return $actionUrl;
+        }
+
+        $scheme = strtolower((string) parse_url($actionUrl, PHP_URL_SCHEME));
+
+        return in_array($scheme, ['http', 'https'], true) ? $actionUrl : null;
+    }
+
+    private function expectsJson(ServerRequestInterface $request): bool
+    {
+        $accept = strtolower($request->getHeaderLine('Accept'));
+        $requestedWith = strtolower($request->getHeaderLine('X-Requested-With'));
+        $csrfToken = trim($request->getHeaderLine('X-CSRF-Token'));
+
+        return str_contains($accept, 'application/json') || $requestedWith === 'xmlhttprequest' || $csrfToken !== '';
     }
 
     private function getActualAdminUser(): ?User

@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Settings;
 
 use App\Modules\Settings\Support\SettingsApplier;
+use App\Modules\Settings\Support\SettingsActivityLogger;
 use App\Modules\Settings\Support\SettingsCatalog;
+use App\Modules\Settings\Support\SettingsLogoStorage;
+use App\Modules\Settings\Support\SettingsMaintenance;
 use App\Modules\Settings\Support\SettingsRepository;
 use App\Modules\Settings\Support\SettingsStore;
 use App\Support\ModuleDatabaseDependency;
@@ -25,6 +28,11 @@ final class SettingsServiceProvider implements ModuleServiceProviderInterface
     {
         $this->container->addShared(SettingsCatalog::class, new SettingsCatalog());
         $this->container->addShared(SettingsRepository::class, new SettingsRepository());
+        $this->container->addShared(SettingsLogoStorage::class, new SettingsLogoStorage());
+        $this->container->addShared(SettingsActivityLogger::class, new SettingsActivityLogger());
+        $this->container->addShared(SettingsMaintenance::class, new SettingsMaintenance(
+            $app->make(\Marwa\Framework\Contracts\CacheInterface::class)
+        ));
         $this->container->addShared(SettingsApplier::class, new SettingsApplier(
             $app->make(\Marwa\Framework\Supports\Config::class)
         ));

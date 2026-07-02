@@ -13,11 +13,9 @@ final class PasswordResetMailer
 {
     private readonly AdminUserProviderInterface $users;
 
-    public function __construct($users = null)
+    public function __construct(?AdminUserProviderInterface $users = null)
     {
-        $this->users = $users instanceof AdminUserProviderInterface
-            ? $users
-            : new NullAdminUserProvider();
+        $this->users = $users ?? new NullAdminUserProvider();
     }
 
     public function createPasswordResetLink(string $email, int $ttlMinutes = 30): ?string
@@ -34,14 +32,19 @@ final class PasswordResetMailer
         }
 
         $this->purgeExpiredPasswordResetTokens();
-        $this->purgePasswordResetTokensForUser((int) $user->getKey());
+        $userId = $user->getId();
+        if ($userId === null) {
+            return null;
+        }
+
+        $this->purgePasswordResetTokensForUser($userId);
 
         $token = bin2hex(random_bytes(32));
         $tokenHash = hash('sha256', $token);
         $expiresAt = date('Y-m-d H:i:s', time() + (max(1, $ttlMinutes) * 60));
 
         PasswordResetToken::create([
-            'user_id' => $user->getKey(),
+            'user_id' => $userId,
             'token_hash' => $tokenHash,
             'expires_at' => $expiresAt,
         ]);
@@ -119,9 +122,11 @@ final class PasswordResetMailer
         $tokenHash = hash('sha256', $token);
 
         try {
-            return PasswordResetToken::where('token_hash', '=', $tokenHash)
+            $record = PasswordResetToken::where('token_hash', '=', $tokenHash)
                 ->where('expires_at', '>=', date('Y-m-d H:i:s'))
                 ->first();
+
+            return $record instanceof PasswordResetToken ? $record : null;
         } catch (\Throwable) {
             return null;
         }

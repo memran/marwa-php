@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Users\Http\Controllers;
 
 use App\Modules\Users\Support\UserRepository;
+use App\Modules\Auth\Support\AuthManager;
+use App\Modules\Users\Models\User;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -13,6 +15,7 @@ final class UserDeleteController extends Controller
 {
     public function __construct(
         private readonly UserRepository $users,
+        private readonly AuthManager $auth,
     ) {}
 
     /**
@@ -28,6 +31,13 @@ final class UserDeleteController extends Controller
 
         if ($this->users->isLastAdminUser($user)) {
             $this->flash('users.notice', 'The last admin user cannot be deleted.');
+
+            return $this->redirect('/admin/users');
+        }
+
+        $actor = $this->auth->user();
+        if ($this->users->sameUser($user, $actor instanceof User ? $actor : null)) {
+            $this->flash('users.notice', 'You cannot delete your own account.');
 
             return $this->redirect('/admin/users');
         }

@@ -62,7 +62,7 @@ final class BackgroundJobsController extends Controller
 
         session()->flash('background_jobs.notice', (string) ($result['message'] ?? 'Task execution finished.'));
 
-        return $this->redirect('/admin/background-jobs/' . rawurlencode($this->encodeRegistryId($registryId)));
+        return $this->redirect('/admin/background-jobs/' . $this->encodeRegistryId($registryId));
     }
 
     private function decodeRegistryId(string $routeId): string

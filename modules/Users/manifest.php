@@ -35,5 +35,6 @@ return [
         'order' => 20,
         'icon' => 'users',
         'permissions' => ['users.view'],
+        'admin_only' => true,
     ],
 ];

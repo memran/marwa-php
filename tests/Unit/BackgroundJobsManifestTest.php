@@ -22,4 +22,24 @@ final class BackgroundJobsManifestTest extends TestCase
         self::assertSame('routes/http.php', $manifest['routes']['http']);
         self::assertArrayNotHasKey('migrations', $manifest);
     }
+
+    public function test_declared_permissions_are_seeded(): void
+    {
+        $manifest = require dirname(__DIR__, 2) . '/modules/BackgroundJobs/manifest.php';
+        $seeder = file_get_contents(dirname(__DIR__, 2) . '/modules/BackgroundJobs/database/seeders/BackgroundJobsPermissionsSeeder.php');
+
+        self::assertIsString($seeder);
+
+        foreach (array_keys($manifest['permissions']) as $permission) {
+            self::assertStringContainsString($permission, $seeder);
+        }
+    }
+
+    public function test_provider_does_not_register_demo_scheduler_tasks(): void
+    {
+        $provider = file_get_contents(dirname(__DIR__, 2) . '/modules/BackgroundJobs/BackgroundJobsServiceProvider.php');
+
+        self::assertIsString($provider);
+        self::assertStringNotContainsString('demo:scheduler-heartbeat', $provider);
+    }
 }

@@ -13,7 +13,13 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
         ->middleware(new RequirePermission('dashboard.view'))
         ->name('admin.dashboard.index')
         ->register();
-    $routes->post('/dashboard/save', [DashboardController::class, 'saveWidgets'])->register();
-    $routes->post('/dashboard/reset', [DashboardController::class, 'reset'])->register();
-    $routes->get('/dashboard/widget/{id}/refresh', [DashboardController::class, 'refreshWidget'])->register();
+    $routes->post('/dashboard/save', [DashboardController::class, 'saveWidgets'])
+        ->middleware(new RequirePermission('dashboard.view'))
+        ->register();
+    $routes->post('/dashboard/reset', [DashboardController::class, 'reset'])
+        ->middleware(new RequirePermission('dashboard.view'))
+        ->register();
+    $routes->get('/dashboard/widget/{id}/refresh', [DashboardController::class, 'refreshWidget'])
+        ->middleware(new RequirePermission('dashboard.view'))
+        ->register();
 });

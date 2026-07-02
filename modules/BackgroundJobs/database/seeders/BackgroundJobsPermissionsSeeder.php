@@ -14,6 +14,7 @@ if (!class_exists(\App\Modules\BackgroundJobs\database\seeders\BackgroundJobsPer
         {
             PermissionMigrationHelper::insertPermissions([
                 ['name' => 'View Background Jobs', 'slug' => 'background_jobs.view', 'group' => 'background_jobs'],
+                ['name' => 'Run Background Jobs', 'slug' => 'background_jobs.run', 'group' => 'background_jobs'],
             ]);
         }
     }

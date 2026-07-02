@@ -5,12 +5,13 @@ declare(strict_types=1);
 use App\Http\Middleware\AdminThemeMiddleware;
 use App\Modules\ApiToken\Http\Controllers\ApiTokenController;
 use App\Modules\Auth\Http\Middleware\RequireAdminAuthentication;
+use App\Modules\Auth\Http\Middleware\RequireAdminRole;
 use App\Modules\Auth\Http\Middleware\RequirePermission;
 use Marwa\Framework\Facades\Router;
 
 Router::group([
     'prefix' => 'admin',
-    'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class],
+    'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class, RequireAdminRole::class],
 ], static function ($routes): void {
     $routes->get('/api-tokens', [ApiTokenController::class, 'index'])
         ->middleware(new RequirePermission('api_token.view'))
@@ -34,14 +35,9 @@ Router::group([
         ->register();
 
     $routes->post('/api-tokens/show/{id}/toggle', [ApiTokenController::class, 'toggle'])
-        ->middleware(new RequirePermission('api_token.create'))
+        ->middleware(new RequirePermission('api_token.revoke'))
         ->where('id', '[0-9]+')
         ->name('admin.api-tokens.toggle')
         ->register();
 
-    $routes->post('/api-tokens/show/{id}/revoke', [ApiTokenController::class, 'revoke'])
-        ->middleware(new RequirePermission('api_token.revoke'))
-        ->where('id', '[0-9]+')
-        ->name('admin.api-tokens.revoke')
-        ->register();
 });

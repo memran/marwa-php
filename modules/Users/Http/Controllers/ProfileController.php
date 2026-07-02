@@ -70,6 +70,7 @@ final class ProfileController extends Controller
 
         $newPassword = trim((string) ($validated['new_password'] ?? ''));
         $user->updatePasswordHash(password_hash($newPassword, PASSWORD_DEFAULT));
+        $this->auth->refreshSessionFor($user);
 
         $this->flash('users.notice', 'Password updated successfully.');
 

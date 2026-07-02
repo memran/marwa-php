@@ -22,7 +22,6 @@ return [
     ],
     'paths' => [
         'views' => 'resources/views',
-        'commands' => 'Console/Commands',
         'database/migrations' => 'database/migrations',
     ],
     'routes' => [
@@ -40,5 +39,6 @@ return [
         'order' => 40,
         'icon' => 'activity',
         'permissions' => ['activity.view'],
+        'admin_only' => true,
     ],
 ];

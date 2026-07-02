@@ -5,17 +5,11 @@ declare(strict_types=1);
 namespace App\Modules\ApiToken\Support;
 
 use App\Modules\ApiToken\Models\ApiToken;
-use Marwa\DB\Query\Builder;
-use PDO;
 
 final class ApiTokenRepository implements ApiTokenRepositoryInterface
 {
     private const TOKEN_PREFIX = 'sk_';
     private const TOKEN_LENGTH = 40;
-
-    public function __construct()
-    {
-    }
 
     public function generateToken(): string
     {
@@ -105,19 +99,6 @@ final class ApiTokenRepository implements ApiTokenRepositoryInterface
             ->first();
 
         return $row === null ? null : ApiToken::newInstance(is_array($row) ? $row : (array) $row, true);
-    }
-
-    public function revoke(int $id): bool
-    {
-        $token = $this->findById($id);
-
-        if (!$token instanceof ApiToken) {
-            return false;
-        }
-
-        $token->deactivate();
-
-        return true;
     }
 
     public function toggle(int $id): bool

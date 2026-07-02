@@ -5,32 +5,37 @@ declare(strict_types=1);
 namespace App\Modules\DatabaseManager\Http\Controllers;
 
 use App\Modules\Activity\Events\ActivityRecordingRequested;
-use App\Support\Pagination\PaginationResult;
-use Marwa\Framework\Controllers\Controller;
-use Psr\Http\Message\ResponseInterface;
 use App\Modules\DatabaseManager\Support\RawSqlExecutor;
 use App\Modules\DatabaseManager\Support\SqlQueryGuard;
+use App\Support\Pagination\PaginationResult;
+use Marwa\Framework\Controllers\Controller;
+use Marwa\Router\Http\Input;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 final class DatabaseManagerController extends Controller
 {
-    public function __construct()
-    {
-    }
+    public function __construct(
+        private readonly RawSqlExecutor $executor,
+        private readonly SqlQueryGuard $guard,
+    ) {}
 
-    public function index(): ResponseInterface
+    public function index(ServerRequestInterface $request): ResponseInterface
     {
         if (!$this->isEnabled()) {
             return $this->response('Not found.', 404);
         }
 
+        Input::setRequest($request);
+
         $query = trim((string) session('database_manager.query', ''));
-        $page = max(1, (int) request('page', 1));
+        $page = max(1, (int) Input::query('page', 1));
         $result = null;
         $error = null;
 
         if ($query !== '') {
             try {
-                $result = app(RawSqlExecutor::class)->execute($query, $page);
+                $result = $this->executor->execute($query, $page);
             } catch (\Throwable $exception) {
                 $error = $exception->getMessage();
             }
@@ -39,24 +44,22 @@ final class DatabaseManagerController extends Controller
         return $this->view('@database_manager/index', $this->viewData($query, $result, $error));
     }
 
-    public function execute(): ResponseInterface
+    public function execute(ServerRequestInterface $request): ResponseInterface
     {
         if (!$this->isEnabled()) {
             return $this->response('Not found.', 404);
         }
 
-        $query = trim((string) request('query', ''));
-        $confirmed = (bool) request('confirm_destructive', false);
+        Input::setRequest($request);
+
+        $query = trim((string) Input::post('query', ''));
+        $confirmed = (bool) Input::post('confirm_destructive', false);
         $page = 1;
 
         try {
-            /** @var RawSqlExecutor $executor */
-            $executor = app(RawSqlExecutor::class);
-            /** @var SqlQueryGuard $guard */
-            $guard = app(SqlQueryGuard::class);
-            $sanitized = $guard->sanitize($query);
+            $sanitized = $this->guard->sanitize($query);
 
-            if ($guard->requiresConfirmation($sanitized['normalized']) && !$confirmed) {
+            if ($this->guard->requiresConfirmation($sanitized['normalized']) && !$confirmed) {
                 return $this->view('@database_manager/index', $this->viewData(
                     $sanitized['query'],
                     null,
@@ -64,7 +67,7 @@ final class DatabaseManagerController extends Controller
                 ));
             }
 
-            $preview = $executor->execute($sanitized['query'], $page);
+            $preview = $this->executor->execute($sanitized['query'], $page);
             event(new ActivityRecordingRequested(
                 'database.executed',
                 'Executed database query.',

@@ -31,17 +31,17 @@ final class AuthController extends Controller
         ]);
     }
 
-    public function authenticate(): ResponseInterface
+    public function authenticate(ServerRequestInterface $request): ResponseInterface
     {
         $validated = $this->validate([
             'email' => 'required|email',
             'password' => 'required|string|min:8',
-        ]);
+        ], request: $request);
 
         $email = trim((string) ($validated['email'] ?? ''));
         $password = (string) ($validated['password'] ?? '');
 
-        if (!$this->auth->attempt($email, $password)) {
+        if (!$this->auth->attempt($email, $password, $this->ipAddress($request))) {
             if ($this->auth->lastFailureReason() === 'rate_limited') {
                 $this->flash('auth.notice', 'Too many login attempts. Please try again later.');
             }
@@ -69,26 +69,16 @@ final class AuthController extends Controller
         ]);
     }
 
-    public function sendForgotPasswordLink(): ResponseInterface
+    public function sendForgotPasswordLink(ServerRequestInterface $request): ResponseInterface
     {
         $validated = $this->validate([
             'email' => 'required|email',
-        ]);
+        ], request: $request);
 
         $email = trim((string) ($validated['email'] ?? ''));
-        $sent = $this->passwordResetMailer->sendPasswordResetEmail($email);
+        $this->passwordResetMailer->sendPasswordResetEmail($email);
 
-        if (!$sent) {
-            $this->withErrors([
-                'email' => 'We could not prepare a recovery link for that address.',
-            ])->withInput([
-                'email' => $email,
-            ]);
-
-            return $this->redirect('/admin/forgot-password');
-        }
-
-        $this->flash('auth.notice', 'Recovery link sent. Check your email inbox.');
+        $this->flash('auth.notice', 'If an admin account exists for that email, a recovery link has been sent.');
 
         return $this->redirect('/admin/forgot-password');
     }
@@ -98,7 +88,7 @@ final class AuthController extends Controller
      */
     public function resetPassword(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
-        $token = $this->resolveResetToken($request, $vars);
+        $token = $this->resolveResetToken($vars);
 
         return $this->view('reset-password', [
             'errors' => session('errors', []),
@@ -116,9 +106,9 @@ final class AuthController extends Controller
     {
         $validated = $this->validate([
             'password' => 'required|string|min:8|confirmed',
-        ]);
+        ], request: $request);
 
-        $token = $this->resolveResetToken($request, $vars);
+        $token = $this->resolveResetToken($vars);
         $password = (string) ($validated['password'] ?? '');
 
         if (!$this->auth->resetPassword($token, $password)) {
@@ -147,21 +137,15 @@ final class AuthController extends Controller
     /**
      * @param array<string, mixed> $vars
      */
-    private function resolveResetToken(ServerRequestInterface $request, array $vars = []): string
+    private function resolveResetToken(array $vars = []): string
     {
-        $token = (string) ($vars['token'] ?? '');
+        return trim((string) ($vars['token'] ?? ''));
+    }
 
-        if ($token !== '') {
-            return trim($token);
-        }
+    private function ipAddress(ServerRequestInterface $request): string
+    {
+        $params = $request->getServerParams();
 
-        $path = (string) $request->getUri()->getPath();
-        $segments = array_values(array_filter(explode('/', trim($path, '/')), static fn (string $segment): bool => $segment !== ''));
-
-        if ($segments === []) {
-            return '';
-        }
-
-        return rawurldecode((string) end($segments));
+        return trim((string) ($params['REMOTE_ADDR'] ?? ''));
     }
 }

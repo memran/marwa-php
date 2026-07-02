@@ -73,7 +73,7 @@ final class UserRepository
      * @param list<int|string> $ids
      * @return array{deleted:int, skipped:int}
      */
-    public function bulkDelete(array $ids): array
+    public function bulkDelete(array $ids, ?User $actor = null): array
     {
         $deleted = 0;
         $skipped = 0;
@@ -87,7 +87,7 @@ final class UserRepository
 
         foreach ($userIds as $userId) {
             $user = $usersById[$userId] ?? null;
-            if ($user === null || $userId === $protectedId) {
+            if ($user === null || $userId === $protectedId || $this->sameUser($user, $actor)) {
                 $skipped++;
                 continue;
             }
@@ -104,7 +104,7 @@ final class UserRepository
      * @param list<int|string> $ids
      * @return array{updated:int, skipped:int}
      */
-    public function bulkStatus(array $ids, bool $isActive): array
+    public function bulkStatus(array $ids, bool $isActive, ?User $actor = null): array
     {
         $updated = 0;
         $skipped = 0;
@@ -118,7 +118,7 @@ final class UserRepository
 
         foreach ($userIds as $userId) {
             $user = $usersById[$userId] ?? null;
-            if ($user === null || $userId === $protectedId) {
+            if ($user === null || $userId === $protectedId || $this->sameUser($user, $actor)) {
                 $skipped++;
                 continue;
             }
@@ -180,11 +180,60 @@ final class UserRepository
     }
 
     /**
+     * @param array{name:string,email:string,role_id:int,is_active:int} $state
+     */
+    public function wouldBreakAdminAccess(User $user, array $state): bool
+    {
+        if (!$this->isLastAdminUser($user)) {
+            return false;
+        }
+
+        return (int) $user->getAttribute('role_id') !== $state['role_id'] || $state['is_active'] !== 1;
+    }
+
+    public function sameUser(?User $user, ?User $actor): bool
+    {
+        return $user instanceof User
+            && $actor instanceof User
+            && (int) $user->getKey() === (int) $actor->getKey();
+    }
+
+    public function canAssignRole(?User $actor, int $roleId): bool
+    {
+        if (!$actor instanceof User || $roleId <= 0) {
+            return false;
+        }
+
+        $targetRole = $this->roleById($roleId);
+        $actorRole = $this->roleById((int) $actor->getAttribute('role_id'));
+
+        if (!$targetRole instanceof Role || !$actorRole instanceof Role) {
+            return false;
+        }
+
+        $actorLevel = (int) $actorRole->getAttribute('level');
+        $targetLevel = (int) $targetRole->getAttribute('level');
+
+        return $actorLevel > 0 && $targetLevel > 0 && $targetLevel <= $actorLevel;
+    }
+
+    /**
      * @return list<Role>
      */
     public function roles(): array
     {
         return Role::query()->orderBy('name', 'asc')->get();
+    }
+
+    public function roleById(int $roleId): ?Role
+    {
+        if ($roleId <= 0) {
+            return null;
+        }
+
+        $role = Role::find($roleId);
+
+        return $role instanceof Role ? $role : null;
     }
 
     private function findAdminRoleId(): ?int

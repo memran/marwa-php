@@ -31,7 +31,9 @@ final class SqlQueryGuardTest extends TestCase
 
         self::assertTrue($guard->requiresConfirmation('DELETE FROM users'));
         self::assertTrue($guard->requiresConfirmation('UPDATE users SET role = "admin"'));
+        self::assertTrue($guard->requiresConfirmation('INSERT INTO users (name) VALUES ("A")'));
+        self::assertTrue($guard->requiresConfirmation('CREATE TABLE audit_log (id INT)'));
+        self::assertTrue($guard->requiresConfirmation('GRANT SELECT ON app.* TO reader'));
         self::assertFalse($guard->requiresConfirmation('SELECT * FROM users'));
-        self::assertFalse($guard->requiresConfirmation('INSERT INTO users (name) VALUES ("A")'));
     }
 }

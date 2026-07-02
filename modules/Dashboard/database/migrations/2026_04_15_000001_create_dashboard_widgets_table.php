@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Marwa\DB\CLI\AbstractMigration;
+use Marwa\DB\Facades\DB;
 use Marwa\DB\Schema\Schema;
 
 return new class extends AbstractMigration {
@@ -24,14 +25,9 @@ return new class extends AbstractMigration {
         });
 
         $timestamp = gmdate('Y-m-d H:i:s');
-        $pdo = db()->getPdo();
-        $stmt = $pdo->prepare(
-            "INSERT INTO dashboard_widgets (widget_id, widget_type, title, position, width, enabled, config, created_at, updated_at) 
-             VALUES (:widget_id, :widget_type, :title, :position, :width, :enabled, :config, :created_at, :updated_at)"
-        );
 
         foreach ($this->defaultWidgets() as $index => $widget) {
-            $stmt->execute([
+            DB::table('dashboard_widgets')->insert([
                 'widget_id' => $widget['id'],
                 'widget_type' => 'system',
                 'title' => $widget['name'],

@@ -34,5 +34,6 @@ return [
         'order' => 80,
         'icon' => 'key',
         'permissions' => ['api_token.view'],
+        'admin_only' => true,
     ],
 ];

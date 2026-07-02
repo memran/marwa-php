@@ -11,7 +11,6 @@ return [
     ],
     'requires' => [
         'auth',
-        'notifications',
     ],
     'paths' => [
         'views' => 'resources/views',
@@ -20,7 +19,6 @@ return [
     'permissions' => [
         'queue.view' => 'View Queue Jobs',
         'queue.retry' => 'Retry Queue Jobs',
-        'queue.work' => 'Run Queue Worker',
     ],
     'menu' => [
         'section' => 'Administration',
@@ -29,6 +27,7 @@ return [
         'order' => 60,
         'icon' => 'inbox',
         'permissions' => ['queue.view'],
+        'admin_only' => true,
     ],
     'routes' => [
         'http' => 'routes/http.php',

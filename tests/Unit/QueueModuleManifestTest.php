@@ -14,11 +14,13 @@ final class QueueModuleManifestTest extends TestCase
 
         self::assertIsArray($manifest);
         self::assertSame('queue', $manifest['slug']);
+        self::assertSame(['auth'], $manifest['requires']);
         self::assertArrayNotHasKey('commands', $manifest['paths']);
         self::assertArrayNotHasKey('database/migrations', $manifest['paths']);
         self::assertArrayHasKey('permissions', $manifest);
         self::assertArrayHasKey('queue.view', $manifest['permissions']);
         self::assertArrayHasKey('queue.retry', $manifest['permissions']);
+        self::assertArrayNotHasKey('queue.work', $manifest['permissions']);
         self::assertArrayHasKey('seeders', $manifest);
         self::assertContains('database/seeders/QueuePermissionsSeeder.php', $manifest['seeders']);
         self::assertSame('routes/http.php', $manifest['routes']['http']);

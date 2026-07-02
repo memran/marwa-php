@@ -25,9 +25,60 @@
     </div>
   </section>
 
+  <section class="rounded-2xl border border-app-border bg-app-surface p-5 shadow-sm">
+    <form method="get" action="/admin/activity" class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_12rem_12rem_10rem_auto] lg:items-end">
+      <label class="grid gap-1.5" for="activity-search">
+        <span class="text-sm font-medium text-app-text">Search activity</span>
+        <input
+          id="activity-search"
+          name="q"
+          type="search"
+          value="{{ query|default('') }}"
+          placeholder="Search actions, descriptions, actors, IPs, or details..."
+          class="h-11 w-full rounded-xl border border-app-border bg-app-surface px-3.5 text-sm text-app-text outline-none transition placeholder:text-app-muted focus:border-app-accent focus:ring-2 focus:ring-app-accent/20"
+        >
+      </label>
+
+      <label class="grid gap-1.5" for="activity-filter">
+        <span class="text-sm font-medium text-app-text">Category</span>
+        <select id="activity-filter" name="filter" class="h-11 w-full rounded-xl border border-app-border bg-app-surface px-3.5 text-sm text-app-text outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/20">
+          <option value="all"{% if current_filter == 'all' %} selected{% endif %}>All activity</option>
+          <option value="auth"{% if current_filter == 'auth' %} selected{% endif %}>Authentication</option>
+          <option value="users"{% if current_filter == 'users' %} selected{% endif %}>Users</option>
+          <option value="system"{% if current_filter == 'system' %} selected{% endif %}>System</option>
+        </select>
+      </label>
+
+      <label class="grid gap-1.5" for="activity-sort">
+        <span class="text-sm font-medium text-app-text">Sort by</span>
+        <select id="activity-sort" name="sort" class="h-11 w-full rounded-xl border border-app-border bg-app-surface px-3.5 text-sm text-app-text outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/20">
+          <option value="created_at"{% if current_sort == 'created_at' %} selected{% endif %}>Time</option>
+          <option value="action"{% if current_sort == 'action' %} selected{% endif %}>Action</option>
+          <option value="actor"{% if current_sort == 'actor' %} selected{% endif %}>Actor</option>
+          <option value="actor_email"{% if current_sort == 'actor_email' %} selected{% endif %}>Actor email</option>
+        </select>
+      </label>
+
+      <label class="grid gap-1.5" for="activity-direction">
+        <span class="text-sm font-medium text-app-text">Direction</span>
+        <select id="activity-direction" name="direction" class="h-11 w-full rounded-xl border border-app-border bg-app-surface px-3.5 text-sm text-app-text outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/20">
+          <option value="desc"{% if current_direction == 'desc' %} selected{% endif %}>Newest first</option>
+          <option value="asc"{% if current_direction == 'asc' %} selected{% endif %}>Oldest first</option>
+        </select>
+      </label>
+
+      <div class="flex flex-wrap gap-2">
+        <button type="submit" class="inline-flex h-11 items-center justify-center rounded-xl bg-app-accent px-4 text-sm font-semibold text-white transition hover:bg-app-accent/90 focus:outline-none focus:ring-2 focus:ring-app-accent/20">Search</button>
+        {% if query|default('') or current_filter != 'all' or current_sort != 'created_at' or current_direction != 'desc' %}
+          <a href="/admin/activity" class="inline-flex h-11 items-center justify-center rounded-xl border border-app-border bg-app-surface px-4 text-sm font-semibold text-app-text transition hover:bg-app-surface-2">Clear</a>
+        {% endif %}
+      </div>
+    </form>
+  </section>
+
   {% include 'components/activity-log.twig' with {
     title: 'Recent activity',
-    description: 'Newest actions appear at the top.',
+    description: query|default('') ? 'Showing activity matching "' ~ query ~ '".' : 'Newest actions appear at the top.',
     rows: activities.data|default([]),
     pagination: pagination,
     compact: false,

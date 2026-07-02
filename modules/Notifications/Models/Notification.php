@@ -51,7 +51,7 @@ final class Notification extends Model
             'read_at' => date('Y-m-d H:i:s'),
         ]);
         
-        return $this->update();
+        return $this->save();
     }
 
     public function isUnread(): bool

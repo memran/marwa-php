@@ -2,29 +2,39 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Backend;
+namespace App\Modules\Security\Support;
 
-use Marwa\Framework\Controllers\Controller;
 use Marwa\Framework\Security\RiskAnalyzer;
-use Psr\Http\Message\ResponseInterface;
 
-final class SecurityRiskReportController extends Controller
+final class SecurityRiskReport
 {
     public function __construct(
         private readonly RiskAnalyzer $riskAnalyzer,
     ) {}
 
-    public function index(): ResponseInterface
+    /**
+     * @return array{
+     *     enabled: bool,
+     *     log_path: string,
+     *     since_hours: int,
+     *     report: array{
+     *         total: int,
+     *         byCategory: array<string, int>,
+     *         byScore: array{high: int, medium: int, low: int},
+     *         latest: list<array<string, mixed>>
+     *     }
+     * }
+     */
+    public function viewData(mixed $sinceHours): array
     {
-        $sinceHours = $this->positiveInt(request('since_hours', 24), 24, 1, 8760);
-        $report = $this->riskAnalyzer->report($sinceHours);
+        $hours = $this->positiveInt($sinceHours, 24, 1, 8760);
 
-        return $this->view('@security/risk', [
+        return [
             'enabled' => $this->riskAnalyzer->enabled(),
             'log_path' => $this->riskAnalyzer->logPath(),
-            'since_hours' => $sinceHours,
-            'report' => $this->formatReport($report),
-        ]);
+            'since_hours' => $hours,
+            'report' => $this->formatReport($this->riskAnalyzer->report($hours)),
+        ];
     }
 
     private function positiveInt(mixed $value, int $default, int $min, int $max): int

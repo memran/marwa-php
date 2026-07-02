@@ -442,7 +442,7 @@ document.addEventListener('alpine:init', function() {
           info: 'info',
           success: 'check-circle',
           warning: 'alert-triangle',
-          error: 'x-circle'
+          error: 'circle-x'
         };
         return icons[type] || 'bell';
       },

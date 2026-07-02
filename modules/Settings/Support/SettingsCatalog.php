@@ -347,9 +347,7 @@ final class SettingsCatalog
             'int' => $this->normalizeInt($input, (int) ($field['min'] ?? PHP_INT_MIN)),
             'float' => $this->normalizeFloat($input, (float) ($field['min'] ?? 0)),
             'email' => $this->normalizeEmail($input),
-            'url' => $this->normalizeUrl($input),
             'timezone' => $this->normalizeTimezone($input),
-            'list' => $this->normalizeList($input),
             'action' => false,
             default => $this->normalizeString($input, $field),
         };
@@ -414,17 +412,6 @@ final class SettingsCatalog
         throw new \InvalidArgumentException('Enter a valid email address.');
     }
 
-    private function normalizeUrl(mixed $input): string
-    {
-        $value = trim((string) $input);
-
-        if ($value === '' || filter_var($value, FILTER_VALIDATE_URL) !== false) {
-            return $value;
-        }
-
-        throw new \InvalidArgumentException('Enter a valid URL.');
-    }
-
     private function normalizeTimezone(mixed $input): string
     {
         $value = trim((string) $input);
@@ -436,28 +423,10 @@ final class SettingsCatalog
         throw new \InvalidArgumentException('Enter a valid PHP timezone identifier.');
     }
 
-    /**
-     * @return list<string>
-     */
-    private function normalizeList(mixed $input): array
-    {
-        if (!is_scalar($input) && $input !== null) {
-            throw new \InvalidArgumentException('This field must be text.');
-        }
-
-        $lines = preg_split('/\r\n|\r|\n/', trim((string) $input)) ?: [];
-
-        return array_values(array_filter(array_map(
-            static fn(string $line): string => trim($line),
-            $lines
-        ), static fn(string $line): bool => $line !== ''));
-    }
-
     private function serializeValue(string $type, mixed $value): string
     {
         return match ($type) {
             'bool' => $value ? '1' : '0',
-            'list' => json_encode(is_array($value) ? array_values($value) : [], JSON_THROW_ON_ERROR),
             default => (string) $value,
         };
     }
@@ -468,33 +437,7 @@ final class SettingsCatalog
             'bool' => $value === '1',
             'int' => (int) $value,
             'float' => (float) $value,
-            'list' => $this->decodeList($value),
             default => $value,
         };
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function decodeList(string $value): array
-    {
-        if ($value === '') {
-            return [];
-        }
-
-        try {
-            $decoded = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable) {
-            return [];
-        }
-
-        if (!is_array($decoded)) {
-            return [];
-        }
-
-        return array_values(array_filter(array_map(
-            static fn(mixed $item): string => trim((string) $item),
-            $decoded
-        ), static fn(string $item): bool => $item !== ''));
     }
 }

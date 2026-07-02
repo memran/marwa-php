@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace App\Modules\Queue\Support;
 
 use Marwa\DB\Facades\DB;
-use Marwa\Framework\Application;
-use Marwa\Framework\Config\QueueConfig;
-use Marwa\Framework\Queue\QueuedJob;
+use Marwa\Framework\Queue\QueueManager;
 
 final class QueueRepository
 {
-    public function __construct(private readonly Application $app) {}
+    public function __construct(private readonly QueueManager $queueManager) {}
 
     /**
      * @return array<string, mixed>
@@ -23,9 +21,10 @@ final class QueueRepository
 
         return [
             'driver' => $configuration['driver'],
-            'backend_label' => $configuration['driver'] === 'database' ? 'Database queue' : 'File queue',
+            'backend_label' => $this->backendLabel($configuration['driver']),
             'queue' => $configuration['default'],
             'table' => $configuration['driver'] === 'database' ? $this->table() : null,
+            'state_path' => $configuration['driver'] === 'file' ? $configuration['path'] : null,
             'jobs' => $jobs,
             'stats' => $this->stats($jobs),
             'cron' => 'php marwa queue:work --max-time=60 --sleep=1',
@@ -41,9 +40,13 @@ final class QueueRepository
             return null;
         }
 
-        $row = DB::table($this->table(), $this->connection())
-            ->where('id', '=', $jobId)
-            ->first();
+        try {
+            $row = DB::table($this->table(), $this->connection())
+                ->where('id', '=', $jobId)
+                ->first();
+        } catch (\Throwable) {
+            return null;
+        }
 
         return $row === null ? null : $this->normalizeRow($this->rowToArray($row));
     }
@@ -54,9 +57,13 @@ final class QueueRepository
             return false;
         }
 
-        $row = DB::table($this->table(), $this->connection())
-            ->where('id', '=', $jobId)
-            ->first();
+        try {
+            $row = DB::table($this->table(), $this->connection())
+                ->where('id', '=', $jobId)
+                ->first();
+        } catch (\Throwable) {
+            return false;
+        }
 
         if ($row === null) {
             return false;
@@ -64,95 +71,22 @@ final class QueueRepository
 
         $now = time();
 
-        $affected = DB::table($this->table(), $this->connection())
-            ->where('id', '=', $jobId)
-            ->update([
-                'available_at' => $now,
-                'reserved_at' => null,
-                'reserved_by' => null,
-                'completed_at' => null,
-                'failed_at' => null,
-                'updated_at' => $now,
-            ]);
+        try {
+            $affected = DB::table($this->table(), $this->connection())
+                ->where('id', '=', $jobId)
+                ->update([
+                    'available_at' => $now,
+                    'reserved_at' => null,
+                    'reserved_by' => null,
+                    'completed_at' => null,
+                    'failed_at' => null,
+                    'updated_at' => $now,
+                ]);
+        } catch (\Throwable) {
+            return false;
+        }
 
         return $affected > 0;
-    }
-
-    /**
-     * @param array<string, mixed> $payload
-     */
-    public function push(string $name, array $payload = [], ?string $queue = null, int $delaySeconds = 0): QueuedJob
-    {
-        $queueBackend = $this->queueBackend();
-
-        if (method_exists($queueBackend, 'push')) {
-            return $queueBackend->push($name, $payload, $queue, $delaySeconds);
-        }
-
-        throw new \RuntimeException('Configured queue backend does not support pushing jobs.');
-    }
-
-    public function pop(?string $queue = null, ?\DateTimeImmutable $now = null): ?QueuedJob
-    {
-        $queueBackend = $this->queueBackend();
-
-        if (method_exists($queueBackend, 'pop')) {
-            return $queueBackend->pop($queue, $now);
-        }
-
-        return null;
-    }
-
-    public function delete(QueuedJob $job): bool
-    {
-        $queueBackend = $this->queueBackend();
-
-        if (method_exists($queueBackend, 'complete')) {
-            $queueBackend->complete($job);
-
-            return true;
-        }
-
-        if (method_exists($queueBackend, 'delete')) {
-            return (bool) $queueBackend->delete($job);
-        }
-
-        return false;
-    }
-
-    public function release(QueuedJob $job, int $delaySeconds = 0): QueuedJob
-    {
-        $queueBackend = $this->queueBackend();
-
-        if (method_exists($queueBackend, 'release')) {
-            return $queueBackend->release($job, $delaySeconds);
-        }
-
-        return $job;
-    }
-
-    public function fail(QueuedJob $job, ?string $reason = null): bool
-    {
-        $queueBackend = $this->queueBackend();
-
-        if (method_exists($queueBackend, 'fail')) {
-            $queueBackend->fail($job, $reason);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    public function size(?string $queue = null): int
-    {
-        $queueBackend = $this->queueBackend();
-
-        if (method_exists($queueBackend, 'pending')) {
-            return count($queueBackend->pending($queue));
-        }
-
-        return 0;
     }
 
     /**
@@ -160,13 +94,7 @@ final class QueueRepository
      */
     private function queueConfiguration(): array
     {
-        $config = $this->app->make(\Marwa\Framework\Supports\Config::class);
-        $config->loadIfExists(QueueConfig::KEY . '.php');
-
-        return QueueConfig::merge(
-            $this->app,
-            $config->getArray(QueueConfig::KEY, [])
-        );
+        return $this->queueManager->configuration();
     }
 
     /**
@@ -295,11 +223,6 @@ final class QueueRepository
         return (string) ($configuration['database']['connection'] ?? config('database.default', 'default'));
     }
 
-    private function queueBackend(): object
-    {
-        return $this->app->queue();
-    }
-
     private function formatTimestamp(mixed $value): ?string
     {
         if ($value === null || $value === '') {
@@ -345,6 +268,16 @@ final class QueueRepository
             'failed' => 'text-app-danger bg-app-danger/10 ring-app-danger/20',
             'processing' => 'text-app-accent bg-app-accent/10 ring-app-accent/20',
             default => 'text-app-muted bg-app-surface-2/70 ring-app-border',
+        };
+    }
+
+    private function backendLabel(string $driver): string
+    {
+        return match ($driver) {
+            'database' => 'Database queue',
+            'file' => 'File queue',
+            'redis' => 'Redis queue',
+            default => ucfirst($driver) . ' queue',
         };
     }
 

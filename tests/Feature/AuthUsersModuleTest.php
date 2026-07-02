@@ -89,7 +89,6 @@ final class AuthUsersModuleTest extends TestCase
 declare(strict_types=1);
 
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\Backend\SecurityRiskReportController;
 use App\Http\Middleware\AdminThemeMiddleware;
 use App\Modules\Dashboard\Http\Controllers\DashboardController;
 use App\Modules\Auth\Http\Middleware\RequireAdminAuthentication;
@@ -101,10 +100,6 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
     $routes->get('/', static function (): \Psr\Http\Message\ResponseInterface {
         return app(DashboardController::class)->index();
     })->name('admin.dashboard')->register();
-
-    $routes->get('/security/risk', [SecurityRiskReportController::class, 'index'])
-        ->name('admin.security.risk')
-        ->register();
 });
 PHP
         );
@@ -416,22 +411,36 @@ TWIG
         $bootstrapAdmin = User::findBy('email', 'admin@marwa.test');
         self::assertInstanceOf(User::class, $bootstrapAdmin);
 
-        $blockedSelfDisable = $kernel->handle($this->request('POST', '/admin/users/' . $bootstrapAdmin->getKey(), [
+        $blockedLastAdminDemotion = $kernel->handle($this->request('POST', '/admin/users/' . $bootstrapAdmin->getKey(), [
             '_token' => $csrf,
             'name' => 'Administrator',
             'email' => 'admin@marwa.test',
-            'role' => 'admin',
+            'role_id' => $this->roleId('user'),
+            'is_active' => '1',
             'password' => '',
             'password_confirmation' => '',
         ]));
-        self::assertSame(302, $blockedSelfDisable->getStatusCode());
-        self::assertStringContainsString('/admin/users/' . $bootstrapAdmin->getKey(), $blockedSelfDisable->getHeaderLine('Location'));
+        self::assertSame(302, $blockedLastAdminDemotion->getStatusCode());
+        self::assertStringContainsString('/admin/users/' . $bootstrapAdmin->getKey(), $blockedLastAdminDemotion->getHeaderLine('Location'));
+
+        $blockedLastAdminDisable = $kernel->handle($this->request('POST', '/admin/users/' . $bootstrapAdmin->getKey(), [
+            '_token' => $csrf,
+            'name' => 'Administrator',
+            'email' => 'admin@marwa.test',
+            'role_id' => $this->roleId('admin'),
+            'is_active' => '0',
+            'password' => '',
+            'password_confirmation' => '',
+        ]));
+        self::assertSame(302, $blockedLastAdminDisable->getStatusCode());
+        self::assertStringContainsString('/admin/users/' . $bootstrapAdmin->getKey(), $blockedLastAdminDisable->getHeaderLine('Location'));
 
         $blockedSelfDisableForm = $kernel->handle($this->request('GET', '/admin/users/' . $bootstrapAdmin->getKey() . '/edit'));
         self::assertSame(200, $blockedSelfDisableForm->getStatusCode());
         self::assertSame(1, (int) User::findBy('email', 'admin@marwa.test')->getAttribute('is_active'));
+        self::assertSame($this->roleId('admin'), (int) User::findBy('email', 'admin@marwa.test')->getAttribute('role_id'));
 
-        unset($bootstrapAdmin, $blockedSelfDisable, $blockedSelfDisableForm);
+        unset($bootstrapAdmin, $blockedLastAdminDemotion, $blockedLastAdminDisable, $blockedSelfDisableForm);
 
         $usersPage = $kernel->handle($this->request('GET', '/admin/users'));
         self::assertSame(200, $usersPage->getStatusCode());
@@ -660,12 +669,6 @@ TWIG
         self::assertSame(200, $loginPage->getStatusCode());
 
         $csrf = $this->app->security()->csrfToken();
-        $link = $this->auth()->createPasswordResetLink('admin@marwa.test');
-        self::assertNotNull($link);
-        self::assertStringContainsString('reset-password/', $link);
-
-        $token = basename($link);
-
         $forgotPage = $kernel->handle($this->request('GET', '/admin/forgot-password'));
         self::assertSame(200, $forgotPage->getStatusCode());
         self::assertStringContainsString('Request a recovery link.', (string) $forgotPage->getBody());
@@ -677,12 +680,37 @@ TWIG
         self::assertSame(302, $forgotSubmit->getStatusCode());
         self::assertStringEndsWith('/admin/forgot-password', $forgotSubmit->getHeaderLine('Location'));
 
+        $forgotNoticePage = $kernel->handle($this->request('GET', '/admin/forgot-password'));
+        self::assertSame(200, $forgotNoticePage->getStatusCode());
+        self::assertStringContainsString('If an admin account exists for that email, a recovery link has been sent.', (string) $forgotNoticePage->getBody());
+
+        $unknownForgotSubmit = $kernel->handle($this->request('POST', '/admin/forgot-password', [
+            '_token' => $csrf,
+            'email' => 'missing-admin@example.test',
+        ]));
+        self::assertSame(302, $unknownForgotSubmit->getStatusCode());
+        self::assertStringEndsWith('/admin/forgot-password', $unknownForgotSubmit->getHeaderLine('Location'));
+
+        $unknownForgotNoticePage = $kernel->handle($this->request('GET', '/admin/forgot-password'));
+        self::assertSame(200, $unknownForgotNoticePage->getStatusCode());
+        self::assertStringContainsString('If an admin account exists for that email, a recovery link has been sent.', (string) $unknownForgotNoticePage->getBody());
+        self::assertStringNotContainsString('We could not prepare a recovery link', (string) $unknownForgotNoticePage->getBody());
+
+        self::assertTrue($this->auth()->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+
+        $link = $this->auth()->createPasswordResetLink('admin@marwa.test');
+        self::assertNotNull($link);
+        self::assertStringContainsString('reset-password/', $link);
+
+        $token = basename($link);
+
         $resetPage = $kernel->handle($this->request('GET', '/admin/reset-password/' . $token));
         self::assertSame(200, $resetPage->getStatusCode());
         self::assertStringContainsString('Set a new password.', (string) $resetPage->getBody());
         self::assertStringContainsString($token, (string) $resetPage->getBody());
 
         self::assertTrue($this->auth()->resetPassword($token, 'ResetPassword123!'));
+        self::assertFalse($this->auth()->check());
 
         $this->connections = null;
         $this->app = null;
@@ -799,9 +827,21 @@ TWIG
 
         $activityPage = $kernel->handle($this->request('GET', '/admin/activity'));
         self::assertSame(200, $activityPage->getStatusCode());
-        self::assertStringContainsString('role.created', (string) $activityPage->getBody());
-        self::assertStringContainsString('role.updated', (string) $activityPage->getBody());
-        self::assertStringContainsString('role.deleted', (string) $activityPage->getBody());
+        $activityBody = (string) $activityPage->getBody();
+        self::assertStringContainsString('Search activity', $activityBody);
+        self::assertStringContainsString('Search actions, descriptions, actors, IPs, or details...', $activityBody);
+        self::assertStringContainsString('role.created', $activityBody);
+        self::assertStringContainsString('role.updated', $activityBody);
+        self::assertStringContainsString('role.deleted', $activityBody);
+
+        $searchedActivityPage = $kernel->handle($this->request('GET', '/admin/activity?q=role.deleted'));
+        self::assertSame(200, $searchedActivityPage->getStatusCode());
+        $searchedActivityBody = (string) $searchedActivityPage->getBody();
+        self::assertStringContainsString('value="role.deleted"', $searchedActivityBody);
+        self::assertStringContainsString('Showing activity matching &quot;role.deleted&quot;.', $searchedActivityBody);
+        self::assertStringContainsString('role.deleted', $searchedActivityBody);
+        self::assertStringNotContainsString('role.created', $searchedActivityBody);
+        self::assertStringNotContainsString('role.updated', $searchedActivityBody);
 
         $this->connections = null;
         $this->app = null;
@@ -1018,10 +1058,71 @@ TWIG
         self::assertSame(200, $dashboard->getStatusCode());
         $body = (string) $dashboard->getBody();
         self::assertStringContainsString('/admin/dashboard', $body);
-        self::assertStringContainsString('/admin/activity', $body);
         self::assertStringContainsString('Limited Viewer', $body);
-        self::assertStringContainsString('Security', $body);
-        self::assertStringContainsString('Audit Logs', $body);
+        self::assertStringNotContainsString('/admin/activity', $body);
+        self::assertStringNotContainsString('/admin/security/risk', $body);
+        self::assertStringNotContainsString('Security Risk', $body);
+        self::assertStringNotContainsString('Audit Logs', $body);
+
+        $this->connections = null;
+        $this->app = null;
+    }
+
+    public function testLowerLevelUserCannotCreateAdminAccount(): void
+    {
+        $this->app = new Application($this->basePath);
+        $this->app->make(AppBootstrapper::class)->bootstrap();
+        $this->migrateAuthAndUserModules($this->app);
+        $this->seedAuthAndUsers();
+        $this->auth()->logout();
+        $kernel = $this->app->make(HttpKernel::class);
+
+        $usersViewPermission = Permission::findBy('slug', 'users.view');
+        $usersCreatePermission = Permission::findBy('slug', 'users.create');
+
+        self::assertInstanceOf(Permission::class, $usersViewPermission);
+        self::assertInstanceOf(Permission::class, $usersCreatePermission);
+
+        $role = Role::create([
+            'name' => 'User Manager',
+            'slug' => 'user_manager',
+            'level' => 3,
+            'description' => 'Can manage users below their own role level.',
+            'is_system' => 0,
+        ]);
+
+        $roleRepo = new RoleRepository();
+        $roleRepo->syncPermissions((int) $role->getKey(), [
+            (int) $usersViewPermission->getKey(),
+            (int) $usersCreatePermission->getKey(),
+        ]);
+
+        User::create([
+            'name' => 'User Manager',
+            'email' => 'user.manager@example.test',
+            'password' => password_hash('UserManagerPassword123!', PASSWORD_DEFAULT),
+            'role_id' => (int) $role->getKey(),
+            'is_active' => true,
+        ]);
+
+        self::assertTrue($this->auth()->attempt('user.manager@example.test', 'UserManagerPassword123!'));
+        $csrf = $this->app->security()->csrfToken();
+
+        $index = $kernel->handle($this->request('GET', '/admin/users'));
+        self::assertSame(403, $index->getStatusCode());
+
+        $create = $kernel->handle($this->request('POST', '/admin/users', [
+            '_token' => $csrf,
+            'name' => 'Escalated Admin',
+            'email' => 'escalated.admin@example.test',
+            'role_id' => $this->roleId('admin'),
+            'is_active' => '1',
+            'password' => 'EscalatedAdmin123!',
+            'password_confirmation' => 'EscalatedAdmin123!',
+        ]));
+
+        self::assertSame(403, $create->getStatusCode());
+        self::assertNull(User::findBy('email', 'escalated.admin@example.test'));
 
         $this->connections = null;
         $this->app = null;
@@ -1116,7 +1217,7 @@ TWIG
             'is_active' => true,
         ]);
 
-        Notification::create([
+        $viewerNotification = Notification::create([
             'user_id' => (int) $viewer->getKey(),
             'type' => Notification::TYPE_INFO,
             'title' => 'Viewer only',
@@ -1142,6 +1243,27 @@ TWIG
         ]));
         self::assertSame(302, $login->getStatusCode());
         self::assertTrue($this->auth()->attempt('viewer@example.test', 'NotificationViewer123!'));
+
+        $index = $kernel->handle($this->request('GET', '/admin/notifications?filter=unread'));
+        self::assertSame(200, $index->getStatusCode());
+        $indexBody = (string) $index->getBody();
+        self::assertStringContainsString('Notification filters', $indexBody);
+        self::assertStringContainsString('Viewer only', $indexBody);
+        self::assertStringNotContainsString('Other user only', $indexBody);
+
+        $markRead = $kernel->handle($this->request('POST', '/admin/notifications/' . $viewerNotification->getKey() . '/read', [
+            '_token' => $csrf,
+        ]));
+        self::assertSame(302, $markRead->getStatusCode());
+        self::assertSame('/admin/notifications', $markRead->getHeaderLine('Location'));
+
+        $unreadIndex = $kernel->handle($this->request('GET', '/admin/notifications?filter=unread'));
+        self::assertSame(200, $unreadIndex->getStatusCode());
+        self::assertStringNotContainsString('Viewer only', (string) $unreadIndex->getBody());
+
+        $readIndex = $kernel->handle($this->request('GET', '/admin/notifications?filter=read'));
+        self::assertSame(200, $readIndex->getStatusCode());
+        self::assertStringContainsString('Viewer only', (string) $readIndex->getBody());
 
         $latest = $kernel->handle($this->request('GET', '/admin/notifications/latest'));
         self::assertSame(200, $latest->getStatusCode());

@@ -90,4 +90,38 @@ final class AuthManagerTest extends TestCase
         self::assertFalse($auth->check());
         self::assertFalse($auth->resetPassword('token', 'new-password'));
     }
+
+    public function testBootstrapLoginRequiresExplicitCredentials(): void
+    {
+        file_put_contents(
+            $this->basePath . '/.env',
+            "APP_ENV=testing\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nTIMEZONE=UTC\n"
+        );
+
+        $app = new Application($this->basePath);
+        $GLOBALS['marwa_app'] = $app;
+        $app->add(AdminUserProviderInterface::class, new NullAdminUserProvider());
+
+        $auth = $app->make(AuthManager::class);
+
+        self::assertFalse($auth->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+        self::assertFalse($auth->check());
+    }
+
+    public function testLoginAttemptsAreRateLimitedBeforePasswordVerification(): void
+    {
+        $app = new Application($this->basePath);
+        $GLOBALS['marwa_app'] = $app;
+        $app->add(AdminUserProviderInterface::class, new NullAdminUserProvider());
+
+        $auth = $app->make(AuthManager::class);
+
+        for ($i = 0; $i < 5; $i++) {
+            self::assertFalse($auth->attempt('admin@marwa.test', 'wrong-password', '127.0.0.1'));
+        }
+
+        self::assertFalse($auth->attempt('admin@marwa.test', 'ExampleAdminPassword123!', '127.0.0.1'));
+        self::assertSame('rate_limited', $auth->lastFailureReason());
+        self::assertFalse($auth->check());
+    }
 }

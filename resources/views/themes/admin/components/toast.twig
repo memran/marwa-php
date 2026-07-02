@@ -1,9 +1,13 @@
 {% set toast = toast|default({}) %}
-{% set type = toast.type|default('info') %}
+{% set type = toast.tone|default(toast.type|default('info')) %}
 {% set message = toast.message|default('') %}
 {% set title = toast.title|default('') %}
+{% set icon = toast.icon|default('badge-info') %}
 
 <div class="theme-toast theme-toast--{{ type }}" role="status">
+    <div class="theme-toast__icon" aria-hidden="true">
+        {% include 'components/icon.twig' with { name: icon, class: 'h-4 w-4' } only %}
+    </div>
     <div class="theme-toast__body">
         {% if title %}
             <strong class="theme-toast__title">{{ title }}</strong>

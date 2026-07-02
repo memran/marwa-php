@@ -97,8 +97,25 @@ final class ApiToken extends Model
 
     private function cidrContains(string $cidr, string $ip): bool
     {
-        [$subnet, $mask] = explode('/', $cidr);
+        $parts = explode('/', $cidr);
+
+        if (count($parts) !== 2 || !ctype_digit($parts[1])) {
+            return false;
+        }
+
+        [$subnet, $mask] = $parts;
         $mask = (int) $mask;
+
+        if ($mask < 0 || $mask > 32) {
+            return false;
+        }
+
+        if (
+            filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false
+            || filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false
+        ) {
+            return false;
+        }
 
         $ipLong = ip2long($ip);
         $subnetLong = ip2long($subnet);
@@ -107,7 +124,7 @@ final class ApiToken extends Model
             return false;
         }
 
-        $maskLong = ~((1 << (32 - $mask)) - 1);
+        $maskLong = $mask === 0 ? 0 : ~((1 << (32 - $mask)) - 1);
 
         return ($ipLong & $maskLong) === ($subnetLong & $maskLong);
     }

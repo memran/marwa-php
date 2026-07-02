@@ -6,6 +6,8 @@ namespace App\Modules\Users\Http\Controllers;
 
 use App\Modules\Users\Support\UserNotice;
 use App\Modules\Users\Support\UserRepository;
+use App\Modules\Auth\Support\AuthManager;
+use App\Modules\Users\Models\User;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -15,13 +17,15 @@ final class UserBulkActionController extends Controller
     public function __construct(
         private readonly UserRepository $users,
         private readonly UserNotice $notices,
+        private readonly AuthManager $auth,
     ) {}
 
     public function delete(ServerRequestInterface $request): ResponseInterface
     {
         /** @var list<int|string> $ids */
         $ids = (array) $this->input('ids', []);
-        $result = $this->users->bulkDelete($ids);
+        $actor = $this->auth->user();
+        $result = $this->users->bulkDelete($ids, $actor instanceof User ? $actor : null);
 
         $this->flash('users.notice', $this->notices->bulkResult(
             $result['deleted'],
@@ -44,7 +48,8 @@ final class UserBulkActionController extends Controller
             return $this->redirect('/admin/users');
         }
 
-        $result = $this->users->bulkStatus($ids, $status === 'active');
+        $actor = $this->auth->user();
+        $result = $this->users->bulkStatus($ids, $status === 'active', $actor instanceof User ? $actor : null);
 
         $this->flash('users.notice', $this->notices->bulkResult(
             $result['updated'],

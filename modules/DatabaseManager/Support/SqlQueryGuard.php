@@ -40,8 +40,9 @@ final class SqlQueryGuard
         $verb = $this->leadingVerb($query);
 
         return in_array($verb, [
-            'update', 'delete', 'truncate', 'drop', 'alter', 'replace',
-            'show', 'describe', 'explain', 'use'
+            'alter', 'analyze', 'call', 'create', 'delete', 'drop', 'grant', 'insert',
+            'load', 'optimize', 'rename', 'repair', 'replace', 'revoke', 'show',
+            'describe', 'explain', 'truncate', 'update', 'use',
         ], true);
     }
 

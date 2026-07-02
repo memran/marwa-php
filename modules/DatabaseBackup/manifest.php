@@ -29,6 +29,7 @@ return [
         'order' => 40,
         'icon' => 'database-zap',
         'permissions' => ['database_backup.view'],
+        'admin_only' => true,
     ],
     'routes' => [
         'http' => 'routes/http.php',

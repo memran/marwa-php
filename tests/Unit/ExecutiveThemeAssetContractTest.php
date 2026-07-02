@@ -27,10 +27,12 @@ final class ExecutiveThemeAssetContractTest extends TestCase
         $layoutCss = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/assets/css/layout.css');
         $componentsCss = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/assets/css/components.css');
         $appCss = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/assets/css/app.css');
+        $toast = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/components/toast.twig');
 
         self::assertIsString($layoutCss);
         self::assertIsString($componentsCss);
         self::assertIsString($appCss);
+        self::assertIsString($toast);
         self::assertStringContainsString('#071b33', $layoutCss);
         self::assertStringContainsString('#041326', $layoutCss);
         self::assertStringContainsString('#1e3a8a', $componentsCss);
@@ -39,6 +41,8 @@ final class ExecutiveThemeAssetContractTest extends TestCase
         self::assertStringContainsString('.theme-button--primary', $componentsCss);
         self::assertStringContainsString('248 250 252', $appCss);
         self::assertStringContainsString('37 99 235', $appCss);
+        self::assertStringContainsString("toast.tone|default(toast.type|default('info'))", $toast);
+        self::assertStringContainsString('border-app-success/20 bg-app-success/10 text-app-success', $toast);
     }
 
     public function testExecutiveScriptsLoadTheAdminShellRuntime(): void
@@ -119,10 +123,15 @@ final class ExecutiveThemeAssetContractTest extends TestCase
     public function testExecutivePublicDashboardRuntimeUsesExecutiveAssets(): void
     {
         $dashboardJs = file_get_contents(__DIR__ . '/../../public/themes/executive/assets/js/dashboard.js');
+        $sprite = file_get_contents(__DIR__ . '/../../public/themes/executive/assets/icons/lucide.svg');
 
         self::assertIsString($dashboardJs);
+        self::assertIsString($sprite);
         self::assertStringContainsString('/themes/executive/assets/icons/lucide.svg', $dashboardJs);
         self::assertStringNotContainsString('/themes/admin/assets/icons/lucide.svg', $dashboardJs);
+        self::assertStringContainsString("error: 'circle-x'", $dashboardJs);
+        self::assertStringNotContainsString("error: 'x-circle'", $dashboardJs);
+        self::assertStringContainsString('id="circle-x"', $sprite);
     }
 
     public function testExecutiveThemeOwnsModuleFacingComponents(): void

@@ -201,6 +201,7 @@ final class AdminThemeMiddleware implements MiddlewareInterface
                 'icon' => 'shield-alert',
                 'permission' => null,
                 'roles' => null,
+                'admin_only' => true,
                 'visible' => true,
             ];
         }
@@ -233,6 +234,7 @@ final class AdminThemeMiddleware implements MiddlewareInterface
         $permission = is_array($permissions) && $permissions !== []
             ? (string) reset($permissions)
             : null;
+        $roles = $item['roles'] ?? null;
 
         return [
             'name' => sprintf('admin.menu.%s.%s', $moduleSlug, $label),
@@ -242,7 +244,8 @@ final class AdminThemeMiddleware implements MiddlewareInterface
             'order' => $menuOrder,
             'icon' => $icon,
             'permission' => is_string($permission) && $permission !== '' ? $permission : null,
-            'roles' => null,
+            'roles' => is_array($roles) ? array_values(array_map('strval', $roles)) : null,
+            'admin_only' => (bool) ($item['admin_only'] ?? false),
             'visible' => true,
             'children' => [],
         ];
@@ -257,6 +260,10 @@ final class AdminThemeMiddleware implements MiddlewareInterface
         $filtered = [];
 
         foreach ($items as $item) {
+            if (($item['admin_only'] ?? false) === true && !RolePolicy::isAdmin($userRole)) {
+                continue;
+            }
+
             $permission = is_string($item['permission'] ?? null) ? trim((string) $item['permission']) : '';
             if ($permission !== '' && !$gate->allows($permission)) {
                 continue;

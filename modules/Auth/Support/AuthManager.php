@@ -12,15 +12,11 @@ final class AuthManager
     private readonly PasswordResetMailer $passwordResetMailer;
 
     public function __construct(
-        $sessionManager = null,
-        $passwordResetMailer = null,
+        ?AdminSessionManager $sessionManager = null,
+        ?PasswordResetMailer $passwordResetMailer = null,
     ) {
-        $this->sessionManager = $sessionManager instanceof AdminSessionManager
-            ? $sessionManager
-            : new AdminSessionManager();
-        $this->passwordResetMailer = $passwordResetMailer instanceof PasswordResetMailer
-            ? $passwordResetMailer
-            : new PasswordResetMailer();
+        $this->sessionManager = $sessionManager ?? new AdminSessionManager();
+        $this->passwordResetMailer = $passwordResetMailer ?? new PasswordResetMailer();
     }
 
     public function check(): bool
@@ -33,9 +29,9 @@ final class AuthManager
         return $this->sessionManager->user();
     }
 
-    public function attempt(string $email, string $password): bool
+    public function attempt(string $email, string $password, string $ipAddress = ''): bool
     {
-        return $this->sessionManager->attempt($email, $password);
+        return $this->sessionManager->attempt($email, $password, $ipAddress);
     }
 
     public function lastFailureReason(): ?string
@@ -46,6 +42,11 @@ final class AuthManager
     public function logout(): void
     {
         $this->sessionManager->logout();
+    }
+
+    public function refreshSessionFor(\App\Modules\Auth\Contracts\AdminAuthenticatableInterface $user): void
+    {
+        $this->sessionManager->refreshSessionFor($user);
     }
 
     public function createPasswordResetLink(string $email, int $ttlMinutes = 30): ?string

@@ -127,4 +127,40 @@ final class ValidateApiTokenMiddlewareTest extends TestCase
         self::assertSame(429, $response->getStatusCode());
         self::assertSame('60', $response->getHeaderLine('Retry-After'));
     }
+
+    public function testForwardedIpHeaderDoesNotBypassIpRestrictions(): void
+    {
+        $repository = $this->createMock(ApiTokenRepositoryInterface::class);
+        $middleware = new ValidateApiToken($repository);
+        $token = ApiToken::newInstance([
+            'id' => 12,
+            'name' => 'Restricted Token',
+            'token_hash' => hash('sha256', 'sk_restricted_123'),
+            'token_prefix' => 'sk_restr',
+            'allowed_ips' => ['203.0.113.10'],
+            'rate_limit' => 10,
+            'is_active' => 1,
+        ], true);
+
+        $request = new ServerRequest(
+            serverParams: [
+                'REMOTE_ADDR' => '198.51.100.5',
+                'HTTP_X_FORWARDED_FOR' => '203.0.113.10',
+            ],
+            headers: ['Authorization' => 'Bearer sk_restricted_123']
+        );
+        $handler = $this->createMock(RequestHandlerInterface::class);
+
+        $repository->expects(self::once())
+            ->method('findByToken')
+            ->with('sk_restricted_123')
+            ->willReturn($token);
+        $repository->expects(self::never())->method('isRateLimited');
+        $repository->expects(self::never())->method('recordUsage');
+        $handler->expects(self::never())->method('handle');
+
+        $response = $middleware->process($request, $handler);
+
+        self::assertSame(403, $response->getStatusCode());
+    }
 }

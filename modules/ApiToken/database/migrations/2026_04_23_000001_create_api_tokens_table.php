@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Auth\Support\PermissionMigrationHelper;
 use Marwa\DB\CLI\AbstractMigration;
 use Marwa\DB\Schema\Schema;
 
@@ -28,27 +29,20 @@ return new class extends AbstractMigration {
     public function down(): void
     {
         Schema::drop('api_tokens');
+
+        PermissionMigrationHelper::removePermissions([
+            'api_token.view',
+            'api_token.create',
+            'api_token.revoke',
+        ]);
     }
 
     private function insertPermissions(): void
     {
-        $permissions = [
-            ['name' => 'View API tokens', 'slug' => 'api_token.view'],
-            ['name' => 'Create API tokens', 'slug' => 'api_token.create'],
-            ['name' => 'Revoke API tokens', 'slug' => 'api_token.revoke'],
-        ];
-
-        $timestamp = gmdate('Y-m-d H:i:s');
-
-        foreach ($permissions as $permission) {
-            db()->getPdo()->prepare(
-                'INSERT OR IGNORE INTO permissions (name, slug, created_at, updated_at) VALUES (:name, :slug, :created_at, :updated_at)'
-            )->execute([
-                ':name' => $permission['name'],
-                ':slug' => $permission['slug'],
-                ':created_at' => $timestamp,
-                ':updated_at' => $timestamp,
-            ]);
-        }
+        PermissionMigrationHelper::insertPermissions([
+            ['name' => 'View API tokens', 'slug' => 'api_token.view', 'group' => 'api_token'],
+            ['name' => 'Create API tokens', 'slug' => 'api_token.create', 'group' => 'api_token'],
+            ['name' => 'Revoke API tokens', 'slug' => 'api_token.revoke', 'group' => 'api_token'],
+        ]);
     }
 };

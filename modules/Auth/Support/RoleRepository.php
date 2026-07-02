@@ -15,9 +15,9 @@ final class RoleRepository
      */
     public function all(): array
     {
-        $roles = Role::query()
+        $roles = $this->filterRoles(Role::query()
             ->orderBy('level', 'desc')
-            ->get();
+            ->get());
 
         if ($roles !== []) {
             $roles[0]->permissionsRelation()->eagerLoad($roles, 'permissionsRelation');
@@ -28,12 +28,16 @@ final class RoleRepository
 
     public function findById(int $id): ?Role
     {
-        return Role::find($id);
+        $role = Role::find($id);
+
+        return $role instanceof Role ? $role : null;
     }
 
     public function findBySlug(string $slug): ?Role
     {
-        return Role::findBy('slug', $slug);
+        $role = Role::findBy('slug', $slug);
+
+        return $role instanceof Role ? $role : null;
     }
 
     /**
@@ -96,10 +100,10 @@ final class RoleRepository
      */
     public function systemSlugs(): array
     {
-        $rows = Role::where('is_system', '=', 1)
+        $rows = $this->filterRoles(Role::where('is_system', '=', 1)
             ->orderBy('level', 'desc')
             ->orderBy('slug', 'asc')
-            ->get();
+            ->get());
 
         return array_values(array_filter(
             array_map(static fn (Role $role): string => (string) $role->getAttribute('slug'), $rows),
@@ -131,11 +135,23 @@ final class RoleRepository
             return false;
         }
 
-        $role->syncPermissionIds(array_values(array_map(
+        $role->syncPermissionIds(array_map(
             static fn (int|string $permissionId): int => (int) $permissionId,
             $permissionIds
-        )));
+        ));
 
         return true;
+    }
+
+    /**
+     * @param array<int, mixed> $rows
+     * @return list<Role>
+     */
+    private function filterRoles(array $rows): array
+    {
+        return array_values(array_filter(
+            $rows,
+            static fn (mixed $row): bool => $row instanceof Role
+        ));
     }
 }

@@ -46,11 +46,11 @@ final class ActivityController extends Controller
             'sort' => $state['sort'],
             'direction' => $state['direction'],
             'pagination' => PaginationResult::fromArray([
-                'data' => $activities['data'] ?? [],
-                'total' => (int) ($activities['total'] ?? 0),
-                'per_page' => (int) ($activities['per_page'] ?? $perPage),
-                'current_page' => (int) ($activities['current_page'] ?? $state['page']),
-                'last_page' => (int) ($activities['last_page'] ?? 1),
+                'data' => $activities['data'],
+                'total' => (int) $activities['total'],
+                'per_page' => (int) $activities['per_page'],
+                'current_page' => (int) $activities['current_page'],
+                'last_page' => (int) $activities['last_page'],
             ], '/admin/activity', [
                 'q' => $state['query'],
                 'filter' => $state['filter'],

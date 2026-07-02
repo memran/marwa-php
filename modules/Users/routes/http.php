@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Middleware\AdminThemeMiddleware;
 use App\Modules\Auth\Http\Middleware\RequireAdminAuthentication;
+use App\Modules\Auth\Http\Middleware\RequireAdminRole;
 use App\Modules\Auth\Http\Middleware\RequirePermission;
 use App\Modules\Users\Http\Controllers\ProfileController;
 use App\Modules\Users\Http\Controllers\UserCreateController;
@@ -25,7 +26,9 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
     $routes->post('/profile/password', [ProfileController::class, 'updatePassword'])
         ->name('admin.users.profile.password')
         ->register();
+});
 
+Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class, RequireAdminRole::class]], static function ($routes): void {
     $routes->get('/users', [UserIndexController::class, 'index'])
         ->middleware(new RequirePermission('users.view'))
         ->name('admin.users.index')

@@ -362,7 +362,7 @@ final class DataTable
     /**
      * @return array<int, mixed>
      */
-    public function exportRows(): array
+    public function exportRows(int $limit = 1000): array
     {
         $query = $this->query ?? throw new MissingQueryException('DataTable requires a query builder.');
         $state = $this->resolveState();
@@ -378,6 +378,8 @@ final class DataTable
             $this->defaultSortField,
             $this->defaultSortDirection
         );
+
+        $engine->builder()->limit(max(1, $limit));
 
         return $engine->get();
     }

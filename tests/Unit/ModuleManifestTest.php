@@ -21,11 +21,16 @@ final class ModuleManifestTest extends TestCase
         self::assertSame('resources/views', $activity['paths']['views']);
         self::assertSame(['auth'], $activity['requires']);
         self::assertSame('database/migrations/2026_04_23_000001_add_request_metadata_to_activities_table.php', $activity['migrations'][1]);
-        self::assertSame('resources/views', $auth['paths']['views']);
+        self::assertArrayNotHasKey('views', $auth['paths']);
+        self::assertArrayNotHasKey('commands', $auth['paths']);
         self::assertSame('database/migrations', $auth['paths']['database/migrations']);
         self::assertSame('database/seeders', $auth['paths']['database/seeders']);
         self::assertSame(['auth'], $databaseManager['requires']);
         self::assertSame('resources/views', $databaseManager['paths']['views']);
+        self::assertArrayNotHasKey('commands', $databaseManager['paths']);
+        self::assertSame('database/migrations', $databaseManager['paths']['database/migrations']);
+        self::assertSame('View Database', $databaseManager['permissions']['database.view']);
+        self::assertSame('Query Database', $databaseManager['permissions']['database.query']);
         self::assertSame(['auth', 'users'], $notifications['requires']);
         self::assertSame(['auth'], $roles['requires']);
         self::assertSame('resources/views', $users['paths']['views']);

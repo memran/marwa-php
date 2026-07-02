@@ -30,6 +30,7 @@ return [
             'order' => 25,
             'icon' => 'shield-check',
             'permissions' => ['roles.view'],
+            'admin_only' => true,
         ],
         [
             'section' => 'Identity & Access',
@@ -38,6 +39,7 @@ return [
             'order' => 30,
             'icon' => 'list-checks',
             'permissions' => ['permissions.view'],
+            'admin_only' => true,
         ],
     ],
 ];

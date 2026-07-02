@@ -54,11 +54,6 @@ final class ValidateApiToken implements MiddlewareInterface
         );
     }
 
-    public function handle(ServerRequestInterface $request): bool
-    {
-        return $this->extractToken($request) !== null;
-    }
-
     private function extractToken(ServerRequestInterface $request): ?string
     {
         foreach (['Authorization', 'X-API-Token', 'X-Api-Token'] as $header) {
@@ -99,12 +94,7 @@ final class ValidateApiToken implements MiddlewareInterface
     {
         $serverParams = $request->getServerParams();
 
-        $ip = $serverParams['HTTP_X_FORWARDED_FOR']
-            ?? $serverParams['HTTP_X_REAL_IP']
-            ?? $serverParams['REMOTE_ADDR']
-            ?? '127.0.0.1';
-
-        $ip = trim(explode(',', (string) $ip)[0]);
+        $ip = trim((string) ($serverParams['REMOTE_ADDR'] ?? '127.0.0.1'));
 
         return filter_var($ip, FILTER_VALIDATE_IP) !== false ? $ip : '127.0.0.1';
     }

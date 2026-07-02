@@ -26,6 +26,7 @@ return [
         'order' => 30,
         'icon' => 'clock-3',
         'permissions' => ['background_jobs.view'],
+        'admin_only' => true,
     ],
     'routes' => [
         'http' => 'routes/http.php',

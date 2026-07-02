@@ -15,17 +15,21 @@ final class PermissionRepository
      */
     public function all(): array
     {
-        return $this->query()->get();
+        return $this->filterPermissions($this->query()->get());
     }
 
     public function findById(int $id): ?Permission
     {
-        return Permission::find($id);
+        $permission = Permission::find($id);
+
+        return $permission instanceof Permission ? $permission : null;
     }
 
     public function findBySlug(string $slug): ?Permission
     {
-        return Permission::findBy('slug', $slug);
+        $permission = Permission::findBy('slug', $slug);
+
+        return $permission instanceof Permission ? $permission : null;
     }
 
     public function count(): int
@@ -82,9 +86,9 @@ final class PermissionRepository
      */
     public function byGroup(string $group): array
     {
-        return $this->query($group)
+        return $this->filterPermissions($this->query($group)
             ->orderBy('name', 'asc')
-            ->get();
+            ->get());
     }
 
     /**
@@ -107,10 +111,10 @@ final class PermissionRepository
     {
         $groups = [];
 
-        foreach ($this->query()
+        foreach ($this->filterPermissions($this->query()
             ->orderBy('group', 'asc')
             ->orderBy('name', 'asc')
-            ->get() as $permission) {
+            ->get()) as $permission) {
             $groupName = (string) ($permission->getAttribute('group') ?? 'other');
             $groups[$groupName][] = $permission;
         }
@@ -136,5 +140,17 @@ final class PermissionRepository
         }
 
         return $builder;
+    }
+
+    /**
+     * @param array<int, mixed> $rows
+     * @return list<Permission>
+     */
+    private function filterPermissions(array $rows): array
+    {
+        return array_values(array_filter(
+            $rows,
+            static fn (mixed $row): bool => $row instanceof Permission
+        ));
     }
 }

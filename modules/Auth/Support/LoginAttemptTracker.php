@@ -4,24 +4,41 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Support;
 
+use Marwa\Framework\Contracts\CacheInterface;
+
 final class LoginAttemptTracker
 {
-    private const SESSION_LOGIN_FAILURES = 'admin_login_failures';
-    private const DEFAULT_ADMIN_EMAIL = 'admin@marwa.test';
-    private const DEFAULT_ADMIN_PASSWORD = 'ExampleAdminPassword123!';
+    private const CACHE_PREFIX = 'auth-login';
 
-    public function configuredEmail(): string
+    public function __construct(private readonly ?CacheInterface $cache = null)
     {
-        $email = trim((string) env('ADMIN_BOOTSTRAP_EMAIL', self::DEFAULT_ADMIN_EMAIL));
-
-        return $email !== '' ? $email : self::DEFAULT_ADMIN_EMAIL;
     }
 
-    public function configuredPassword(): string
+    public function bootstrapEnabled(): bool
     {
-        $password = (string) env('ADMIN_BOOTSTRAP_PASSWORD', self::DEFAULT_ADMIN_PASSWORD);
+        return (bool) env('ADMIN_BOOTSTRAP_ENABLED', in_array((string) env('APP_ENV', 'production'), ['local', 'testing'], true));
+    }
 
-        return $password !== '' ? $password : self::DEFAULT_ADMIN_PASSWORD;
+    public function configuredEmail(): ?string
+    {
+        if (!$this->bootstrapEnabled()) {
+            return null;
+        }
+
+        $email = trim((string) env('ADMIN_BOOTSTRAP_EMAIL', ''));
+
+        return $email !== '' ? $email : null;
+    }
+
+    public function configuredPassword(): ?string
+    {
+        if (!$this->bootstrapEnabled()) {
+            return null;
+        }
+
+        $password = (string) env('ADMIN_BOOTSTRAP_PASSWORD', '');
+
+        return $password !== '' ? $password : null;
     }
 
     public function loginAttemptLimit(): int
@@ -29,65 +46,50 @@ final class LoginAttemptTracker
         return max(1, (int) config('settings.lifecycle.security.login_attempt_limit', 5));
     }
 
-    public function loginFailures(string $email): int
+    public function loginAttemptWindow(): int
     {
-        $failures = session(self::SESSION_LOGIN_FAILURES, []);
-
-        if (!is_array($failures)) {
-            return 0;
-        }
-
-        return max(0, (int) ($failures[$this->loginFailureKey($email)] ?? 0));
+        return max(60, (int) config('settings.lifecycle.security.login_attempt_window', 900));
     }
 
-    public function recordLoginFailure(string $email): void
+    public function loginFailures(string $email, string $ipAddress = ''): int
     {
-        $failures = session(self::SESSION_LOGIN_FAILURES, []);
-
-        if (!is_array($failures)) {
-            $failures = [];
-        }
-
-        $key = $this->loginFailureKey($email);
-        $failures[$key] = $this->loginFailures($email) + 1;
-        session()->set(self::SESSION_LOGIN_FAILURES, $failures);
+        return (int) ($this->cache?->get($this->cacheKey($email, $ipAddress), 0) ?? 0);
     }
 
-    public function clearLoginFailures(string $email): void
+    public function recordLoginFailure(string $email, string $ipAddress = ''): void
     {
-        $failures = session(self::SESSION_LOGIN_FAILURES, []);
+        $key = $this->cacheKey($email, $ipAddress);
+        $failures = $this->loginFailures($email, $ipAddress) + 1;
 
-        if (!is_array($failures)) {
-            return;
-        }
-
-        $key = $this->loginFailureKey($email);
-
-        if (!array_key_exists($key, $failures)) {
-            return;
-        }
-
-        unset($failures[$key]);
-        session()->set(self::SESSION_LOGIN_FAILURES, $failures);
+        $this->cache?->put($key, $failures, $this->loginAttemptWindow());
     }
 
-    public function isLoginRateLimited(string $email): bool
+    public function clearLoginFailures(string $email, string $ipAddress = ''): void
     {
-        return $this->loginFailures($email) >= $this->loginAttemptLimit();
+        $this->cache?->forget($this->cacheKey($email, $ipAddress));
+    }
+
+    public function isLoginRateLimited(string $email, string $ipAddress = ''): bool
+    {
+        return $this->loginFailures($email, $ipAddress) >= $this->loginAttemptLimit();
     }
 
     public function matchesConfiguredEmail(string $email): bool
     {
-        return $email !== '' && strcasecmp($email, $this->configuredEmail()) === 0;
+        $configuredEmail = $this->configuredEmail();
+
+        return $configuredEmail !== null && $email !== '' && strcasecmp($email, $configuredEmail) === 0;
     }
 
     public function matchesConfiguredPassword(string $password): bool
     {
-        return hash_equals($this->configuredPassword(), $password);
+        $configuredPassword = $this->configuredPassword();
+
+        return $configuredPassword !== null && hash_equals($configuredPassword, $password);
     }
 
-    private function loginFailureKey(string $email): string
+    private function cacheKey(string $email, string $ipAddress): string
     {
-        return strtolower(trim($email));
+        return self::CACHE_PREFIX . '-' . hash('sha256', strtolower(trim($email)) . '|' . trim($ipAddress));
     }
 }

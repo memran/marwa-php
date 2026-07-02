@@ -25,10 +25,10 @@ final class Permission extends Model
      */
     public static function all(): array
     {
-        return self::query()
+        return self::filterPermissions(self::query()
             ->orderBy('group', 'asc')
             ->orderBy('name', 'asc')
-            ->get();
+            ->get());
     }
 
     /**
@@ -36,9 +36,21 @@ final class Permission extends Model
      */
     public static function byGroup(string $group): array
     {
-        return self::query()
+        return self::filterPermissions(self::query()
             ->where('group', '=', $group)
             ->orderBy('name', 'asc')
-            ->get();
+            ->get());
+    }
+
+    /**
+     * @param array<int, mixed> $rows
+     * @return list<self>
+     */
+    private static function filterPermissions(array $rows): array
+    {
+        return array_values(array_filter(
+            $rows,
+            static fn (mixed $row): bool => $row instanceof self
+        ));
     }
 }

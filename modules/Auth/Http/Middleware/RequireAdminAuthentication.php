@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Http\Middleware;
 
+use App\Modules\Auth\Support\AuthManager;
 use Marwa\Router\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -14,7 +15,7 @@ final class RequireAdminAuthentication implements MiddlewareInterface
 {
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        if (!app(\App\Modules\Auth\Support\AuthManager::class)->check()) {
+        if (!app(AuthManager::class)->check()) {
             return Response::redirect('/admin/login');
         }
 

@@ -145,6 +145,54 @@ PHP
         self::assertFalse($service->isScheduleDue(new \DateTimeImmutable('2026-05-05 03:14:00')));
     }
 
+    public function testStoragePathSubmissionIsKeptInsideRelativeBackupDirectory(): void
+    {
+        $app = $this->bootApp();
+        $settings = $app->make(BackupSettingsRepository::class);
+        $service = $app->make(DatabaseBackupService::class);
+
+        $normalized = $service->normalizeSettingsSubmission([
+            'enabled' => '1',
+            'mode' => 'daily_at',
+            'time' => '02:00',
+            'day_of_week' => 1,
+            'day_of_month' => 1,
+            'interval_minutes' => 1440,
+            'storage_disk' => 'local',
+            'storage_path' => '/../outside/../database backups',
+            'archive_format' => 'zip',
+            'scope' => 'full',
+            'tables' => '',
+        ], $settings->defaults());
+
+        self::assertSame([], $normalized['errors']);
+        self::assertSame('outside/database-backups', $normalized['values']['storage_path']);
+    }
+
+    public function testEmptyStoragePathSubmissionFallsBackToDefaultDirectory(): void
+    {
+        $app = $this->bootApp();
+        $settings = $app->make(BackupSettingsRepository::class);
+        $service = $app->make(DatabaseBackupService::class);
+
+        $normalized = $service->normalizeSettingsSubmission([
+            'enabled' => '1',
+            'mode' => 'daily_at',
+            'time' => '02:00',
+            'day_of_week' => 1,
+            'day_of_month' => 1,
+            'interval_minutes' => 1440,
+            'storage_disk' => 'local',
+            'storage_path' => '../../..',
+            'archive_format' => 'zip',
+            'scope' => 'full',
+            'tables' => '',
+        ], $settings->defaults());
+
+        self::assertSame([], $normalized['errors']);
+        self::assertSame('database-backups', $normalized['values']['storage_path']);
+    }
+
     private function bootApp(): Application
     {
         $app = new Application($this->basePath);

@@ -12,6 +12,7 @@ use App\Modules\Auth\Support\NullAdminUserProvider;
 use App\Modules\Auth\Support\PasswordResetMailer;
 use App\Modules\Auth\Support\RolePolicy;
 use App\Support\ModuleDatabaseDependency;
+use Marwa\Framework\Contracts\CacheInterface;
 use Marwa\Module\Contracts\ModuleServiceProviderInterface;
 
 final class AuthServiceProvider implements ModuleServiceProviderInterface
@@ -32,7 +33,9 @@ final class AuthServiceProvider implements ModuleServiceProviderInterface
             return new NullAdminUserProvider();
         };
 
-        $container->addShared(LoginAttemptTracker::class, fn () => new LoginAttemptTracker(), true);
+        $container->addShared(LoginAttemptTracker::class, fn () => new LoginAttemptTracker(
+            $container->has(CacheInterface::class) ? $container->get(CacheInterface::class) : null
+        ), true);
         $container->addShared(AdminSessionManager::class, fn () => new AdminSessionManager(
             $resolveUsers(),
             $container->get(LoginAttemptTracker::class),

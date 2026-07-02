@@ -132,5 +132,4 @@ final class Role extends Model
 
         $this->permissionsRelation()->attach($this, $permissionId);
     }
-
 }

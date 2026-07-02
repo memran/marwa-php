@@ -1,11 +1,24 @@
 {% set toast = toast|default({}) %}
-{% set type = toast.type|default('info') %}
+{% set type = toast.tone|default(toast.type|default('info')) %}
 {% set message = toast.message|default('') %}
 {% set title = toast.title|default('') %}
+{% set icon = toast.icon|default('badge-info') %}
 
-<div class="rounded-2xl border border-app-border bg-app-surface px-4 py-3 shadow-lg">
-  {% if title %}
-    <strong class="block text-sm font-semibold text-app-text">{{ title }}</strong>
-  {% endif %}
-  <p class="text-sm text-app-muted">{{ message }}</p>
+{% set variants = {
+  'success': 'border-app-success/20 bg-app-success/10 text-app-success',
+  'warning': 'border-app-warning/20 bg-app-warning/10 text-app-warning',
+  'error': 'border-app-danger/20 bg-app-danger/10 text-app-danger',
+  'info': 'border-app-border bg-app-surface text-app-muted'
+} %}
+
+<div class="flex min-w-72 max-w-sm items-start gap-3 rounded-2xl border px-4 py-3 shadow-lg {{ variants[type]|default(variants.info) }}">
+  <div class="mt-0.5 shrink-0">
+    {% include 'components/icon.twig' with { name: icon, class: 'h-4 w-4' } only %}
+  </div>
+  <div class="min-w-0">
+    {% if title %}
+      <strong class="block text-sm font-semibold text-app-text">{{ title }}</strong>
+    {% endif %}
+    <p class="text-sm text-app-muted">{{ message }}</p>
+  </div>
 </div>

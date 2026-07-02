@@ -14,8 +14,11 @@ return [
     ],
     'paths' => [
         'views' => 'resources/views',
-        'commands' => 'Console/Commands',
         'database/migrations' => 'database/migrations',
+    ],
+    'permissions' => [
+        'database.view' => 'View Database',
+        'database.query' => 'Query Database',
     ],
     'routes' => [
         'http' => 'routes/http.php',
@@ -30,5 +33,6 @@ return [
         'order' => 50,
         'icon' => 'database',
         'permissions' => ['database.view'],
+        'admin_only' => true,
     ],
 ];

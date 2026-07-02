@@ -831,9 +831,22 @@ final class DatabaseBackupService
 
     private function storagePath(string $path): string
     {
-        $path = str_replace(['\\', '..'], ['/', ''], $path);
+        $path = str_replace('\\', '/', $path);
+        $segments = [];
 
-        return trim($path, '/');
+        foreach (explode('/', $path) as $segment) {
+            $segment = trim($segment);
+
+            if ($segment === '' || $segment === '.' || $segment === '..') {
+                continue;
+            }
+
+            $segments[] = sanitize_filename($segment);
+        }
+
+        $normalized = trim(implode('/', array_filter($segments)), '/');
+
+        return $normalized !== '' ? $normalized : 'database-backups';
     }
 
     /**

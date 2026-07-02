@@ -35,7 +35,7 @@ final class BootstrapAdminUser implements AdminAuthenticatableInterface
         return null;
     }
 
-    public function role(): ?Role
+    public function role(): Role
     {
         return Role::newInstance([
             'id' => 0,

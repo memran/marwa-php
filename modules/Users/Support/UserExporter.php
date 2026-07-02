@@ -32,7 +32,7 @@ final class UserExporter
     private function export(ServerRequestInterface $request, string $format): ResponseInterface
     {
         $table = $this->userTable->make($request);
-        $rows = $table->exportRows();
+        $rows = $table->exportRows($this->exportLimit());
         $columns = $this->userTable->resolveExportColumns($request->getQueryParams()['columns'] ?? []);
         $filename = 'users-' . date('Ymd-His') . '.' . $format;
 
@@ -50,6 +50,11 @@ final class UserExporter
     private function pdfExporter(): PdfExporter
     {
         return new PdfExporter(new DompdfGenerator(), new TableHtmlBuilder());
+    }
+
+    private function exportLimit(): int
+    {
+        return max(1, min(5000, (int) config('settings.lifecycle.security.user_export_limit', 1000)));
     }
 
     private function downloadContent(string $content, string $filename, string $contentType): ResponseInterface

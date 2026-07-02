@@ -15,7 +15,6 @@ if (!class_exists(\App\Modules\Queue\database\seeders\QueuePermissionsSeeder::cl
             PermissionMigrationHelper::insertPermissions([
                 ['name' => 'View Queue Jobs', 'slug' => 'queue.view', 'group' => 'queue'],
                 ['name' => 'Retry Queue Jobs', 'slug' => 'queue.retry', 'group' => 'queue'],
-                ['name' => 'Run Queue Worker', 'slug' => 'queue.work', 'group' => 'queue'],
             ]);
         }
     }

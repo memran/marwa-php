@@ -15,7 +15,6 @@ return [
     ],
     'paths' => [
         'views' => 'resources/views',
-        'commands' => 'Console/Commands',
         'database/migrations' => 'database/migrations',
     ],
     'routes' => [

@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 use App\Http\Middleware\AdminThemeMiddleware;
 use App\Modules\Auth\Http\Middleware\RequireAdminAuthentication;
+use App\Modules\Auth\Http\Middleware\RequireAdminRole;
 use App\Modules\Auth\Http\Middleware\RequirePermission;
 use App\Modules\Roles\Http\Controllers\PermissionsController;
 use App\Modules\Roles\Http\Controllers\RolesController;
 use Marwa\Framework\Facades\Router;
 
-Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class]], static function ($routes): void {
+Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class, RequireAdminRole::class]], static function ($routes): void {
     $routes->get('/roles', [RolesController::class, 'index'])
         ->middleware(new RequirePermission('roles.view'))
         ->name('admin.roles.index')

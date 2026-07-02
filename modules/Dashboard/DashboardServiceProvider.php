@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Dashboard;
 
 use App\Modules\Dashboard\Support\WidgetRegistry;
+use App\Modules\Dashboard\Support\DashboardWidgetRepository;
 use League\Container\Container;
 use Marwa\Framework\Supports\Runtime;
 use Marwa\Framework\Views\View;
@@ -22,6 +23,7 @@ final class DashboardServiceProvider implements ModuleServiceProviderInterface
 
     public function register($app): void
     {
+        $this->container->addShared(DashboardWidgetRepository::class, new DashboardWidgetRepository());
         $this->container->addShared(WidgetRegistry::class, function () use ($app) {
             $moduleRegistry = null;
 

@@ -31,13 +31,15 @@ final class NotificationRepository
         );
     }
 
-    public function paginatedForUser(int $userId, int $page = 1, ?int $perPage = null): array
+    public function paginatedForUser(int $userId, int $page = 1, ?int $perPage = null, string $filter = 'all'): array
     {
         $page = max(1, $page);
         $perPage = max(1, (int) ($perPage ?? per_page(15)));
 
-        $pageData = $this->forUser($userId)
-            ->orderBy('created_at', 'desc')
+        $builder = $this->forUser($userId);
+        $this->applyReadFilter($builder, $filter);
+
+        $pageData = $builder->orderBy('created_at', 'desc')
             ->paginate($perPage, $page);
 
         $pageData['data'] = array_map(
@@ -107,46 +109,15 @@ final class NotificationRepository
         return Notification::create($data);
     }
 
-    public function groupedByDate(int $userId, ?int $perPage = null): array
+    private function applyReadFilter(Builder $builder, string $filter): void
     {
-        $pageData = $this->paginatedForUser($userId, 1, $perPage);
-        $notifications = $pageData['data'];
-
-        $groups = [
-            'today' => [],
-            'yesterday' => [],
-            'last_7_days' => [],
-            'last_30_days' => [],
-            'older' => [],
-        ];
-
-        $today = strtotime('today');
-        $yesterday = strtotime('yesterday');
-        $sevenDaysAgo = strtotime('-7 days');
-        $thirtyDaysAgo = strtotime('-30 days');
-
-        foreach ($notifications as $notification) {
-            $createdAt = strtotime($notification->getAttribute('created_at') ?? '');
-
-            if ($createdAt >= $today) {
-                $groups['today'][] = $notification;
-            } elseif ($createdAt >= $yesterday) {
-                $groups['yesterday'][] = $notification;
-            } elseif ($createdAt >= $sevenDaysAgo) {
-                $groups['last_7_days'][] = $notification;
-            } elseif ($createdAt >= $thirtyDaysAgo) {
-                $groups['last_30_days'][] = $notification;
-            } else {
-                $groups['older'][] = $notification;
-            }
+        if ($filter === 'unread') {
+            $builder->where('is_read', '=', 0);
+            return;
         }
 
-        return [
-            'notifications' => $groups,
-            'total' => $pageData['total'],
-            'per_page' => $pageData['per_page'],
-            'current_page' => $pageData['current_page'],
-            'last_page' => $pageData['last_page'],
-        ];
+        if ($filter === 'read') {
+            $builder->where('is_read', '=', 1);
+        }
     }
 }

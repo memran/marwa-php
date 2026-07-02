@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\ApiToken\Http\Controllers;
 
+use App\Modules\ApiToken\Support\ApiTokenFormData;
 use App\Modules\ApiToken\Support\ApiTokenRepository;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
@@ -12,7 +13,8 @@ use Psr\Http\Message\ServerRequestInterface;
 final class ApiTokenController extends Controller
 {
     public function __construct(
-        private readonly ApiTokenRepository $repository
+        private readonly ApiTokenRepository $repository,
+        private readonly ApiTokenFormData $forms,
     ) {}
 
     public function index(): ResponseInterface
@@ -34,36 +36,32 @@ final class ApiTokenController extends Controller
         ]);
     }
 
-    public function store(): ResponseInterface
+    public function store(ServerRequestInterface $request): ResponseInterface
     {
-        $validated = $this->validate([
-            'name' => 'required|string|max:100',
-            'allowed_ips' => 'nullable|string',
-            'rate_limit' => 'required|integer|min:1|max:10000',
-        ]);
+        $validated = $this->validate($this->forms->rules(), $this->forms->messages(), request: $request);
+        $payload = $this->forms->normalize($validated);
 
-        $name = trim((string) ($validated['name'] ?? ''));
-        $rateLimit = (int) ($validated['rate_limit'] ?? 60);
+        if ($payload['invalid_ips'] !== []) {
+            $this->withErrors([
+                'allowed_ips' => [
+                    'Allowed IPs must be valid IP addresses or IPv4 CIDR ranges: '
+                    . implode(', ', $payload['invalid_ips']),
+                ],
+            ])->withInput([
+                'name' => $payload['name'],
+                'allowed_ips' => $payload['allowed_ips_text'],
+                'rate_limit' => $payload['rate_limit'],
+            ]);
 
-        $allowedIpsText = trim((string) ($validated['allowed_ips'] ?? ''));
-        $allowedIps = [];
-
-        if ($allowedIpsText !== '') {
-            $lines = explode("\n", $allowedIpsText);
-            foreach ($lines as $line) {
-                $line = trim($line);
-                if ($line !== '') {
-                    if (filter_var($line, FILTER_VALIDATE_IP) !== false) {
-                        $allowedIps[] = $line;
-                    } elseif (preg_match('/^[\d.]+\/\d+$/', $line)) {
-                        $allowedIps[] = $line;
-                    }
-                }
-            }
+            return $this->redirect('/admin/api-tokens/create');
         }
 
         try {
-            $result = $this->repository->createToken($name, $allowedIps, $rateLimit);
+            $result = $this->repository->createToken(
+                $payload['name'],
+                $payload['allowed_ips'],
+                $payload['rate_limit']
+            );
             $token = $result['token'];
             $model = $result['model'];
 
@@ -72,13 +70,13 @@ final class ApiTokenController extends Controller
             $this->flash('success', 'API token created successfully.');
 
             return $this->redirect('/admin/api-tokens/show/' . $model->getKey());
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             $this->withErrors([
                 'name' => 'Failed to create token. Please check the form and try again.',
             ])->withInput([
-                'name' => $name,
-                'allowed_ips' => $allowedIpsText,
-                'rate_limit' => $rateLimit,
+                'name' => $payload['name'],
+                'allowed_ips' => $payload['allowed_ips_text'],
+                'rate_limit' => $payload['rate_limit'],
             ]);
 
             return $this->redirect('/admin/api-tokens/create');
@@ -114,16 +112,6 @@ final class ApiTokenController extends Controller
     {
         $id = (int) ($vars['id'] ?? 0);
         $this->repository->toggle($id);
-
-        return $this->redirect('/admin/api-tokens');
-    }
-
-    public function revoke(ServerRequestInterface $request, array $vars = []): ResponseInterface
-    {
-        $id = (int) ($vars['id'] ?? 0);
-        $this->repository->revoke($id);
-
-        $this->flash('success', 'API token revoked successfully.');
 
         return $this->redirect('/admin/api-tokens');
     }

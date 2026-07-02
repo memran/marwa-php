@@ -99,4 +99,30 @@ final class AdminThemeAssetContractTest extends TestCase
         self::assertStringContainsString('body.admin-theme.theme-auth .theme-auth__brand-panel :where(.text-slate-300)', $appCss);
         self::assertStringContainsString('body.admin-theme.theme-auth .theme-auth__brand-panel :where(.bg-white\/5)', $appCss);
     }
+
+    public function testAdminToastUsesAdminToastTonePayloadAndHasThemeCss(): void
+    {
+        $toast = file_get_contents(__DIR__ . '/../../resources/views/themes/admin/components/toast.twig');
+        $componentsCss = file_get_contents(__DIR__ . '/../../resources/views/themes/admin/assets/css/components.css');
+
+        self::assertIsString($toast);
+        self::assertIsString($componentsCss);
+        self::assertStringContainsString("toast.tone|default(toast.type|default('info'))", $toast);
+        self::assertStringContainsString('theme-toast__icon', $toast);
+        self::assertStringContainsString('.theme-toast-host', $componentsCss);
+        self::assertStringContainsString('.theme-toast--success', $componentsCss);
+        self::assertStringContainsString('.theme-toast__message', $componentsCss);
+    }
+
+    public function testAdminNotificationRuntimeUsesAvailableLucideErrorIcon(): void
+    {
+        $dashboardJs = file_get_contents(__DIR__ . '/../../public/themes/admin/assets/js/dashboard.js');
+        $sprite = file_get_contents(__DIR__ . '/../../public/themes/admin/assets/icons/lucide.svg');
+
+        self::assertIsString($dashboardJs);
+        self::assertIsString($sprite);
+        self::assertStringContainsString("error: 'circle-x'", $dashboardJs);
+        self::assertStringNotContainsString("error: 'x-circle'", $dashboardJs);
+        self::assertStringContainsString('id="circle-x"', $sprite);
+    }
 }
