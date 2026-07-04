@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Database\Seeders;
+namespace App\Modules\Users\database\seeders;
 
 use App\Modules\Auth\Models\Role;
 use App\Modules\Users\Models\User;

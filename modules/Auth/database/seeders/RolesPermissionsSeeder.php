@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Database\Seeders;
+namespace App\Modules\Auth\database\seeders;
 
 use App\Modules\Auth\Support\RoleRepository;
 use App\Modules\Auth\Support\PermissionRepository;

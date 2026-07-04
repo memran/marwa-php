@@ -144,7 +144,7 @@ SQL);
             null,
             'default',
             __DIR__ . '/../../modules/Auth/database/seeders',
-            'Database\\Seeders'
+            'App\\Modules\\Auth\\database\\seeders'
         );
 
         $runner->runAll();
