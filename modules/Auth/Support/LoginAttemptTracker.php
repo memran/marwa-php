@@ -53,20 +53,22 @@ final class LoginAttemptTracker
 
     public function loginFailures(string $email, string $ipAddress = ''): int
     {
-        return (int) ($this->cache?->get($this->cacheKey($email, $ipAddress), 0) ?? 0);
+        return (int) ($this->cache()->get($this->cacheKey($email, $ipAddress), 0) ?? 0);
     }
 
     public function recordLoginFailure(string $email, string $ipAddress = ''): void
     {
         $key = $this->cacheKey($email, $ipAddress);
-        $failures = $this->loginFailures($email, $ipAddress) + 1;
+        $failures = $this->cache()->increment($key, 1, 0, $this->loginAttemptWindow());
 
-        $this->cache?->put($key, $failures, $this->loginAttemptWindow());
+        if ($failures === false) {
+            throw new \RuntimeException('Unable to increment login throttle counter.');
+        }
     }
 
     public function clearLoginFailures(string $email, string $ipAddress = ''): void
     {
-        $this->cache?->forget($this->cacheKey($email, $ipAddress));
+        $this->cache()->forget($this->cacheKey($email, $ipAddress));
     }
 
     public function isLoginRateLimited(string $email, string $ipAddress = ''): bool
@@ -91,5 +93,14 @@ final class LoginAttemptTracker
     private function cacheKey(string $email, string $ipAddress): string
     {
         return self::CACHE_PREFIX . '-' . hash('sha256', strtolower(trim($email)) . '|' . trim($ipAddress));
+    }
+
+    private function cache(): CacheInterface
+    {
+        if ($this->cache instanceof CacheInterface) {
+            return $this->cache;
+        }
+
+        throw new \RuntimeException('Login throttling requires a configured cache driver.');
     }
 }

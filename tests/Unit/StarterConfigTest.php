@@ -41,6 +41,47 @@ final class StarterConfigTest extends TestCase
         ], $config['discover']);
     }
 
+    public function testCacheConfigUsesEnabledFrameworkDriverDefaults(): void
+    {
+        $basePath = sys_get_temp_dir() . '/marwa-cache-config-' . bin2hex(random_bytes(6));
+        mkdir($basePath, 0777, true);
+        $app = new Application($basePath);
+        $GLOBALS['marwa_app'] = $app;
+
+        $cacheEnvironmentKeys = [
+            'CACHE_ENABLED',
+            'CACHE_DRIVER',
+            'CACHE_NAMESPACE',
+            'CACHE_FILE_PATH',
+            'CACHE_SQLITE_PATH',
+            'CACHE_SQLITE_TABLE',
+        ];
+
+        self::clearEnvironmentKeys($cacheEnvironmentKeys);
+
+        try {
+            $config = require __DIR__ . '/../../config/cache.php';
+
+            self::assertTrue($config['enabled']);
+            self::assertSame('file', $config['driver']);
+            self::assertSame('marwa', $config['namespace']);
+            self::assertFalse($config['buffered']);
+            self::assertSame(
+                self::normalizePath($app->basePath('storage/cache/framework')),
+                self::normalizePath($config['file']['path'])
+            );
+            self::assertSame(
+                self::normalizePath($app->basePath('storage/cache/framework.sqlite')),
+                self::normalizePath($config['sqlite']['path'])
+            );
+            self::assertSame('framework_cache', $config['sqlite']['table']);
+        } finally {
+            unset($GLOBALS['marwa_app']);
+            self::clearEnvironmentKeys($cacheEnvironmentKeys);
+            @rmdir($basePath);
+        }
+    }
+
     public function testDatabaseConfigUsesStarterDbEnvironmentVariablesAndFrameworkSqliteDefaults(): void
     {
         $basePath = sys_get_temp_dir() . '/marwa-config-' . bin2hex(random_bytes(6));
@@ -290,5 +331,16 @@ final class StarterConfigTest extends TestCase
     private static function normalizePath(string $path): string
     {
         return str_replace('\\', '/', $path);
+    }
+
+    /**
+     * @param list<string> $keys
+     */
+    private static function clearEnvironmentKeys(array $keys): void
+    {
+        foreach ($keys as $key) {
+            unset($_ENV[$key], $_SERVER[$key]);
+            putenv($key);
+        }
     }
 }

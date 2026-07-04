@@ -28,6 +28,10 @@ final class AuthManagerTest extends TestCase
             $this->basePath . '/.env',
             "APP_ENV=testing\nAPP_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nTIMEZONE=UTC\nADMIN_BOOTSTRAP_EMAIL=admin@marwa.test\nADMIN_BOOTSTRAP_PASSWORD=ExampleAdminPassword123!\n"
         );
+        file_put_contents(
+            $this->basePath . '/config/cache.php',
+            "<?php\n\ndeclare(strict_types=1);\n\nreturn [\n    'enabled' => true,\n    'driver' => 'file',\n    'buffered' => false,\n    'file' => [\n        'path' => '" . addslashes($this->basePath . '/cache') . "',\n    ],\n];\n"
+        );
 
         if (session_status() === PHP_SESSION_ACTIVE) {
             $_SESSION = [];
@@ -44,10 +48,12 @@ final class AuthManagerTest extends TestCase
 
         foreach ([
             $this->basePath . '/.env',
+            $this->basePath . '/config/cache.php',
         ] as $file) {
             @unlink($file);
         }
 
+        $this->removeDirectory($this->basePath . '/cache');
         @rmdir($this->basePath . '/config');
         @rmdir($this->basePath . '/sessions');
         @rmdir($this->basePath);
@@ -67,6 +73,24 @@ final class AuthManagerTest extends TestCase
         );
 
         parent::tearDown();
+    }
+
+    private function removeDirectory(string $path): void
+    {
+        if (!is_dir($path)) {
+            return;
+        }
+
+        foreach (glob($path . DIRECTORY_SEPARATOR . '*') ?: [] as $file) {
+            if (is_dir($file)) {
+                $this->removeDirectory($file);
+                continue;
+            }
+
+            @unlink($file);
+        }
+
+        @rmdir($path);
     }
 
     public function testStaticLoginUsesBootstrapCredentialsWithoutDatabase(): void
