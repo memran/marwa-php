@@ -174,6 +174,7 @@ final class AdminSessionManager
         $session->forget(self::SESSION_USER_NAME);
         $session->forget(self::SESSION_USER_EMAIL);
         $session->forget(self::SESSION_PASSWORD_FINGERPRINT);
+        $session->regenerate(true);
         $session->close();
     }
 

@@ -72,10 +72,29 @@ final class CsvExporter implements Exporter
         $values = [];
 
         foreach ($columns as $column) {
-            $values[] = $column->resolve($row);
+            $values[] = $this->sanitizeCell($column->resolve($row));
         }
 
         $this->fput($handle, $values);
+    }
+
+    private function sanitizeCell(mixed $value): mixed
+    {
+        if (!is_string($value)) {
+            return $value;
+        }
+
+        if ($value === '') {
+            return $value;
+        }
+
+        $firstCharacter = $value[0];
+
+        if (in_array($firstCharacter, ['=', '+', '-', '@', "\t", "\r"], true)) {
+            return "'" . $value;
+        }
+
+        return $value;
     }
 
     /**

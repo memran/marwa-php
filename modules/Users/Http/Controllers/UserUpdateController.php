@@ -61,7 +61,12 @@ final class UserUpdateController extends Controller
             return $this->redirect('/admin/users/' . $id . '/edit');
         }
 
-        $this->users->updateUser($user, $payload, $payload['password'] !== '' ? $payload['password'] : null);
+        $password = $payload['password'] !== '' ? $payload['password'] : null;
+        $updatedUser = $this->users->updateUser($user, $payload, $password);
+        if ($password !== null && $this->users->sameUser($updatedUser, $actorUser)) {
+            $this->auth->refreshSessionFor($updatedUser);
+        }
+
         $this->flash('users.notice', 'User updated successfully.');
 
         return $this->redirect('/admin/users');

@@ -10,6 +10,7 @@ use App\Modules\Auth\Support\LoginAttemptTracker;
 use App\Modules\Auth\Support\AdminSessionManager;
 use App\Modules\Auth\Support\NullAdminUserProvider;
 use App\Modules\Auth\Support\PasswordResetMailer;
+use App\Modules\Auth\Support\PasswordResetThrottle;
 use App\Modules\Auth\Support\RolePolicy;
 use App\Support\ModuleDatabaseDependency;
 use Marwa\Framework\Contracts\CacheInterface;
@@ -34,6 +35,9 @@ final class AuthServiceProvider implements ModuleServiceProviderInterface
         };
 
         $container->addShared(LoginAttemptTracker::class, fn () => new LoginAttemptTracker(
+            $container->has(CacheInterface::class) ? $container->get(CacheInterface::class) : null
+        ), true);
+        $container->addShared(PasswordResetThrottle::class, fn () => new PasswordResetThrottle(
             $container->has(CacheInterface::class) ? $container->get(CacheInterface::class) : null
         ), true);
         $container->addShared(AdminSessionManager::class, fn () => new AdminSessionManager(

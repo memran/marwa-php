@@ -450,7 +450,22 @@ TWIG
         self::assertSame(1, (int) User::findBy('email', 'admin@marwa.test')->getAttribute('is_active'));
         self::assertSame($this->roleId('admin'), (int) User::findBy('email', 'admin@marwa.test')->getAttribute('role_id'));
 
-        unset($bootstrapAdmin, $blockedLastAdminDemotion, $blockedLastAdminDisable, $blockedSelfDisableForm);
+        $selfPasswordUpdate = $kernel->handle($this->request('POST', '/admin/users/' . $bootstrapAdmin->getKey(), [
+            '_token' => $csrf,
+            'name' => 'Administrator',
+            'email' => 'admin@marwa.test',
+            'role_id' => $this->roleId('admin'),
+            'is_active' => '1',
+            'password' => 'ChangedAdminPassword123!',
+            'password_confirmation' => 'ChangedAdminPassword123!',
+        ]));
+        self::assertSame(302, $selfPasswordUpdate->getStatusCode());
+        self::assertStringContainsString('/admin/users', $selfPasswordUpdate->getHeaderLine('Location'));
+
+        $dashboardAfterSelfPasswordUpdate = $kernel->handle($this->request('GET', '/admin'));
+        self::assertSame(200, $dashboardAfterSelfPasswordUpdate->getStatusCode());
+
+        unset($bootstrapAdmin, $blockedLastAdminDemotion, $blockedLastAdminDisable, $blockedSelfDisableForm, $selfPasswordUpdate, $dashboardAfterSelfPasswordUpdate);
 
         $usersPage = $kernel->handle($this->request('GET', '/admin/users'));
         self::assertSame(200, $usersPage->getStatusCode());

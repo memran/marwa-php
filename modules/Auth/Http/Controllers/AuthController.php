@@ -6,6 +6,7 @@ namespace App\Modules\Auth\Http\Controllers;
 
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Auth\Support\PasswordResetMailer;
+use App\Modules\Auth\Support\PasswordResetThrottle;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -15,6 +16,7 @@ final class AuthController extends Controller
     public function __construct(
         private readonly AuthManager $auth,
         private readonly PasswordResetMailer $passwordResetMailer,
+        private readonly PasswordResetThrottle $passwordResetThrottle,
     ) {
     }
 
@@ -79,6 +81,15 @@ final class AuthController extends Controller
         ], request: $request);
 
         $email = trim((string) ($validated['email'] ?? ''));
+        $ipAddress = $this->ipAddress($request);
+
+        if ($this->passwordResetThrottle->isRecoveryRateLimited($email, $ipAddress)) {
+            $this->flash('auth.notice', 'Too many recovery requests. Please try again later.');
+
+            return $this->redirect('/admin/forgot-password');
+        }
+
+        $this->passwordResetThrottle->recordRecoveryRequest($email, $ipAddress);
         $this->passwordResetMailer->sendPasswordResetEmail($email);
 
         $this->flash('auth.notice', 'If an admin account exists for that email, a recovery link has been sent.');

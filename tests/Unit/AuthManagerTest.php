@@ -148,4 +148,22 @@ final class AuthManagerTest extends TestCase
         self::assertSame('rate_limited', $auth->lastFailureReason());
         self::assertFalse($auth->check());
     }
+
+    public function testLogoutRegeneratesSessionId(): void
+    {
+        $app = new Application($this->basePath);
+        $GLOBALS['marwa_app'] = $app;
+        $app->add(AdminUserProviderInterface::class, new NullAdminUserProvider());
+
+        $auth = $app->make(AuthManager::class);
+
+        self::assertTrue($auth->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+        $sessionIdBeforeLogout = session()->id();
+
+        $auth->logout();
+        $sessionIdAfterLogout = session()->id();
+
+        self::assertNotSame($sessionIdBeforeLogout, $sessionIdAfterLogout);
+        self::assertFalse($auth->check());
+    }
 }

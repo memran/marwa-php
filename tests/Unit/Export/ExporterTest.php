@@ -56,6 +56,26 @@ final class ExporterTest extends TestCase
         self::assertStringContainsString('"Hello, ""World"""', $csv);
     }
 
+    public function testCsvExporterNeutralizesSpreadsheetFormulaCells(): void
+    {
+        $exporter = new CsvExporter();
+        $columns = [
+            Column::make('name', 'Name', static fn (array $row): string => $row['name']),
+        ];
+
+        $csv = $exporter->build([
+            ['name' => '=HYPERLINK("https://example.test")'],
+            ['name' => '+SUM(1,2)'],
+            ['name' => '-10+20'],
+            ['name' => '@cmd'],
+        ], $columns);
+
+        self::assertStringContainsString('"\'=HYPERLINK(""https://example.test"")"', $csv);
+        self::assertStringContainsString('"\'+SUM(1,2)"', $csv);
+        self::assertStringContainsString("'-10+20", $csv);
+        self::assertStringContainsString("'@cmd", $csv);
+    }
+
     public function testCsvExporterAcceptsIterableRows(): void
     {
         $exporter = new CsvExporter();
