@@ -78,6 +78,7 @@
     </div>
   </div>
 
+  {% include '@Shared/components/command-palette.twig' with { sections: mainMenu|default([]) } only %}
   {% include '@Shared/components/toast-host.twig' with { toasts: admin_toasts() } only %}
   {% include 'components/ai-chat-widget.twig' %}
   {% include 'partials/scripts.twig' %}

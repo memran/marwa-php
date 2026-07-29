@@ -366,6 +366,9 @@ TWIG
         self::assertStringContainsString('Dashboard', $body);
         self::assertStringContainsString('Live module widgets and service signals', $body);
         self::assertStringContainsString('data-command-palette-open="admin-command-palette"', $body);
+        self::assertStringContainsString('id="admin-command-palette"', $body);
+        self::assertStringContainsString('data-command-palette-query', $body);
+        self::assertStringContainsString('data-command-palette-search="Users', $body);
         self::assertStringContainsString('Live overview', $body);
         self::assertStringContainsString('Refresh widget', $body);
         self::assertStringContainsString('Customize widgets', $body);
@@ -473,6 +476,7 @@ TWIG
         self::assertStringContainsString('MARWA-PHP', $usersBody);
         self::assertStringContainsString('Executive', $usersBody);
         self::assertStringContainsString('data-command-palette-open="admin-command-palette"', $usersBody);
+        self::assertStringContainsString('id="admin-command-palette"', $usersBody);
         self::assertStringContainsString('Showing', $usersBody);
         self::assertStringContainsString('Administrator', $usersBody);
         self::assertStringContainsString('admin@marwa.test', $usersBody);
