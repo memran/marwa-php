@@ -1,0 +1,16 @@
+{% extends "layouts/admin.twig" %}
+
+{% block title %}Search | MarwaPHP Admin{% endblock %}
+
+{% block content %}
+  {% include '@Shared/components/search-everywhere.twig' with {
+    action: '/admin/search',
+    query: search.query,
+    active_scope: search.active_scope,
+    scopes: scopes,
+    groups: search.groups,
+    result_count: search.result_count,
+    pagination: search.pagination,
+    placeholder: 'Search users, roles, activity, and API tokens'
+  } only %}
+{% endblock %}

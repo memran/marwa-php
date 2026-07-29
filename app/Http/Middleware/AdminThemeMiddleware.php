@@ -186,6 +186,19 @@ final class AdminThemeMiddleware implements MiddlewareInterface
         } catch (\Throwable) {
         }
 
+        $items[] = [
+            'name' => 'admin.search',
+            'label' => 'Search',
+            'url' => '/admin/search',
+            'parent' => 'admin.overview',
+            'order' => 20,
+            'icon' => 'search',
+            'permission' => null,
+            'roles' => null,
+            'admin_only' => false,
+            'visible' => true,
+        ];
+
         $databaseManagerEnabled = (bool) config(
             'settings.lifecycle.app.database_manager_enabled',
             !in_array((string) config('settings.lifecycle.app.env', config('app.env', 'production')), ['production', 'staging'], true)

@@ -64,6 +64,7 @@ final class AuthUsersModuleTest extends TestCase
         $this->copyDirectory(__DIR__ . '/../../resources/views/themes/admin', $this->basePath . '/resources/views/themes/admin');
         $this->copyDirectory(__DIR__ . '/../../resources/views/themes/executive', $this->basePath . '/resources/views/themes/executive');
         $this->copyDirectory(__DIR__ . '/../../modules', $this->basePath . '/modules');
+        copy(__DIR__ . '/../../resources/views/search.twig', $this->basePath . '/resources/views/search.twig');
 
         file_put_contents(
             $this->basePath . '/.env',
@@ -89,6 +90,7 @@ final class AuthUsersModuleTest extends TestCase
 declare(strict_types=1);
 
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Backend\SearchController;
 use App\Http\Middleware\AdminThemeMiddleware;
 use App\Modules\Dashboard\Http\Controllers\DashboardController;
 use App\Modules\Auth\Http\Middleware\RequireAdminAuthentication;
@@ -100,6 +102,7 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
     $routes->get('/', static function (): \Psr\Http\Message\ResponseInterface {
         return app(DashboardController::class)->index();
     })->name('admin.dashboard')->register();
+    $routes->get('/search', [SearchController::class, 'index'])->name('admin.search')->register();
 });
 PHP
         );
@@ -1405,6 +1408,94 @@ TWIG
         self::assertStringContainsString('data-toast-host', $body);
         self::assertStringContainsString('User created successfully.', $body);
         self::assertStringContainsString('Choose a valid backup frequency.', $body);
+
+        $this->connections = null;
+        $this->app = null;
+    }
+
+    public function testGlobalSearchAggregatesPermittedResults(): void
+    {
+        $this->app = new Application($this->basePath);
+        $this->app->make(AppBootstrapper::class)->bootstrap();
+        $this->migrateAuthAndUserModules($this->app);
+        $this->seedAuthAndUsers();
+        $this->auth()->logout();
+        $kernel = $this->app->make(HttpKernel::class);
+
+        $guest = $kernel->handle($this->request('GET', '/admin/search?q=admin'));
+        self::assertSame(302, $guest->getStatusCode());
+        self::assertSame('/admin/login', $guest->getHeaderLine('Location'));
+
+        self::assertTrue($this->auth()->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+
+        $initial = $kernel->handle($this->request('GET', '/admin/search'));
+        self::assertSame(200, $initial->getStatusCode());
+        self::assertStringContainsString('Search across your workspace', (string) $initial->getBody());
+
+        $results = $kernel->handle($this->request('GET', '/admin/search?q=admin'));
+        self::assertSame(200, $results->getStatusCode());
+        $body = (string) $results->getBody();
+        self::assertStringContainsString('id="search-everywhere-query"', $body);
+        self::assertStringContainsString('Administrator', $body);
+        self::assertStringContainsString('admin@marwa.test', $body);
+        self::assertStringContainsString('/admin/users/', $body);
+        self::assertStringContainsString('Roles', $body);
+
+        $scoped = $kernel->handle($this->request('GET', '/admin/search?q=admin&scope=users'));
+        self::assertSame(200, $scoped->getStatusCode());
+        $scopedBody = (string) $scoped->getBody();
+        self::assertStringContainsString('Administrator', $scopedBody);
+        self::assertStringContainsString('value="users" selected', $scopedBody);
+
+        $unknownScope = $kernel->handle($this->request('GET', '/admin/search?q=admin&scope=unknown'));
+        self::assertSame(200, $unknownScope->getStatusCode());
+        self::assertStringContainsString('Administrator', (string) $unknownScope->getBody());
+
+        $this->connections = null;
+        $this->app = null;
+    }
+
+    public function testGlobalSearchHidesGroupsWithoutPermission(): void
+    {
+        $this->app = new Application($this->basePath);
+        $this->app->make(AppBootstrapper::class)->bootstrap();
+        $this->migrateAuthAndUserModules($this->app);
+        $this->seedAuthAndUsers();
+        $this->auth()->logout();
+        $kernel = $this->app->make(HttpKernel::class);
+
+        $dashboardPermission = Permission::findBy('slug', 'dashboard.view');
+        self::assertInstanceOf(Permission::class, $dashboardPermission);
+
+        $role = Role::create([
+            'name' => 'Search Limited',
+            'slug' => 'search_limited',
+            'level' => 2,
+            'description' => 'Can view dashboard only.',
+            'is_system' => 0,
+        ]);
+
+        $roleRepo = new RoleRepository();
+        $roleRepo->syncPermissions((int) $role->getKey(), [
+            (int) $dashboardPermission->getKey(),
+        ]);
+
+        User::create([
+            'name' => 'Search Limited',
+            'email' => 'search.limited@example.test',
+            'password' => password_hash('SearchLimitedPassword123!', PASSWORD_DEFAULT),
+            'role_id' => (int) $role->getKey(),
+            'is_active' => true,
+        ]);
+
+        self::assertTrue($this->auth()->attempt('search.limited@example.test', 'SearchLimitedPassword123!'));
+
+        $results = $kernel->handle($this->request('GET', '/admin/search?q=admin'));
+        self::assertSame(200, $results->getStatusCode());
+        $body = (string) $results->getBody();
+        self::assertStringContainsString('No matching records', $body);
+        self::assertStringNotContainsString('admin@marwa.test', $body);
+        self::assertStringNotContainsString('value="users"', $body);
 
         $this->connections = null;
         $this->app = null;
