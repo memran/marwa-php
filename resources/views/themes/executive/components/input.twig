@@ -1,27 +1,46 @@
 {% set name = name|default('input') %}
+{% set id = id|default(name) %}
 {% set label = label|default('') %}
 {% set type = type|default('text') %}
 {% set value = value|default('') %}
 {% set placeholder = placeholder|default('') %}
 {% set error = error|default('') %}
+{% set help = help|default('') %}
 {% set class = class|default('') %}
 {% set disabled = disabled|default(false) %}
 {% set readonly = readonly|default(false) %}
+{% set required = required|default(false) %}
+{% set autocomplete = autocomplete|default('') %}
+{% set min = min|default(null) %}
+{% set max = max|default(null) %}
+{% set step = step|default(null) %}
+{% set accept = accept|default('') %}
 
-<label class="grid gap-1.5">
+<label class="grid gap-1.5" for="{{ id }}">
   {% if label %}
     <span class="text-sm font-medium text-slate-700">{{ label }}</span>
   {% endif %}
   <input
+    id="{{ id }}"
     name="{{ name }}"
     type="{{ type }}"
     value="{{ value }}"
     placeholder="{{ placeholder }}"
+    {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
     class="h-11 w-full rounded-xl border {% if error %}border-red-300 focus:border-red-500 focus:ring-red-500/20{% else %}border-slate-200 focus:border-blue-500 focus:ring-blue-500/20{% endif %} bg-white px-3.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:ring-2 {{ class }}"
+    {% if required %}required aria-required="true"{% endif %}
     {% if disabled %}disabled{% endif %}
     {% if readonly %}readonly{% endif %}
+    {% if min is not null %}min="{{ min }}"{% endif %}
+    {% if max is not null %}max="{{ max }}"{% endif %}
+    {% if step is not null %}step="{{ step }}"{% endif %}
+    {% if accept %}accept="{{ accept }}"{% endif %}
+    {% if error %}aria-invalid="true" aria-describedby="{{ id }}-error"{% endif %}
   >
+  {% if help %}
+    <small class="text-sm text-slate-500">{{ help }}</small>
+  {% endif %}
   {% if error %}
-    <small class="text-sm text-red-600">{{ error }}</small>
+    <small id="{{ id }}-error" class="text-sm text-red-600">{{ error }}</small>
   {% endif %}
 </label>

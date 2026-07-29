@@ -48,6 +48,11 @@ final class AdminUserProvider implements AdminUserProviderInterface
 
     public function createBootstrapUser(string $name, string $email): AdminAuthenticatableInterface
     {
+        $persisted = $this->persistBootstrapUser($name, $email);
+        if ($persisted instanceof User) {
+            return $persisted;
+        }
+
         $user = User::newInstance([
             'id' => 0,
             'name' => $name,
@@ -65,6 +70,51 @@ final class AdminUserProvider implements AdminUserProviderInterface
         ], false));
 
         return $user;
+    }
+
+    private function persistBootstrapUser(string $name, string $email): ?User
+    {
+        $email = trim($email);
+        if ($email === '') {
+            return null;
+        }
+
+        try {
+            $existing = User::findBy('email', $email);
+            if ($existing instanceof User) {
+                return $existing;
+            }
+
+            if (User::query()->exists()) {
+                return null;
+            }
+
+            $role = Role::findBy('slug', RolePolicy::ROLE_ADMIN);
+            if (!$role instanceof Role) {
+                $role = Role::create([
+                    'name' => 'Admin',
+                    'slug' => RolePolicy::ROLE_ADMIN,
+                    'level' => RolePolicy::getRoleLevel(RolePolicy::ROLE_ADMIN),
+                    'description' => 'Administrative access',
+                    'is_system' => 1,
+                ]);
+            }
+
+            $password = (string) env('ADMIN_BOOTSTRAP_PASSWORD', '');
+            if ($password === '') {
+                return null;
+            }
+
+            return User::create([
+                'name' => trim($name) !== '' ? trim($name) : 'Administrator',
+                'email' => $email,
+                'password' => password_hash($password, PASSWORD_DEFAULT),
+                'role_id' => (int) $role->getKey(),
+                'is_active' => true,
+            ]);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     private function adminRoleId(): ?int

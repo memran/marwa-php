@@ -78,7 +78,7 @@
     </div>
   </div>
 
-  {% include 'components/toast-host.twig' with { toasts: admin_toasts() } only %}
+  {% include '@Shared/components/toast-host.twig' with { toasts: admin_toasts() } only %}
   {% include 'components/ai-chat-widget.twig' %}
   {% include 'partials/scripts.twig' %}
   {% block scripts %}{% endblock %}

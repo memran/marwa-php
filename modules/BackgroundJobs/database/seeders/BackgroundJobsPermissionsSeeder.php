@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\BackgroundJobs\database\seeders;
+namespace Database\Seeders;
 
 use App\Modules\Auth\Support\PermissionMigrationHelper;
 use Marwa\DB\Seeder\Seeder;

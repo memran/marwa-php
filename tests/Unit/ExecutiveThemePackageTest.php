@@ -67,9 +67,12 @@ final class ExecutiveThemePackageTest extends TestCase
 
     public function testExecutiveCardSupportsLegacyEmbedBlocks(): void
     {
-        $card = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/components/card.twig');
+        $themeCard = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/components/card.twig');
+        $card = file_get_contents(__DIR__ . '/../../resources/views/components/card.twig');
 
+        self::assertIsString($themeCard);
         self::assertIsString($card);
+        self::assertStringContainsString("{% extends '@Shared/components/card.twig' %}", $themeCard);
         self::assertStringContainsString('block header', $card);
         self::assertStringContainsString('block body', $card);
         self::assertStringContainsString('block footer', $card);

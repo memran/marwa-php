@@ -1,21 +1,135 @@
 {% set pagination = pagination|default(null) %}
+{% set label = label|default('Pagination') %}
+{% set show_summary = show_summary is defined ? show_summary : true %}
+{% set show_edges = show_edges is defined ? show_edges : true %}
+{% set shell_class = shell_class|default('mt-4 flex flex-col gap-3 border-t border-app-border pt-4 text-sm text-app-muted sm:flex-row sm:items-center sm:justify-between') %}
 
 {% if pagination is not null %}
-    <nav class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-app-border pt-4 text-sm text-app-muted" aria-label="Pagination">
-        <div>{{ pagination.summary() }}</div>
+  <nav class="{{ shell_class }}" aria-label="{{ label }}" data-pagination>
+    {% if show_summary %}
+      <p class="shrink-0" data-pagination-summary>{{ pagination.summary() }}</p>
+    {% endif %}
 
-        {% if pagination.hasPages() %}
-            <div class="flex flex-wrap gap-2">
-                {% for page in pagination.pages() %}
-                    {% if page.disabled %}
-                        <span class="inline-flex min-w-9 items-center justify-center rounded-xl border border-app-border px-3 py-2 text-center text-app-muted" aria-hidden="true">{{ page.label }}</span>
-                    {% elseif page.active %}
-                        <span class="inline-flex min-w-9 items-center justify-center rounded-xl border border-app-accent bg-app-accent px-3 py-2 text-center font-semibold text-white" aria-current="page">{{ page.label }}</span>
-                    {% else %}
-                        <a class="inline-flex min-w-9 items-center justify-center rounded-xl border border-app-border px-3 py-2 text-center text-app-text transition hover:border-app-accent hover:text-app-accent" href="{{ page.url }}">{{ page.label }}</a>
-                    {% endif %}
-                {% endfor %}
-            </div>
+    {% if pagination.hasPages() %}
+      <div class="flex items-center justify-between gap-2 sm:hidden">
+        {% if pagination.hasPreviousPage() %}
+          <a
+            class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-app-border bg-app-surface px-3 font-semibold text-app-text transition hover:border-app-accent hover:text-app-accent"
+            href="{{ pagination.previousUrl() }}"
+            rel="prev"
+          >
+            {% include '@Shared/components/icon.twig' with { name: 'chevron-left', class: 'h-4 w-4' } only %}
+            <span>Previous</span>
+          </a>
+        {% else %}
+          <span class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-app-border bg-app-surface-2 px-3 font-semibold text-app-muted opacity-60" aria-disabled="true">
+            {% include '@Shared/components/icon.twig' with { name: 'chevron-left', class: 'h-4 w-4' } only %}
+            <span>Previous</span>
+          </span>
         {% endif %}
-    </nav>
+
+        <span class="font-medium text-app-muted">
+          Page {{ pagination.currentPage() }} of {{ pagination.lastPage() }}
+        </span>
+
+        {% if pagination.hasNextPage() %}
+          <a
+            class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-app-border bg-app-surface px-3 font-semibold text-app-text transition hover:border-app-accent hover:text-app-accent"
+            href="{{ pagination.nextUrl() }}"
+            rel="next"
+          >
+            <span>Next</span>
+            {% include '@Shared/components/icon.twig' with { name: 'chevron-right', class: 'h-4 w-4' } only %}
+          </a>
+        {% else %}
+          <span class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-app-border bg-app-surface-2 px-3 font-semibold text-app-muted opacity-60" aria-disabled="true">
+            <span>Next</span>
+            {% include '@Shared/components/icon.twig' with { name: 'chevron-right', class: 'h-4 w-4' } only %}
+          </span>
+        {% endif %}
+      </div>
+
+      <div class="hidden items-center justify-end gap-1.5 sm:flex">
+        {% if show_edges %}
+          {% if pagination.hasPreviousPage() %}
+            <a
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-app-border bg-app-surface text-app-text transition hover:border-app-accent hover:text-app-accent"
+              href="{{ pagination.firstPageUrl() }}"
+              aria-label="Go to first page"
+              title="First page"
+            >
+              {% include '@Shared/components/icon.twig' with { name: 'chevrons-left', class: 'h-4 w-4' } only %}
+            </a>
+          {% else %}
+            <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-app-border bg-app-surface-2 text-app-muted opacity-60" aria-disabled="true" aria-label="First page unavailable">
+              {% include '@Shared/components/icon.twig' with { name: 'chevrons-left', class: 'h-4 w-4' } only %}
+            </span>
+          {% endif %}
+        {% endif %}
+
+        {% if pagination.hasPreviousPage() %}
+          <a
+            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-app-border bg-app-surface text-app-text transition hover:border-app-accent hover:text-app-accent"
+            href="{{ pagination.previousUrl() }}"
+            rel="prev"
+            aria-label="Go to previous page"
+            title="Previous page"
+          >
+            {% include '@Shared/components/icon.twig' with { name: 'chevron-left', class: 'h-4 w-4' } only %}
+          </a>
+        {% else %}
+          <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-app-border bg-app-surface-2 text-app-muted opacity-60" aria-disabled="true" aria-label="Previous page unavailable">
+            {% include '@Shared/components/icon.twig' with { name: 'chevron-left', class: 'h-4 w-4' } only %}
+          </span>
+        {% endif %}
+
+        {% for page in pagination.pages() %}
+          {% if page.disabled %}
+            <span class="inline-flex h-9 min-w-9 items-center justify-center px-1 text-app-muted" aria-hidden="true">{{ page.label }}</span>
+          {% elseif page.active %}
+            <span class="inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-app-accent bg-app-accent px-2 font-semibold text-white" aria-current="page" aria-label="Page {{ page.label }}">{{ page.label }}</span>
+          {% else %}
+            <a
+              class="inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-app-border bg-app-surface px-2 font-medium text-app-text transition hover:border-app-accent hover:text-app-accent"
+              href="{{ page.url }}"
+              aria-label="Go to page {{ page.label }}"
+            >{{ page.label }}</a>
+          {% endif %}
+        {% endfor %}
+
+        {% if pagination.hasNextPage() %}
+          <a
+            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-app-border bg-app-surface text-app-text transition hover:border-app-accent hover:text-app-accent"
+            href="{{ pagination.nextUrl() }}"
+            rel="next"
+            aria-label="Go to next page"
+            title="Next page"
+          >
+            {% include '@Shared/components/icon.twig' with { name: 'chevron-right', class: 'h-4 w-4' } only %}
+          </a>
+        {% else %}
+          <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-app-border bg-app-surface-2 text-app-muted opacity-60" aria-disabled="true" aria-label="Next page unavailable">
+            {% include '@Shared/components/icon.twig' with { name: 'chevron-right', class: 'h-4 w-4' } only %}
+          </span>
+        {% endif %}
+
+        {% if show_edges %}
+          {% if pagination.hasNextPage() %}
+            <a
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-app-border bg-app-surface text-app-text transition hover:border-app-accent hover:text-app-accent"
+              href="{{ pagination.lastPageUrl() }}"
+              aria-label="Go to last page"
+              title="Last page"
+            >
+              {% include '@Shared/components/icon.twig' with { name: 'chevrons-right', class: 'h-4 w-4' } only %}
+            </a>
+          {% else %}
+            <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-app-border bg-app-surface-2 text-app-muted opacity-60" aria-disabled="true" aria-label="Last page unavailable">
+              {% include '@Shared/components/icon.twig' with { name: 'chevrons-right', class: 'h-4 w-4' } only %}
+            </span>
+          {% endif %}
+        {% endif %}
+      </div>
+    {% endif %}
+  </nav>
 {% endif %}

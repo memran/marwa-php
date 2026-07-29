@@ -1,0 +1,119 @@
+{% set title = title|default('Timeline') %}
+{% set description = description|default('') %}
+{% set rows = rows|default(items|default(activities|default([]))) %}
+{% set pagination = pagination|default(null) %}
+{% set empty_message = empty_message|default('No timeline entries available.') %}
+{% set count_label = count_label|default('') %}
+{% set compact = compact|default(false) %}
+{% set show_source = show_source is defined ? show_source : true %}
+{% set show_actor = show_actor is defined ? show_actor : true %}
+{% set show_description = show_description is defined ? show_description : true %}
+{% set show_header = show_header is defined ? show_header : true %}
+{% set timeline_label = timeline_label|default(title) %}
+
+<section class="{{ show_header ? 'mt-6 overflow-hidden rounded-lg border border-app-border bg-app-surface shadow-sm' : '' }}" data-timeline>
+  {% if show_header %}
+    <header class="border-b border-app-border px-5 py-4">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 class="text-base font-bold leading-tight text-app-text">{{ title }}</h2>
+          {% if description %}
+            <p class="mt-1 text-sm leading-6 text-app-muted">{{ description }}</p>
+          {% endif %}
+        </div>
+
+        {% if count_label %}
+          <span class="inline-flex w-fit items-center rounded-full border border-app-accent/20 bg-app-accent/10 px-3 py-1 text-xs font-bold text-app-accent">{{ count_label }}</span>
+        {% endif %}
+      </div>
+    </header>
+  {% endif %}
+
+  <div class="{{ show_header ? (compact ? 'p-4' : 'p-5') : '' }}">
+    {% if rows is empty %}
+      <div class="rounded-lg border border-dashed border-app-border bg-app-surface-2/60 px-4 py-8 text-center text-sm text-app-muted">{{ empty_message }}</div>
+    {% else %}
+      <ol class="ml-2 border-l border-app-border" aria-label="{{ timeline_label }}">
+        {% for row in rows %}
+          {% if row is iterable %}
+            {% set event_title = row.title|default(row.action|default('Activity')) %}
+            {% set event_description = row.description|default('') %}
+            {% set event_details = row.meta|default(row.details|default('')) %}
+            {% set event_actor = row.actor|default(row.actor_name|default(row.actor_email|default('System'))) %}
+            {% set event_source = row.source|default('') %}
+            {% set event_time = row.timestamp|default(row.created_at|default('')) %}
+            {% set event_tone = row.tone|default('') %}
+            {% set event_icon = row.icon|default('') %}
+          {% else %}
+            {% set event_title = row.getAttribute('title')|default(row.getAttribute('action')|default('Activity')) %}
+            {% set event_description = row.getAttribute('description')|default('') %}
+            {% set event_details = row.readableDetails()|default(row.getAttribute('details')|default('')) %}
+            {% set event_actor = row.getAttribute('actor_name')|default(row.getAttribute('actor_email')|default('System')) %}
+            {% set event_source = row.getAttribute('source')|default('') %}
+            {% set event_time = row.getAttribute('created_at')|default('') %}
+            {% set event_tone = row.getAttribute('tone')|default('') %}
+            {% set event_icon = row.getAttribute('icon')|default('') %}
+          {% endif %}
+
+          {% set normalized_title = event_title|lower %}
+          {% if not event_tone %}
+            {% set event_tone = ('failed' in normalized_title or 'rejected' in normalized_title or 'deleted' in normalized_title or 'terminated' in normalized_title)
+              ? 'danger'
+              : (('created' in normalized_title or 'completed' in normalized_title or 'accepted' in normalized_title or 'activated' in normalized_title) ? 'success' : 'accent') %}
+          {% endif %}
+          {% if not event_icon %}
+            {% set event_icon = event_tone == 'danger' ? 'circle-alert' : (event_tone == 'success' ? 'circle-check' : 'activity') %}
+          {% endif %}
+          {% set marker_class = event_tone == 'danger'
+            ? 'border-app-danger/30 bg-app-danger/10 text-app-danger'
+            : (event_tone == 'success' ? 'border-app-success/30 bg-app-success/10 text-app-success' : 'border-app-accent/30 bg-app-accent/10 text-app-accent') %}
+
+          <li class="relative {{ compact ? 'pb-4 pl-6' : 'pb-6 pl-7' }} last:pb-0">
+            <span class="absolute -left-3 top-0 inline-flex h-6 w-6 items-center justify-center rounded-full border bg-app-surface {{ marker_class }}" aria-hidden="true">
+              {% include '@Shared/components/icon.twig' with { name: event_icon, class: 'h-3.5 w-3.5' } only %}
+            </span>
+
+            <article class="{{ compact ? '-mt-0.5' : '-mt-1' }}">
+              <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                <h3 class="min-w-0 break-words text-sm font-bold text-app-text">{{ event_title }}</h3>
+                {% if event_time %}
+                  <time class="shrink-0 text-xs font-medium text-app-muted" datetime="{{ event_time|date('c') }}">{{ event_time|date('M j, Y \\a\\t H:i') }}</time>
+                {% endif %}
+              </div>
+
+              {% if show_description and event_description %}
+                <p class="mt-1 text-sm leading-6 text-app-text">{{ event_description }}</p>
+              {% endif %}
+              {% if event_details and event_details != '—' %}
+                <p class="mt-1 break-words text-sm leading-6 text-app-muted">{{ event_details }}</p>
+              {% endif %}
+
+              {% if (show_actor and event_actor) or (show_source and event_source) %}
+                <dl class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-app-muted">
+                  {% if show_actor and event_actor %}
+                    <div class="flex min-w-0 items-center gap-1">
+                      <dt class="font-semibold">Actor:</dt>
+                      <dd class="break-all">{{ event_actor }}</dd>
+                    </div>
+                  {% endif %}
+                  {% if show_source and event_source %}
+                    <div class="flex min-w-0 items-center gap-1">
+                      <dt class="font-semibold">Source:</dt>
+                      <dd class="break-all">{{ event_source }}</dd>
+                    </div>
+                  {% endif %}
+                </dl>
+              {% endif %}
+            </article>
+          </li>
+        {% endfor %}
+      </ol>
+
+      {% if pagination is not null %}
+        <div class="mt-4 border-t border-app-border pt-4">
+          {% include '@Shared/components/pagination.twig' with { pagination: pagination } only %}
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+</section>

@@ -6,18 +6,20 @@ namespace App\Modules\DatabaseBackup\Support;
 
 use Marwa\DB\Connection\ConnectionManager;
 use Marwa\DB\Facades\DB;
-use Marwa\Framework\Application;
 use Marwa\Framework\Supports\Storage;
 use Psr\Http\Message\UploadedFileInterface;
 
 final class DatabaseBackupService
 {
+    private const SNAPSHOT_ENTRY = 'backup.json';
+
     public function __construct(
-        private readonly Application $app,
         private readonly BackupSettingsRepository $settings,
     ) {}
 
     /**
+     * @param array<string, mixed> $input
+     * @param array<string, mixed> $current
      * @return array{values: array<string, mixed>, errors: list<string>}
      */
     public function normalizeSettingsSubmission(array $input, array $current = []): array
@@ -109,6 +111,7 @@ final class DatabaseBackupService
     }
 
     /**
+     * @param array<string, mixed>|null $settings
      * @return array{path: string, filename: string, message: string, tables: list<string>}
      */
     public function createBackup(?array $settings = null): array
@@ -120,11 +123,15 @@ final class DatabaseBackupService
             throw new \RuntimeException('No database tables were selected for backup.');
         }
 
-        $snapshot = $this->snapshot($tables);
         $filename = $this->backupFilename($resolved, $tables);
         $relativePath = trim($this->storagePrefix($resolved) . '/' . $filename, '/');
+        $snapshotPath = $this->writeSnapshotFile($tables);
 
-        $this->storeArchive($resolved, $relativePath, $snapshot);
+        try {
+            $this->storeArchive($resolved, $relativePath, $snapshotPath);
+        } finally {
+            $this->deleteIfExists($snapshotPath);
+        }
 
         return [
             'path' => $relativePath,
@@ -198,7 +205,7 @@ final class DatabaseBackupService
     {
         $disks = config('storage.disks', []);
 
-        return is_array($disks) && $disks !== [] ? array_values(array_keys($disks)) : ['local'];
+        return is_array($disks) && $disks !== [] ? array_keys($disks) : ['local'];
     }
 
     /**
@@ -327,7 +334,7 @@ final class DatabaseBackupService
         $statement = $pdo->query("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
         $tables = $statement instanceof \PDOStatement ? $statement->fetchAll(\PDO::FETCH_COLUMN) : [];
 
-        return array_values(array_filter(array_map('strval', is_array($tables) ? $tables : [])));
+        return array_values(array_filter(array_map('strval', $tables)));
     }
 
     /**
@@ -338,45 +345,132 @@ final class DatabaseBackupService
         $statement = $pdo->query("SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE' ORDER BY table_name");
         $tables = $statement instanceof \PDOStatement ? $statement->fetchAll(\PDO::FETCH_COLUMN) : [];
 
-        return array_values(array_filter(array_map('strval', is_array($tables) ? $tables : [])));
+        return array_values(array_filter(array_map('strval', $tables)));
     }
 
     /**
      * @param list<string> $tables
-     * @return array<string, mixed>
      */
-    private function snapshot(array $tables): array
+    private function writeSnapshotFile(array $tables): string
     {
-        $driver = $this->driver();
+        $path = $this->tempArchivePath('json');
+        $handle = fopen($path, 'wb');
 
-        $tableSnapshots = [];
-        foreach ($tables as $table) {
-            $tableSnapshots[] = [
-                'name' => $table,
-                'create_sql' => $this->createSql($table, $driver),
-                'rows' => $this->tableRows($table),
-            ];
+        if (!is_resource($handle)) {
+            throw new \RuntimeException('Unable to create the temporary database snapshot.');
         }
 
-        return [
-            'meta' => [
-                'created_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
-                'driver' => $driver,
-                'database' => $this->databaseName(),
-                'app_name' => (string) config('app.name', 'MarwaPHP'),
-            ],
-            'tables' => $tableSnapshots,
+        $driver = $this->driver();
+        $meta = [
+            'created_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
+            'driver' => $driver,
+            'database' => $this->databaseName(),
+            'app_name' => (string) config('app.name', 'MarwaPHP'),
         ];
+
+        try {
+            $this->writeStream($handle, '{"meta":');
+            $this->writeStream($handle, $this->encodeJson($meta));
+            $this->writeStream($handle, ',"tables":[');
+
+            foreach ($tables as $index => $table) {
+                if ($index > 0) {
+                    $this->writeStream($handle, ',');
+                }
+
+                $this->writeStream($handle, '{"name":');
+                $this->writeStream($handle, $this->encodeJson($table));
+                $this->writeStream($handle, ',"create_sql":');
+                $this->writeStream($handle, $this->encodeJson($this->createSql($table, $driver)));
+                $this->writeStream($handle, ',"rows":[');
+                $this->writeTableRows($handle, $table, $driver);
+                $this->writeStream($handle, ']}');
+            }
+
+            $this->writeStream($handle, ']}');
+        } catch (\Throwable $exception) {
+            fclose($handle);
+            $this->deleteIfExists($path);
+
+            throw $exception;
+        }
+
+        fclose($handle);
+
+        return $path;
     }
 
     /**
-     * @return list<array<string, mixed>>
+     * @param resource $handle
      */
-    private function tableRows(string $table): array
+    private function writeTableRows($handle, string $table, string $driver): void
     {
-        $rows = DB::table($table)->get();
+        $pdo = $this->pdo();
+        $bufferAttribute = null;
+        $previousBuffering = null;
 
-        return array_map(static fn (array $row): array => $row, $rows);
+        if (
+            in_array($driver, ['mysql', 'mariadb'], true)
+            && defined('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY')
+        ) {
+            $attribute = constant('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY');
+            $bufferAttribute = $attribute;
+
+            try {
+                $previousBuffering = $pdo->getAttribute($attribute);
+                $pdo->setAttribute($attribute, false);
+            } catch (\Throwable) {
+                $bufferAttribute = null;
+                $previousBuffering = null;
+            }
+        }
+
+        $statement = $pdo->query(sprintf('SELECT * FROM %s', $this->quotedIdentifier($table, $driver)));
+
+        if (!$statement instanceof \PDOStatement) {
+            throw new \RuntimeException(sprintf('Unable to read rows from table [%s].', $table));
+        }
+
+        try {
+            $first = true;
+            while (($row = $statement->fetch(\PDO::FETCH_ASSOC)) !== false) {
+                if (!$first) {
+                    $this->writeStream($handle, ',');
+                }
+
+                $this->writeStream($handle, $this->encodeJson($row));
+                $first = false;
+            }
+        } finally {
+            $statement->closeCursor();
+
+            if ($bufferAttribute !== null && $previousBuffering !== null) {
+                $pdo->setAttribute($bufferAttribute, $previousBuffering);
+            }
+        }
+    }
+
+    /**
+     * @param resource $handle
+     */
+    private function writeStream($handle, string $contents): void
+    {
+        $length = strlen($contents);
+        $written = 0;
+
+        while ($written < $length) {
+            $bytes = fwrite($handle, substr($contents, $written));
+            if ($bytes === false || $bytes === 0) {
+                throw new \RuntimeException('Unable to write the database snapshot.');
+            }
+
+            $written += $bytes;
+        }
+    }
+
+    private function encodeJson(mixed $value): string
+    {
+        return json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
     }
 
     private function createSql(string $table, string $driver): string
@@ -423,21 +517,19 @@ final class DatabaseBackupService
 
     /**
      * @param array<string, mixed> $settings
-     * @param array<string, mixed> $snapshot
      */
-    private function storeArchive(array $settings, string $relativePath, array $snapshot): void
+    private function storeArchive(array $settings, string $relativePath, string $snapshotPath): void
     {
         $storage = $this->storage($settings['storage_disk'] ?? null);
         $this->ensureDirectory($storage, $this->storagePrefix($settings));
 
         $archivePath = $this->tempArchivePath((string) ($settings['archive_format'] ?? 'zip'));
-        $json = json_encode($snapshot, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
         try {
             if (($settings['archive_format'] ?? 'zip') === 'tar') {
-                $this->writeTarArchive($archivePath, 'backup.json', $json);
+                $this->writeTarArchive($archivePath, self::SNAPSHOT_ENTRY, $snapshotPath);
             } else {
-                $this->writeZipArchive($archivePath, 'backup.json', $json);
+                $this->writeZipArchive($archivePath, self::SNAPSHOT_ENTRY, $snapshotPath);
             }
 
             $stream = fopen($archivePath, 'rb');
@@ -455,7 +547,7 @@ final class DatabaseBackupService
         }
     }
 
-    private function writeZipArchive(string $archivePath, string $entryName, string $contents): void
+    private function writeZipArchive(string $archivePath, string $entryName, string $snapshotPath): void
     {
         $zip = new \ZipArchive();
         $result = $zip->open($archivePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
@@ -464,45 +556,25 @@ final class DatabaseBackupService
             throw new \RuntimeException(sprintf('Unable to create ZIP archive [%s].', $archivePath));
         }
 
-        $zip->addFromString($entryName, $contents);
-        $zip->close();
-    }
+        if (!$zip->addFile($snapshotPath, $entryName)) {
+            $zip->close();
 
-    private function writeTarArchive(string $archivePath, string $entryName, string $contents): void
-    {
-        $header = $this->tarHeader($entryName, strlen($contents));
-        $padding = str_repeat("\0", (512 - (strlen($contents) % 512)) % 512);
-        $data = $header . $contents . $padding . str_repeat("\0", 1024);
+            throw new \RuntimeException('Unable to add the database snapshot to the ZIP archive.');
+        }
 
-        if (file_put_contents($archivePath, $data, LOCK_EX) === false) {
-            throw new \RuntimeException(sprintf('Unable to create TAR archive [%s].', $archivePath));
+        if (!$zip->close()) {
+            throw new \RuntimeException('Unable to finish the ZIP backup archive.');
         }
     }
 
-    private function tarHeader(string $name, int $size): string
+    private function writeTarArchive(string $archivePath, string $entryName, string $snapshotPath): void
     {
-        $header = str_pad($name, 100, "\0")
-            . str_pad('0000777', 8, "\0", STR_PAD_LEFT)
-            . str_pad('0000000', 8, "\0", STR_PAD_LEFT)
-            . str_pad('0000000', 8, "\0", STR_PAD_LEFT)
-            . str_pad(sprintf('%011o', $size), 12, "\0", STR_PAD_LEFT)
-            . str_pad(sprintf('%011o', time()), 12, "\0", STR_PAD_LEFT)
-            . str_repeat(' ', 8)
-            . '0'
-            . str_repeat("\0", 100)
-            . "ustar\0"
-            . "00"
-            . str_pad('', 32, "\0")
-            . str_pad('', 32, "\0")
-            . str_pad('', 8, "\0")
-            . str_pad('', 8, "\0")
-            . str_pad('', 155, "\0")
-            . str_pad('', 12, "\0");
-
-        $checksum = array_sum(array_map('ord', str_split($header)));
-        $checksumField = str_pad(sprintf('%06o', $checksum), 6, '0', STR_PAD_LEFT) . "\0 ";
-
-        return substr_replace($header, $checksumField, 148, 8);
+        try {
+            $archive = new \PharData($archivePath);
+            $archive->addFile($snapshotPath, $entryName);
+        } catch (\Throwable $exception) {
+            throw new \RuntimeException('Unable to create the TAR backup archive.', 0, $exception);
+        }
     }
 
     /**
@@ -515,14 +587,64 @@ final class DatabaseBackupService
         }
 
         $snapshot = $this->readSnapshot($archivePath);
-        $tables = $this->restoreSnapshot($snapshot);
+        $safetyBackup = $this->createRestoreSafetyBackup();
+
+        try {
+            $tables = $this->restoreSnapshot($snapshot);
+        } catch (\Throwable $restoreException) {
+            if ($safetyBackup === null) {
+                throw $restoreException;
+            }
+
+            try {
+                $safetyDisk = (string) ($this->settings->all()['storage_disk'] ?? '');
+                $safetyPath = $this->storage($safetyDisk)->path($safetyBackup['path']);
+                $this->restoreSnapshot($this->readSnapshot($safetyPath));
+            } catch (\Throwable $recoveryException) {
+                throw new \RuntimeException(sprintf(
+                    'Restore failed and automatic recovery also failed. Use safety backup [%s]. Recovery error: %s',
+                    $safetyBackup['path'],
+                    $recoveryException->getMessage()
+                ), 0, $restoreException);
+            }
+
+            throw new \RuntimeException(sprintf(
+                'Restore failed. The previous database was recovered automatically from safety backup [%s].',
+                $safetyBackup['path']
+            ), 0, $restoreException);
+        }
+
+        $safetyMessage = $safetyBackup !== null
+            ? sprintf(' Pre-restore safety backup: %s.', $safetyBackup['path'])
+            : '';
 
         return [
             'path' => $archivePath,
             'filename' => $sourceName,
-            'message' => sprintf('Database restored from %s. All existing data was replaced.', $sourceName),
+            'message' => sprintf(
+                'Database restored from %s. All existing data was replaced.%s',
+                $sourceName,
+                $safetyMessage
+            ),
             'tables' => $tables,
         ];
+    }
+
+    /**
+     * @return array{path: string, filename: string, message: string, tables: list<string>}|null
+     */
+    private function createRestoreSafetyBackup(): ?array
+    {
+        if (!in_array($this->driver(), ['mysql', 'mariadb'], true)) {
+            return null;
+        }
+
+        $settings = array_replace_recursive($this->settings->all(), [
+            'scope' => 'full',
+            'tables' => [],
+        ]);
+
+        return $this->createBackup($settings);
     }
 
     /**
@@ -615,11 +737,98 @@ final class DatabaseBackupService
         /** @var mixed $decoded */
         $decoded = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 
-        if (!is_array($decoded) || !isset($decoded['tables']) || !is_array($decoded['tables'])) {
+        if (!is_array($decoded)) {
             throw new \RuntimeException('The backup archive is missing a valid snapshot payload.');
         }
 
-        return $decoded;
+        return $this->validateSnapshot($decoded);
+    }
+
+    /**
+     * @param array<string, mixed> $snapshot
+     * @return array<string, mixed>
+     */
+    private function validateSnapshot(array $snapshot): array
+    {
+        $meta = $snapshot['meta'] ?? null;
+        $tables = $snapshot['tables'] ?? null;
+
+        if (!is_array($meta) || !is_array($tables)) {
+            throw new \RuntimeException('The backup archive is missing valid metadata or table data.');
+        }
+
+        $snapshotDriver = $this->normalizedDriver((string) ($meta['driver'] ?? ''));
+        $currentDriver = $this->normalizedDriver($this->driver());
+
+        if ($snapshotDriver === '' || $snapshotDriver !== $currentDriver) {
+            throw new \RuntimeException(sprintf(
+                'Backup driver [%s] is not compatible with the current database driver [%s].',
+                (string) ($meta['driver'] ?? 'unknown'),
+                $this->driver()
+            ));
+        }
+
+        $seen = [];
+        foreach ($tables as $table) {
+            if (!is_array($table)) {
+                throw new \RuntimeException('The backup archive contains an invalid table entry.');
+            }
+
+            $name = (string) ($table['name'] ?? '');
+            $createSql = (string) ($table['create_sql'] ?? '');
+            $rows = $table['rows'] ?? null;
+
+            if (!preg_match('/^[A-Za-z0-9_]+$/', $name) || isset($seen[$name])) {
+                throw new \RuntimeException(sprintf('The backup archive contains an invalid or duplicate table [%s].', $name));
+            }
+
+            if (!$this->isSafeCreateTableSql($createSql, $name)) {
+                throw new \RuntimeException(sprintf('The backup schema for table [%s] is not safe to restore.', $name));
+            }
+
+            if (!is_array($rows)) {
+                throw new \RuntimeException(sprintf('The backup rows for table [%s] are invalid.', $name));
+            }
+
+            foreach ($rows as $row) {
+                if (!is_array($row)) {
+                    throw new \RuntimeException(sprintf('The backup contains an invalid row for table [%s].', $name));
+                }
+            }
+
+            $seen[$name] = true;
+        }
+
+        return $snapshot;
+    }
+
+    private function isSafeCreateTableSql(string $sql, string $table): bool
+    {
+        if ($sql === '' || str_contains($sql, "\0")) {
+            return false;
+        }
+
+        $quotedTable = preg_quote($table, '/');
+        $identifier = sprintf('(?:`%1$s`|"%1$s"|\\[%1$s\\]|%1$s)', $quotedTable);
+
+        if (!preg_match(
+            '/^\s*CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?' . $identifier . '\s*\(/i',
+            $sql
+        )) {
+            return false;
+        }
+
+        return !preg_match(
+            '/;\s*(?:ALTER|ATTACH|CREATE|DELETE|DETACH|DROP|INSERT|PRAGMA|REPLACE|SET|TRUNCATE|UPDATE)\b/i',
+            $sql
+        );
+    }
+
+    private function normalizedDriver(string $driver): string
+    {
+        $driver = strtolower(trim($driver));
+
+        return in_array($driver, ['mysql', 'mariadb'], true) ? 'mysql' : $driver;
     }
 
     private function disableForeignKeys(\PDO $pdo, string $driver): bool
@@ -647,7 +856,7 @@ final class DatabaseBackupService
             throw new \RuntimeException(sprintf('Unable to open ZIP archive [%s].', $archivePath));
         }
 
-        $json = $zip->getFromName('backup.json');
+        $json = $zip->getFromName(self::SNAPSHOT_ENTRY);
         $zip->close();
 
         if (!is_string($json) || $json === '') {
@@ -691,7 +900,7 @@ final class DatabaseBackupService
                     fread($handle, $padding);
                 }
 
-                if ($name === 'backup.json') {
+                if ($name === self::SNAPSHOT_ENTRY) {
                     return $content;
                 }
             }
@@ -702,6 +911,10 @@ final class DatabaseBackupService
         throw new \RuntimeException('TAR backup archive did not contain backup.json.');
     }
 
+    /**
+     * @param array<string, mixed> $settings
+     * @param list<string> $tables
+     */
     private function backupFilename(array $settings, array $tables): string
     {
         $scope = ($settings['scope'] ?? 'full') === 'selected'
@@ -711,7 +924,7 @@ final class DatabaseBackupService
             '%s-db-backup-%s-%s',
             (string) config('app.name', 'marwa'),
             $scope,
-            (new \DateTimeImmutable())->format('Ymd-His')
+            (new \DateTimeImmutable())->format('Ymd-His-u') . '-' . bin2hex(random_bytes(3))
         ));
 
         return $name . '.' . ($settings['archive_format'] ?? 'zip');
@@ -730,6 +943,9 @@ final class DatabaseBackupService
         return sanitize_filename($segment !== '' ? $segment : 'selected');
     }
 
+    /**
+     * @param array<string, mixed> $settings
+     */
     private function storagePrefix(array $settings): string
     {
         return $this->storagePath($this->stringValue($settings['storage_path'] ?? 'database-backups'));
@@ -885,7 +1101,9 @@ final class DatabaseBackupService
     private function isEveryMinutesDue(\DateTimeImmutable $time, int $minutes): bool
     {
         $minutes = max(1, $minutes);
+        $anchor = new \DateTimeImmutable('1970-01-01 00:00:00', $time->getTimezone());
+        $elapsedMinutes = intdiv($time->getTimestamp() - $anchor->getTimestamp(), 60);
 
-        return $time->format('i') !== '' && ((int) $time->format('i') % $minutes === 0);
+        return $elapsedMinutes >= 0 && $elapsedMinutes % $minutes === 0;
     }
 }

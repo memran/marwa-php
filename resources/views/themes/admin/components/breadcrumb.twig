@@ -1,20 +1,5 @@
-{% set items = items|default([]) %}
-
-{% if items is not empty %}
-  <nav class="mb-4 text-sm text-app-muted" aria-label="Breadcrumb">
-    <ol class="flex flex-wrap items-center gap-2">
-      {% for item in items %}
-        <li class="flex items-center gap-2">
-          {% if item.url is defined and item.url and not item.active|default(false) %}
-            <a href="{{ item.url }}" class="transition hover:text-app-text">{{ item.label }}</a>
-          {% else %}
-            <span class="font-medium text-app-text">{{ item.label }}</span>
-          {% endif %}
-          {% if not loop.last %}
-            <span aria-hidden="true">/</span>
-          {% endif %}
-        </li>
-      {% endfor %}
-    </ol>
-  </nav>
-{% endif %}
+{% include '@Shared/components/breadcrumb.twig' with {
+  items: items|default([]),
+  label: label|default('Breadcrumb'),
+  show_home_icon: show_home_icon is defined ? show_home_icon : true
+} only %}

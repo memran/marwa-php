@@ -28,23 +28,10 @@
     </section>
 
     <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div class="rounded-2xl border border-app-border bg-app-surface p-4 shadow-sm">
-            <div class="text-xs uppercase tracking-[0.25em] text-app-muted">Status</div>
-            <div class="mt-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ring-1 {{ job.status_class }}">{{ job.status }}</div>
-            <div class="mt-2 inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ring-1 {{ job.result_class }}">{{ job.result_label }}</div>
-        </div>
-        <div class="rounded-2xl border border-app-border bg-app-surface p-4 shadow-sm">
-            <div class="text-xs uppercase tracking-[0.25em] text-app-muted">Schedule</div>
-            <div class="mt-2 text-base font-semibold text-app-text">{{ job.schedule }}</div>
-        </div>
-        <div class="rounded-2xl border border-app-border bg-app-surface p-4 shadow-sm">
-            <div class="text-xs uppercase tracking-[0.25em] text-app-muted">Last Updated</div>
-            <div class="mt-2 text-base font-semibold text-app-text">{{ job.updated_at ?: 'Never' }}</div>
-        </div>
-        <div class="rounded-2xl border border-app-border bg-app-surface p-4 shadow-sm">
-            <div class="text-xs uppercase tracking-[0.25em] text-app-muted">Backend</div>
-            <div class="mt-2 text-base font-semibold text-app-text">Framework scheduler</div>
-        </div>
+        {% include '@Shared/components/card.twig' with {variant: 'stat', label: 'Status', value: job.status, meta: job.result_label, value_class: 'text-base font-semibold text-app-text'} only %}
+        {% include '@Shared/components/card.twig' with {variant: 'stat', label: 'Schedule', value: job.schedule, value_class: 'text-base font-semibold text-app-text'} only %}
+        {% include '@Shared/components/card.twig' with {variant: 'stat', label: 'Last Updated', value: job.updated_at ?: 'Never', value_class: 'text-base font-semibold text-app-text'} only %}
+        {% include '@Shared/components/card.twig' with {variant: 'stat', label: 'Backend', value: 'Framework scheduler', value_class: 'text-base font-semibold text-app-text'} only %}
     </section>
 
     <section class="overflow-hidden rounded-3xl border border-app-border bg-app-surface shadow-sm">

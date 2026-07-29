@@ -11,18 +11,16 @@ final class UserIndexPage
 {
     public function __construct(
         private readonly UserDataTable $userTable,
-        private readonly UserNotice $notices,
     ) {}
 
     /**
-     * @return array{stats:array{total:int,active:int,disabled:int,trashed:int},table:\App\Support\Datatables\Contracts\DataTableResultInterface,notice:?string}
+     * @return array{stats:array{total:int,active:int,disabled:int,trashed:int},table:\App\Support\Datatables\Contracts\DataTableResultInterface}
      */
     public function viewData(ServerRequestInterface $request): array
     {
         return [
             'stats' => $this->stats(),
             'table' => $this->userTable->make($request)->paginate(per_page())->result(),
-            'notice' => $this->notices->pull(),
         ];
     }
 

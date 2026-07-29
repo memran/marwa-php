@@ -4,8 +4,45 @@ declare(strict_types=1);
 
 namespace App\Modules\ApiToken\Support;
 
+use Marwa\Entity\Entity\EntitySchema;
+use Marwa\Entity\Form\FormBuilder;
+
 final class ApiTokenFormData
 {
+    /**
+     * @param array<string, mixed> $values
+     * @param array<string, mixed> $errors
+     * @return array{fields:array<string, array<string, mixed>>,values:array<string, mixed>,errors:array<string, list<string>>}
+     */
+    public function context(array $values = [], array $errors = []): array
+    {
+        $schema = EntitySchema::make('api_tokens');
+        $schema->string('name')
+            ->label('Token name')
+            ->meta('required', true)
+            ->meta('placeholder', 'e.g. Production API')
+            ->meta('autocomplete', 'off');
+        $schema->integer('rate_limit')
+            ->label('Rate limit per minute')
+            ->meta('required', true)
+            ->meta('min', 1)
+            ->meta('max', 10000)
+            ->meta('step', 1)
+            ->meta('hint', 'Maximum requests per minute. Range: 1-10000.');
+        $schema->string('allowed_ips')
+            ->label('Allowed IP addresses')
+            ->meta('widget', 'textarea')
+            ->meta('rows', 4)
+            ->meta('wrapper_class', 'md:col-span-2')
+            ->meta('placeholder', "192.168.1.1\n10.0.0.0/24")
+            ->meta('hint', 'One IP address or CIDR per line. Leave empty to allow any IP address.');
+
+        return (new FormBuilder($schema))->context(
+            array_replace(['name' => '', 'rate_limit' => 60, 'allowed_ips' => ''], $values),
+            $this->normalizeErrors($errors),
+        );
+    }
+
     /**
      * @return array<string, string>
      */
@@ -107,5 +144,32 @@ final class ApiTokenFormData
         $maskValue = (int) $mask;
 
         return $maskValue >= 0 && $maskValue <= 32;
+    }
+
+    /**
+     * @param array<string, mixed> $errors
+     * @return array<string, list<string>>
+     */
+    private function normalizeErrors(array $errors): array
+    {
+        $normalized = [];
+
+        foreach ($errors as $field => $messages) {
+            if (is_string($messages)) {
+                $normalized[(string) $field] = [$messages];
+                continue;
+            }
+
+            if (!is_array($messages)) {
+                continue;
+            }
+
+            $normalized[(string) $field] = array_values(array_map(
+                static fn (mixed $message): string => (string) $message,
+                array_filter($messages, static fn (mixed $message): bool => is_scalar($message)),
+            ));
+        }
+
+        return $normalized;
     }
 }

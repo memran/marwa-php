@@ -8,6 +8,12 @@
 {% set class = class|default('') %}
 {% set disabled = disabled|default(false) %}
 {% set readonly = readonly|default(false) %}
+{% set required = required|default(false) %}
+{% set autocomplete = autocomplete|default('') %}
+{% set min = min|default(null) %}
+{% set max = max|default(null) %}
+{% set step = step|default(null) %}
+{% set accept = accept|default('') %}
 
 <label class="theme-field" for="{{ id }}">
     {% if label %}
@@ -20,9 +26,16 @@
         type="{{ type }}"
         value="{{ value }}"
         placeholder="{{ placeholder }}"
+        {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
         class="theme-input{% if error %} theme-input--error{% endif %} {{ class }}"
+        {% if required %}required aria-required="true"{% endif %}
         {% if disabled %}disabled{% endif %}
         {% if readonly %}readonly{% endif %}
+        {% if min is not null %}min="{{ min }}"{% endif %}
+        {% if max is not null %}max="{{ max }}"{% endif %}
+        {% if step is not null %}step="{{ step }}"{% endif %}
+        {% if accept %}accept="{{ accept }}"{% endif %}
+        {% if error %}aria-invalid="true" aria-describedby="{{ id }}-error"{% endif %}
     >
 
     {% if help %}
@@ -30,6 +43,6 @@
     {% endif %}
 
     {% if error %}
-        <small class="theme-field__error">{{ error }}</small>
+        <small id="{{ id }}-error" class="theme-field__error">{{ error }}</small>
     {% endif %}
 </label>

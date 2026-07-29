@@ -23,6 +23,7 @@ use JsonSerializable;
  * @property-read mixed $tone
  * @property-read mixed $items
  * @property-read mixed $html
+ * @property-read mixed $image
  */
 final readonly class DataTableCell implements JsonSerializable
 {

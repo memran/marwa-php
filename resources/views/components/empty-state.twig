@@ -1,0 +1,76 @@
+{% set state = state|default(empty_state|default({})) %}
+{% set title = state.title|default('Nothing here yet')|trim %}
+{% set description = state.description|default(state.message|default(''))|trim %}
+{% set icon = state.icon|default('inbox') %}
+{% set size = state.size|default('default') %}
+{% set surface = state.surface|default('plain') %}
+{% set tone = state.tone|default('muted') %}
+{% set action = state.action|default(null) %}
+{% set secondary_action = state.secondary_action|default(null) %}
+{% set sizes = {
+  compact: 'min-h-28 px-4 py-6',
+  default: 'min-h-48 px-5 py-10',
+  spacious: 'min-h-72 px-6 py-12'
+} %}
+{% set surfaces = {
+  plain: '',
+  subtle: 'rounded-lg border border-app-border bg-app-surface-2/30',
+  dashed: 'rounded-lg border border-dashed border-app-border bg-app-surface/40'
+} %}
+{% set icon_tones = {
+  muted: 'bg-app-surface-2 text-app-muted',
+  accent: 'bg-app-accent/10 text-app-accent',
+  success: 'bg-app-success/10 text-app-success',
+  warning: 'bg-app-warning/10 text-app-warning',
+  danger: 'bg-app-danger/10 text-app-danger'
+} %}
+{% set action_styles = {
+  primary: 'border-transparent bg-app-accent text-white hover:opacity-90',
+  secondary: 'border-app-border bg-app-surface text-app-text hover:bg-app-surface-2'
+} %}
+
+<section
+  class="grid place-items-center text-center {{ sizes[size]|default(sizes.default) }} {{ surfaces[surface]|default(surfaces.plain) }} {{ state.class|default('') }}"
+  data-empty-state
+  {% if state.id|default('') %}id="{{ state.id }}"{% endif %}
+>
+  <div class="max-w-md">
+    {% if icon %}
+      <span class="mx-auto inline-flex h-11 w-11 items-center justify-center rounded-lg {{ icon_tones[tone]|default(icon_tones.muted) }}" aria-hidden="true">
+        {% include '@Shared/components/icon.twig' with { name: icon, class: 'h-5 w-5' } only %}
+      </span>
+    {% endif %}
+
+    <h2 class="{{ icon ? 'mt-4 ' : '' }}text-base font-bold text-app-text">{{ title }}</h2>
+
+    {% if description %}
+      <p class="mt-1 text-sm leading-6 text-app-muted">{{ description }}</p>
+    {% endif %}
+
+    {% if action or secondary_action %}
+      <div class="mt-5 flex flex-wrap items-center justify-center gap-2">
+        {% for item in [action, secondary_action] %}
+          {% if item %}
+            {% set variant = item.variant|default(loop.first ? 'primary' : 'secondary') %}
+            {% set button_class = 'inline-flex h-10 items-center justify-center gap-2 rounded-lg border px-3.5 text-sm font-semibold transition ' ~ action_styles[variant]|default(action_styles.secondary) %}
+            {% if item.url|default('') %}
+              <a class="{{ button_class }}" href="{{ item.url }}">
+                {% if item.icon|default('') %}
+                  {% include '@Shared/components/icon.twig' with { name: item.icon, class: 'h-4 w-4' } only %}
+                {% endif %}
+                <span>{{ item.label|default('Continue') }}</span>
+              </a>
+            {% else %}
+              <button class="{{ button_class }}" type="{{ item.type|default('button') }}" data-empty-state-action>
+                {% if item.icon|default('') %}
+                  {% include '@Shared/components/icon.twig' with { name: item.icon, class: 'h-4 w-4' } only %}
+                {% endif %}
+                <span>{{ item.label|default('Continue') }}</span>
+              </button>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</section>

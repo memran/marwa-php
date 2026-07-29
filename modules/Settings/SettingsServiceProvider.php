@@ -52,7 +52,7 @@ final class SettingsServiceProvider implements ModuleServiceProviderInterface
             /** @var SettingsApplier $applier */
             $applier = $app->make(SettingsApplier::class);
 
-            $applier->apply($store->all());
+            $applier->apply($store->fresh());
         });
     }
 }

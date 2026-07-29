@@ -14,8 +14,29 @@
 {% set options = options|default(resolved_field.options|default([])) %}
 {% set wrapper_class = wrapper_class|default(resolved_field.wrapper_class|default('')) %}
 {% set success = success|default(resolved_field.success|default('')) %}
+{% set required = required|default(resolved_field.required|default(false)) %}
+{% set min = min|default(resolved_field.min|default(null)) %}
+{% set max = max|default(resolved_field.max|default(null)) %}
+{% set step = step|default(resolved_field.step|default(null)) %}
+{% set accept = accept|default(resolved_field.accept|default('')) %}
+{% set multiple = multiple|default(resolved_field.multiple|default(false)) %}
+{% set max_bytes = max_bytes|default(resolved_field.max_bytes|default(null)) %}
 
-{% if type == 'textarea' %}
+{% if type == 'file' %}
+    {% include '@Shared/components/file-upload.twig' with {
+        id: id,
+        name: name,
+        label: label,
+        help: hint,
+        error: error,
+        required: required,
+        disabled: disabled,
+        accept: accept,
+        multiple: multiple,
+        max_bytes: max_bytes,
+        wrapper_class: wrapper_class
+    } only %}
+{% elseif type == 'textarea' %}
     <label class="theme-field{% if wrapper_class %} {{ wrapper_class }}{% endif %}" for="{{ id }}">
         {% if label %}
             <span class="theme-field__label">{{ label }}</span>
@@ -27,8 +48,10 @@
             rows="{{ rows }}"
             placeholder="{{ placeholder }}"
             autocomplete="{{ autocomplete }}"
+            {% if required %}required aria-required="true"{% endif %}
             {% if disabled %}disabled{% endif %}
             {% if readonly %}readonly{% endif %}
+            {% if error %}aria-invalid="true" aria-describedby="{{ id }}-error"{% endif %}
             class="theme-input{% if error %} theme-input--error{% endif %}"
         >{{ value }}</textarea>
 
@@ -41,8 +64,28 @@
         {% endif %}
 
         {% if error %}
-            <small class="theme-field__error">{{ error }}</small>
+            <small id="{{ id }}-error" class="theme-field__error">{{ error }}</small>
         {% endif %}
+    </label>
+{% elseif type == 'checkbox' %}
+    <label class="theme-field{% if wrapper_class %} {{ wrapper_class }}{% endif %}" for="{{ id }}">
+        <span class="inline-flex items-start gap-3">
+            <input
+                id="{{ id }}"
+                name="{{ name }}"
+                type="checkbox"
+                value="1"
+                class="mt-0.5 h-4 w-4 rounded border-app-border text-app-accent focus:ring-app-accent/20"
+                {% if value %}checked{% endif %}
+                {% if required %}required aria-required="true"{% endif %}
+                {% if disabled %}disabled{% endif %}
+            >
+            <span>
+                {% if label %}<span class="theme-field__label">{{ label }}</span>{% endif %}
+                {% if hint %}<small class="theme-field__help">{{ hint }}</small>{% endif %}
+            </span>
+        </span>
+        {% if error %}<small id="{{ id }}-error" class="theme-field__error">{{ error }}</small>{% endif %}
     </label>
 {% elseif type == 'select' %}
     {% include 'components/select.twig' with {
@@ -53,7 +96,9 @@
         value: value,
         help: hint,
         error: error,
-        placeholder: placeholder
+        placeholder: placeholder,
+        required: required,
+        disabled: disabled
     } only %}
 {% else %}
     {% include 'components/input.twig' with {
@@ -64,6 +109,14 @@
         value: value,
         placeholder: placeholder,
         help: hint,
-        error: error
+        error: error,
+        autocomplete: autocomplete,
+        required: required,
+        disabled: disabled,
+        readonly: readonly,
+        min: min,
+        max: max,
+        step: step,
+        accept: accept
     } only %}
 {% endif %}

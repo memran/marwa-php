@@ -1,4 +1,14 @@
-<div class="mt-5 rounded-2xl border border-app-accent/20 bg-app-accent/10 p-4 text-app-accent">
-  <p class="text-sm font-semibold">{{ empty_state.title }}</p>
-  <p class="mt-1 text-sm text-app-accent">{{ empty_state.message }}</p>
+<div class="mt-5">
+  {% include '@Shared/components/empty-state.twig' with {
+    state: {
+      title: empty_state.title,
+      description: empty_state.message,
+      icon: empty_state.icon|default('inbox'),
+      tone: empty_state.tone|default('muted'),
+      size: 'compact',
+      surface: 'dashed',
+      action: empty_state.action|default(null),
+      secondary_action: empty_state.secondary_action|default(null)
+    }
+  } only %}
 </div>

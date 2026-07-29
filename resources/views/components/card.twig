@@ -1,0 +1,71 @@
+{% set variant = variant|default('panel') %}
+{% set card_id = card_id|default('') %}
+{% set title = title|default('') %}
+{% set description = description|default('') %}
+{% set icon = icon|default('') %}
+{% set content = content|default('') %}
+{% set label = label|default('') %}
+{% set value = value|default('') %}
+{% set meta = meta|default('') %}
+{% set shell_class = shell_class|default('overflow-hidden rounded-lg border border-app-border bg-app-surface shadow-sm') %}
+{% set header_class = header_class|default('flex items-start justify-between gap-4 border-b border-app-border px-5 py-4') %}
+{% set body_class = body_class|default(variant == 'stat' ? 'p-4' : 'p-5') %}
+{% set footer_class = footer_class|default('border-t border-app-border bg-app-surface-2/40 px-5 py-4') %}
+{% set title_class = title_class|default('text-base font-bold text-app-text') %}
+{% set value_class = value_class|default('text-2xl font-black text-app-text') %}
+
+{% set header_content %}
+  {% block header %}
+    {% if title or description or icon %}
+      <div class="flex min-w-0 items-start gap-3">
+        {% if icon %}
+          <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-app-accent/10 text-app-accent" aria-hidden="true">
+            {% include '@Shared/components/icon.twig' with { name: icon, class: 'h-4 w-4' } only %}
+          </span>
+        {% endif %}
+        <div class="min-w-0">
+          {% if title %}
+            <h2{% if card_id %} id="{{ card_id }}-title"{% endif %} class="{{ title_class }}">{{ title }}</h2>
+          {% endif %}
+          {% if description %}
+            <p class="mt-1 text-sm leading-6 text-app-muted">{{ description }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% block actions %}{% endblock %}
+    {% endif %}
+  {% endblock %}
+{% endset %}
+
+{% set body_content %}
+  {% block body %}
+    {% if variant == 'stat' %}
+      {% if label %}<p class="text-xs font-semibold text-app-muted">{{ label }}</p>{% endif %}
+      <p class="mt-1 {{ value_class }}">{{ value }}</p>
+      {% if meta %}<p class="mt-1 text-xs text-app-muted">{{ meta }}</p>{% endif %}
+    {% else %}
+      {{ content|raw }}
+    {% endif %}
+  {% endblock %}
+{% endset %}
+
+{% set footer_content %}
+  {% block footer %}{% endblock %}
+{% endset %}
+
+<section
+  class="{{ shell_class }}"
+  data-card
+  {% if card_id %}id="{{ card_id }}"{% endif %}
+  {% if card_id and title %}aria-labelledby="{{ card_id }}-title"{% endif %}
+>
+  {% if header_content|trim is not empty %}
+    <header class="{{ header_class }}">{{ header_content|raw }}</header>
+  {% endif %}
+
+  <div class="{{ body_class }}">{{ body_content|raw }}</div>
+
+  {% if footer_content|trim is not empty %}
+    <footer class="{{ footer_class }}">{{ footer_content|raw }}</footer>
+  {% endif %}
+</section>

@@ -1,0 +1,135 @@
+{% set palette_id = palette_id|default('admin-command-palette') %}
+{% set sections = sections|default([]) %}
+{% set commands = commands|default([]) %}
+{% set title = title|default('Command palette') %}
+{% set placeholder = placeholder|default('Search pages and actions') %}
+{% set empty_label = empty_label|default('No matching commands found.') %}
+{% set show_trigger = show_trigger|default(false) %}
+{% set trigger_label = trigger_label|default('Open command palette') %}
+
+{% if show_trigger %}
+  <button
+    type="button"
+    class="{{ trigger_class|default('inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-app-border bg-app-surface px-3 text-sm font-semibold text-app-text transition hover:bg-app-surface-2') }}"
+    data-command-palette-open="{{ palette_id }}"
+    aria-haspopup="dialog"
+    aria-controls="{{ palette_id }}"
+  >
+    {% include '@Shared/components/icon.twig' with { name: 'search', class: 'h-4 w-4 shrink-0' } only %}
+    <span>{{ trigger_label }}</span>
+  </button>
+{% endif %}
+
+<dialog
+  id="{{ palette_id }}"
+  class="m-auto w-[calc(100%-2rem)] max-w-2xl overflow-hidden rounded-xl border border-app-border bg-app-surface p-0 text-app-text shadow-2xl backdrop:bg-slate-950/65 backdrop:backdrop-blur-sm"
+  aria-labelledby="{{ palette_id }}-title"
+  data-command-palette
+>
+  <header class="flex items-center gap-3 border-b border-app-border px-4">
+    <span class="shrink-0 text-app-muted">
+      {% include '@Shared/components/icon.twig' with { name: 'search', class: 'h-5 w-5' } only %}
+    </span>
+    <div class="min-w-0 flex-1">
+      <h2 id="{{ palette_id }}-title" class="sr-only">{{ title }}</h2>
+      <label class="sr-only" for="{{ palette_id }}-query">{{ placeholder }}</label>
+      <input
+        id="{{ palette_id }}-query"
+        class="block h-14 w-full border-0 bg-transparent px-0 text-base text-app-text shadow-none outline-none placeholder:text-app-muted focus:ring-0"
+        type="search"
+        placeholder="{{ placeholder }}"
+        autocomplete="off"
+        spellcheck="false"
+        aria-controls="{{ palette_id }}-results"
+        aria-autocomplete="list"
+        data-command-palette-query
+      >
+    </div>
+    <button
+      type="button"
+      class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-app-muted transition hover:bg-app-surface-2 hover:text-app-text"
+      aria-label="Close command palette"
+      title="Close"
+      data-command-palette-close
+    >
+      {% include '@Shared/components/icon.twig' with { name: 'x', class: 'h-4 w-4' } only %}
+    </button>
+  </header>
+
+  <div class="max-h-[min(65vh,32rem)] overflow-y-auto overscroll-contain p-2" id="{{ palette_id }}-results" role="listbox" data-command-palette-results>
+    {% for section in sections %}
+      {% if section.children|default([])|length > 0 %}
+        <section class="command-palette-group py-1" data-command-palette-group>
+          <h3 class="px-3 py-2 text-xs font-bold uppercase text-app-muted">{{ section.label }}</h3>
+          <div class="grid gap-1">
+            {% for command in section.children|default([]) %}
+              <a
+                href="{{ command.url }}"
+                class="command-palette-item flex min-h-12 items-center gap-3 rounded-lg px-3 py-2 text-sm text-app-text outline-none transition hover:bg-app-surface-2 focus:bg-app-surface-2"
+                role="option"
+                aria-selected="false"
+                data-command-palette-item
+                data-command-palette-search="{{ command.label }} {{ section.label }} {{ command.name|default('') }}"
+              >
+                <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-app-accent/10 text-app-accent">
+                  {% include '@Shared/components/icon.twig' with {
+                    name: command.icon|default(section.icon|default('arrow-right')),
+                    class: 'h-4 w-4'
+                  } only %}
+                </span>
+                <span class="min-w-0 flex-1">
+                  <span class="block truncate font-semibold">{{ command.label }}</span>
+                  <span class="block truncate text-xs text-app-muted">{{ section.label }}</span>
+                </span>
+                {% include '@Shared/components/icon.twig' with { name: 'corner-down-left', class: 'h-4 w-4 shrink-0 text-app-muted' } only %}
+              </a>
+            {% endfor %}
+          </div>
+        </section>
+      {% endif %}
+    {% endfor %}
+
+    {% if commands|length > 0 %}
+      <section class="command-palette-group py-1" data-command-palette-group>
+        <h3 class="px-3 py-2 text-xs font-bold uppercase text-app-muted">{{ commands_label|default('Actions') }}</h3>
+        <div class="grid gap-1">
+          {% for command in commands %}
+            <a
+              href="{{ command.url }}"
+              class="command-palette-item flex min-h-12 items-center gap-3 rounded-lg px-3 py-2 text-sm text-app-text outline-none transition hover:bg-app-surface-2 focus:bg-app-surface-2"
+              role="option"
+              aria-selected="false"
+              data-command-palette-item
+              data-command-palette-search="{{ command.label }} {{ command.keywords|default('') }}"
+            >
+              <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-app-accent/10 text-app-accent">
+                {% include '@Shared/components/icon.twig' with { name: command.icon|default('arrow-right'), class: 'h-4 w-4' } only %}
+              </span>
+              <span class="min-w-0 flex-1 truncate font-semibold">{{ command.label }}</span>
+              {% include '@Shared/components/icon.twig' with { name: 'corner-down-left', class: 'h-4 w-4 shrink-0 text-app-muted' } only %}
+            </a>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+    <div class="grid min-h-40 place-items-center px-6 py-10 text-center" data-command-palette-empty hidden>
+      {% include '@Shared/components/empty-state.twig' with {
+        state: {
+          title: empty_label,
+          icon: 'search-x',
+          size: 'compact'
+        }
+      } only %}
+    </div>
+  </div>
+
+  <footer class="flex items-center justify-between gap-3 border-t border-app-border bg-app-surface-2/50 px-4 py-2 text-xs text-app-muted">
+    <span data-command-palette-status aria-live="polite"></span>
+    <span class="hidden items-center gap-3 sm:flex">
+      <span><kbd class="font-mono">↑↓</kbd> Navigate</span>
+      <span><kbd class="font-mono">Enter</kbd> Open</span>
+      <span><kbd class="font-mono">Esc</kbd> Close</span>
+    </span>
+  </footer>
+</dialog>

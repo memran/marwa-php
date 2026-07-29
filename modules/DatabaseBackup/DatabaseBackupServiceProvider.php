@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\DatabaseBackup;
 
 use App\Modules\DatabaseBackup\Support\BackupSettingsRepository;
+use App\Modules\DatabaseBackup\Support\DatabaseBackupActivityLogger;
 use App\Modules\DatabaseBackup\Support\DatabaseBackupService;
 use League\Container\Container;
 use Marwa\Framework\Scheduling\Task;
@@ -24,12 +25,13 @@ final class DatabaseBackupServiceProvider implements ModuleServiceProviderInterf
     public function register($app): void
     {
         $this->container->addShared(BackupSettingsRepository::class, new BackupSettingsRepository());
-        $this->container->addShared(DatabaseBackupService::class, function () use ($app) {
-            return new DatabaseBackupService(
-                $app,
+        $this->container->addShared(DatabaseBackupActivityLogger::class, new DatabaseBackupActivityLogger());
+        $this->container->addShared(
+            DatabaseBackupService::class,
+            fn (): DatabaseBackupService => new DatabaseBackupService(
                 $this->container->get(BackupSettingsRepository::class)
-            );
-        });
+            )
+        );
     }
 
     public function boot($app): void

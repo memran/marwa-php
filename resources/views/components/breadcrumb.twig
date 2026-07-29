@@ -1,0 +1,52 @@
+{% set items = items|default([]) %}
+{% set label = label|default('Breadcrumb') %}
+{% set show_home_icon = show_home_icon is defined ? show_home_icon : true %}
+{% set shell_class = shell_class|default('mb-4 min-w-0 text-sm text-app-muted') %}
+{% set list_class = list_class|default('flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-2') %}
+
+{% if items is not empty %}
+  <nav class="{{ shell_class }}" aria-label="{{ label }}" data-breadcrumb>
+    <ol class="{{ list_class }}">
+      {% for item in items %}
+        {% set is_current = item.active|default(loop.last) %}
+        <li class="flex min-w-0 items-center gap-1.5">
+          {% if not loop.first %}
+            <span class="inline-flex shrink-0 text-app-muted/70" aria-hidden="true">
+              {% include '@Shared/components/icon.twig' with { name: 'chevron-right', class: 'h-3.5 w-3.5' } only %}
+            </span>
+          {% endif %}
+
+          {% if item.url|default('') and not is_current %}
+            <a
+              href="{{ item.url }}"
+              class="inline-flex min-w-0 items-center gap-1.5 rounded-md px-1 py-0.5 font-medium text-app-muted outline-none transition hover:bg-app-surface-2 hover:text-app-text focus-visible:ring-2 focus-visible:ring-app-accent/30"
+              title="{{ item.label }}"
+            >
+              {% if item.icon|default('') or (loop.first and show_home_icon) %}
+                {% include '@Shared/components/icon.twig' with {
+                  name: item.icon|default('layout-dashboard'),
+                  class: 'h-3.5 w-3.5 shrink-0'
+                } only %}
+              {% endif %}
+              <span class="max-w-40 truncate sm:max-w-56">{{ item.label }}</span>
+            </a>
+          {% else %}
+            <span
+              class="inline-flex min-w-0 items-center gap-1.5 px-1 py-0.5 font-semibold text-app-text"
+              {% if is_current %}aria-current="page"{% endif %}
+              title="{{ item.label }}"
+            >
+              {% if item.icon|default('') or (loop.first and show_home_icon) %}
+                {% include '@Shared/components/icon.twig' with {
+                  name: item.icon|default('layout-dashboard'),
+                  class: 'h-3.5 w-3.5 shrink-0'
+                } only %}
+              {% endif %}
+              <span class="max-w-48 truncate sm:max-w-72">{{ item.label }}</span>
+            </span>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+  </nav>
+{% endif %}

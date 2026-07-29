@@ -1,6 +1,0 @@
-{% set _is_trashed = user.getAttribute('deleted_at') is not empty %}
-{% set _is_protected = protected_admin_id is defined and protected_admin_id is not null and user.getKey() == protected_admin_id %}
-{% include 'components/status-badge.twig' with {
-  status: _is_trashed ? 'trashed' : (user.getAttribute('is_active') ? 'active' : 'disabled'),
-  is_protected: _is_protected
-} %}

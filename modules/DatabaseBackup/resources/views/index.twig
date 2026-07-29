@@ -7,6 +7,8 @@
   {% set button_primary = button_base ~ ' border-transparent bg-app-accent text-white hover:bg-app-accent-soft' %}
   {% set button_secondary = button_base ~ ' border-app-border bg-app-surface/80 text-app-text hover:bg-app-surface-2/70' %}
   {% set control = 'admin-control w-full rounded-xl border border-app-border bg-app-surface px-3 py-2.5 text-sm text-app-text placeholder:text-app-muted outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/10' %}
+  {% set can_manage = can('database_backup.manage') %}
+  {% set can_restore = can('database_backup.restore') %}
 
   <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
     <div class="max-w-3xl space-y-2">
@@ -17,10 +19,12 @@
 
     <div class="flex flex-wrap gap-2">
       <a class="{{ button_secondary }}" href="/admin">Back to dashboard</a>
-      <form method="post" action="/admin/database-backups/backup">
-        {{ csrf_field() }}
-        <button class="{{ button_primary }}" type="submit">Run backup now</button>
-      </form>
+      {% if can_manage %}
+        <form method="post" action="/admin/database-backups/backup">
+          {{ csrf_field() }}
+          <button class="{{ button_primary }}" type="submit">Run backup now</button>
+        </form>
+      {% endif %}
     </div>
   </section>
 
@@ -33,6 +37,7 @@
 
       <form class="mt-4 grid gap-4" method="post" action="/admin/database-backups/settings">
         {{ csrf_field() }}
+        <fieldset class="grid gap-4" {% if not can_manage %}disabled{% endif %}>
         <div class="grid gap-4 md:grid-cols-2">
           <label class="grid gap-2 text-sm text-app-text">
             <span class="font-semibold">Enabled</span>
@@ -116,16 +121,19 @@
 
         <p class="text-sm text-app-muted">Current schedule: <span class="font-semibold text-app-text">{{ schedule_label }}</span></p>
 
-        <div>
-          <button class="{{ button_primary }}" type="submit">Save backup settings</button>
-        </div>
+        {% if can_manage %}
+          <div>
+            <button class="{{ button_primary }}" type="submit">Save backup settings</button>
+          </div>
+        {% endif %}
+        </fieldset>
       </form>
     </section>
 
     <section class="overflow-hidden rounded-[1.25rem] border border-app-border bg-app-surface/80 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.12)] backdrop-blur-xl sm:p-5">
       <div class="border-b border-app-border pb-4">
         <h2 class="text-xl font-bold tracking-tight text-app-text">Restore</h2>
-        <p class="mt-1 text-sm text-app-muted">Restoring deletes all current database data before the backup snapshot is applied.</p>
+        <p class="mt-1 text-sm text-app-muted">Restoring replaces current data. MariaDB creates a full safety backup first and attempts automatic recovery if the import fails.</p>
       </div>
 
       <div class="mt-4 rounded-xl border border-app-danger/20 bg-app-danger/10 p-4 text-app-danger">
@@ -133,12 +141,17 @@
         <p class="mt-1 text-sm text-app-danger">The restore process replaces every current table and row. Use it only when you are certain the uploaded or selected archive is the one you want.</p>
       </div>
 
+      {% if can_restore %}
       <form class="mt-4 grid gap-4" method="post" action="/admin/database-backups/restore" enctype="multipart/form-data">
         {{ csrf_field() }}
-        <label class="grid gap-2 text-sm text-app-text">
-          <span class="font-semibold">Upload archive</span>
-          <input class="{{ control }}" type="file" name="restore_archive" accept=".zip,.tar">
-        </label>
+        {% include '@Shared/components/file-upload.twig' with {
+          id: 'restore_archive',
+          name: 'restore_archive',
+          label: 'Upload archive',
+          help: 'Choose a ZIP or TAR database backup archive.',
+          accept: '.zip,.tar,application/zip,application/x-tar',
+          preview_images: false
+        } only %}
 
         <label class="grid gap-2 text-sm text-app-text">
           <span class="font-semibold">Or choose from storage</span>
@@ -159,6 +172,9 @@
           <button class="{{ button_primary }}" type="submit">Restore database</button>
         </div>
       </form>
+      {% else %}
+        <p class="mt-4 text-sm text-app-muted">Restore permission is required to replace database data.</p>
+      {% endif %}
     </section>
   </div>
 

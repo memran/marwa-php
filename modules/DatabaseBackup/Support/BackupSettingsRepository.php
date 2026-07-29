@@ -28,7 +28,7 @@ final class BackupSettingsRepository
             return $defaults;
         }
 
-        return array_replace_recursive($defaults, is_array($stored) ? $stored : []);
+        return array_replace_recursive($defaults, $stored);
     }
 
     /**

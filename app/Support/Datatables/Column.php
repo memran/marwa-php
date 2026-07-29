@@ -21,6 +21,9 @@ final class Column
     /** @var null|Closure(mixed):mixed */
     private ?Closure $formatter = null;
 
+    /** @var null|Closure(array<string, mixed>|object):mixed */
+    private ?Closure $valueCallback = null;
+
     /** @var null|Closure(mixed):string */
     private ?Closure $htmlCallback = null;
 
@@ -29,6 +32,9 @@ final class Column
 
     /** @var null|Closure(mixed):mixed */
     private ?Closure $iconCallback = null;
+
+    /** @var null|Closure(array<string, mixed>|object):array<string, mixed> */
+    private ?Closure $imageCallback = null;
 
     /** @var null|Closure(array<string, mixed>|object):string */
     private ?Closure $hrefCallback = null;
@@ -106,6 +112,16 @@ final class Column
     }
 
     /**
+     * @param Closure(array<string, mixed>|object):mixed $callback
+     */
+    public function valueUsing(Closure $callback): self
+    {
+        $this->valueCallback = $callback;
+
+        return $this;
+    }
+
+    /**
      * @param Closure(mixed):string $callback
      */
     public function html(Closure $callback): self
@@ -131,6 +147,16 @@ final class Column
     public function icon(Closure $callback): self
     {
         $this->iconCallback = $callback;
+
+        return $this;
+    }
+
+    /**
+     * @param Closure(array<string, mixed>|object):array<string, mixed> $callback
+     */
+    public function image(Closure $callback): self
+    {
+        $this->imageCallback = $callback;
 
         return $this;
     }
@@ -205,7 +231,9 @@ final class Column
      */
     public function toCell(array|object $row): array
     {
-        $value = $this->extractValue($row, $this->field);
+        $value = $this->valueCallback !== null
+            ? ($this->valueCallback)($row)
+            : $this->extractValue($row, $this->field);
         $display = $this->formatter !== null ? ($this->formatter)($value) : $value;
 
         $cell = [
@@ -221,6 +249,13 @@ final class Column
         if ($this->htmlCallback !== null) {
             $cell['type'] = 'html';
             $cell['html'] = (string) ($this->htmlCallback)($display);
+
+            return $cell;
+        }
+
+        if ($this->imageCallback !== null) {
+            $cell['type'] = 'image';
+            $cell['image'] = ($this->imageCallback)($row);
 
             return $cell;
         }

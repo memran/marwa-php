@@ -10,6 +10,7 @@ final class SecurityRiskReport
 {
     public function __construct(
         private readonly RiskAnalyzer $riskAnalyzer,
+        private readonly SecurityRiskDataTable $table = new SecurityRiskDataTable(),
     ) {}
 
     /**
@@ -23,17 +24,25 @@ final class SecurityRiskReport
      *         byScore: array{high: int, medium: int, low: int},
      *         latest: list<array<string, mixed>>
      *     }
+     *     table: \App\Support\Datatables\Contracts\DataTableResultInterface
      * }
      */
-    public function viewData(mixed $sinceHours): array
+    /**
+     * @param array<string, mixed> $filters
+     */
+    public function viewData(mixed $sinceHours, mixed $page = 1, mixed $search = '', array $filters = []): array
     {
         $hours = $this->positiveInt($sinceHours, 24, 1, 8760);
+        $currentPage = $this->positiveInt($page, 1, 1, PHP_INT_MAX);
+        $searchTerm = is_scalar($search) ? trim((string) $search) : '';
+        $report = $this->formatReport($this->riskAnalyzer->report($hours));
 
         return [
             'enabled' => $this->riskAnalyzer->enabled(),
             'log_path' => $this->riskAnalyzer->logPath(),
             'since_hours' => $hours,
-            'report' => $this->formatReport($this->riskAnalyzer->report($hours)),
+            'report' => $report,
+            'table' => $this->table->make($report['latest'], $currentPage, per_page(20), $hours, $searchTerm, $filters),
         ];
     }
 

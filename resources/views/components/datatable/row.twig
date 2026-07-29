@@ -49,8 +49,9 @@
           {% elseif action.type|default('link') == 'form_button' %}
             <form method="post" action="{{ action.action|default(action.href|default('#')) }}">
               {{ csrf_field() }}
-              {% if action.method is defined and action.method|lower != 'post' %}
-                <input type="hidden" name="_method" value="{{ action.method|upper }}">
+              {% set action_method = action.method|default('post') %}
+              {% if action_method|lower != 'post' %}
+                <input type="hidden" name="_method" value="{{ action_method|upper }}">
               {% endif %}
               <button class="{{ action_class }}" type="submit" {% if action.title is defined and action.title %}title="{{ action.title }}"{% endif %}{% if action.confirm is defined and action.confirm %} onclick="return confirm('{{ action.confirm|e('js') }}');"{% endif %}>
                 {% if action.icon is defined and action.icon %}

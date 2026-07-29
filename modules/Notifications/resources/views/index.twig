@@ -6,9 +6,6 @@
   {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
   {% set button_secondary = button_base ~ ' border-app-border bg-app-surface/80 text-app-text hover:bg-app-surface-2/70' %}
   {% set current_filter = filter|default('all') %}
-  {% set tab_base = 'inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition' %}
-  {% set tab_active = tab_base ~ ' border-app-accent bg-app-accent/10 text-app-accent' %}
-  {% set tab_inactive = tab_base ~ ' border-app-border bg-app-surface/70 text-app-muted hover:bg-app-surface-2/70 hover:text-app-text' %}
 
   <section class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
     <div class="max-w-3xl space-y-2">
@@ -24,16 +21,17 @@
 
   <section class="mt-5 rounded-2xl border border-app-border bg-app-surface p-4 shadow-sm">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-      <div class="flex flex-wrap gap-2" aria-label="Notification filters">
-        <a class="{{ current_filter == 'all' ? tab_active : tab_inactive }}" href="/admin/notifications?filter=all">All</a>
-        <a class="{{ current_filter == 'unread' ? tab_active : tab_inactive }}" href="/admin/notifications?filter=unread">
-          Unread
-          {% if unread_count > 0 %}
-            <span class="inline-flex items-center rounded-full bg-app-danger/10 px-2 py-0.5 text-xs font-semibold text-app-danger">{{ unread_count }}</span>
-          {% endif %}
-        </a>
-        <a class="{{ current_filter == 'read' ? tab_active : tab_inactive }}" href="/admin/notifications?filter=read">Read</a>
-      </div>
+      {% include '@Shared/components/tabs.twig' with {
+        active_id: current_filter,
+        managed: false,
+        label: 'Notification filters',
+        list_class: 'flex flex-wrap gap-2',
+        items: [
+          {id: 'all', label: 'All', href: '/admin/notifications?filter=all'},
+          {id: 'unread', label: 'Unread', href: '/admin/notifications?filter=unread', count: unread_count > 0 ? unread_count : null},
+          {id: 'read', label: 'Read', href: '/admin/notifications?filter=read'}
+        ]
+      } only %}
 
       {% if unread_count > 0 and is_admin %}
         <form method="post" action="/admin/notifications/read-all">
@@ -52,12 +50,15 @@
   {% endfor %}
 
   {% if not has_notifications %}
-    <div class="mt-6 flex flex-col items-center justify-center rounded-2xl border border-app-border bg-app-surface px-6 py-12 text-center shadow-sm">
-      <div class="flex h-16 w-16 items-center justify-center rounded-2xl border border-app-border bg-app-surface-2/70">
-        {% include 'components/icon.twig' with { name: 'bell-off', class: 'h-8 w-8 text-app-muted' } only %}
-      </div>
-      <h3 class="mt-4 text-lg font-semibold text-app-text">No notifications</h3>
-      <p class="mt-1 text-sm text-app-muted">You're all caught up!</p>
+    <div class="mt-6">
+      {% include '@Shared/components/empty-state.twig' with {
+        state: {
+          title: 'No notifications',
+          description: 'You are all caught up.',
+          icon: 'bell-off',
+          surface: 'subtle'
+        }
+      } only %}
     </div>
   {% else %}
     {% for group, items in notifications %}

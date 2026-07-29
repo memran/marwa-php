@@ -12,14 +12,15 @@
   {% for category, meta in categories %}
     {% set tab_items = tab_items|merge([{
       label: meta.label,
-      target: 'category-' ~ category,
-      active: loop.first,
-      class: 'settings-tab'
+      id: 'category-' ~ category,
+      active: loop.first
     }]) %}
   {% endfor %}
 
+  <div {{ ui().data({ activeTab: tab_items|first ? (tab_items|first).id : '' }) }}>
   {% embed 'components/card.twig' with {
     shell_class: form_card_shell,
+    header_class: 'grid gap-4 border-b border-app-border p-4 sm:p-5',
     body_class: 'grid gap-5'
   } %}
     {% block header %}
@@ -38,11 +39,15 @@
         <p class="text-sm font-semibold">Operational caution</p>
         <p class="mt-1 text-sm text-app-warning/85">These values are loaded at bootstrap and can alter mail, cache, logging, theme, and other runtime behavior immediately after update.</p>
       </div>
-      {% include 'components/tabs.twig' with {
-        tabs: {
-          shell_class: 'mt-6',
-          items: tab_items
-        }
+      {% include '@Shared/components/tabs.twig' with {
+        shell_class: 'mt-6',
+        list_class: 'flex max-w-full gap-1 overflow-x-auto border-b border-app-border',
+        tab_class: 'inline-flex min-h-10 shrink-0 items-center justify-center border-b-2 px-3 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40',
+        active_class: 'border-app-accent text-app-accent',
+        inactive_class: 'border-transparent text-app-muted hover:border-app-border hover:text-app-text',
+        label: 'Settings categories',
+        managed: false,
+        items: tab_items
       } only %}
     {% endblock %}
 
@@ -51,7 +56,14 @@
         {{ csrf_field() }}
 
         {% for category, meta in categories %}
-          <section id="category-{{ category }}" class="settings-category grid gap-5">
+          <section
+            id="category-{{ category }}-panel"
+            class="settings-category grid gap-5"
+            role="tabpanel"
+            aria-labelledby="category-{{ category }}-tab"
+            {{ ui().show("activeTab === 'category-" ~ category ~ "'") }}
+            {% if not loop.first %}{{ ui().cloak() }}{% endif %}
+          >
             <div class="border-b border-app-border pb-4">
               <h2 class="text-lg font-bold tracking-tight text-app-text">{{ meta.label }}</h2>
               <p class="mt-1 text-sm text-app-muted">{{ meta.description }}</p>
@@ -87,37 +99,35 @@
                       <input type="checkbox" id="{{ field_id }}" name="{{ field_name }}" value="1" {% if field_value %}checked{% endif %}>
                       <span>{{ field.label }}</span>
                     </label>
+                  {% elseif field.input == 'media' %}
+                    {% include '@Shared/components/media-picker.twig' with {
+                      id: field_id,
+                      name: field_name,
+                      label: '',
+                      value: field_value,
+                      help: field.help|default('Select media.'),
+                      items: field.media|default([]),
+                      error: field_error
+                    } only %}
                   {% elseif field.input == 'file' %}
-                    <div class="grid gap-3">
-                      <input
-                        class="admin-control w-full rounded-xl border border-app-border bg-app-surface-2/80 px-3 py-2 text-sm text-app-text outline-none transition file:mr-3 file:rounded-lg file:border-0 file:bg-app-accent file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-app-accent-soft focus:border-app-accent focus:ring-2 focus:ring-app-accent/10"
-                        id="{{ field_id }}"
-                        name="settings_logo_url"
-                        type="file"
-                        {% if field.accept is defined %}accept="{{ field.accept }}"{% endif %}
-                      >
-
-                      {% set current_logo = field_value|default('')|trim %}
-                      {% if current_logo %}
-                        {% set logo_src = current_logo starts with('http') or current_logo starts with('/') ? current_logo : '/' ~ current_logo %}
-                        <div class="flex items-center gap-3 rounded-xl border border-app-border bg-app-surface-2/60 px-3 py-2">
-                          <img src="{{ logo_src }}" alt="Current logo" class="h-12 w-12 rounded-lg border border-app-border bg-app-surface object-contain p-1">
-                          <div class="min-w-0">
-                            <p class="text-sm font-semibold text-app-text">Current logo</p>
-                            <p class="truncate text-xs text-app-muted">{{ current_logo }}</p>
-                            <button
-                              type="submit"
-                              name="settings[ui][remove_logo]"
-                              value="1"
-                              class="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-app-danger/20 bg-app-danger/10 px-2.5 py-1 text-[0.72rem] font-semibold text-app-danger transition hover:bg-app-danger/15"
-                            >
-                              {% include 'components/icon.twig' with { name: 'trash-2', class: 'h-3.5 w-3.5' } only %}
-                              Remove current logo
-                            </button>
-                          </div>
-                        </div>
-                      {% endif %}
-                    </div>
+                    {% set current_logo = field_value|default('')|trim %}
+                    {% set logo_src = current_logo ? (current_logo starts with('http') or current_logo starts with('/') ? current_logo : '/' ~ current_logo) : '' %}
+                    {% include '@Shared/components/media-picker.twig' with {
+                      id: field_id,
+                      name: field_name,
+                      label: '',
+                      value: current_logo,
+                      help: field.help|default('Choose an image for the application logo.'),
+                      allow_url: false,
+                      allow_clear: false,
+                      current_name: current_logo,
+                      current_preview_url: logo_src,
+                      upload_name: 'settings_logo_url',
+                      upload_accept: field.accept|default('image/png,image/jpeg,image/webp,image/svg+xml'),
+                      remove_name: 'settings[ui][remove_logo]',
+                      remove_label: 'Remove current logo',
+                      error: field_error
+                    } only %}
                   {% elseif field.input == 'action' %}
                     {% if key == 'purge_cache' %}
                     <button
@@ -152,10 +162,12 @@
                     >
                   {% endif %}
 
-                  {% if field_error %}
-                    <p class="text-sm text-app-danger">{{ field_error }}</p>
-                  {% elseif field.help is defined %}
-                    <p class="text-sm text-app-muted">{{ field.help }}</p>
+                  {% if field.input not in ['file', 'media'] %}
+                    {% if field_error %}
+                      <p class="text-sm text-app-danger">{{ field_error }}</p>
+                    {% elseif field.help is defined %}
+                      <p class="text-sm text-app-muted">{{ field.help }}</p>
+                    {% endif %}
                   {% endif %}
                 </div>
               {% endfor %}
@@ -170,41 +182,5 @@
       </form>
     {% endblock %}
   {% endembed %}
-{% endblock %}
-
-{% block scripts %}
-  <script>
-    (function() {
-      const tabs = document.querySelectorAll('[data-tabs] [data-tab-target]');
-      const categories = document.querySelectorAll('.settings-category');
-      const activeClasses = ['bg-app-accent/10', 'border-app-accent/20', 'text-app-accent'];
-      const inactiveClasses = ['border-app-border', 'bg-app-surface/60', 'text-app-text', 'hover:bg-app-surface-2/70'];
-
-      function switchTab(targetId) {
-        tabs.forEach(tab => {
-          const isActive = tab.dataset.tabTarget === targetId;
-          activeClasses.forEach(className => tab.classList.toggle(className, isActive));
-          inactiveClasses.forEach(className => tab.classList.toggle(className, !isActive));
-          tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
-        });
-
-        categories.forEach(cat => {
-          const isVisible = cat.id === targetId;
-          cat.style.display = isVisible ? 'block' : 'none';
-        });
-      }
-
-      tabs.forEach(tab => {
-        tab.addEventListener('click', function(e) {
-          e.preventDefault();
-          switchTab(this.dataset.tabTarget);
-        });
-      });
-
-      const firstTab = tabs[0];
-      if (firstTab) {
-        switchTab(firstTab.dataset.tabTarget);
-      }
-    })();
-  </script>
+  </div>
 {% endblock %}

@@ -3,6 +3,7 @@
 {% block title %}API Tokens | MarwaPHP Admin{% endblock %}
 
 {% block content %}
+{% set table = table|default(null) %}
 <div class="space-y-6">
   <div class="flex items-center justify-between">
     <div>
@@ -17,63 +18,8 @@
     </a>
   </div>
 
-  {% if tokens is empty %}
-  <div class="rounded-xl border border-app-border bg-app-surface p-12">
-    <div class="text-center">
-      <svg class="mx-auto h-12 w-12 text-app-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 7a2 2 0 100-4 2 2 0 000 4zm-7 3a7 7 0 0114 0H8z"/>
-      </svg>
-      <h3 class="mt-4 text-sm font-semibold text-app-text">No API tokens</h3>
-      <p class="mt-1 text-sm text-app-muted">Get started by creating a new API token.</p>
-    </div>
-  </div>
-  {% else %}
-  <div class="rounded-xl border border-app-border bg-app-surface">
-    <div class="overflow-x-auto">
-      <table class="w-full">
-        <thead>
-          <tr class="border-b border-app-border bg-app-surface-2/60">
-            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-app-muted">Name</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-app-muted">Token</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-app-muted">Rate Limit</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-app-muted">Allowed IPs</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-app-muted">Status</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-app-muted">Last Used</th>
-            <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-app-muted">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-app-border">
-          {% for token in tokens %}
-          <tr>
-            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-app-text">{{ token.getAttribute('name') }}</td>
-            <td class="whitespace-nowrap px-6 py-4 text-sm font-mono text-app-muted">{{ token.getTokenPrefix() }}...</td>
-            <td class="whitespace-nowrap px-6 py-4 text-sm text-app-muted">{{ token.getRateLimit() }}/min</td>
-            <td class="whitespace-nowrap px-6 py-4 text-sm text-app-muted">
-              {% if token.hasIpRestriction() %}
-                <span class="text-xs font-mono">{{ token.getAllowedIps()|join(', ') }}</span>
-              {% else %}
-                <span class="text-app-muted">Any</span>
-              {% endif %}
-            </td>
-            <td class="whitespace-nowrap px-6 py-4">
-              {% if token.isActive() %}
-                <span class="inline-flex items-center gap-1 rounded-full bg-app-success/10 px-2.5 py-0.5 text-xs font-medium text-app-success">Active</span>
-              {% else %}
-                <span class="inline-flex items-center gap-1 rounded-full bg-app-danger/10 px-2.5 py-0.5 text-xs font-medium text-app-danger">Revoked</span>
-              {% endif %}
-            </td>
-            <td class="whitespace-nowrap px-6 py-4 text-sm text-app-muted">
-              {% if token.getAttribute('last_used_at') %}{{ token.getAttribute('last_used_at') }}{% else %}Never{% endif %}
-            </td>
-            <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-              <a href="/admin/api-tokens/show/{{ token.getKey() }}" class="text-app-accent hover:text-app-accent-soft">View</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
+  {% if table %}
+    {% include '@Shared/components/data-table.twig' with { table: table } only %}
   {% endif %}
 </div>
 {% endblock %}

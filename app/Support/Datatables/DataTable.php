@@ -723,6 +723,9 @@ final class DataTable
     private function filterToolbar(DataTableState $state, array $visibleColumns): array
     {
         $items = [];
+        $fields = [];
+        $activeCount = 0;
+
         foreach ($this->filters as $filter) {
             if (!$filter->isVisible()) {
                 continue;
@@ -730,6 +733,11 @@ final class DataTable
 
             $value = $filter->extract($state->filters());
             $options = $filter->optionsValue();
+            $field = $filter->toArray($value);
+            $fields[] = $field;
+            if ($field['active'] === true) {
+                $activeCount++;
+            }
 
             if ($options !== []) {
                 foreach ($options as $optionValue => $optionLabel) {
@@ -759,9 +767,27 @@ final class DataTable
         }
 
         return [
+            'id' => 'datatable-filter-builder',
             'label' => 'Filters',
+            'title' => 'Filter records',
             'current_label' => $this->currentFilterLabel($state),
+            'active_count' => $activeCount,
+            'action' => $this->path,
+            'filter_name' => $this->filterParameter,
+            'page_name' => $this->pageParameter,
+            'fields' => $fields,
             'items' => $items,
+            'hidden_fields' => $this->hiddenFields([
+                $this->searchParameter => $state->search(),
+                $this->sortParameter => $state->sort(),
+                $this->directionParameter => $state->direction(),
+            ], $visibleColumns),
+            'reset_url' => $this->buildUrl(array_merge($state->toArray(), [
+                'filters' => [],
+                'page' => 1,
+            ]), $visibleColumns),
+            'submit_label' => 'Apply filters',
+            'reset_label' => 'Reset',
         ];
     }
 

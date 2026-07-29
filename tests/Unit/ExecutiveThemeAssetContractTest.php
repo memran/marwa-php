@@ -27,7 +27,7 @@ final class ExecutiveThemeAssetContractTest extends TestCase
         $layoutCss = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/assets/css/layout.css');
         $componentsCss = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/assets/css/components.css');
         $appCss = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/assets/css/app.css');
-        $toast = file_get_contents(__DIR__ . '/../../resources/views/themes/executive/components/toast.twig');
+        $toast = file_get_contents(__DIR__ . '/../../resources/views/components/toast.twig');
 
         self::assertIsString($layoutCss);
         self::assertIsString($componentsCss);
@@ -42,7 +42,8 @@ final class ExecutiveThemeAssetContractTest extends TestCase
         self::assertStringContainsString('248 250 252', $appCss);
         self::assertStringContainsString('37 99 235', $appCss);
         self::assertStringContainsString("toast.tone|default(toast.type|default('info'))", $toast);
-        self::assertStringContainsString('border-app-success/20 bg-app-success/10 text-app-success', $toast);
+        self::assertStringContainsString('bg-app-success/10 text-app-success', $toast);
+        self::assertStringContainsString('border-app-success/30', $toast);
     }
 
     public function testExecutiveScriptsLoadTheAdminShellRuntime(): void

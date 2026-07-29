@@ -41,6 +41,17 @@
         </span>
       {% endfor %}
     </div>
+  {% elseif cell.type == 'image' %}
+    {% set image = cell.image|default({}) %}
+    {% if image.src|default('') %}
+      {% if image.href|default('') %}<a class="inline-flex rounded-lg focus:outline-none focus:ring-2 focus:ring-app-accent/30" href="{{ image.href }}" target="_blank" rel="noopener noreferrer">{% endif %}
+        <img class="h-14 w-14 rounded-lg border border-app-border bg-app-surface-2 object-cover" src="{{ image.src }}" alt="{{ image.alt|default('Document image preview') }}" loading="lazy" width="56" height="56">
+      {% if image.href|default('') %}</a>{% endif %}
+    {% else %}
+      <span class="inline-flex h-14 w-14 items-center justify-center rounded-lg border border-app-border bg-app-surface-2 text-app-muted" title="Preview unavailable">
+        {% include '@Shared/components/icon.twig' with { name: image.icon|default('file-text'), class: 'h-5 w-5' } only %}
+      </span>
+    {% endif %}
   {% else %}
     <span class="text-app-text">{{ cell.value|default('') }}</span>
   {% endif %}

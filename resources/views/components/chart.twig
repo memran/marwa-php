@@ -1,0 +1,81 @@
+{% set items = items|default([]) %}
+{% set chart_id = chart_id|default('') %}
+{% set title = title|default('Chart') %}
+{% set description = description|default('') %}
+{% set label_key = label_key|default('label') %}
+{% set value_key = value_key|default('value') %}
+{% set format_prefix = format_prefix|default('') %}
+{% set format_suffix = format_suffix|default('') %}
+{% set decimals = decimals is defined ? decimals : 0 %}
+{% set show_header = show_header is defined ? show_header : true %}
+{% set maximum = 0 %}
+
+{% for item in items %}
+  {% set item_value = attribute(item, value_key)|default(0) %}
+  {% if item_value > maximum %}{% set maximum = item_value %}{% endif %}
+{% endfor %}
+
+<figure
+  class="min-w-0"
+  data-chart
+  data-chart-type="bar"
+  {% if chart_id %}id="{{ chart_id }}"{% endif %}
+>
+  {% if show_header %}
+    <figcaption class="mb-4">
+      <h3{% if chart_id %} id="{{ chart_id }}-title"{% endif %} class="text-sm font-bold text-app-text">{{ title }}</h3>
+      {% if description %}
+        <p{% if chart_id %} id="{{ chart_id }}-description"{% endif %} class="mt-1 text-xs text-app-muted">{{ description }}</p>
+      {% endif %}
+    </figcaption>
+  {% endif %}
+
+  {% if items is empty %}
+    <div class="flex min-h-40 items-center justify-center rounded-lg border border-dashed border-app-border bg-app-surface-2/40 px-4 text-center text-sm text-app-muted">
+      No chart data available.
+    </div>
+  {% else %}
+    {% set chart_height = items|length * 32 + 8 %}
+    <div class="overflow-x-auto">
+      <svg
+        class="block h-auto w-full min-w-[36rem] text-app-accent"
+        viewBox="0 0 640 {{ chart_height }}"
+        role="img"
+        {% if chart_id %}
+          aria-labelledby="{{ chart_id }}-title{% if description %} {{ chart_id }}-description{% endif %}"
+        {% else %}
+          aria-label="{{ title }}"
+        {% endif %}
+      >
+        {% for item in items %}
+          {% set item_label = attribute(item, label_key)|default('Item ' ~ loop.index) %}
+          {% set item_value = attribute(item, value_key)|default(0) %}
+          {% set item_width = maximum > 0 ? (item_value / maximum * 360) : 0 %}
+          {% set row_y = loop.index0 * 32 + 6 %}
+          {% set display_value = format_prefix ~ item_value|number_format(decimals) ~ format_suffix %}
+
+          <g>
+            <text x="0" y="{{ row_y + 11 }}" fill="currentColor" class="text-sm text-app-muted">{{ item_label|slice(0, 22) }}</text>
+            <rect x="180" y="{{ row_y }}" width="360" height="14" rx="3" fill="currentColor" class="text-app-surface-2" opacity="0.75"></rect>
+            <rect x="180" y="{{ row_y }}" width="{{ item_width|round(2) }}" height="14" rx="3" fill="currentColor" class="{{ item.tone|default('text-app-accent') }}"></rect>
+            <text x="630" y="{{ row_y + 11 }}" text-anchor="end" fill="currentColor" class="text-sm font-semibold text-app-text">{{ display_value }}</text>
+          </g>
+        {% endfor %}
+      </svg>
+    </div>
+
+    <table class="sr-only">
+      <caption>{{ title }} data</caption>
+      <thead><tr><th scope="col">Label</th><th scope="col">Value</th></tr></thead>
+      <tbody>
+        {% for item in items %}
+          {% set item_value = attribute(item, value_key)|default(0) %}
+          <tr>
+            <th scope="row">{{ attribute(item, label_key)|default('Item ' ~ loop.index) }}</th>
+            <td>{{ format_prefix }}{{ item_value|number_format(decimals) }}{{ format_suffix }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</figure>

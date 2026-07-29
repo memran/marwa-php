@@ -6,6 +6,7 @@
 {% set overview = overview ?? {} %}
 {% set stats = overview.stats ?? {} %}
 {% set jobs = overview.jobs ?? [] %}
+{% set pagination = pagination ?? null %}
 <div class="space-y-6">
     <section class="rounded-3xl border border-app-border bg-app-surface px-6 py-5 shadow-sm">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -24,26 +25,11 @@
     </section>
 
     <section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <div class="col-span-1 rounded-2xl border border-app-border bg-app-surface px-4 py-3 shadow-sm">
-            <div class="text-[11px] font-semibold uppercase tracking-[0.25em] text-app-muted">Total</div>
-            <div class="mt-1 text-2xl font-semibold text-app-text">{{ stats.total ?? 0 }}</div>
-        </div>
-        <div class="col-span-1 rounded-2xl border border-app-border bg-app-surface px-4 py-3 shadow-sm">
-            <div class="text-[11px] font-semibold uppercase tracking-[0.25em] text-app-muted">Failed</div>
-            <div class="mt-1 text-2xl font-semibold text-app-danger">{{ stats.failed ?? 0 }}</div>
-        </div>
-        <div class="col-span-1 rounded-2xl border border-app-border bg-app-surface px-4 py-3 shadow-sm">
-            <div class="text-[11px] font-semibold uppercase tracking-[0.25em] text-app-muted">Success</div>
-            <div class="mt-1 text-2xl font-semibold text-app-success">{{ stats.success ?? 0 }}</div>
-        </div>
-        <div class="col-span-1 rounded-2xl border border-app-border bg-app-surface px-4 py-3 shadow-sm">
-            <div class="text-[11px] font-semibold uppercase tracking-[0.25em] text-app-muted">Idle</div>
-            <div class="mt-1 text-2xl font-semibold text-app-text">{{ stats.idle ?? 0 }}</div>
-        </div>
-        <div class="col-span-1 rounded-2xl border border-app-border bg-app-surface px-4 py-3 shadow-sm">
-            <div class="text-[11px] font-semibold uppercase tracking-[0.25em] text-app-muted">Running</div>
-            <div class="mt-1 text-2xl font-semibold text-app-accent">{{ stats.running ?? 0 }}</div>
-        </div>
+        {% include '@Shared/components/card.twig' with {variant: 'stat', label: 'Total', value: stats.total ?? 0, value_class: 'text-2xl font-semibold text-app-text'} only %}
+        {% include '@Shared/components/card.twig' with {variant: 'stat', label: 'Failed', value: stats.failed ?? 0, value_class: 'text-2xl font-semibold text-app-danger'} only %}
+        {% include '@Shared/components/card.twig' with {variant: 'stat', label: 'Success', value: stats.success ?? 0, value_class: 'text-2xl font-semibold text-app-success'} only %}
+        {% include '@Shared/components/card.twig' with {variant: 'stat', label: 'Idle', value: stats.idle ?? 0, value_class: 'text-2xl font-semibold text-app-text'} only %}
+        {% include '@Shared/components/card.twig' with {variant: 'stat', label: 'Running', value: stats.running ?? 0, value_class: 'text-2xl font-semibold text-app-accent'} only %}
     </section>
 
     <section class="overflow-hidden rounded-3xl border border-app-border bg-app-surface shadow-sm">
@@ -129,6 +115,10 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+
+        <div class="px-6 pb-5">
+            {% include '@Shared/components/pagination.twig' with { pagination: pagination } only %}
         </div>
     </section>
 </div>

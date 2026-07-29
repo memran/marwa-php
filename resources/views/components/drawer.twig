@@ -1,0 +1,81 @@
+{% set drawer_id = drawer_id|default('shared-drawer') %}
+{% set title = title|default('Panel') %}
+{% set description = description|default('') %}
+{% set position = position|default('right') %}
+{% set size = size|default('md') %}
+{% set open_event = open_event|default('open-drawer') %}
+{% set close_event = close_event|default('close-drawer') %}
+{% set show_trigger = show_trigger|default(false) %}
+{% set trigger_label = trigger_label|default('Open panel') %}
+{% set trigger_icon = trigger_icon|default('panel-right-open') %}
+{% set show_header = show_header is defined ? show_header : true %}
+{% set panel_class = panel_class|default('bg-app-surface text-app-text') %}
+{% set body_class = body_class|default('p-5') %}
+{% set width_class = size == 'sm'
+  ? 'w-80'
+  : (size == 'lg' ? 'w-[36rem]' : 'w-[28rem]') %}
+{% set position_class = position == 'left'
+  ? 'inset-y-0 left-0 mr-auto'
+  : 'inset-y-0 right-0 ml-auto' %}
+{% set footer_content %}{% block footer %}{% endblock %}{% endset %}
+
+<div
+  class="{% if show_trigger %}inline-flex{% endif %}"
+  {{ ui().data({ drawer: true }) }}
+  {{ ui().on(open_event, '$refs.drawer.showModal()', ['window']) }}
+  {{ ui().on(close_event, '$refs.drawer.close()', ['window']) }}
+>
+  {% if show_trigger %}
+    <button
+      class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-app-border bg-app-surface px-4 text-sm font-semibold text-app-text transition hover:bg-app-surface-2"
+      type="button"
+      aria-haspopup="dialog"
+      aria-controls="{{ drawer_id }}"
+      {{ ui().on('click', '$refs.drawer.showModal()') }}
+    >
+      {% if trigger_icon %}
+        {% include '@Shared/components/icon.twig' with { name: trigger_icon, class: 'h-4 w-4' } only %}
+      {% endif %}
+      <span>{{ trigger_label }}</span>
+    </button>
+  {% endif %}
+
+  <dialog
+    id="{{ drawer_id }}"
+    class="fixed {{ position_class }} m-0 h-dvh max-h-none max-w-[calc(100%-2rem)] {{ width_class }} overflow-hidden border-0 p-0 shadow-2xl backdrop:bg-slate-950/60 backdrop:backdrop-blur-sm {{ panel_class }}"
+    aria-labelledby="{{ drawer_id }}-title"
+    {% if description %}aria-describedby="{{ drawer_id }}-description"{% endif %}
+    {{ ui().ref('drawer') }}
+    {{ ui().on('click', 'if ($event.target === $refs.drawer) $refs.drawer.close()') }}
+  >
+    <section class="flex h-full min-h-0 flex-col">
+      {% if show_header %}
+        <header class="flex items-start justify-between gap-4 border-b border-app-border px-5 py-4">
+          <div class="min-w-0">
+            <h2 id="{{ drawer_id }}-title" class="text-base font-bold">{{ title }}</h2>
+            {% if description %}
+              <p id="{{ drawer_id }}-description" class="mt-1 text-sm leading-6 text-app-muted">{{ description }}</p>
+            {% endif %}
+          </div>
+          <form method="dialog">
+            <button class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-app-muted transition hover:bg-app-surface-2 hover:text-app-text" type="submit" aria-label="Close panel" title="Close">
+              {% include '@Shared/components/icon.twig' with { name: 'x', class: 'h-4 w-4' } only %}
+            </button>
+          </form>
+        </header>
+      {% else %}
+        <h2 id="{{ drawer_id }}-title" class="sr-only">{{ title }}</h2>
+      {% endif %}
+
+      <div class="min-h-0 flex-1 overflow-y-auto {{ body_class }}">
+        {% block body %}{% endblock %}
+      </div>
+
+      {% if footer_content|trim is not empty %}
+        <footer class="border-t border-app-border px-5 py-4">
+          {{ footer_content|raw }}
+        </footer>
+      {% endif %}
+    </section>
+  </dialog>
+</div>

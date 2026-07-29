@@ -19,6 +19,98 @@ final class SettingsCatalog
     public function categories(): array
     {
         return [
+            'business' => [
+                'label' => 'Business Identity',
+                'description' => 'Legal and contact details shown on invoices and customer documents.',
+                'fields' => [
+                    'name' => ['label' => 'Business name', 'input' => 'text', 'type' => 'string', 'default' => (string) env('APP_NAME', 'MarwaPHP')],
+                    'address' => ['label' => 'Business address', 'input' => 'textarea', 'type' => 'string', 'default' => '', 'help' => 'Use multiple lines when needed.'],
+                    'phone' => ['label' => 'Business phone', 'input' => 'text', 'type' => 'string', 'default' => ''],
+                    'email' => ['label' => 'Business email', 'input' => 'email', 'type' => 'email', 'default' => (string) env('MAIL_FROM_ADDRESS', 'no-reply@example.com')],
+                    'website' => ['label' => 'Website', 'input' => 'text', 'type' => 'string', 'default' => ''],
+                    'tax_id' => ['label' => 'Tax / registration ID', 'input' => 'text', 'type' => 'string', 'default' => ''],
+                ],
+            ],
+            'frontend' => [
+                'label' => 'Public Website',
+                'description' => 'Brand message and calls to action shown on the public ISP website.',
+                'fields' => [
+                    'eyebrow' => [
+                        'label' => 'Hero eyebrow',
+                        'input' => 'text',
+                        'type' => 'string',
+                        'default' => 'Reliable connectivity for every address',
+                    ],
+                    'headline' => [
+                        'label' => 'Hero headline',
+                        'input' => 'textarea',
+                        'type' => 'string',
+                        'default' => 'Internet that keeps your home and business moving.',
+                    ],
+                    'description' => [
+                        'label' => 'Hero description',
+                        'input' => 'textarea',
+                        'type' => 'string',
+                        'default' => 'Straightforward plans, responsive local support, and a network built for the way you work, learn, and connect.',
+                    ],
+                    'primary_cta_label' => [
+                        'label' => 'Primary button label',
+                        'input' => 'text',
+                        'type' => 'string',
+                        'default' => 'View internet plans',
+                    ],
+                    'primary_cta_url' => [
+                        'label' => 'Primary button URL',
+                        'input' => 'text',
+                        'type' => 'url',
+                        'default' => '#plans',
+                    ],
+                    'secondary_cta_label' => [
+                        'label' => 'Secondary button label',
+                        'input' => 'text',
+                        'type' => 'string',
+                        'default' => 'Customer portal',
+                    ],
+                    'secondary_cta_url' => [
+                        'label' => 'Secondary button URL',
+                        'input' => 'text',
+                        'type' => 'url',
+                        'default' => '/portal/login',
+                    ],
+                    'plans_title' => [
+                        'label' => 'Plans section title',
+                        'input' => 'text',
+                        'type' => 'string',
+                        'default' => 'Choose a plan built around your needs',
+                    ],
+                    'plans_description' => [
+                        'label' => 'Plans section description',
+                        'input' => 'textarea',
+                        'type' => 'string',
+                        'default' => 'Published prices and technical features are loaded directly from the active service catalog.',
+                    ],
+                    'hero_image_url' => [
+                        'label' => 'Hero image URL',
+                        'input' => 'media',
+                        'type' => 'url',
+                        'default' => '/assets/images/isp-network-hero.webp',
+                        'help' => 'Use an absolute HTTP(S) URL or a public path beginning with /. Recommended ratio: 16:9.',
+                        'media' => [
+                            [
+                                'name' => 'ISP network hero',
+                                'value' => '/assets/images/isp-network-hero.webp',
+                                'url' => '/assets/images/isp-network-hero.webp',
+                            ],
+                        ],
+                    ],
+                    'meta_description' => [
+                        'label' => 'Search description',
+                        'input' => 'textarea',
+                        'type' => 'string',
+                        'default' => 'Reliable internet service plans for homes and businesses, backed by responsive local support.',
+                    ],
+                ],
+            ],
             'app' => [
                 'label' => 'Application',
                 'description' => 'Starter identity and global runtime defaults.',
@@ -120,6 +212,59 @@ final class SettingsCatalog
                         'IDR' => 'IDR - Indonesian Rupiah',
                     ]],
                     'tax_rate' => ['label' => 'Tax rate', 'input' => 'number', 'type' => 'float', 'default' => 5.0, 'min' => 0, 'step' => '0.10'],
+                ],
+            ],
+            'billing' => [
+                'label' => 'Billing',
+                'description' => 'Customer code generation and billing defaults.',
+                'fields' => [
+                    'customer_code_format' => ['label' => 'Customer code format', 'input' => 'select', 'type' => 'string', 'default' => 'manual', 'options' => [
+                        'manual' => 'Manual entry',
+                        'sequential' => 'Sequential (auto-increment)',
+                    ], 'help' => 'When sequential, customer codes are auto-generated as prefix + padded number.'],
+                    'customer_code_prefix' => ['label' => 'Customer code prefix', 'input' => 'text', 'type' => 'string', 'default' => '', 'help' => 'Optional prefix prepended to sequential codes (e.g. "CUST-").'],
+                    'customer_code_padding' => ['label' => 'Code number padding', 'input' => 'number', 'type' => 'int', 'default' => 5, 'min' => 2, 'max' => 12, 'help' => 'Zero-pad the sequential number to this many digits (e.g. 5 → 00001).'],
+                ],
+            ],
+            'pop_billing' => [
+                'label' => 'POP Billing',
+                'description' => 'Controls when immutable POP manager billing reports are generated.',
+                'fields' => [
+                    'schedule_type' => [
+                        'label' => 'Billing schedule',
+                        'input' => 'select',
+                        'type' => 'string',
+                        'default' => 'monthly_day',
+                        'options' => [
+                            'interval_days' => 'Every number of days',
+                            'monthly_day' => 'Fixed day of every month',
+                        ],
+                    ],
+                    'interval_days' => [
+                        'label' => 'Interval in days',
+                        'input' => 'number',
+                        'type' => 'int',
+                        'default' => 10,
+                        'min' => 1,
+                        'max' => 366,
+                        'help' => 'Used only for the interval schedule.',
+                    ],
+                    'interval_anchor_date' => [
+                        'label' => 'Interval anchor date',
+                        'input' => 'date',
+                        'type' => 'string',
+                        'default' => date('Y-01-01'),
+                        'help' => 'Interval periods are calculated forward from this date.',
+                    ],
+                    'monthly_day' => [
+                        'label' => 'Monthly billing day',
+                        'input' => 'number',
+                        'type' => 'int',
+                        'default' => 5,
+                        'min' => 1,
+                        'max' => 28,
+                        'help' => 'Reports cover the period from the previous billing day through the day before this billing day.',
+                    ],
                 ],
             ],
         ];
@@ -260,7 +405,15 @@ final class SettingsCatalog
         $errors = [];
 
         foreach ($this->categories() as $category => $meta) {
-            $submittedCategory = $submitted[$category] ?? [];
+            if (!array_key_exists($category, $submitted)) {
+                foreach ($meta['fields'] as $key => $field) {
+                    $values[$category][$key] = $existing[$category][$key] ?? $field['default'];
+                }
+
+                continue;
+            }
+
+            $submittedCategory = $submitted[$category];
 
             if (!is_array($submittedCategory)) {
                 return null;
@@ -344,10 +497,15 @@ final class SettingsCatalog
     {
         return match ($type) {
             'bool' => (bool) $input,
-            'int' => $this->normalizeInt($input, (int) ($field['min'] ?? PHP_INT_MIN)),
+            'int' => $this->normalizeInt(
+                $input,
+                (int) ($field['min'] ?? PHP_INT_MIN),
+                isset($field['max']) ? (int) $field['max'] : null,
+            ),
             'float' => $this->normalizeFloat($input, (float) ($field['min'] ?? 0)),
             'email' => $this->normalizeEmail($input),
             'timezone' => $this->normalizeTimezone($input),
+            'url' => $this->normalizeUrl($input),
             'action' => false,
             default => $this->normalizeString($input, $field),
         };
@@ -371,7 +529,7 @@ final class SettingsCatalog
         return $value;
     }
 
-    private function normalizeInt(mixed $input, int $min): int
+    private function normalizeInt(mixed $input, int $min, ?int $max = null): int
     {
         if (!is_scalar($input) || !is_numeric((string) $input)) {
             throw new \InvalidArgumentException('This field must be a number.');
@@ -381,6 +539,9 @@ final class SettingsCatalog
 
         if ($value < $min) {
             throw new \InvalidArgumentException('This value is below the allowed minimum.');
+        }
+        if ($max !== null && $value > $max) {
+            throw new \InvalidArgumentException('This value is above the allowed maximum.');
         }
 
         return $value;
@@ -421,6 +582,23 @@ final class SettingsCatalog
         }
 
         throw new \InvalidArgumentException('Enter a valid PHP timezone identifier.');
+    }
+
+    private function normalizeUrl(mixed $input): string
+    {
+        $value = trim((string) $input);
+
+        if ($value === '' || str_starts_with($value, '/') || str_starts_with($value, '#')) {
+            return $value;
+        }
+
+        $url = filter_var($value, FILTER_VALIDATE_URL);
+        $scheme = is_string($url) ? strtolower((string) parse_url($url, PHP_URL_SCHEME)) : '';
+        if (is_string($url) && in_array($scheme, ['http', 'https'], true)) {
+            return $url;
+        }
+
+        throw new \InvalidArgumentException('Enter an HTTP(S) URL or a public path beginning with /.');
     }
 
     private function serializeValue(string $type, mixed $value): string

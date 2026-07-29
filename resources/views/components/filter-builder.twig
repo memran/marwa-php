@@ -1,0 +1,141 @@
+{% set builder = builder|default({}) %}
+{% set builder_id = builder.id|default('filter-builder') %}
+{% set fields = builder.fields|default([]) %}
+{% set active_count = builder.active_count|default(0) %}
+{% set filter_name = builder.filter_name|default('filters') %}
+{% set trigger_class = trigger_class|default('inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-app-border bg-app-surface px-3 text-sm font-semibold text-app-text transition hover:bg-app-surface-2') %}
+
+{% if fields is not empty %}
+  <details class="group relative z-30" data-filter-builder>
+    <summary
+      class="{{ trigger_class }} list-none cursor-pointer"
+      aria-controls="{{ builder_id }}-panel"
+      data-filter-builder-trigger
+    >
+      {% include '@Shared/components/icon.twig' with { name: builder.icon|default('list-filter'), class: 'h-4 w-4 shrink-0' } only %}
+      <span>{{ builder.label|default('Filters') }}</span>
+      {% if active_count > 0 %}
+        <span class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-app-accent px-1.5 text-[0.65rem] font-bold text-white" data-filter-builder-count>{{ active_count }}</span>
+      {% endif %}
+      {% include '@Shared/components/icon.twig' with { name: 'chevron-down', class: 'h-4 w-4 shrink-0 transition group-open:rotate-180' } only %}
+    </summary>
+
+    <div
+      id="{{ builder_id }}-panel"
+      class="absolute left-0 z-50 mt-2 max-h-[min(70vh,36rem)] w-[min(24rem,calc(100vw-2rem))] overflow-y-auto rounded-lg border border-app-border bg-app-surface p-4 shadow-2xl"
+      data-filter-builder-panel
+    >
+      <form method="get" action="{{ builder.action|default('') }}" data-filter-builder-form>
+        {% for hidden in builder.hidden_fields|default([]) %}
+          <input type="hidden" name="{{ hidden.name }}" value="{{ hidden.value }}">
+        {% endfor %}
+        <input type="hidden" name="{{ builder.page_name|default('page') }}" value="1">
+
+        <div class="flex items-start justify-between gap-3 border-b border-app-border pb-3">
+          <div>
+            <h2 class="text-sm font-bold text-app-text">{{ builder.title|default('Filter records') }}</h2>
+            <p class="mt-0.5 text-xs leading-5 text-app-muted">{{ builder.description|default('Combine available fields to narrow the list.') }}</p>
+          </div>
+          <button
+            type="button"
+            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-app-muted transition hover:bg-app-surface-2 hover:text-app-text"
+            aria-label="Close filters"
+            title="Close"
+            data-filter-builder-close
+          >
+            {% include '@Shared/components/icon.twig' with { name: 'x', class: 'h-4 w-4' } only %}
+          </button>
+        </div>
+
+        <div class="grid gap-4 py-4">
+          {% for field in fields %}
+            {% set field_id = builder_id ~ '-' ~ field.name %}
+            {% set value = field.value is defined and field.value is not null ? field.value : '' %}
+            {% set input_name = filter_name ~ '[' ~ field.name ~ ']' %}
+            <fieldset class="grid gap-1.5" data-filter-builder-field="{{ field.name }}">
+              <div class="flex items-center justify-between gap-3">
+                <label class="text-sm font-semibold text-app-text" for="{{ field_id }}">{{ field.label }}</label>
+                {% if field.active|default(false) %}
+                  <button
+                    type="button"
+                    class="text-xs font-semibold text-app-accent hover:underline"
+                    data-filter-builder-clear
+                  >Clear</button>
+                {% endif %}
+              </div>
+
+              {% if field.type == 'select' %}
+                <select
+                  id="{{ field_id }}"
+                  name="{{ input_name }}"
+                  class="form-select block h-10 w-full rounded-lg border border-app-border bg-app-bg px-3 text-sm text-app-text focus:border-app-accent focus:ring-app-accent"
+                >
+                  {% for option_value, option_label in field.options|default({}) %}
+                    <option value="{{ option_value }}"{% if value ~ '' == option_value ~ '' %} selected{% endif %}>{{ option_label }}</option>
+                  {% endfor %}
+                </select>
+              {% elseif field.type == 'boolean' %}
+                {% set boolean_value = value is same as(false) ? '0' : (value is same as(true) ? '1' : value ~ '') %}
+                <select
+                  id="{{ field_id }}"
+                  name="{{ input_name }}"
+                  class="form-select block h-10 w-full rounded-lg border border-app-border bg-app-bg px-3 text-sm text-app-text focus:border-app-accent focus:ring-app-accent"
+                >
+                  <option value="">Any</option>
+                  <option value="1"{% if boolean_value in ['1', 'true', 'yes', 'on'] %} selected{% endif %}>Yes</option>
+                  <option value="0"{% if boolean_value in ['0', 'false', 'no', 'off'] %} selected{% endif %}>No</option>
+                </select>
+              {% elseif field.type == 'date_range' or field.type == 'number_range' %}
+                {% set range = value is iterable ? value : {} %}
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="mb-1 block text-xs font-medium text-app-muted" for="{{ field_id }}-from">From</label>
+                    <input
+                      id="{{ field_id }}-from"
+                      name="{{ input_name }}[from]"
+                      type="{{ field.type == 'date_range' ? 'date' : 'number' }}"
+                      value="{{ range.from|default(range[0]|default('')) }}"
+                      class="form-input block h-10 w-full rounded-lg border border-app-border bg-app-bg px-3 text-sm text-app-text focus:border-app-accent focus:ring-app-accent"
+                      {% if field.type == 'number_range' %}step="any"{% endif %}
+                    >
+                  </div>
+                  <div>
+                    <label class="mb-1 block text-xs font-medium text-app-muted" for="{{ field_id }}-to">To</label>
+                    <input
+                      id="{{ field_id }}-to"
+                      name="{{ input_name }}[to]"
+                      type="{{ field.type == 'date_range' ? 'date' : 'number' }}"
+                      value="{{ range.to|default(range[1]|default('')) }}"
+                      class="form-input block h-10 w-full rounded-lg border border-app-border bg-app-bg px-3 text-sm text-app-text focus:border-app-accent focus:ring-app-accent"
+                      {% if field.type == 'number_range' %}step="any"{% endif %}
+                    >
+                  </div>
+                </div>
+              {% else %}
+                <input
+                  id="{{ field_id }}"
+                  name="{{ input_name }}"
+                  type="{{ field.type == 'date' ? 'date' : 'text' }}"
+                  value="{{ value }}"
+                  placeholder="{{ field.placeholder|default('') }}"
+                  class="form-input block h-10 w-full rounded-lg border border-app-border bg-app-bg px-3 text-sm text-app-text placeholder:text-app-muted focus:border-app-accent focus:ring-app-accent"
+                >
+              {% endif %}
+            </fieldset>
+          {% endfor %}
+        </div>
+
+        <div class="flex items-center justify-end gap-2 border-t border-app-border pt-3">
+          <a
+            class="inline-flex h-10 items-center justify-center rounded-lg border border-app-border bg-app-surface px-3 text-sm font-semibold text-app-text transition hover:bg-app-surface-2"
+            href="{{ builder.reset_url|default(builder.action|default('')) }}"
+          >{{ builder.reset_label|default('Reset') }}</a>
+          <button class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-app-accent px-4 text-sm font-semibold text-white transition hover:opacity-90" type="submit">
+            {% include '@Shared/components/icon.twig' with { name: 'check', class: 'h-4 w-4' } only %}
+            <span>{{ builder.submit_label|default('Apply filters') }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </details>
+{% endif %}

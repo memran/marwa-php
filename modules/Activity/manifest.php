@@ -29,12 +29,11 @@ return [
     ],
     'migrations' => [
         'database/migrations/2026_04_11_000001_create_activities_table.php',
-        'database/migrations/2026_04_23_000001_add_request_metadata_to_activities_table.php',
         'database/migrations/2026_04_11_000002_insert_activity_permissions.php',
     ],
     'menu' => [
         'section' => 'Identity & Access',
-        'label' => 'Audit Logs',
+        'label' => 'Activity',
         'route' => '/admin/activity',
         'order' => 40,
         'icon' => 'activity',

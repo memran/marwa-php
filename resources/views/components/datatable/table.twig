@@ -8,7 +8,7 @@
           </th>
         {% endif %}
         {% for column in columns %}
-          <th class="border-b border-app-border px-3 py-3 text-left text-xs font-extrabold uppercase tracking-[0.12em] text-app-muted">
+          <th class="border-b border-app-border px-3 py-3 {% if column.align|default('left') == 'right' %}text-right{% else %}text-left{% endif %} text-xs font-extrabold uppercase tracking-[0.12em] text-app-muted">
             {% if features.sort|default(false) and column.sortable and column.href %}
               <a class="inline-flex items-center gap-1 hover:text-app-text {% if column.active|default(false) %}text-app-accent{% endif %}" href="{{ column.href }}">
                 <span>{{ column.label }}</span>

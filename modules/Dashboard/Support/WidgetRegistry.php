@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Dashboard\Support;
 
+use App\Contracts\DashboardWidgetProvider;
 use Marwa\Module\Contracts\ModuleRegistryInterface;
 
 final class WidgetRegistry
@@ -96,6 +97,7 @@ final class WidgetRegistry
         $view = $widget['view'] ?? 'widgets/' . $id;
         $card = $widget['card'] ?? null;
         $permission = $widget['permission'] ?? null;
+        $provider = $widget['provider'] ?? null;
 
         return [
             'id' => $id,
@@ -109,6 +111,10 @@ final class WidgetRegistry
             'view' => is_string($view) && trim($view) !== '' ? $view : 'widgets/' . $id,
             'card' => is_array($card) ? $card : [],
             'permission' => is_string($permission) ? $permission : null,
+            'provider' => is_string($provider)
+                && is_a($provider, DashboardWidgetProvider::class, true)
+                    ? $provider
+                    : null,
         ];
     }
 

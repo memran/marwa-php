@@ -1,0 +1,38 @@
+{% set card = card|default({}) %}
+{% set tone = card.tone|default('primary') %}
+{% set tone_class = tone == 'success'
+  ? 'border-app-success/20 bg-app-success/10 text-app-success'
+  : (tone == 'warning'
+    ? 'border-app-warning/20 bg-app-warning/10 text-app-warning'
+    : (tone == 'danger'
+      ? 'border-app-danger/20 bg-app-danger/10 text-app-danger'
+      : 'border-app-accent/20 bg-app-accent/10 text-app-accent')) %}
+
+<div class="space-y-4">
+  <div class="flex items-start justify-between gap-4">
+    <div class="flex min-w-0 items-start gap-3">
+      <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border {{ tone_class }}">
+        {% include 'components/icon.twig' with { name: card.icon|default('chart-no-axes-column'), class: 'h-5 w-5' } only %}
+      </span>
+      <div class="min-w-0">
+        <p class="text-xs font-semibold uppercase text-app-muted">{{ card.label|default(widget.name|default('Metric')) }}</p>
+        <p class="mt-1 text-2xl font-semibold text-app-text">{{ card.value|default('0') }}</p>
+      </div>
+    </div>
+    {% if card.status|default('') is not empty %}
+      <span class="shrink-0 rounded-lg border px-2.5 py-1 text-xs font-semibold {{ tone_class }}">
+        {{ card.status }}
+      </span>
+    {% endif %}
+  </div>
+
+  <div class="flex items-end justify-between gap-3 border-t border-app-border pt-3">
+    <p class="min-w-0 text-sm text-app-muted">{{ card.meta|default('') }}</p>
+    {% if card.href|default('') is not empty %}
+      <a class="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-app-accent hover:underline" href="{{ card.href }}">
+        View
+        {% include 'components/icon.twig' with { name: 'arrow-right', class: 'h-4 w-4' } only %}
+      </a>
+    {% endif %}
+  </div>
+</div>

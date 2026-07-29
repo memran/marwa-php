@@ -9,12 +9,15 @@ use Marwa\Framework\Queue\QueueManager;
 
 final class QueueRepository
 {
-    public function __construct(private readonly QueueManager $queueManager) {}
+    public function __construct(
+        private readonly QueueManager $queueManager,
+        private readonly QueueDataTable $table = new QueueDataTable(),
+    ) {}
 
     /**
      * @return array<string, mixed>
      */
-    public function overview(): array
+    public function overview(int $page = 1, ?int $perPage = null, string $search = '', array $filters = []): array
     {
         $configuration = $this->queueConfiguration();
         $jobs = $configuration['driver'] === 'database' ? $this->jobs() : [];
@@ -27,6 +30,7 @@ final class QueueRepository
             'state_path' => $configuration['driver'] === 'file' ? $configuration['path'] : null,
             'jobs' => $jobs,
             'stats' => $this->stats($jobs),
+            'table_result' => $this->table->make($jobs, $page, $perPage ?? per_page(20), $search, $filters),
             'cron' => 'php marwa queue:work --max-time=60 --sleep=1',
         ];
     }

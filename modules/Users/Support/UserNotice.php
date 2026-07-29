@@ -6,14 +6,6 @@ namespace App\Modules\Users\Support;
 
 final class UserNotice
 {
-    public function pull(string $key = 'users.notice'): ?string
-    {
-        $notice = session($key);
-        session()->forget($key);
-
-        return is_string($notice) && $notice !== '' ? $notice : null;
-    }
-
     /**
      * @param callable(int): string $successMessage
      */

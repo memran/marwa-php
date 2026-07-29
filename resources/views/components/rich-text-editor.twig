@@ -1,0 +1,84 @@
+{% set id = id|default(name|default('rich-text-editor')) %}
+{% set name = name|default(id) %}
+{% set label = label|default('Content') %}
+{% set value = value|default('') %}
+{% set help = help|default('Use the toolbar to format this content.') %}
+{% set error = error|default('') %}
+{% set required = required|default(false) %}
+{% set disabled = disabled|default(false) %}
+{% set min_height_class = min_height_class|default('min-h-44') %}
+{% set wrapper_class = wrapper_class|default('') %}
+
+<div class="grid gap-2 {{ wrapper_class }}" data-rich-text-editor>
+  {% if label %}
+    <label class="text-sm font-semibold text-app-text" for="{{ id }}">
+      {{ label }}{% if required %} <span class="text-app-danger" aria-hidden="true">*</span>{% endif %}
+    </label>
+  {% endif %}
+
+  <div class="overflow-hidden rounded-lg border bg-app-surface {{ error ? 'border-app-danger' : 'border-app-border' }}">
+    <div class="flex flex-wrap items-center gap-1 border-b border-app-border bg-app-surface-2/60 p-1.5" role="toolbar" aria-label="{{ label }} formatting">
+      {% for control in [
+        {command: 'undo', icon: 'undo-2', label: 'Undo'},
+        {command: 'redo', icon: 'redo-2', label: 'Redo'},
+        {command: 'bold', icon: 'bold', label: 'Bold'},
+        {command: 'italic', icon: 'italic', label: 'Italic'},
+        {command: 'underline', icon: 'underline', label: 'Underline'},
+        {command: 'strikeThrough', icon: 'strikethrough', label: 'Strikethrough'},
+        {command: 'insertUnorderedList', icon: 'list', label: 'Bulleted list'},
+        {command: 'insertOrderedList', icon: 'list-ordered', label: 'Numbered list'},
+        {command: 'formatBlock', value: 'blockquote', icon: 'quote', label: 'Block quote'},
+        {command: 'createLink', icon: 'link', label: 'Add link'},
+        {command: 'removeFormat', icon: 'remove-formatting', label: 'Clear formatting'}
+      ] %}
+        <button
+          class="inline-flex h-8 w-8 items-center justify-center rounded-md text-app-muted transition hover:bg-app-surface hover:text-app-text focus:outline-none focus:ring-2 focus:ring-app-accent/30 disabled:cursor-not-allowed disabled:opacity-50"
+          type="button"
+          data-rich-text-command="{{ control.command }}"
+          {% if control.value|default('') %}data-rich-text-value="{{ control.value }}"{% endif %}
+          aria-label="{{ control.label }}"
+          title="{{ control.label }}"
+          {% if disabled %}disabled{% endif %}
+        >
+          {% include '@Shared/components/icon.twig' with { name: control.icon, class: 'h-4 w-4' } only %}
+        </button>
+      {% endfor %}
+
+      <label class="ml-auto">
+        <span class="sr-only">Text style</span>
+        <select class="h-8 rounded-md border border-app-border bg-app-surface px-2 text-xs font-semibold text-app-text outline-none focus:border-app-accent focus:ring-2 focus:ring-app-accent/20" data-rich-text-block {% if disabled %}disabled{% endif %}>
+          <option value="p">Paragraph</option>
+          <option value="h2">Heading 2</option>
+          <option value="h3">Heading 3</option>
+          <option value="pre">Code block</option>
+        </select>
+      </label>
+    </div>
+
+    <div
+      class="prose prose-sm hidden max-w-none px-4 py-3 text-app-text prose-headings:text-app-text prose-p:text-app-text prose-strong:text-app-text prose-a:text-app-accent prose-blockquote:text-app-muted prose-code:text-app-text outline-none focus:ring-2 focus:ring-inset focus:ring-app-accent/20 {{ min_height_class }}"
+      contenteditable="{{ disabled ? 'false' : 'true' }}"
+      role="textbox"
+      aria-multiline="true"
+      aria-label="{{ label }}"
+      data-rich-text-surface
+    ></div>
+
+    <textarea
+      class="block w-full resize-y border-0 bg-app-surface px-4 py-3 text-sm text-app-text outline-none focus:ring-2 focus:ring-inset focus:ring-app-accent/20 {{ min_height_class }}"
+      id="{{ id }}"
+      name="{{ name }}"
+      data-rich-text-source
+      {% if required %}required aria-required="true"{% endif %}
+      {% if disabled %}disabled{% endif %}
+      {% if help or error %}aria-describedby="{{ help ? id ~ '-help' : '' }}{{ help and error ? ' ' : '' }}{{ error ? id ~ '-error' : '' }}"{% endif %}
+      {% if error %}aria-invalid="true"{% endif %}
+    >{{ value }}</textarea>
+  </div>
+
+  <div class="flex flex-wrap items-start justify-between gap-2">
+    {% if help %}<p id="{{ id }}-help" class="text-xs leading-5 text-app-muted">{{ help }}</p>{% endif %}
+    <p class="ml-auto text-xs tabular-nums text-app-muted" data-rich-text-count aria-live="polite"></p>
+  </div>
+  {% if error %}<p id="{{ id }}-error" class="text-sm text-app-danger">{{ error }}</p>{% endif %}
+</div>

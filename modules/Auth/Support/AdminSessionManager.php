@@ -61,10 +61,16 @@ final class AdminSessionManager
             return null;
         }
 
-        return $this->users->createBootstrapUser(
+        $bootstrapUser = $this->users->createBootstrapUser(
             trim((string) session(self::SESSION_USER_NAME, self::DEFAULT_ADMIN_NAME)) ?: self::DEFAULT_ADMIN_NAME,
             $email
         );
+
+        if ($bootstrapUser->getPasswordHash() !== null && !is_string(session(self::SESSION_PASSWORD_FINGERPRINT))) {
+            session()->set(self::SESSION_PASSWORD_FINGERPRINT, $this->passwordFingerprint($bootstrapUser));
+        }
+
+        return $bootstrapUser;
     }
 
     public function attempt(string $email, string $password, string $ipAddress = ''): bool

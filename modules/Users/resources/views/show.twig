@@ -6,9 +6,6 @@
   {% set button_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[0.82rem] font-semibold transition' %}
   {% set button_primary = button_base ~ ' border-transparent bg-app-accent text-white hover:bg-app-accent-soft' %}
   {% set button_secondary = button_base ~ ' border-app-border bg-app-surface/80 text-app-text hover:bg-app-surface-2/70' %}
-  {% set tab_base = 'inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition' %}
-  {% set tab_active = 'border-app-accent/20 bg-app-accent/10 text-app-accent' %}
-  {% set tab_inactive = 'border-app-border bg-app-surface/60 text-app-text hover:bg-app-surface-2/70' %}
   {% set is_trashed = user.getAttribute('deleted_at') is not empty %}
   {% set protected_id = protected_admin_id|default(null) %}
   {% set is_protected = protected_id is not null and user.getKey() == protected_id %}
@@ -90,41 +87,21 @@
       </div>
     </section>
 
-    <nav class="mt-6 flex flex-wrap gap-2 rounded-[1.35rem] border border-app-border bg-app-surface/80 p-2 shadow-[0_18px_50px_rgba(2,6,23,0.18)] backdrop-blur-xl">
-      <button
-        type="button"
-        {{ ui().click('activeTab = "overview"') }}
-        class="{{ tab_base }}"
-        {{ ui().bind('class', "activeTab === 'overview' ? '" ~ tab_active ~ "' : '" ~ tab_inactive ~ "'") }}
-      >
-        Overview
-      </button>
-      <button
-        type="button"
-        {{ ui().click('activeTab = "activity"') }}
-        class="{{ tab_base }}"
-        {{ ui().bind('class', "activeTab === 'activity' ? '" ~ tab_active ~ "' : '" ~ tab_inactive ~ "'") }}
-      >
-        Activity
-        <span class="rounded-full border border-app-border bg-app-surface-2/70 px-2.5 py-0.5 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-app-muted">
-          {{ activity_total }}
-        </span>
-      </button>
-      <button
-        type="button"
-        {{ ui().click('activeTab = "permissions"') }}
-        class="{{ tab_base }}"
-        {{ ui().bind('class', "activeTab === 'permissions' ? '" ~ tab_active ~ "' : '" ~ tab_inactive ~ "'") }}
-      >
-        Permissions
-        <span class="rounded-full border border-app-border bg-app-surface-2/70 px-2.5 py-0.5 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-app-muted">
-          {{ permissions|length }}
-        </span>
-      </button>
-    </nav>
+    {% include '@Shared/components/tabs.twig' with {
+      active_id: default_tab,
+      managed: false,
+      label: 'User sections',
+      shell_class: 'mt-6',
+      list_class: 'flex flex-wrap gap-2 rounded-[1.35rem] border border-app-border bg-app-surface/80 p-2 shadow-[0_18px_50px_rgba(2,6,23,0.18)] backdrop-blur-xl',
+      items: [
+        {id: 'overview', label: 'Overview', icon: 'layout-dashboard'},
+        {id: 'activity', label: 'Activity', icon: 'clock-3', count: activity_total},
+        {id: 'permissions', label: 'Permissions', icon: 'shield-check', count: permissions|length}
+      ]
+    } only %}
 
     <div class="mt-6 space-y-6">
-      <section {{ ui().show("activeTab === 'overview'") }}>
+      <section id="overview-panel" role="tabpanel" aria-labelledby="overview-tab" {{ ui().show("activeTab === 'overview'") }}>
         <div class="grid gap-4 md:grid-cols-3">
           <article class="rounded-[1.25rem] border border-app-border bg-app-surface/80 p-4 shadow-[0_24px_70px_rgba(2,6,23,0.18)] backdrop-blur-xl">
             <div class="flex items-center justify-between">
@@ -189,7 +166,7 @@
         </section>
       </section>
 
-      <section {{ ui().show("activeTab === 'activity'") }}>
+      <section id="activity-panel" role="tabpanel" aria-labelledby="activity-tab" {{ ui().show("activeTab === 'activity'") }} {{ ui().cloak() }}>
         {% include 'components/activity-log.twig' with {
           title: 'Recent activity',
           description: 'Rows from the activity table for this user account.',
@@ -202,7 +179,7 @@
         } only %}
       </section>
 
-      <section {{ ui().show("activeTab === 'permissions'") }}>
+      <section id="permissions-panel" role="tabpanel" aria-labelledby="permissions-tab" {{ ui().show("activeTab === 'permissions'") }} {{ ui().cloak() }}>
         {% include 'components/permission-panel.twig' with {
           title: 'Role and permissions',
           description: 'The role controls access, and permissions are inherited from it.',

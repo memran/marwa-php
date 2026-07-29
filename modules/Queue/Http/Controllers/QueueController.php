@@ -13,10 +13,19 @@ final class QueueController extends Controller
 {
     public function __construct(private readonly QueueRepository $repository) {}
 
-    public function index(): ResponseInterface
+    public function index(ServerRequestInterface $request): ResponseInterface
     {
+        $query = $request->getQueryParams();
+        $overview = $this->repository->overview(
+            max(1, (int) ($query['page'] ?? 1)),
+            per_page(20),
+            is_scalar($query['q'] ?? null) ? trim((string) $query['q']) : '',
+            is_array($query['filters'] ?? null) ? $query['filters'] : []
+        );
+
         return $this->view('@queue/index', [
-            'overview' => $this->repository->overview(),
+            'overview' => $overview,
+            'table' => $overview['table_result'],
         ]);
     }
 

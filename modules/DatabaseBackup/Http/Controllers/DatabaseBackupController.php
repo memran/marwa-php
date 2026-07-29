@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\DatabaseBackup\Http\Controllers;
 
 use App\Modules\DatabaseBackup\Support\BackupSettingsRepository;
+use App\Modules\DatabaseBackup\Support\DatabaseBackupActivityLogger;
 use App\Modules\DatabaseBackup\Support\DatabaseBackupService;
 use Marwa\Framework\Controllers\Controller;
 use Marwa\Router\Http\Input;
@@ -17,6 +18,7 @@ final class DatabaseBackupController extends Controller
     public function __construct(
         private readonly DatabaseBackupService $service,
         private readonly BackupSettingsRepository $settings,
+        private readonly DatabaseBackupActivityLogger $activity,
     ) {}
 
     public function index(): ResponseInterface
@@ -54,7 +56,9 @@ final class DatabaseBackupController extends Controller
             return $this->redirect('/admin/database-backups');
         }
 
+        $before = $this->settings->all();
         $this->settings->save($normalized['values']);
+        $this->activity->settingsUpdated($before, $normalized['values']);
         session()->flash('database_backup.notice', 'Backup settings saved.');
 
         return $this->redirect('/admin/database-backups');
@@ -64,6 +68,7 @@ final class DatabaseBackupController extends Controller
     {
         try {
             $result = $this->service->createBackup();
+            $this->activity->backupCreated($result['path'], $result['tables']);
             session()->flash('database_backup.notice', $result['message']);
         } catch (\Throwable $exception) {
             session()->flash('database_backup.errors', [$exception->getMessage()]);
@@ -96,6 +101,7 @@ final class DatabaseBackupController extends Controller
                 throw new \RuntimeException('Choose a stored backup or upload a zip/tar archive to restore.');
             }
 
+            $this->activity->databaseRestored($result['filename'], $result['tables']);
             session()->flash('database_backup.notice', $result['message']);
         } catch (\Throwable $exception) {
             session()->flash('database_backup.errors', [$exception->getMessage()]);

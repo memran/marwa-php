@@ -9,7 +9,9 @@ if ($theme === '') {
     $theme = 'admin';
 }
 
-$targetDir = __DIR__ . '/../public/themes/' . $theme . '/assets/icons';
+$targetDir = $theme === 'default'
+    ? __DIR__ . '/../public/assets/icons'
+    : __DIR__ . '/../public/themes/' . $theme . '/assets/icons';
 $target = $targetDir . '/lucide.svg';
 
 if (!is_file($source)) {

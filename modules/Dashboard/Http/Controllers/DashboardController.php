@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Dashboard\Http\Controllers;
 
+use App\Contracts\DashboardWidgetProvider;
 use App\Modules\Activity\Events\ActivityRecordingRequested;
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Dashboard\Support\DashboardWidgetRepository;
@@ -39,18 +40,6 @@ final class DashboardController extends Controller
             'available_widgets' => $this->filteredWidgets(),
             'size_options' => $this->widgetRegistry->getSizeOptions(),
             'is_edit_mode' => false,
-        ]);
-    }
-
-    public function widgets(): ResponseInterface
-    {
-        if ($this->gate->denies('dashboard.view')) {
-            return $this->forbidden();
-        }
-
-        return $this->json([
-            'widgets' => $this->getUserWidgets($this->getUserId()),
-            'available_widgets' => $this->filteredWidgets(),
         ]);
     }
 
@@ -114,27 +103,6 @@ final class DashboardController extends Controller
         return $this->json(['success' => true, 'message' => 'Dashboard reset to default']);
     }
 
-    public function widgetContent(ServerRequestInterface $request, array $vars = []): ResponseInterface
-    {
-        if ($this->gate->denies('dashboard.view')) {
-            return $this->forbidden();
-        }
-
-        $id = (string) ($vars['id'] ?? '');
-        $widget = $this->widgetRegistry->get($id);
-
-        if (!$widget) {
-            return $this->json(['error' => 'Widget not found'], 404);
-        }
-
-        $content = $this->renderWidget($id);
-
-        return $this->json([
-            'id' => $id,
-            'content' => $content,
-        ]);
-    }
-
     public function refreshWidget(ServerRequestInterface $request, array $vars = []): ResponseInterface
     {
         if ($this->gate->denies('dashboard.view')) {
@@ -146,6 +114,10 @@ final class DashboardController extends Controller
 
         if (!$widget) {
             return $this->json(['success' => false, 'message' => 'Widget not found']);
+        }
+        $permission = $widget['permission'] ?? null;
+        if (is_string($permission) && $this->gate->denies($permission)) {
+            return $this->forbidden();
         }
 
         return $this->json([
@@ -171,6 +143,10 @@ final class DashboardController extends Controller
 
         if (!$widget) {
             return '<div class="p-4 text-slate-400 dark:text-slate-500">Widget template not found</div>';
+        }
+        $permission = $widget['permission'] ?? null;
+        if (is_string($permission) && $this->gate->denies($permission)) {
+            return '<div class="p-4 text-app-muted">Widget is unavailable.</div>';
         }
 
         try {
@@ -211,11 +187,20 @@ final class DashboardController extends Controller
             return $widgetCard;
         }
 
-        if (!class_exists(\App\Modules\DashboardStatus\DashboardStatusCards::class)) {
+        $providerClass = $widget['provider'] ?? null;
+        if (!is_string($providerClass) || !is_a($providerClass, DashboardWidgetProvider::class, true)) {
             return null;
         }
 
-        return app(\App\Modules\DashboardStatus\DashboardStatusCards::class)->card($id);
+        try {
+            $provider = app($providerClass);
+
+            return $provider instanceof DashboardWidgetProvider
+                ? $provider->card($id, $this->getUserId())
+                : null;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /**

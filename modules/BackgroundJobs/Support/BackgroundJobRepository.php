@@ -16,7 +16,7 @@ final class BackgroundJobRepository
     /**
      * @return array<string, mixed>
      */
-    public function overview(): array
+    public function overview(int $page = 1, ?int $perPage = null): array
     {
         $configuration = $this->schedulerConfiguration();
         $definitions = $this->taskDefinitions();
@@ -30,12 +30,22 @@ final class BackgroundJobRepository
 
         usort($jobs, static fn (array $left, array $right): int => strcmp((string) $left['name'], (string) $right['name']));
 
+        $total = count($jobs);
+        $perPage = max(1, (int) ($perPage ?? per_page(20)));
+        $lastPage = max(1, (int) ceil($total / $perPage));
+        $page = min(max(1, $page), $lastPage);
+        $pagedJobs = array_slice($jobs, ($page - 1) * $perPage, $perPage);
+
         return [
             'driver' => $configuration['driver'],
             'backend_label' => $this->backendLabel($configuration['driver']),
             'cron' => 'php marwa schedule:run --for=60 --sleep=1',
-            'jobs' => $jobs,
+            'jobs' => $pagedJobs,
             'stats' => $this->stats($jobs),
+            'total' => $total,
+            'per_page' => $perPage,
+            'current_page' => $page,
+            'last_page' => $lastPage,
             'state_path' => $configuration['driver'] === 'file' ? ($configuration['file']['path'] ?? '') : null,
             'table' => $configuration['driver'] === 'database' ? ($configuration['database']['table'] ?? 'schedule_jobs') : null,
         ];

@@ -20,7 +20,7 @@ final class ModuleManifestTest extends TestCase
 
         self::assertSame('resources/views', $activity['paths']['views']);
         self::assertSame(['auth'], $activity['requires']);
-        self::assertSame('database/migrations/2026_04_23_000001_add_request_metadata_to_activities_table.php', $activity['migrations'][1]);
+        self::assertSame('database/migrations/2026_04_11_000002_insert_activity_permissions.php', $activity['migrations'][1]);
         self::assertArrayNotHasKey('views', $auth['paths']);
         self::assertArrayNotHasKey('commands', $auth['paths']);
         self::assertSame('database/migrations', $auth['paths']['database/migrations']);

@@ -4,13 +4,22 @@
 {% set value = value|default('') %}
 {% set help = help|default('') %}
 {% set error = error|default('') %}
+{% set required = required|default(false) %}
+{% set disabled = disabled|default(false) %}
 
 <label class="theme-field" for="{{ id }}">
     {% if label %}
         <span class="theme-field__label">{{ label }}</span>
     {% endif %}
 
-    <select id="{{ id }}" name="{{ name }}" class="theme-select{% if error %} theme-select--error{% endif %}">
+    <select
+        id="{{ id }}"
+        name="{{ name }}"
+        class="theme-select{% if error %} theme-select--error{% endif %}"
+        {% if required %}required aria-required="true"{% endif %}
+        {% if disabled %}disabled{% endif %}
+        {% if error %}aria-invalid="true" aria-describedby="{{ id }}-error"{% endif %}
+    >
         {% if placeholder is defined and placeholder %}
             <option value="">{{ placeholder }}</option>
         {% endif %}
@@ -27,6 +36,6 @@
     {% endif %}
 
     {% if error %}
-        <small class="theme-field__error">{{ error }}</small>
+        <small id="{{ id }}-error" class="theme-field__error">{{ error }}</small>
     {% endif %}
 </label>

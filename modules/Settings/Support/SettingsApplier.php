@@ -61,6 +61,9 @@ final class SettingsApplier
         $passwordPolicy = (string) ($values['security']['password_policy'] ?? ($items['security']['password_policy'] ?? ''));
         $loginAttemptLimit = (int) ($values['security']['login_attempt_limit'] ?? ($items['security']['login_attempt_limit'] ?? 5));
         $twoFactorEnabled = (bool) ($values['security']['2fa_enabled'] ?? ($items['security']['2fa_enabled'] ?? false));
+        $customerCodeFormat = (string) ($values['billing']['customer_code_format'] ?? 'manual');
+        $customerCodePrefix = (string) ($values['billing']['customer_code_prefix'] ?? '');
+        $customerCodePadding = (int) ($values['billing']['customer_code_padding'] ?? 5);
 
         $items['app'] = [
             'name' => $appName,
@@ -132,6 +135,11 @@ final class SettingsApplier
             'cache' => [
                 'enabled' => $cacheEnabled,
                 'driver' => $cacheDriver,
+            ],
+            'billing' => [
+                'customer_code_format' => $customerCodeFormat,
+                'customer_code_prefix' => $customerCodePrefix,
+                'customer_code_padding' => $customerCodePadding,
             ],
         ];
 

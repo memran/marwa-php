@@ -32,22 +32,10 @@
     </section>
 
     <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div class="rounded-2xl border border-app-border bg-app-surface p-4 shadow-sm">
-            <div class="text-xs uppercase tracking-[0.25em] text-app-muted">Queue</div>
-            <div class="mt-2 text-lg font-semibold text-app-text">{{ job.queue ?? 'default' }}</div>
-        </div>
-        <div class="rounded-2xl border border-app-border bg-app-surface p-4 shadow-sm">
-            <div class="text-xs uppercase tracking-[0.25em] text-app-muted">Attempts</div>
-            <div class="mt-2 text-lg font-semibold text-app-text">{{ job.attempts ?? 0 }}</div>
-        </div>
-        <div class="rounded-2xl border border-app-border bg-app-surface p-4 shadow-sm">
-            <div class="text-xs uppercase tracking-[0.25em] text-app-muted">Available</div>
-            <div class="mt-2 text-lg font-semibold text-app-text">{{ job.available_at ?? 'Now' }}</div>
-        </div>
-        <div class="rounded-2xl border border-app-border bg-app-surface p-4 shadow-sm">
-            <div class="text-xs uppercase tracking-[0.25em] text-app-muted">Updated</div>
-            <div class="mt-2 text-lg font-semibold text-app-text">{{ job.updated_at ?? '-' }}</div>
-        </div>
+        {% include '@Shared/components/card.twig' with {variant: 'stat', label: 'Queue', value: job.queue ?? 'default', value_class: 'text-lg font-semibold text-app-text'} only %}
+        {% include '@Shared/components/card.twig' with {variant: 'stat', label: 'Attempts', value: job.attempts ?? 0, value_class: 'text-lg font-semibold text-app-text'} only %}
+        {% include '@Shared/components/card.twig' with {variant: 'stat', label: 'Available', value: job.available_at ?? 'Now', value_class: 'text-lg font-semibold text-app-text'} only %}
+        {% include '@Shared/components/card.twig' with {variant: 'stat', label: 'Updated', value: job.updated_at ?? '-', value_class: 'text-lg font-semibold text-app-text'} only %}
     </section>
 
     <section class="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.8fr)]">

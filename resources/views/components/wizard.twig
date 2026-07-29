@@ -1,0 +1,43 @@
+{% set steps = steps|default([]) %}
+{% set current_step = current_step|default(1) %}
+{% set label = label|default('Progress') %}
+{% set compact = compact|default(false) %}
+
+{% if steps is not empty %}
+  <nav aria-label="{{ label }}" data-wizard>
+    <ol class="flex overflow-hidden rounded-lg border border-app-border bg-app-surface">
+      {% for key, item in steps %}
+        {% set number = loop.index %}
+        {% set step = item is iterable ? item : { label: item } %}
+        {% set step_label = step.label|default('Step ' ~ number) %}
+        {% set description = step.description|default('') %}
+        {% set is_complete = number < current_step %}
+        {% set is_current = number == current_step %}
+
+        <li
+          class="relative flex min-w-0 flex-1 items-center gap-2 border-r border-app-border px-3 {% if compact %}py-2{% else %}py-3{% endif %} last:border-r-0 {% if is_complete or is_current %}bg-app-accent/10 text-app-accent{% else %}text-app-muted{% endif %}"
+          data-wizard-step="{{ number }}"
+          data-wizard-state="{{ is_complete ? 'complete' : (is_current ? 'current' : 'upcoming') }}"
+          {% if is_current %}aria-current="step"{% endif %}
+        >
+          <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-bold {% if is_complete or is_current %}border-app-accent{% else %}border-app-border{% endif %}" aria-hidden="true">
+            {% if is_complete %}
+              {% include '@Shared/components/icon.twig' with { name: 'check', class: 'h-4 w-4' } only %}
+            {% else %}
+              {{ number }}
+            {% endif %}
+          </span>
+          <span class="min-w-0">
+            <span class="block truncate text-sm font-semibold">{{ step_label }}</span>
+            {% if description and not compact %}
+              <span class="mt-0.5 hidden truncate text-xs text-app-muted lg:block">{{ description }}</span>
+            {% endif %}
+          </span>
+          <span class="sr-only">
+            {{ is_complete ? 'Completed' : (is_current ? 'Current step' : 'Upcoming') }}
+          </span>
+        </li>
+      {% endfor %}
+    </ol>
+  </nav>
+{% endif %}

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\DashboardStatus;
 
-final class DashboardStatusCards
+use App\Contracts\DashboardWidgetProvider;
+
+final class DashboardStatusCards implements DashboardWidgetProvider
 {
     /**
      * @return array<int, array<string, mixed>>
@@ -17,7 +19,7 @@ final class DashboardStatusCards
     /**
      * @return array<string, mixed>|null
      */
-    public function card(string $id): ?array
+    public function card(string $id, ?int $userId = null): ?array
     {
         return $this->definitions()[$id] ?? null;
     }

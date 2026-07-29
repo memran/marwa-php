@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\ApiToken\Http\Controllers;
 
 use App\Modules\ApiToken\Support\ApiTokenFormData;
+use App\Modules\ApiToken\Support\ApiTokenDataTable;
 use App\Modules\ApiToken\Support\ApiTokenRepository;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
@@ -15,14 +16,13 @@ final class ApiTokenController extends Controller
     public function __construct(
         private readonly ApiTokenRepository $repository,
         private readonly ApiTokenFormData $forms,
+        private readonly ApiTokenDataTable $table,
     ) {}
 
-    public function index(): ResponseInterface
+    public function index(ServerRequestInterface $request): ResponseInterface
     {
-        $tokens = $this->repository->all();
-
         return $this->view('@api_token/index', [
-            'tokens' => $tokens,
+            'table' => $this->table->make($request)->paginate(per_page(20))->result(),
             'errors' => session('errors', []),
             'old' => session('_old_input', []),
         ]);
@@ -30,9 +30,14 @@ final class ApiTokenController extends Controller
 
     public function create(): ResponseInterface
     {
+        $old = session('_old_input', []);
+        $errors = session('errors', []);
+
         return $this->view('@api_token/create', [
-            'errors' => session('errors', []),
-            'old' => session('_old_input', []),
+            'form' => $this->forms->context(
+                is_array($old) ? $old : [],
+                is_array($errors) ? $errors : [],
+            ),
         ]);
     }
 

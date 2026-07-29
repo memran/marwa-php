@@ -24,11 +24,5 @@
     </div>
   </section>
 
-  {% if notice is defined and notice %}
-    <div class="mt-6 rounded-2xl border border-app-success/20 bg-app-success/10 px-4 py-3 text-sm font-semibold text-app-success">
-      {{ notice }}
-    </div>
-  {% endif %}
-
   {% include '@Shared/components/data-table.twig' with { table: table } only %}
 {% endblock %}

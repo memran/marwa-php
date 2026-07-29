@@ -1,0 +1,97 @@
+{% set form = form|default({}) %}
+{% set fields = form.fields|default({}) %}
+{% set values = form.values|default({}) %}
+{% set errors = form.errors|default({}) %}
+{% set action = action|default('') %}
+{% set method = method|default('post')|lower %}
+{% set html_method = method == 'get' ? 'get' : 'post' %}
+{% set title = title|default('') %}
+{% set description = description|default('') %}
+{% set submit_label = submit_label|default('Save') %}
+{% set submit_icon = submit_icon|default('save') %}
+{% set cancel_url = cancel_url|default('') %}
+{% set cancel_label = cancel_label|default('Cancel') %}
+{% set enctype = enctype|default('') %}
+{% set form_class = form_class|default('space-y-6') %}
+{% set field_grid_class = field_grid_class|default('grid gap-5 md:grid-cols-2') %}
+
+<form method="{{ html_method }}" action="{{ action }}" class="{{ form_class }}"{% if enctype %} enctype="{{ enctype }}"{% endif %}>
+  {% if html_method != 'get' %}
+    {{ csrf_field()|raw }}
+  {% endif %}
+  {% if method not in ['get', 'post'] %}
+    <input type="hidden" name="_method" value="{{ method|upper }}">
+  {% endif %}
+
+  {% embed '@Shared/components/card.twig' with {
+    title: title,
+    description: description
+  } %}
+    {% block body %}
+      <div class="{{ field_grid_class }}">
+        {% for name, field in fields %}
+          {% set meta = field.meta|default({}) %}
+          {% if not meta.hidden|default(false) %}
+            {% set schema_type = field.type|default('string') %}
+            {% set input_type = meta.widget|default(
+              schema_type == 'integer' or schema_type == 'decimal'
+                ? 'number'
+                : (schema_type == 'boolean'
+                  ? 'checkbox'
+                  : (schema_type == 'datetime'
+                    ? 'datetime-local'
+                    : (schema_type == 'json' ? 'textarea' : 'text')))
+            ) %}
+            {% set options = meta.options|default({}) %}
+            {% if schema_type == 'enum' and options is empty %}
+              {% for option in field.enum|default([]) %}
+                {% set options = options|merge({(option): option|replace({'_': ' '})|title}) %}
+              {% endfor %}
+              {% set input_type = 'select' %}
+            {% endif %}
+            {% set field_errors = errors[name]|default([]) %}
+            {% set field_error = field_errors is iterable ? field_errors|first : field_errors %}
+
+            {% include 'components/form-field.twig' with {
+              id: meta.id|default(name),
+              name: name,
+              label: field.label|default(name|replace({'_': ' '})|title),
+              type: input_type,
+              value: values[name]|default(meta.default|default('')),
+              error: field_error|default(''),
+              hint: meta.hint|default(''),
+              placeholder: meta.placeholder|default(''),
+              autocomplete: meta.autocomplete|default(''),
+              required: meta.required|default(false),
+              disabled: meta.disabled|default(false),
+              readonly: meta.readonly|default(false),
+              rows: meta.rows|default(4),
+              options: options,
+              min: meta.min|default(null),
+              max: meta.max|default(null),
+              step: meta.step|default(null),
+              accept: meta.accept|default(''),
+              multiple: meta.multiple|default(false),
+              max_bytes: meta.max_bytes|default(null),
+              wrapper_class: meta.wrapper_class|default('')
+            } only %}
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endblock %}
+  {% endembed %}
+
+  <div class="flex flex-wrap items-center justify-end gap-3">
+    {% if cancel_url %}
+      <a class="inline-flex h-10 items-center justify-center rounded-lg border border-app-border bg-app-surface px-4 text-sm font-semibold text-app-text transition hover:bg-app-surface-2" href="{{ cancel_url }}">
+        {{ cancel_label }}
+      </a>
+    {% endif %}
+    <button class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-transparent bg-app-accent px-4 text-sm font-semibold text-white transition hover:bg-app-accent-soft" type="submit">
+      {% if submit_icon %}
+        {% include '@Shared/components/icon.twig' with { name: submit_icon, class: 'h-4 w-4' } only %}
+      {% endif %}
+      <span>{{ submit_label }}</span>
+    </button>
+  </div>
+</form>

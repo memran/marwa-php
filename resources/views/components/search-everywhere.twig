@@ -1,0 +1,197 @@
+{% set search_id = search_id|default('search-everywhere') %}
+{% set action = action|default('') %}
+{% set query = query|default('')|trim %}
+{% set query_name = query_name|default('q') %}
+{% set scope_name = scope_name|default('scope') %}
+{% set active_scope = active_scope|default('all') %}
+{% set scopes = scopes|default([{ value: 'all', label: 'All records' }]) %}
+{% set groups = groups|default([]) %}
+{% set result_count = result_count|default(0) %}
+{% set hidden_params = hidden_params|default({}) %}
+{% set pagination = pagination|default(null) %}
+{% set placeholder = placeholder|default('Search customers, invoices, payments, and services') %}
+{% set empty_title = empty_title|default('No matching records') %}
+{% set empty_description = empty_description|default('Try another name, identifier, phone number, or reference.') %}
+{% set initial_title = initial_title|default('Search across your workspace') %}
+{% set initial_description = initial_description|default('Enter a customer, invoice, payment, service, or network identifier.') %}
+
+<section class="overflow-hidden rounded-lg border border-app-border bg-app-surface shadow-sm" data-search-everywhere>
+  <form method="get" action="{{ action }}" class="border-b border-app-border p-4 sm:p-5" role="search" data-search-everywhere-form>
+    {% for name, value in hidden_params %}
+      {% if name != query_name and name != scope_name %}
+        <input type="hidden" name="{{ name }}" value="{{ value }}">
+      {% endif %}
+    {% endfor %}
+
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-end">
+      <div class="min-w-0 flex-1">
+        <label class="mb-1.5 block text-sm font-semibold text-app-text" for="{{ search_id }}-query">Search everywhere</label>
+        <div class="relative">
+          <span class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3 text-app-muted">
+            {% include '@Shared/components/icon.twig' with { name: 'search', class: 'h-4 w-4' } only %}
+          </span>
+          <input
+            id="{{ search_id }}-query"
+            class="block h-11 w-full rounded-lg border border-app-border bg-app-bg pe-12 ps-10 text-sm text-app-text shadow-xs outline-none transition placeholder:text-app-muted focus:border-app-accent focus:ring-2 focus:ring-app-accent/20"
+            name="{{ query_name }}"
+            type="search"
+            value="{{ query }}"
+            placeholder="{{ placeholder }}"
+            autocomplete="off"
+            data-search-everywhere-query
+          >
+          <kbd class="pointer-events-none absolute inset-y-0 end-3 hidden items-center font-mono text-xs text-app-muted sm:flex">/</kbd>
+        </div>
+      </div>
+
+      {% if scopes|length > 1 %}
+        <div class="w-full lg:w-52">
+          <label class="mb-1.5 block text-sm font-semibold text-app-text" for="{{ search_id }}-scope">Record type</label>
+          <select
+            id="{{ search_id }}-scope"
+            class="form-select block h-11 w-full rounded-lg border border-app-border bg-app-bg px-3 text-sm text-app-text shadow-xs focus:border-app-accent focus:ring-app-accent"
+            name="{{ scope_name }}"
+            data-search-everywhere-scope
+          >
+            {% for scope in scopes %}
+              <option value="{{ scope.value }}"{% if scope.value == active_scope %} selected{% endif %}>{{ scope.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      {% else %}
+        <input type="hidden" name="{{ scope_name }}" value="{{ active_scope }}">
+      {% endif %}
+
+      <div class="flex items-center gap-2">
+        <button class="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-app-accent px-4 text-sm font-semibold text-white transition hover:opacity-90 lg:flex-none" type="submit">
+          {% include '@Shared/components/icon.twig' with { name: 'search', class: 'h-4 w-4' } only %}
+          <span>Search</span>
+        </button>
+        {% if query %}
+          <a
+            class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-app-border bg-app-surface text-app-muted transition hover:bg-app-surface-2 hover:text-app-text"
+            href="{{ clear_url|default(action) }}"
+            aria-label="Clear search"
+            title="Clear search"
+          >
+            {% include '@Shared/components/icon.twig' with { name: 'x', class: 'h-4 w-4' } only %}
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </form>
+
+  {% if query and result_count > 0 %}
+    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-app-border bg-app-surface-2/40 px-4 py-3 sm:px-5">
+      <p class="text-sm text-app-muted">
+        <span class="font-semibold text-app-text">{{ result_count }}</span>
+        {{ result_count == 1 ? 'result' : 'results' }} for
+        <span class="font-semibold text-app-text">"{{ query }}"</span>
+      </p>
+      {% for scope in scopes %}
+        {% if scope.value == active_scope %}
+          <span class="inline-flex items-center rounded-md bg-app-accent/10 px-2 py-1 text-xs font-semibold text-app-accent">{{ scope.label }}</span>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <div class="divide-y divide-app-border" data-search-everywhere-results aria-live="polite">
+      {% for group in groups %}
+        {% if group.items|default([])|length > 0 %}
+          <section aria-labelledby="{{ search_id }}-group-{{ loop.index }}">
+            <header class="flex items-center justify-between gap-3 bg-app-surface-2/25 px-4 py-2.5 sm:px-5">
+              <h2 id="{{ search_id }}-group-{{ loop.index }}" class="flex items-center gap-2 text-xs font-bold uppercase text-app-muted">
+                {% if group.icon|default('') %}
+                  {% include '@Shared/components/icon.twig' with { name: group.icon, class: 'h-4 w-4' } only %}
+                {% endif %}
+                <span>{{ group.label }}</span>
+              </h2>
+              <span class="text-xs font-semibold text-app-muted">{{ group.count|default(group.items|length) }}</span>
+            </header>
+
+            <div class="divide-y divide-app-border">
+              {% for item in group.items %}
+                <a class="group flex min-h-16 items-start gap-3 px-4 py-3 transition hover:bg-app-surface-2/60 sm:px-5" href="{{ item.url }}">
+                  <span class="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-app-accent/10 text-app-accent">
+                    {% include '@Shared/components/icon.twig' with {
+                      name: item.icon|default(group.icon|default('file')),
+                      class: 'h-4 w-4'
+                    } only %}
+                  </span>
+
+                  <span class="min-w-0 flex-1">
+                    <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span class="font-semibold text-app-text group-hover:text-app-accent">{{ item.title }}</span>
+                      {% if item.badge|default('') %}
+                        {% set badge_tone = item.badge_tone|default('neutral') %}
+                        <span class="inline-flex rounded-md px-2 py-0.5 text-xs font-semibold
+                          {% if badge_tone == 'success' %}bg-app-success/10 text-app-success
+                          {% elseif badge_tone == 'warning' %}bg-app-warning/10 text-app-warning
+                          {% elseif badge_tone == 'danger' %}bg-app-danger/10 text-app-danger
+                          {% elseif badge_tone == 'accent' %}bg-app-accent/10 text-app-accent
+                          {% else %}bg-app-surface-2 text-app-muted{% endif %}">
+                          {{ item.badge }}
+                        </span>
+                      {% endif %}
+                    </span>
+                    {% if item.description|default('') %}
+                      <span class="mt-0.5 block text-sm text-app-muted">{{ item.description }}</span>
+                    {% endif %}
+                    {% if item.meta|default([])|length > 0 %}
+                      <span class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-app-muted">
+                        {% for meta in item.meta %}
+                          <span>{{ meta }}</span>
+                        {% endfor %}
+                      </span>
+                    {% endif %}
+                  </span>
+
+                  <span class="mt-2 shrink-0 text-app-muted transition group-hover:translate-x-0.5 group-hover:text-app-accent">
+                    {% include '@Shared/components/icon.twig' with { name: 'arrow-right', class: 'h-4 w-4' } only %}
+                  </span>
+                </a>
+              {% endfor %}
+            </div>
+
+            {% if group.view_all_url|default('') %}
+              <footer class="border-t border-app-border px-4 py-2.5 text-right sm:px-5">
+                <a class="text-sm font-semibold text-app-accent hover:underline" href="{{ group.view_all_url }}">
+                  {{ group.view_all_label|default('View all') }}
+                </a>
+              </footer>
+            {% endif %}
+          </section>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {% if pagination is not null %}
+      <div class="px-4 pb-4 sm:px-5">
+        {% include '@Shared/components/pagination.twig' with { pagination: pagination } only %}
+      </div>
+    {% endif %}
+  {% elseif query %}
+    <div data-search-everywhere-empty>
+      {% include '@Shared/components/empty-state.twig' with {
+        state: {
+          title: empty_title,
+          description: empty_description,
+          icon: 'search-x',
+          size: 'spacious'
+        }
+      } only %}
+    </div>
+  {% else %}
+    <div data-search-everywhere-initial>
+      {% include '@Shared/components/empty-state.twig' with {
+        state: {
+          title: initial_title,
+          description: initial_description,
+          icon: 'scan-search',
+          tone: 'accent',
+          size: 'spacious'
+        }
+      } only %}
+    </div>
+  {% endif %}
+</section>

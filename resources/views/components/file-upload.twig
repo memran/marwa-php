@@ -1,0 +1,100 @@
+{% set id = id|default(name|default('file-upload')) %}
+{% set name = name|default(id) %}
+{% set label = label|default('File') %}
+{% set help = help|default('Choose a file or drag and drop it here.') %}
+{% set error = error|default('') %}
+{% set required = required|default(false) %}
+{% set disabled = disabled|default(false) %}
+{% set multiple = multiple|default(false) %}
+{% set accept = accept|default('') %}
+{% set max_bytes = max_bytes|default(null) %}
+{% set preview_images = preview_images is defined ? preview_images : true %}
+{% set current_name = current_name|default('') %}
+{% set current_url = current_url|default('') %}
+{% set current_preview_url = current_preview_url|default('') %}
+{% set preview_alt = preview_alt|default(label ? label ~ ' preview' : 'Current file preview') %}
+{% set remove_name = remove_name|default('') %}
+{% set remove_value = remove_value|default('1') %}
+{% set remove_label = remove_label|default('Remove current file') %}
+{% set choose_label = choose_label|default(multiple ? 'Choose files' : 'Choose a file') %}
+{% set wrapper_class = wrapper_class|default('') %}
+{% set described_by = error ? id ~ '-error' : (help ? id ~ '-help' : '') %}
+
+<div
+  class="grid gap-2 {{ wrapper_class }}"
+  data-file-upload
+  data-preview-images="{{ preview_images ? 'true' : 'false' }}"
+  {% if max_bytes is not null %}data-max-bytes="{{ max_bytes }}"{% endif %}
+>
+  {% if label %}
+    <label class="text-sm font-semibold text-app-text" for="{{ id }}">
+      {{ label }}{% if required %} <span class="text-app-danger" aria-hidden="true">*</span>{% endif %}
+    </label>
+  {% endif %}
+
+  {% if current_name or current_preview_url %}
+    <div class="flex min-w-0 items-center gap-3 rounded-lg border border-app-border bg-app-surface-2/60 p-3" data-file-upload-current>
+      {% if current_preview_url %}
+        {% if current_url %}<a class="shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-app-accent/30" href="{{ current_url }}" target="_blank" rel="noopener noreferrer">{% endif %}
+          <img class="h-14 w-14 rounded-md border border-app-border bg-app-surface object-contain p-1" src="{{ current_preview_url }}" alt="{{ preview_alt }}" loading="lazy">
+        {% if current_url %}</a>{% endif %}
+      {% else %}
+        <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-app-accent/10 text-app-accent" aria-hidden="true">
+          {% include '@Shared/components/icon.twig' with { name: 'file', class: 'h-5 w-5' } only %}
+        </span>
+      {% endif %}
+      <div class="min-w-0">
+        <p class="text-xs font-semibold text-app-muted">Current file</p>
+        {% if current_url %}
+          <a class="block truncate text-sm font-semibold text-app-text hover:text-app-accent" href="{{ current_url }}" target="_blank" rel="noopener noreferrer">{{ current_name|default('Open file') }}</a>
+        {% else %}
+          <p class="truncate text-sm font-semibold text-app-text">{{ current_name }}</p>
+        {% endif %}
+        {% if remove_name %}
+          <button class="mt-2 inline-flex items-center gap-1.5 rounded-md border border-app-danger/20 bg-app-danger/10 px-2.5 py-1 text-xs font-semibold text-app-danger transition hover:bg-app-danger/15" type="submit" name="{{ remove_name }}" value="{{ remove_value }}">
+            {% include '@Shared/components/icon.twig' with { name: 'trash-2', class: 'h-3.5 w-3.5' } only %}
+            <span>{{ remove_label }}</span>
+          </button>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="hidden items-center gap-3 rounded-lg border border-app-accent/20 bg-app-accent/5 p-3" data-file-upload-selection aria-live="polite">
+    <img class="hidden h-14 w-14 rounded-md border border-app-border bg-app-surface object-contain p-1" alt="Selected file preview" data-file-upload-preview>
+    <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-app-accent/10 text-app-accent" data-file-upload-file-icon aria-hidden="true">
+      {% include '@Shared/components/icon.twig' with { name: 'file-check-2', class: 'h-5 w-5' } only %}
+    </span>
+    <div class="min-w-0 flex-1">
+      <p class="truncate text-sm font-semibold text-app-text" data-file-upload-name></p>
+      <p class="mt-0.5 text-xs text-app-muted" data-file-upload-meta></p>
+    </div>
+    <button class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-app-muted transition hover:bg-app-surface-2 hover:text-app-text focus:outline-none focus:ring-2 focus:ring-app-accent/30" type="button" data-file-upload-clear aria-label="Clear selected file">
+      {% include '@Shared/components/icon.twig' with { name: 'x', class: 'h-4 w-4' } only %}
+    </button>
+  </div>
+
+  <label class="flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-app-border bg-app-surface-2/60 px-5 py-6 text-center transition hover:border-app-accent/40 hover:bg-app-accent/5 focus-within:border-app-accent focus-within:ring-2 focus-within:ring-app-accent/20 {{ disabled ? 'cursor-not-allowed opacity-60' : '' }}" for="{{ id }}" data-file-upload-dropzone>
+    <span class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-app-accent/10 text-app-accent" aria-hidden="true">
+      {% include '@Shared/components/icon.twig' with { name: 'upload', class: 'h-5 w-5' } only %}
+    </span>
+    <span class="text-sm font-semibold text-app-text" data-file-upload-prompt>{{ choose_label }}</span>
+    {% if help %}<span id="{{ id }}-help" class="text-xs leading-5 text-app-muted">{{ help }}</span>{% endif %}
+    <input
+      class="sr-only"
+      id="{{ id }}"
+      name="{{ name }}"
+      type="file"
+      data-file-upload-input
+      {% if accept %}accept="{{ accept }}"{% endif %}
+      {% if required %}required aria-required="true"{% endif %}
+      {% if disabled %}disabled{% endif %}
+      {% if multiple %}multiple{% endif %}
+      {% if described_by %}aria-describedby="{{ described_by }}"{% endif %}
+      {% if error %}aria-invalid="true"{% endif %}
+    >
+  </label>
+
+  <p class="hidden text-sm text-app-danger" data-file-upload-client-error role="alert"></p>
+  {% if error %}<p id="{{ id }}-error" class="text-sm text-app-danger">{{ error }}</p>{% endif %}
+</div>

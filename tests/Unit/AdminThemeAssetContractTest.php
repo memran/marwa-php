@@ -67,13 +67,16 @@ final class AdminThemeAssetContractTest extends TestCase
 
     public function testAdminBreadcrumbUsesUtilityMarkupThatWorksWithTheLoadedBundle(): void
     {
-        $breadcrumb = file_get_contents(__DIR__ . '/../../resources/views/themes/admin/components/breadcrumb.twig');
+        $themeBreadcrumb = file_get_contents(__DIR__ . '/../../resources/views/themes/admin/components/breadcrumb.twig');
+        $breadcrumb = file_get_contents(__DIR__ . '/../../resources/views/components/breadcrumb.twig');
 
+        self::assertIsString($themeBreadcrumb);
         self::assertIsString($breadcrumb);
-        self::assertStringContainsString('flex flex-wrap items-center gap-2', $breadcrumb);
+        self::assertStringContainsString('@Shared/components/breadcrumb.twig', $themeBreadcrumb);
+        self::assertStringContainsString('flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-2', $breadcrumb);
         self::assertStringContainsString('hover:text-app-text', $breadcrumb);
-        self::assertStringContainsString('font-medium text-app-text', $breadcrumb);
-        self::assertStringContainsString('<span aria-hidden="true">/</span>', $breadcrumb);
+        self::assertStringContainsString('font-semibold text-app-text', $breadcrumb);
+        self::assertStringContainsString('aria-current="page"', $breadcrumb);
     }
 
     public function testAdminSourceCssDoesNotKeepRemovedBreadcrumbOrLegacyShellRules(): void
@@ -100,18 +103,16 @@ final class AdminThemeAssetContractTest extends TestCase
         self::assertStringContainsString('body.admin-theme.theme-auth .theme-auth__brand-panel :where(.bg-white\/5)', $appCss);
     }
 
-    public function testAdminToastUsesAdminToastTonePayloadAndHasThemeCss(): void
+    public function testAdminToastUsesSharedComponentWithTonePayload(): void
     {
-        $toast = file_get_contents(__DIR__ . '/../../resources/views/themes/admin/components/toast.twig');
-        $componentsCss = file_get_contents(__DIR__ . '/../../resources/views/themes/admin/assets/css/components.css');
+        $toast = file_get_contents(__DIR__ . '/../../resources/views/components/toast.twig');
 
         self::assertIsString($toast);
-        self::assertIsString($componentsCss);
         self::assertStringContainsString("toast.tone|default(toast.type|default('info'))", $toast);
-        self::assertStringContainsString('theme-toast__icon', $toast);
-        self::assertStringContainsString('.theme-toast-host', $componentsCss);
-        self::assertStringContainsString('.theme-toast--success', $componentsCss);
-        self::assertStringContainsString('.theme-toast__message', $componentsCss);
+        self::assertStringContainsString('data-toast-icon', $toast);
+        self::assertStringContainsString('bg-app-success/10 text-app-success', $toast);
+        self::assertStringContainsString('border-app-success/30', $toast);
+        self::assertFileDoesNotExist(__DIR__ . '/../../resources/views/themes/admin/components/toast.twig');
     }
 
     public function testAdminPermissionPanelDoesNotUseLegacyThemePanelClasses(): void

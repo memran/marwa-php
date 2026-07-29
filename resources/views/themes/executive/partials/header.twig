@@ -1,88 +1,25 @@
-{% set sections = mainMenu|default([]) %}
-{% set search_items = [] %}
-{% for section in sections %}
-  {% for child in section.children|default([]) %}
-    {% set search_items = search_items|merge([{
-      label: child.label,
-      url: child.url,
-      section: section.label,
-      icon: child.icon|default(section.icon|default('layout-dashboard'))
-    }]) %}
-  {% endfor %}
-{% endfor %}
-
 <div class="flex h-[72px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
   <div class="flex min-w-0 flex-1 items-center gap-3">
     <button
       type="button"
       class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white p-2 text-slate-500 shadow-sm transition hover:border-slate-300 hover:text-slate-900 lg:hidden"
-      @click="toggleMobile()"
+      @click="$dispatch('open-admin-navigation')"
       aria-label="Toggle menu"
     >
       {% include 'components/icon.twig' with { name: 'menu', class: 'h-5 w-5' } only %}
     </button>
 
-    <div
-      class="relative w-full max-w-[26rem]"
-      x-data='{
-        open: false,
-        query: "",
-        items: {{ search_items|json_encode|raw }},
-        get filteredItems() {
-          const query = this.query.trim().toLowerCase();
-          if (!query) return this.items;
-          return this.items.filter((item) => {
-            return item.label.toLowerCase().includes(query) || item.section.toLowerCase().includes(query);
-          });
-        }
-      }'
-      @click.outside="open = false"
+    <button
+      type="button"
+      class="flex h-11 w-full max-w-[26rem] items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 text-left text-sm text-slate-500 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+      data-command-palette-open="admin-command-palette"
+      aria-haspopup="dialog"
+      aria-controls="admin-command-palette"
     >
-      <label class="sr-only" for="module-search">Search anything</label>
-      <div class="relative">
-        <span class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3 text-slate-400">
-          {% include 'components/icon.twig' with { name: 'search', class: 'h-4 w-4' } only %}
-        </span>
-        <input
-          id="module-search"
-          type="search"
-          class="block h-11 w-full rounded-xl border border-slate-200 bg-white pe-3 ps-10 text-sm text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-          placeholder="Search anything..."
-          autocomplete="off"
-          x-model="query"
-          @focus="open = true"
-          @input="open = true"
-          @keydown.escape="open = false"
-        >
-        <span class="pointer-events-none absolute inset-y-0 end-3 hidden items-center text-[0.7rem] font-semibold text-slate-400 sm:flex">⌘ K</span>
-      </div>
-
-      <div
-        x-show="open"
-        x-cloak
-        x-transition
-        class="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.12)]"
-      >
-        <template x-if="filteredItems.length === 0">
-          <div class="px-4 py-3 text-sm text-slate-500">No modules found.</div>
-        </template>
-        <template x-for="item in filteredItems" :key="item.url">
-          <a
-            :href="item.url"
-            class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
-            @click="open = false"
-          >
-            <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-              {% include 'components/icon.twig' with { name: 'layout-dashboard', class: 'h-4 w-4 shrink-0' } only %}
-            </span>
-            <span class="grid min-w-0">
-              <span class="truncate font-semibold" x-text="item.label"></span>
-              <span class="truncate text-xs text-slate-500" x-text="item.section"></span>
-            </span>
-          </a>
-        </template>
-      </div>
-    </div>
+      {% include 'components/icon.twig' with { name: 'search', class: 'h-4 w-4 shrink-0' } only %}
+      <span class="min-w-0 flex-1 truncate">Search commands</span>
+      <kbd class="hidden font-mono text-[0.7rem] font-semibold text-slate-400 sm:block">Ctrl K</kbd>
+    </button>
   </div>
 
   <div class="flex items-center gap-2 sm:gap-3">

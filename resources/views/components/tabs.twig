@@ -1,0 +1,69 @@
+{% set items = items|default([]) %}
+{% set active_id = active_id|default(items|first ? (items|first).id|default((items|first).target|default('')) : '') %}
+{% set label = label|default('Sections') %}
+{% set managed = managed is defined ? managed : true %}
+{% set shell_class = shell_class|default('') %}
+{% set list_class = list_class|default('flex flex-wrap gap-2 rounded-lg border border-app-border bg-app-surface/80 p-1') %}
+{% set tab_class = tab_class|default('inline-flex min-h-10 items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40') %}
+{% set active_class = active_class|default('border-app-accent/30 bg-app-accent/10 text-app-accent') %}
+{% set inactive_class = inactive_class|default('border-transparent text-app-muted hover:bg-app-surface-2 hover:text-app-text') %}
+{% set link_navigation = items|first and (items|first).href|default('') %}
+
+{% if items is not empty %}
+  <div
+    class="{{ shell_class }}"
+    data-tabs
+    {% if managed %}{{ ui().data({ activeTab: active_id }) }}{% endif %}
+  >
+    <nav aria-label="{{ label }}">
+      <div class="{{ list_class }}"{% if not link_navigation %} role="tablist"{% endif %}>
+        {% for item in items %}
+          {% set item_id = item.id|default(item.target|default('tab-' ~ loop.index)) %}
+          {% set item_value = item_id|json_encode %}
+          {% set item_label = item.label|default(item_id) %}
+          {% set is_active = item.active|default(item_id == active_id) %}
+          {% set item_class = item.class|default('') %}
+
+          {% if item.href|default('') %}
+            <a
+              id="{{ item_id }}-tab"
+              class="{{ tab_class }} {{ is_active ? active_class : inactive_class }} {{ item_class }}"
+              href="{{ item.href }}"
+              {% if is_active %}aria-current="page"{% endif %}
+            >
+              {% if item.icon|default('') %}
+                {% include '@Shared/components/icon.twig' with { name: item.icon, class: 'h-4 w-4' } only %}
+              {% endif %}
+              <span>{{ item_label }}</span>
+              {% if item.count is defined and item.count is not same as(null) %}
+                <span class="rounded-full border border-app-border bg-app-surface-2 px-2 py-0.5 text-xs font-bold tabular-nums">{{ item.count }}</span>
+              {% endif %}
+            </a>
+          {% else %}
+            <button
+              id="{{ item_id }}-tab"
+              type="button"
+              role="tab"
+              aria-controls="{{ item_id }}-panel"
+              {{ ui().click('activeTab = ' ~ item_value) }}
+              {{ ui().bind('aria-selected', 'activeTab === ' ~ item_value) }}
+              {{ ui().bind('tabindex', 'activeTab === ' ~ item_value ~ " ? '0' : '-1'") }}
+              {{ ui().bind('class', 'activeTab === ' ~ item_value ~ " ? '" ~ active_class ~ "' : '" ~ inactive_class ~ "'") }}
+              class="{{ tab_class }} {{ item_class }}"
+            >
+              {% if item.icon|default('') %}
+                {% include '@Shared/components/icon.twig' with { name: item.icon, class: 'h-4 w-4' } only %}
+              {% endif %}
+              <span>{{ item_label }}</span>
+              {% if item.count is defined and item.count is not same as(null) %}
+                <span class="rounded-full border border-app-border bg-app-surface-2 px-2 py-0.5 text-xs font-bold tabular-nums">{{ item.count }}</span>
+              {% endif %}
+            </button>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </nav>
+
+    {% block panels %}{% endblock %}
+  </div>
+{% endif %}

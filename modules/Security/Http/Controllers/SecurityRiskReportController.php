@@ -19,7 +19,13 @@ final class SecurityRiskReportController extends Controller
     public function index(ServerRequestInterface $request): ResponseInterface
     {
         Input::setRequest($request);
+        $query = $request->getQueryParams();
 
-        return $this->view('@security/risk', $this->report->viewData(Input::query('since_hours', 24)));
+        return $this->view('@security/risk', $this->report->viewData(
+            Input::query('since_hours', 24),
+            Input::query('page', 1),
+            $query['q'] ?? '',
+            is_array($query['filters'] ?? null) ? $query['filters'] : []
+        ));
     }
 }

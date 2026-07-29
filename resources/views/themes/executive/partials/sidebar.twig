@@ -23,7 +23,7 @@
     <button
       type="button"
       class="rounded-lg p-2 text-slate-300 transition hover:bg-white/8 hover:text-white lg:hidden"
-      data-theme-sidebar-close
+      @click="$dispatch('close-admin-navigation')"
       aria-label="Close sidebar"
     >
       {% include 'components/icon.twig' with { name: 'x', class: 'h-5 w-5' } only %}

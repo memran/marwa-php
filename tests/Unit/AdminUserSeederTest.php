@@ -141,7 +141,7 @@ SQL);
             null,
             'default',
             __DIR__ . '/../../modules/Users/database/seeders',
-            'App\\Modules\\Users\\database\\seeders'
+            'Database\\Seeders'
         );
 
         $runner->runAll();

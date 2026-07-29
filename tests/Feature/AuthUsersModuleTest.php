@@ -10,8 +10,8 @@ use App\Modules\Auth\Models\Permission;
 use App\Modules\Notifications\Models\Notification;
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Auth\Support\RoleRepository;
-use App\Modules\Auth\database\seeders\RolesPermissionsSeeder;
-use App\Modules\Users\database\seeders\AdminUserSeeder;
+use Database\Seeders\RolesPermissionsSeeder;
+use Database\Seeders\AdminUserSeeder;
 use Marwa\DB\Connection\ConnectionManager;
 use Marwa\DB\Schema\MigrationRepository;
 use Marwa\Framework\Application;
@@ -365,8 +365,8 @@ TWIG
         $body = (string) $dashboard->getBody();
         self::assertStringContainsString('Dashboard', $body);
         self::assertStringContainsString('Live module widgets and service signals', $body);
-        self::assertStringContainsString('id="module-search"', $body);
-        self::assertStringContainsString('Dashboard widgets', $body);
+        self::assertStringContainsString('data-command-palette-open="admin-command-palette"', $body);
+        self::assertStringContainsString('Live overview', $body);
         self::assertStringContainsString('Refresh widget', $body);
         self::assertStringContainsString('Customize widgets', $body);
         self::assertStringContainsString('Back to normal mode', $body);
@@ -404,7 +404,7 @@ TWIG
         self::assertSame(200, $settings->getStatusCode());
         $settingsBody = (string) $settings->getBody();
         self::assertStringContainsString('role="tablist"', $settingsBody);
-        self::assertStringContainsString('data-tab-target="category-app"', $settingsBody);
+        self::assertStringContainsString('id="category-app-tab"', $settingsBody);
         self::assertStringContainsString('Application', $settingsBody);
         self::assertStringContainsString('Security', $settingsBody);
         self::assertStringContainsString('type="file"', $settingsBody);
@@ -472,7 +472,7 @@ TWIG
         $usersBody = (string) $usersPage->getBody();
         self::assertStringContainsString('MARWA-PHP', $usersBody);
         self::assertStringContainsString('Executive', $usersBody);
-        self::assertStringContainsString('id="module-search"', $usersBody);
+        self::assertStringContainsString('data-command-palette-open="admin-command-palette"', $usersBody);
         self::assertStringContainsString('Showing', $usersBody);
         self::assertStringContainsString('Administrator', $usersBody);
         self::assertStringContainsString('admin@marwa.test', $usersBody);
@@ -937,7 +937,7 @@ TWIG
         self::assertStringContainsString('View Audit Reports', (string) $filteredPermissionsPage->getBody());
         self::assertStringContainsString('reports.view', (string) $filteredPermissionsPage->getBody());
         self::assertStringContainsString('Search permissions', (string) $filteredPermissionsPage->getBody());
-        self::assertStringContainsString('filters%5Bgroup%5D=reports', (string) $filteredPermissionsPage->getBody());
+        self::assertStringContainsString('name="filters[group]"', (string) $filteredPermissionsPage->getBody());
 
         $editPage = $kernel->handle($this->request('GET', '/admin/permissions/' . $updatedPermission->getKey() . '/edit'));
         self::assertSame(200, $editPage->getStatusCode());
@@ -1397,7 +1397,8 @@ TWIG
         self::assertSame(200, $users->getStatusCode());
 
         $body = (string) $users->getBody();
-        self::assertStringContainsString('fixed bottom-4 right-4 z-50 grid gap-3', $body);
+        self::assertStringContainsString('fixed bottom-4 right-4 z-50 grid w-[min(24rem,calc(100vw-2rem))] gap-3', $body);
+        self::assertStringContainsString('data-toast-host', $body);
         self::assertStringContainsString('User created successfully.', $body);
         self::assertStringContainsString('Choose a valid backup frequency.', $body);
 

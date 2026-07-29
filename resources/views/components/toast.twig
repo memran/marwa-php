@@ -1,0 +1,57 @@
+{% set toast = toast|default({}) %}
+{% set requested_tone = toast.tone|default(toast.type|default('info')) %}
+{% set tone = requested_tone in ['success', 'warning', 'error', 'info'] ? requested_tone : 'info' %}
+{% set title = toast.title|default('')|trim %}
+{% set message = toast.message|default('')|trim %}
+{% set closable = toast.closable|default(true) %}
+{% set duration = toast.duration|default(tone == 'error' ? 0 : 6000) %}
+{% set icons = {
+  success: 'badge-check',
+  warning: 'circle-alert',
+  error: 'circle-x',
+  info: 'badge-info'
+} %}
+{% set icon_tones = {
+  success: 'bg-app-success/10 text-app-success',
+  warning: 'bg-app-warning/10 text-app-warning',
+  error: 'bg-app-danger/10 text-app-danger',
+  info: 'bg-app-accent/10 text-app-accent'
+} %}
+{% set border_tones = {
+  success: 'border-app-success/30',
+  warning: 'border-app-warning/30',
+  error: 'border-app-danger/30',
+  info: 'border-app-border'
+} %}
+
+<article
+  class="flex w-full items-start gap-3 rounded-lg border bg-app-surface px-4 py-3 text-app-text shadow-xl transition duration-150 {{ border_tones[tone] }}"
+  role="{{ tone == 'error' ? 'alert' : 'status' }}"
+  data-toast
+  data-toast-tone="{{ tone }}"
+  data-toast-duration="{{ duration }}"
+>
+  <span class="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg {{ icon_tones[tone] }}" data-toast-icon>
+    {% include '@Shared/components/icon.twig' with {
+      name: toast.icon|default(icons[tone]),
+      class: 'h-4 w-4'
+    } only %}
+  </span>
+
+  <span class="min-w-0 flex-1">
+    <strong class="block text-sm font-semibold text-app-text{% if not title %} hidden{% endif %}" data-toast-title>{{ title }}</strong>
+    <span class="block text-sm leading-5 text-app-muted{% if title %} mt-0.5{% endif %}" data-toast-message>{{ message }}</span>
+  </span>
+
+  {% if closable %}
+    <button
+      class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-app-muted transition hover:bg-app-surface-2 hover:text-app-text focus:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/30"
+      type="button"
+      aria-label="Dismiss notification"
+      title="Dismiss"
+      data-toast-dismiss
+    >
+      {% include '@Shared/components/icon.twig' with { name: 'x', class: 'h-4 w-4' } only %}
+    </button>
+  {% endif %}
+</article>

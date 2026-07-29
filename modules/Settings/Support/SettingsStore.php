@@ -40,6 +40,23 @@ final class SettingsStore
     }
 
     /**
+     * Read fresh values from the database, bypassing cache.
+     *
+     * Use during boot to avoid stale cache values after config changes.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function fresh(): array
+    {
+        $this->cache->forget(self::CACHE_KEY);
+        /** @var array<string, array<string, mixed>> $values */
+        $values = $this->catalog->hydrate($this->repository->all());
+        $this->cache->remember(self::CACHE_KEY, null, static fn () => $values);
+
+        return $values;
+    }
+
+    /**
      * @return array<string, array<string, mixed>>
      */
     public function refresh(): array
