@@ -5,6 +5,7 @@
   <img src="https://img.shields.io/packagist/dependency-v/memran/marwa-php/php?label=PHP&style=flat" alt="PHP">
   <img src="https://img.shields.io/github/actions/workflow/status/memran/marwa-php/ci.yml?branch=main&label=PHPUnit&style=flat" alt="PHPUnit">
   <img src="https://img.shields.io/github/actions/workflow/status/memran/marwa-php/ci.yml?branch=main&label=PHPStan&style=flat" alt="PHPStan">
+  <img src="https://img.shields.io/packagist/l/memran/marwa-php?label=license&style=flat" alt="License">
 </p>
 
 **Build intelligent applications with the first PHP framework designed for the AI era.**
