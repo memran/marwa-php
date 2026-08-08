@@ -9,6 +9,8 @@ use Marwa\Framework\Facades\Router;
 Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class]], static function ($routes): void {
     $routes->get('/login', [AuthController::class, 'login'])->name('admin.login')->register();
     $routes->post('/login', [AuthController::class, 'authenticate'])->name('admin.login.submit')->register();
+    $routes->get('/login/2fa', [AuthController::class, 'twoFactor'])->name('admin.login.two-factor')->register();
+    $routes->post('/login/2fa', [AuthController::class, 'verifyTwoFactor'])->name('admin.login.two-factor.submit')->register();
     $routes->get('/forgot-password', [AuthController::class, 'forgotPassword'])->name('admin.forgot-password')->register();
     $routes->post('/forgot-password', [AuthController::class, 'sendForgotPasswordLink'])->name('admin.forgot-password.submit')->register();
     $routes->get('/reset-password/{token}', [AuthController::class, 'resetPassword'])->name('admin.reset-password')->register();

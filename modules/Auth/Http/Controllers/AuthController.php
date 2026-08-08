@@ -7,6 +7,7 @@ namespace App\Modules\Auth\Http\Controllers;
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Auth\Support\PasswordResetMailer;
 use App\Modules\Auth\Support\PasswordResetThrottle;
+use App\Modules\Auth\Support\TwoFactorAuth;
 use Marwa\Framework\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -17,6 +18,7 @@ final class AuthController extends Controller
         private readonly AuthManager $auth,
         private readonly PasswordResetMailer $passwordResetMailer,
         private readonly PasswordResetThrottle $passwordResetThrottle,
+        private readonly TwoFactorAuth $twoFactor,
     ) {
     }
 
@@ -24,6 +26,10 @@ final class AuthController extends Controller
     {
         if ($this->auth->check()) {
             return $this->redirect('/admin/');
+        }
+
+        if ($this->auth->twoFactorChallengePending()) {
+            return $this->redirect('/admin/login/2fa');
         }
 
         $errors = session('errors', []);
@@ -60,9 +66,73 @@ final class AuthController extends Controller
             return $this->redirect('/admin/login');
         }
 
+        if ($this->auth->twoFactorChallengePending()) {
+            return $this->redirect('/admin/login/2fa');
+        }
+
         $this->flash('auth.notice', 'Signed in successfully.');
 
         return $this->redirect('/admin/');
+    }
+
+    public function twoFactor(): ResponseInterface
+    {
+        if ($this->auth->check()) {
+            return $this->redirect('/admin/');
+        }
+
+        if (!$this->auth->twoFactorChallengePending()) {
+            return $this->redirect('/admin/login');
+        }
+
+        $enrolling = $this->auth->twoFactorEnrolling();
+        $account = $this->auth->twoFactorEmail() ?? '';
+        $secret = $this->auth->twoFactorSecret();
+        $issuer = (string) config('app.name', 'MarwaPHP');
+
+        return $this->view('login-two-factor', [
+            'errors' => session('errors', []),
+            'old' => session('_old_input', []),
+            'notice' => session('auth.notice'),
+            'enrolling' => $enrolling,
+            'secret' => $enrolling ? $secret : null,
+            'account' => $account,
+            'issuer' => $issuer,
+            'provisioning_uri' => $enrolling && is_string($secret) && $secret !== ''
+                ? $this->twoFactor->provisioningUri($secret, $account !== '' ? $account : 'admin', $issuer)
+                : null,
+        ]);
+    }
+
+    public function verifyTwoFactor(ServerRequestInterface $request): ResponseInterface
+    {
+        if ($this->auth->check()) {
+            return $this->redirect('/admin/');
+        }
+
+        if (!$this->auth->twoFactorChallengePending()) {
+            return $this->redirect('/admin/login');
+        }
+
+        $validated = $this->validate([
+            'code' => 'required|string|max:16',
+        ], request: $request);
+
+        $code = trim((string) ($validated['code'] ?? ''));
+
+        if ($this->auth->completeTwoFactor($code)) {
+            $this->flash('auth.notice', 'Signed in successfully.');
+
+            return $this->redirect('/admin/');
+        }
+
+        $this->withErrors([
+            'code' => 'The authentication code is invalid or expired.',
+        ])->withInput([
+            'code' => '',
+        ]);
+
+        return $this->redirect('/admin/login/2fa');
     }
 
     public function forgotPassword(): ResponseInterface

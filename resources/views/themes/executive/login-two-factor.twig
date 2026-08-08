@@ -1,0 +1,78 @@
+{% extends "layouts/auth.twig" %}
+
+{% block title %}Two-factor authentication | MarwaPHP Executive{% endblock %}
+
+{% block content %}
+  <div class="space-y-3">
+    <span class="inline-flex w-fit items-center gap-2 rounded-full border border-app-accent/20 bg-app-accent/10 px-4 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-app-accent">
+      <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+      Two-factor authentication
+    </span>
+    <div class="space-y-2">
+      <h2 class="text-3xl font-semibold tracking-tight text-app-text sm:text-4xl">Verify your identity</h2>
+      <p class="max-w-xl text-sm leading-6 text-app-muted">
+        {% if enrolling %}Scan the code with Google Authenticator or FreeOTP, then enter the 6-digit code to finish signing in.{% else %}Enter the 6-digit code from Google Authenticator or FreeOTP to finish signing in.{% endif %}
+      </p>
+    </div>
+  </div>
+
+  {% if notice is defined and notice %}
+    <div class="mt-8 rounded-2xl border border-app-success/20 bg-app-success/10 p-4 text-app-success">
+      <p class="text-sm font-semibold">Session update</p>
+      <p class="mt-1 text-sm">{{ notice }}</p>
+    </div>
+  {% endif %}
+
+  {% if errors.code is defined %}
+    <div class="mt-8 rounded-2xl border border-app-danger/20 bg-app-danger/10 p-4 text-app-danger">
+      <p class="text-sm font-semibold">Unable to verify</p>
+      <p class="mt-1 text-sm">{{ errors.code|first }}</p>
+    </div>
+  {% endif %}
+
+  {% if enrolling and secret is defined and secret %}
+    <div class="mt-8 grid gap-5 rounded-2xl border border-app-border bg-app-surface-2/40 p-5">
+      <div class="grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
+        {% if provisioning_uri %}
+          <div class="h-36 w-36 overflow-hidden rounded-xl border border-app-border bg-white">
+            <img class="h-full w-full object-cover" src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data={{ provisioning_uri|url_encode }}" alt="QR code for two-factor authentication">
+          </div>
+        {% endif %}
+        <div class="space-y-2">
+          <p class="text-xs font-bold uppercase tracking-[0.18em] text-app-muted">Manual setup</p>
+          {% if account %}
+            <p class="text-sm text-app-text">Account: <span class="font-mono">{{ account }}</span></p>
+          {% endif %}
+          <p class="text-sm text-app-text">Secret: <span class="font-mono font-semibold">{{ secret }}</span></p>
+          <p class="text-xs text-app-muted">Open your authenticator app and add a new account to scan the QR code or enter the secret.</p>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <form method="post" action="/admin/login/2fa" class="mt-8 grid gap-5">
+    {{ csrf_field() }}
+
+    {% include "components/input.twig" with {
+      name: 'code',
+      label: 'Authentication code',
+      type: 'text',
+      value: old.code|default(''),
+      placeholder: '000000',
+      help: 'Six-digit code that refreshes every 30 seconds.',
+      error: errors.code|default([])|first
+    } only %}
+
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <span class="text-xs text-app-muted">Don&rsquo;t have the code? Contact your administrator.</span>
+      <a class="text-sm font-semibold text-app-accent transition hover:text-app-accent-soft" href="/admin/logout">Cancel sign-in</a>
+    </div>
+
+    {% include "components/button.twig" with {
+      label: 'Verify and sign in',
+      type: 'submit',
+      variant: 'primary',
+      class: 'w-full'
+    } only %}
+  </form>
+{% endblock %}

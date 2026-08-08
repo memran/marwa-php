@@ -1,0 +1,136 @@
+{% extends "layouts/admin.twig" %}
+
+{% block title %}Two-factor authentication | MarwaPHP Admin{% endblock %}
+
+{% block content %}
+  {% set user = authUser %}
+  {% set mode = two_factor_mode|default('disabled') %}
+  {% set enabled = two_factor_enabled|default(false) %}
+  {% set secret = two_factor_secret|default(null) %}
+  {% set account = user.getAttribute('email') %}
+  {% set description = mode == 'required'
+    ? 'Signing in requires a code from Google Authenticator or FreeOTP. Managed by your administrator.'
+    : (mode == 'optional'
+        ? 'You can protect your account with a code from Google Authenticator or FreeOTP.'
+        : 'Two-factor authentication is disabled by your administrator.') %}
+
+  <section class="rounded-[1.25rem] border border-app-border bg-app-surface/80 p-6 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
+    <div class="flex items-start gap-5">
+      <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-app-accent/10 text-app-accent">
+        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="flex flex-wrap items-center gap-3">
+          <h1 class="text-xl font-bold text-app-text">Two-factor authentication</h1>
+          {% if mode == 'disabled' %}
+            <span class="inline-flex rounded-full border border-app-border bg-app-surface-2 px-3 py-1 text-[11px] font-medium text-app-muted">Unavailable</span>
+          {% elseif enabled %}
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-app-success/10 px-2.5 py-1 text-[11px] font-medium text-app-success">
+              <span class="h-1.5 w-1.5 rounded-full bg-app-success"></span>Enabled
+            </span>
+          {% else %}
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-app-warning/10 px-2.5 py-1 text-[11px] font-medium text-app-warning">
+              <span class="h-1.5 w-1.5 rounded-full bg-app-warning"></span>
+              {% if mode == 'required' %}Required{% else %}Not enabled{% endif %}
+            </span>
+          {% endif %}
+        </div>
+        <p class="mt-2 max-w-2xl text-sm text-app-muted">{{ description }}</p>
+      </div>
+    </div>
+  </section>
+
+  {% if notice is defined and notice %}
+    <div class="mt-6 rounded-2xl border border-app-success/20 bg-app-success/10 p-4 text-app-success">
+      <p class="text-sm font-semibold">{{ notice }}</p>
+    </div>
+  {% endif %}
+
+  <div class="mt-6 grid gap-6 lg:grid-cols-2">
+    {% if mode != 'disabled' %}
+      {% if enabled %}
+        <section class="rounded-[1.25rem] border border-app-border bg-app-surface/80 p-6 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
+          <h2 class="text-sm font-semibold text-app-text">Disable two-factor authentication</h2>
+          <p class="mt-1 text-sm text-app-muted">Confirm your current password and a fresh code from the authenticator app to turn 2FA off.</p>
+          {% if mode == 'required' %}
+            <div class="mt-4 rounded-xl border border-app-warning/20 bg-app-warning/10 p-4 text-sm text-app-warning">
+              Two-factor authentication is required for this workspace. Disabling it may restrict your sign-ins.
+            </div>
+          {% endif %}
+          <form method="post" action="/admin/profile/2fa/disable" class="mt-4 space-y-4">
+            {{ csrf_field() }}
+            <div>
+              <label for="current_password" class="block text-xs font-medium text-app-muted">Current password</label>
+              <input id="current_password" name="current_password" type="password" autocomplete="current-password" class="mt-1 w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 text-sm text-app-text outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/10">
+              {% if errors.current_password is defined %}
+                <p class="mt-1 text-xs text-app-danger">{{ errors.current_password|first }}</p>
+              {% endif %}
+            </div>
+            <div>
+              <label for="disable_code" class="block text-xs font-medium text-app-muted">Authentication code</label>
+              <input id="disable_code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="000000" class="mt-1 w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 text-sm text-app-text outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/10">
+              {% if errors.code is defined %}
+                <p class="mt-1 text-xs text-app-danger">{{ errors.code|first }}</p>
+              {% endif %}
+            </div>
+            <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-app-danger/20 bg-app-danger/10 px-4 py-2 text-sm font-semibold text-app-danger transition hover:bg-app-danger/20">
+              Disable two-factor authentication
+            </button>
+          </form>
+        </section>
+      {% else %}
+        {% if secret %}
+          <section class="rounded-[1.25rem] border border-app-border bg-app-surface/80 p-6 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
+            <h2 class="text-sm font-semibold text-app-text">Scan or enter the setup code</h2>
+            <p class="mt-1 text-sm text-app-muted">Add this account to Google Authenticator or FreeOTP using the QR code or the manual secret below.</p>
+            <div class="mt-5 grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
+              {% if provisioning_uri is defined and provisioning_uri %}
+                <div class="h-36 w-36 overflow-hidden rounded-xl border border-app-border bg-white">
+                  <img class="h-full w-full object-cover" src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data={{ provisioning_uri|url_encode }}" alt="QR code for two-factor authentication">
+                </div>
+              {% endif %}
+              <div class="space-y-2">
+                <p class="text-xs font-bold uppercase tracking-[0.18em] text-app-muted">Manual setup</p>
+                <p class="text-sm text-app-text">Account: <span class="font-mono">{{ account }}</span></p>
+                <p class="text-sm text-app-text">Secret: <span class="font-mono font-semibold">{{ secret }}</span></p>
+              </div>
+            </div>
+
+            <form method="post" action="/admin/profile/2fa/confirm" class="mt-5 space-y-4">
+              {{ csrf_field() }}
+              <div>
+                <label for="setup_password" class="block text-xs font-medium text-app-muted">Current password</label>
+                <input id="setup_password" name="current_password" type="password" autocomplete="current-password" class="mt-1 w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 text-sm text-app-text outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/10">
+                {% if errors.current_password is defined %}
+                  <p class="mt-1 text-xs text-app-danger">{{ errors.current_password|first }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <label for="setup_code" class="block text-xs font-medium text-app-muted">Authentication code</label>
+                <input id="setup_code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="000000" class="mt-1 w-full rounded-xl border border-app-border bg-app-surface px-3 py-2 text-sm text-app-text outline-none transition focus:border-app-accent focus:ring-2 focus:ring-app-accent/10">
+                {% if errors.code is defined %}
+                  <p class="mt-1 text-xs text-app-danger">{{ errors.code|first }}</p>
+                {% endif %}
+              </div>
+              <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-transparent bg-app-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-app-accent-soft">
+                Confirm and enable
+              </button>
+            </form>
+          </section>
+        {% else %}
+          <section class="rounded-[1.25rem] border border-app-border bg-app-surface/80 p-6 shadow-[0_30px_80px_rgba(2,6,23,0.45)] backdrop-blur-xl">
+            <h2 class="text-sm font-semibold text-app-text">Enable two-factor authentication</h2>
+            <p class="mt-1 text-sm text-app-muted">We will generate a 32-character secret compatible with Google Authenticator and FreeOTP. You then confirm a code to finish setup.</p>
+            <form method="post" action="/admin/profile/2fa/setup" class="mt-4">
+              {{ csrf_field() }}
+              <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-transparent bg-app-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-app-accent-soft">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+                Set up two-factor authentication
+              </button>
+            </form>
+          </section>
+        {% endif %}
+      {% endif %}
+    {% endif %}
+  </div>
+{% endblock %}

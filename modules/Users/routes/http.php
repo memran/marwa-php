@@ -26,6 +26,22 @@ Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class
     $routes->post('/profile/password', [ProfileController::class, 'updatePassword'])
         ->name('admin.users.profile.password')
         ->register();
+
+    $routes->get('/profile/2fa', [ProfileController::class, 'twoFactor'])
+        ->name('admin.users.profile.2fa')
+        ->register();
+
+    $routes->post('/profile/2fa/setup', [ProfileController::class, 'beginTwoFactorSetup'])
+        ->name('admin.users.profile.2fa.setup')
+        ->register();
+
+    $routes->post('/profile/2fa/confirm', [ProfileController::class, 'confirmTwoFactorSetup'])
+        ->name('admin.users.profile.2fa.confirm')
+        ->register();
+
+    $routes->post('/profile/2fa/disable', [ProfileController::class, 'disableTwoFactor'])
+        ->name('admin.users.profile.2fa.disable')
+        ->register();
 });
 
 Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class, RequireAdminRole::class]], static function ($routes): void {

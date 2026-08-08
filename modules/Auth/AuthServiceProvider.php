@@ -12,6 +12,8 @@ use App\Modules\Auth\Support\NullAdminUserProvider;
 use App\Modules\Auth\Support\PasswordResetMailer;
 use App\Modules\Auth\Support\PasswordResetThrottle;
 use App\Modules\Auth\Support\RolePolicy;
+use App\Modules\Auth\Support\TwoFactorAuth;
+use App\Modules\Auth\Support\TwoFactorAuthService;
 use App\Support\ModuleDatabaseDependency;
 use Marwa\Framework\Contracts\CacheInterface;
 use Marwa\Module\Contracts\ModuleServiceProviderInterface;
@@ -43,6 +45,11 @@ final class AuthServiceProvider implements ModuleServiceProviderInterface
         $container->addShared(AdminSessionManager::class, fn () => new AdminSessionManager(
             $resolveUsers(),
             $container->get(LoginAttemptTracker::class),
+            $container->get(TwoFactorAuth::class),
+        ), true);
+        $container->addShared(TwoFactorAuthService::class, static fn () => new TwoFactorAuthService(), true);
+        $container->addShared(TwoFactorAuth::class, fn () => new TwoFactorAuth(
+            $container->get(TwoFactorAuthService::class),
         ), true);
         $container->addShared(PasswordResetMailer::class, fn () => new PasswordResetMailer(
             $resolveUsers(),

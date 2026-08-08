@@ -6,13 +6,19 @@ namespace Tests\Unit;
 
 use App\Modules\Auth\Support\AuthManager;
 use App\Modules\Auth\Contracts\AdminActorInterface;
+use App\Modules\Auth\Contracts\AdminAuthenticatableInterface;
 use App\Modules\Auth\Contracts\AdminUserProviderInterface;
+use App\Modules\Auth\Models\Role;
 use App\Modules\Auth\Support\NullAdminUserProvider;
+use App\Modules\Auth\Support\TwoFactorAuth;
+use App\Modules\Auth\Support\TwoFactorAuthService;
 use Marwa\Framework\Application;
 use PHPUnit\Framework\TestCase;
 
 final class AuthManagerTest extends TestCase
 {
+    private const RFC_KEY = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ';
+
     private string $basePath;
 
     protected function setUp(): void
@@ -165,5 +171,192 @@ final class AuthManagerTest extends TestCase
 
         self::assertNotSame($sessionIdBeforeLogout, $sessionIdAfterLogout);
         self::assertFalse($auth->check());
+    }
+
+    public function testPersistedUserWithTwoFactorMustVerifyBeforeSessionStarts(): void
+    {
+        $app = $this->createTwoFactorAwareApp(TwoFactorAuth::MODE_OPTIONAL);
+        $totp = new TwoFactorAuthService();
+        $auth = $app->make(AuthManager::class);
+        $secret = self::RFC_KEY;
+
+        self::assertTrue($auth->attempt('persisted@marwa.test', 'SecretPass123!'));
+        self::assertFalse($auth->check());
+        self::assertTrue($auth->twoFactorChallengePending());
+        self::assertSame('persisted@marwa.test', $auth->twoFactorEmail());
+        self::assertSame($secret, $auth->twoFactorSecret());
+        self::assertFalse($auth->twoFactorEnrolling());
+        self::assertFalse($auth->completeTwoFactor('000000'));
+
+        self::assertTrue($auth->completeTwoFactor($totp->currentCode($secret)));
+        self::assertTrue($auth->check());
+        self::assertFalse($auth->twoFactorChallengePending());
+    }
+
+    public function testDisabledModeSkipsTwoFactorChallengeEntirely(): void
+    {
+        $app = $this->createTwoFactorAwareApp(TwoFactorAuth::MODE_DISABLED);
+
+        $auth = $app->make(AuthManager::class);
+
+        self::assertTrue($auth->attempt('persisted@marwa.test', 'SecretPass123!'));
+        self::assertTrue($auth->check());
+        self::assertFalse($auth->twoFactorChallengePending());
+    }
+
+    public function testRequiredModeForcesEnrolmentChallengeForPlainPersistedUser(): void
+    {
+        $app = new Application($this->basePath);
+        $GLOBALS['marwa_app'] = $app;
+        $app->add(
+            AdminUserProviderInterface::class,
+            new TwoFactorAwareUserProvider(
+                new TwoFactorAdminUser(
+                    'plain@marwa.test',
+                    'Plain User',
+                    password_hash('SecretPass123!', PASSWORD_DEFAULT),
+                    null,
+                    null
+                )
+            )
+        );
+        $app->add(
+            TwoFactorAuth::class,
+            new TwoFactorAuth(new TwoFactorAuthService(), static fn (): string => TwoFactorAuth::MODE_REQUIRED)
+        );
+
+        $auth = $app->make(AuthManager::class);
+
+        self::assertTrue($auth->attempt('plain@marwa.test', 'SecretPass123!'));
+        self::assertFalse($auth->check());
+        self::assertTrue($auth->twoFactorChallengePending());
+        self::assertTrue($auth->twoFactorEnrolling());
+        self::assertNotNull($auth->twoFactorSecret());
+    }
+
+    private function createTwoFactorAwareApp(string $mode): Application
+    {
+        $app = new Application($this->basePath);
+        $GLOBALS['marwa_app'] = $app;
+        $app->add(
+            AdminUserProviderInterface::class,
+            new TwoFactorAwareUserProvider(
+                new TwoFactorAdminUser(
+                    'persisted@marwa.test',
+                    'Persisted User',
+                    password_hash('SecretPass123!', PASSWORD_DEFAULT),
+                    self::RFC_KEY,
+                    '2026-08-08 00:00:00'
+                )
+            )
+        );
+        $app->add(
+            TwoFactorAuth::class,
+            new TwoFactorAuth(new TwoFactorAuthService(), static fn (): string => $mode)
+        );
+
+        return $app;
+    }
+}
+
+final class TwoFactorAwareUserProvider implements AdminUserProviderInterface
+{
+    public function __construct(private readonly ?AdminAuthenticatableInterface $user = null)
+    {
+    }
+
+    public function findPersistedUserByEmail(string $email): ?AdminAuthenticatableInterface
+    {
+        if ($this->user === null) {
+            return null;
+        }
+
+        return strtolower((string) $this->user->getAttribute('email')) === strtolower($email)
+            ? $this->user
+            : null;
+    }
+
+    public function findPersistedUserById(int $id): ?AdminAuthenticatableInterface
+    {
+        return null;
+    }
+
+    public function createBootstrapUser(string $name, string $email): AdminAuthenticatableInterface
+    {
+        return new TwoFactorAdminUser($email, $name, null, null, null);
+    }
+}
+
+final class TwoFactorAdminUser implements AdminAuthenticatableInterface
+{
+    public function __construct(
+        private readonly string $email,
+        private readonly string $name,
+        private readonly ?string $passwordHash,
+        private ?string $secret,
+        private ?string $enabledAt,
+    ) {
+    }
+
+    public function getAttribute(string $key): mixed
+    {
+        return match ($key) {
+            'email' => $this->email,
+            'name' => $this->name,
+            'password' => $this->passwordHash,
+            'two_factor_secret' => $this->secret,
+            'two_factor_enabled_at' => $this->enabledAt,
+            default => null,
+        };
+    }
+
+    public function getId(): int
+    {
+        return 1;
+    }
+
+    public function role(): ?Role
+    {
+        return null;
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        return true;
+    }
+
+    public function getPasswordHash(): ?string
+    {
+        return $this->passwordHash;
+    }
+
+    public function recordSuccessfulLogin(string $timestamp): void
+    {
+    }
+
+    public function updatePasswordHash(string $hash): void
+    {
+    }
+
+    public function hasTwoFactorEnabled(): bool
+    {
+        return $this->enabledAt !== null;
+    }
+
+    public function getTwoFactorSecret(): ?string
+    {
+        return $this->secret;
+    }
+
+    public function enableTwoFactor(string $secret): void
+    {
+        $this->secret = $secret;
+        $this->enabledAt = date('Y-m-d H:i:s');
+    }
+
+    public function disableTwoFactor(): void
+    {
+        $this->secret = null;
+        $this->enabledAt = null;
     }
 }

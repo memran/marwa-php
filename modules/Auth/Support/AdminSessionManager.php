@@ -15,18 +15,26 @@ final class AdminSessionManager
     private const SESSION_USER_NAME = 'admin_user_name';
     private const SESSION_USER_EMAIL = 'admin_user_email';
     private const SESSION_PASSWORD_FINGERPRINT = 'admin_password_fingerprint';
+    private const SESSION_2FA_PENDING = 'admin_2fa_pending';
+    private const SESSION_2FA_EMAIL = 'admin_2fa_email';
+    private const SESSION_2FA_NAME = 'admin_2fa_name';
+    private const SESSION_2FA_SECRET = 'admin_2fa_secret';
+    private const SESSION_2FA_ENROL = 'admin_2fa_enrol';
     private const DEFAULT_ADMIN_NAME = 'Administrator';
 
     private ?string $lastFailureReason = null;
     private readonly AdminUserProviderInterface $users;
     private readonly LoginAttemptTracker $loginTracker;
+    private readonly TwoFactorAuth $twoFactor;
 
     public function __construct(
         ?AdminUserProviderInterface $users = null,
-        ?LoginAttemptTracker $loginTracker = null
+        ?LoginAttemptTracker $loginTracker = null,
+        ?TwoFactorAuth $twoFactor = null
     ) {
         $this->users = $users ?? new NullAdminUserProvider();
         $this->loginTracker = $loginTracker ?? new LoginAttemptTracker();
+        $this->twoFactor = $twoFactor ?? new TwoFactorAuth(new TwoFactorAuthService());
     }
 
     public function check(): bool
@@ -91,6 +99,19 @@ final class AdminSessionManager
 
             if ($hash !== null && password_verify($password, $hash)) {
                 $this->loginTracker->clearLoginFailures($email, $ipAddress);
+
+                if ($this->twoFactor->needsChallenge($user)) {
+                    $this->beginTwoFactorChallenge(
+                        $user,
+                        $this->twoFactor->hasTwoFactor($user) ? 'verify' : 'enrol',
+                        $this->twoFactor->hasTwoFactor($user)
+                            ? (string) $this->twoFactor->secretFor($user)
+                            : $this->twoFactor->generateSecret()
+                    );
+
+                    return true;
+                }
+
                 $this->startSession(
                     (string) $user->getAttribute('name'),
                     (string) $user->getAttribute('email'),
@@ -162,6 +183,96 @@ final class AdminSessionManager
         return $this->lastFailureReason;
     }
 
+    public function twoFactorChallengePending(): bool
+    {
+        return session(self::SESSION_2FA_PENDING, false) === true
+            && session(self::SESSION_2FA_EMAIL, '') !== '';
+    }
+
+    public function twoFactorEmail(): ?string
+    {
+        $email = trim((string) session(self::SESSION_2FA_EMAIL, ''));
+
+        return $email !== '' ? $email : null;
+    }
+
+    public function twoFactorSecret(): ?string
+    {
+        $secret = trim((string) session(self::SESSION_2FA_SECRET, ''));
+
+        return $secret !== '' ? $secret : null;
+    }
+
+    public function twoFactorEnrolling(): bool
+    {
+        return session(self::SESSION_2FA_ENROL, false) === true;
+    }
+
+    public function cancelTwoFactorChallenge(): void
+    {
+        $session = session();
+        $session->start();
+        $session->forget(self::SESSION_2FA_PENDING);
+        $session->forget(self::SESSION_2FA_EMAIL);
+        $session->forget(self::SESSION_2FA_NAME);
+        $session->forget(self::SESSION_2FA_SECRET);
+        $session->forget(self::SESSION_2FA_ENROL);
+        $session->close();
+    }
+
+    public function completeTwoFactor(string $code): bool
+    {
+        if (!$this->twoFactorChallengePending()) {
+            return false;
+        }
+
+        $email = $this->twoFactorEmail();
+        $secret = $this->twoFactorSecret();
+        $enrolling = $this->twoFactorEnrolling();
+
+        if ($email === null || $secret === null || !$this->twoFactor->verifyPending($secret, $code)) {
+            return false;
+        }
+
+        $this->cancelTwoFactorChallenge();
+
+        $user = $this->users->findPersistedUserByEmail($email);
+
+        if (!$user instanceof AdminAuthenticatableInterface) {
+            return false;
+        }
+
+        if ($enrolling && method_exists($user, 'enableTwoFactor')) {
+            $user->enableTwoFactor($secret);
+        }
+
+        $this->startSession(
+            (string) $user->getAttribute('name'),
+            (string) $user->getAttribute('email'),
+            $this->passwordFingerprint($user)
+        );
+
+        $this->recordAuthActivity(
+            'auth.login',
+            'Signed in to the admin console.',
+            [
+                'summary' => 'Signed in to the admin console.',
+                'state' => [
+                    'Email' => $email,
+                    'Two-factor' => 'TOTP',
+                ],
+            ]
+        );
+
+        try {
+            $user->recordSuccessfulLogin(date('Y-m-d H:i:s'));
+        } catch (\Throwable) {
+            // Best effort — login succeeds even if timestamp persist fails
+        }
+
+        return true;
+    }
+
     public function logout(): void
     {
         $this->recordAuthActivity(
@@ -180,7 +291,24 @@ final class AdminSessionManager
         $session->forget(self::SESSION_USER_NAME);
         $session->forget(self::SESSION_USER_EMAIL);
         $session->forget(self::SESSION_PASSWORD_FINGERPRINT);
+        $session->forget(self::SESSION_2FA_PENDING);
+        $session->forget(self::SESSION_2FA_EMAIL);
+        $session->forget(self::SESSION_2FA_NAME);
+        $session->forget(self::SESSION_2FA_SECRET);
+        $session->forget(self::SESSION_2FA_ENROL);
         $session->regenerate(true);
+        $session->close();
+    }
+
+    private function beginTwoFactorChallenge(AdminAuthenticatableInterface $user, string $type, string $secret): void
+    {
+        $session = session();
+        $session->start();
+        $session->set(self::SESSION_2FA_PENDING, true);
+        $session->set(self::SESSION_2FA_EMAIL, (string) $user->getAttribute('email'));
+        $session->set(self::SESSION_2FA_NAME, (string) $user->getAttribute('name'));
+        $session->set(self::SESSION_2FA_ENROL, $type === 'enrol');
+        $session->set(self::SESSION_2FA_SECRET, $secret);
         $session->close();
     }
 

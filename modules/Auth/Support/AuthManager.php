@@ -39,6 +39,36 @@ final class AuthManager
         return $this->sessionManager->lastFailureReason();
     }
 
+    public function twoFactorChallengePending(): bool
+    {
+        return $this->sessionManager->twoFactorChallengePending();
+    }
+
+    public function twoFactorEmail(): ?string
+    {
+        return $this->sessionManager->twoFactorEmail();
+    }
+
+    public function twoFactorSecret(): ?string
+    {
+        return $this->sessionManager->twoFactorSecret();
+    }
+
+    public function twoFactorEnrolling(): bool
+    {
+        return $this->sessionManager->twoFactorEnrolling();
+    }
+
+    public function cancelTwoFactorChallenge(): void
+    {
+        $this->sessionManager->cancelTwoFactorChallenge();
+    }
+
+    public function completeTwoFactor(string $code): bool
+    {
+        return $this->sessionManager->completeTwoFactor($code);
+    }
+
     public function logout(): void
     {
         $this->sessionManager->logout();

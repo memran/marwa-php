@@ -139,7 +139,18 @@ final class SettingsCatalog
                 'fields' => [
                     'password_policy' => ['label' => 'Password policy', 'input' => 'textarea', 'type' => 'string', 'default' => 'Minimum 8 characters, mixed case recommended.'],
                     'login_attempt_limit' => ['label' => 'Login attempt limit', 'input' => 'number', 'type' => 'int', 'default' => 5, 'min' => 1],
-                    '2fa_enabled' => ['label' => '2FA enabled', 'input' => 'checkbox', 'type' => 'bool', 'default' => false],
+                    '2fa_mode' => [
+                        'label' => 'Two-factor authentication',
+                        'input' => 'select',
+                        'type' => 'string',
+                        'default' => 'disabled',
+                        'options' => [
+                            'disabled' => 'Disabled',
+                            'optional' => 'Optional - users decide on their accounts',
+                            'required' => 'Required - all sign-ins need TOTP',
+                        ],
+                        'help' => 'Uses Google Authenticator or FreeOTP. Required is enforced for every admin sign-in; Optional lets each user enable 2FA from their profile.',
+                    ],
                 ],
             ],
             'email' => [

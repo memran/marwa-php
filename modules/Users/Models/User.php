@@ -24,6 +24,8 @@ final class User extends Model implements PermissionAwareUser, AdminAuthenticata
         'password',
         'role_id',
         'is_active',
+        'two_factor_secret',
+        'two_factor_enabled_at',
         'last_login_at',
     ];
 
@@ -74,6 +76,35 @@ final class User extends Model implements PermissionAwareUser, AdminAuthenticata
     public function updatePasswordHash(string $hash): void
     {
         $this->setAttribute('password', $hash);
+        $this->saveOrFail();
+    }
+
+    public function hasTwoFactorEnabled(): bool
+    {
+        $secret = trim((string) $this->getAttribute('two_factor_secret'));
+        $enabledAt = trim((string) $this->getAttribute('two_factor_enabled_at'));
+
+        return $secret !== '' && $enabledAt !== '';
+    }
+
+    public function getTwoFactorSecret(): ?string
+    {
+        $secret = trim((string) $this->getAttribute('two_factor_secret'));
+
+        return $secret !== '' ? $secret : null;
+    }
+
+    public function enableTwoFactor(string $secret): void
+    {
+        $this->setAttribute('two_factor_secret', trim($secret));
+        $this->setAttribute('two_factor_enabled_at', date('Y-m-d H:i:s'));
+        $this->saveOrFail();
+    }
+
+    public function disableTwoFactor(): void
+    {
+        $this->setAttribute('two_factor_secret', null);
+        $this->setAttribute('two_factor_enabled_at', null);
         $this->saveOrFail();
     }
 

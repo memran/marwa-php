@@ -22,6 +22,7 @@ return [
     'migrations' => [
         'database/migrations/2026_04_14_000001_create_settings_table.php',
         'database/migrations/2026_04_14_000002_insert_settings_permissions.php',
+        'database/migrations/2026_08_08_000002_convert_2fa_enabled_to_mode.php',
     ],
     'menu' => [
         'section' => 'Administration',

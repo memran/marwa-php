@@ -43,6 +43,19 @@ final class SettingsCatalogTest extends TestCase
         self::assertSame('Executive', $interfaceFields['admin_theme']['options']['executive']);
     }
 
+    public function testTwoFactorModesAreExposedAsSelectOptions(): void
+    {
+        $catalog = new SettingsCatalog();
+        $twoFactorField = $catalog->categories()['security']['fields']['2fa_mode'];
+
+        self::assertSame('select', $twoFactorField['input']);
+        self::assertSame('disabled', $twoFactorField['default']);
+        self::assertSame('Disabled', $twoFactorField['options']['disabled']);
+        self::assertSame('Optional - users decide on their accounts', $twoFactorField['options']['optional']);
+        self::assertSame('Required - all sign-ins need TOTP', $twoFactorField['options']['required']);
+        self::assertArrayNotHasKey('2fa_enabled', $catalog->categories()['security']['fields']);
+    }
+
     public function testNormalizeSubmissionCoercesTypesAndRetainsSensitiveValues(): void
     {
         $catalog = new SettingsCatalog();
@@ -67,7 +80,7 @@ final class SettingsCatalogTest extends TestCase
             'security' => [
                 'password_policy' => '12 chars',
                 'login_attempt_limit' => '7',
-                '2fa_enabled' => '1',
+                '2fa_mode' => 'required',
             ],
             'email' => [
                 'smtp_host' => 'smtp.example.test',
@@ -102,6 +115,7 @@ final class SettingsCatalogTest extends TestCase
         self::assertSame(25, $result['values']['system']['pagination_limit']);
         self::assertSame('keep-secret', $result['values']['email']['smtp_pass']);
         self::assertSame(15.5, $result['values']['payment']['tax_rate']);
+        self::assertSame('required', $result['values']['security']['2fa_mode']);
     }
 
     public function testUncheckingCheckboxReturnsFalse(): void

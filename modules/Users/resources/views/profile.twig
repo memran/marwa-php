@@ -135,6 +135,26 @@
                 <span class="text-xs font-medium uppercase tracking-wider text-app-muted">Account age</span>
                 <span class="text-sm text-app-text">{{ created ? (accountAgeDays == 0 ? 'Today' : accountAgeDays ~ ' day' ~ (accountAgeDays != 1 ? 's' : '')) : 'N/A' }}</span>
               </div>
+              <div class="flex items-center justify-between rounded-2xl border border-app-border bg-app-surface-2/60 px-4 py-3">
+                <span class="text-xs font-medium uppercase tracking-wider text-app-muted">Two-factor</span>
+                {% if two_factor_mode|default('disabled') == 'disabled' %}
+                  <span class="text-sm text-app-muted">Disabled</span>
+                {% elseif two_factor_enabled|default(false) %}
+                  <span class="inline-flex items-center gap-1.5 rounded-full bg-app-success/10 px-2.5 py-1 text-[11px] font-medium text-app-success">
+                    <span class="h-1.5 w-1.5 rounded-full bg-app-success"></span>Enabled
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center gap-1.5 rounded-full bg-app-warning/10 px-2.5 py-1 text-[11px] font-medium text-app-warning">
+                    <span class="h-1.5 w-1.5 rounded-full bg-app-warning"></span>Not enabled
+                  </span>
+                {% endif %}
+              </div>
+              {% if two_factor_mode|default('disabled') != 'disabled' %}
+                <a href="/admin/profile/2fa" class="flex items-center justify-between rounded-2xl border border-app-accent/20 bg-app-accent/5 px-4 py-3 text-app-accent transition hover:bg-app-accent/10">
+                  <span class="text-sm font-semibold">Manage two-factor authentication</span>
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+                </a>
+              {% endif %}
             </div>
           </section>
 

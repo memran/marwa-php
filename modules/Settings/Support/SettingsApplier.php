@@ -60,7 +60,11 @@ final class SettingsApplier
         $timeFormat = (string) ($values['system']['time_format'] ?? ($items['system']['time_format'] ?? 'H:i'));
         $passwordPolicy = (string) ($values['security']['password_policy'] ?? ($items['security']['password_policy'] ?? ''));
         $loginAttemptLimit = (int) ($values['security']['login_attempt_limit'] ?? ($items['security']['login_attempt_limit'] ?? 5));
-        $twoFactorEnabled = (bool) ($values['security']['2fa_enabled'] ?? ($items['security']['2fa_enabled'] ?? false));
+        $twoFactorMode = (string) ($values['security']['2fa_mode'] ?? ($items['security']['2fa_mode'] ?? 'disabled'));
+        if (!in_array($twoFactorMode, ['disabled', 'optional', 'required'], true)) {
+            $twoFactorMode = 'disabled';
+        }
+        $twoFactorEnabled = $twoFactorMode !== 'disabled';
         $customerCodeFormat = (string) ($values['billing']['customer_code_format'] ?? 'manual');
         $customerCodePrefix = (string) ($values['billing']['customer_code_prefix'] ?? '');
         $customerCodePadding = (int) ($values['billing']['customer_code_padding'] ?? 5);
@@ -95,6 +99,7 @@ final class SettingsApplier
         $items['system']['time_format'] = $timeFormat;
         $items['security']['password_policy'] = $passwordPolicy;
         $items['security']['login_attempt_limit'] = $loginAttemptLimit;
+        $items['security']['2fa_mode'] = $twoFactorMode;
         $items['security']['2fa_enabled'] = $twoFactorEnabled;
         $items['error']['appName'] = $appName;
         $items['error']['environment'] = $appEnv;
@@ -119,6 +124,7 @@ final class SettingsApplier
                 'password_policy' => $passwordPolicy,
                 'login_attempt_limit' => $loginAttemptLimit,
                 'two_factor_enabled' => $twoFactorEnabled,
+                'two_factor_mode' => $twoFactorMode,
             ],
             'theme' => [
                 'frontend' => $themeFrontend,
@@ -163,6 +169,7 @@ final class SettingsApplier
             $view->share('_security_password_policy', $items['security']['password_policy']);
             $view->share('_security_login_attempt_limit', $items['security']['login_attempt_limit']);
             $view->share('_security_two_factor_enabled', $items['security']['2fa_enabled']);
+            $view->share('_security_2fa_mode', $items['security']['2fa_mode']);
         }
     }
 
