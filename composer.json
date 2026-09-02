@@ -76,6 +76,9 @@
       "App\\": "app/",
       "App\\Modules\\": "modules/"
     },
+    "exclude-from-classmap": [
+      "/modules/*/database/seeders/"
+    ],
     "files": [
       "app/Support/CommonHelper.php"
     ]

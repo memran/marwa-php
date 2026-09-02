@@ -9,6 +9,21 @@ use PHPUnit\Framework\TestCase;
 
 final class StarterConfigTest extends TestCase
 {
+    public function testComposerExcludesFrameworkDiscoveredModuleSeedersFromTheClassmap(): void
+    {
+        $composer = json_decode(
+            (string) file_get_contents(__DIR__ . '/../../composer.json'),
+            true,
+            flags: JSON_THROW_ON_ERROR,
+        );
+
+        self::assertIsArray($composer);
+        self::assertContains(
+            '/modules/*/database/seeders/',
+            $composer['autoload']['exclude-from-classmap'] ?? [],
+        );
+    }
+
     public function testAppConfigDefinesStarterErrorPagesAndBooleanDebugbar(): void
     {
         $config = require __DIR__ . '/../../config/app.php';
