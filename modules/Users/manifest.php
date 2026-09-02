@@ -29,12 +29,13 @@ return [
         'database/seeders/AdminUserSeeder.php',
     ],
     'menu' => [
-        'section' => 'Identity & Access',
+        'name' => 'admin.users',
         'label' => 'Users',
-        'route' => '/admin/users',
+        'url' => '/admin/users',
+        'parent' => 'admin.identity-access',
         'order' => 20,
         'icon' => 'users',
-        'permissions' => ['users.view'],
-        'admin_only' => true,
+        'permission' => 'users.view',
+        'roles' => ['admin'],
     ],
 ];

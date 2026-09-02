@@ -16,7 +16,9 @@ final class SecurityModuleManifestTest extends TestCase
         self::assertSame('routes/http.php', $manifest['routes']['http']);
         self::assertSame(['security.view' => 'View Security Risk Report'], $manifest['permissions']);
         self::assertContains('database/migrations/2026_07_02_000001_insert_security_permissions.php', $manifest['migrations']);
-        self::assertSame(['security.view'], $manifest['menu']['permissions']);
+        self::assertSame('admin.security', $manifest['menu']['name']);
+        self::assertSame('security.view', $manifest['menu']['permission']);
+        self::assertSame(['admin'], $manifest['menu']['roles']);
     }
 
     public function test_declared_permissions_are_migrated(): void

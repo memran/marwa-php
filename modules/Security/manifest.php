@@ -26,12 +26,13 @@ return [
         'database/migrations/2026_07_02_000001_insert_security_permissions.php',
     ],
     'menu' => [
-        'section' => 'Administration',
+        'name' => 'admin.security',
         'label' => 'Security',
-        'route' => '/admin/security/risk',
+        'url' => '/admin/security/risk',
+        'parent' => 'admin.administration',
         'order' => 35,
         'icon' => 'shield-alert',
-        'permissions' => ['security.view'],
-        'admin_only' => true,
+        'permission' => 'security.view',
+        'roles' => ['admin'],
     ],
 ];

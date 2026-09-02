@@ -46,6 +46,10 @@ final class StarterThemeRoutingTest extends TestCase
         copy(__DIR__ . '/../../config/security.php', $this->basePath . '/config/security.php');
         copy(__DIR__ . '/../../config/error.php', $this->basePath . '/config/error.php');
         $this->copyDirectory(__DIR__ . '/../../resources/views/themes/executive', $this->basePath . '/resources/views/themes/executive');
+        file_put_contents(
+            $this->basePath . '/resources/views/themes/executive/actor-contract.twig',
+            '{{ user_name }}|{{ user_email }}|{{ user_role }}|{{ is_admin_user ? "admin" : "not-admin" }}'
+        );
 
         file_put_contents(
             $this->basePath . '/.env',
@@ -70,17 +74,18 @@ final class StarterThemeRoutingTest extends TestCase
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Backend\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Middleware\AdminThemeMiddleware;
 use App\Modules\Auth\Http\Middleware\RequireAdminAuthentication;
 use Marwa\Router\Response;
 use Marwa\Framework\Facades\Router;
+use Marwa\Framework\Views\View;
 
 Router::get('/', [HomeController::class, 'index'])->name('home')->register();
 
 Router::group(['prefix' => 'admin', 'middleware' => [AdminThemeMiddleware::class, RequireAdminAuthentication::class]], static function ($routes): void {
     $routes->get('/', static fn (): \Psr\Http\Message\ResponseInterface => Response::html('Admin dashboard'))->name('admin.dashboard')->register();
+    $routes->get('/actor-contract', static fn (): \Psr\Http\Message\ResponseInterface => app(View::class)->make('actor-contract'))->register();
 });
 PHP
         );
@@ -219,6 +224,9 @@ TWIG
             'APP_CONFIG_CACHE',
             'APP_ROUTE_CACHE',
             'APP_MODULE_CACHE',
+            'ADMIN_BOOTSTRAP_ENABLED',
+            'ADMIN_BOOTSTRAP_EMAIL',
+            'ADMIN_BOOTSTRAP_PASSWORD',
         ] as $key) {
             unset($_ENV[$key], $_SERVER[$key]);
             putenv($key);
@@ -306,6 +314,33 @@ TWIG
         self::assertStringContainsString('Generate a short-lived reset link for the matching admin account.', (string) $forgot->getBody());
         self::assertStringContainsString('Frontend theme: default', (string) $frontendAgain->getBody());
         self::assertStringContainsString('Marwa Starter', (string) $health->getBody());
+    }
+
+    public function testAdminThemeUsesTheAuthenticatedActorContract(): void
+    {
+        putenv('ADMIN_BOOTSTRAP_ENABLED=1');
+        putenv('ADMIN_BOOTSTRAP_EMAIL=admin@marwa.test');
+        putenv('ADMIN_BOOTSTRAP_PASSWORD=ExampleAdminPassword123!');
+        $_ENV['ADMIN_BOOTSTRAP_ENABLED'] = $_SERVER['ADMIN_BOOTSTRAP_ENABLED'] = '1';
+        $_ENV['ADMIN_BOOTSTRAP_EMAIL'] = $_SERVER['ADMIN_BOOTSTRAP_EMAIL'] = 'admin@marwa.test';
+        $_ENV['ADMIN_BOOTSTRAP_PASSWORD'] = $_SERVER['ADMIN_BOOTSTRAP_PASSWORD'] = 'ExampleAdminPassword123!';
+
+        $app = new Application($this->basePath);
+        $app->make(AppBootstrapper::class)->bootstrap();
+        $app->add(AdminUserProviderInterface::class, new NullAdminUserProvider());
+
+        $auth = $app->make(AuthManager::class);
+        self::assertTrue($auth->attempt('admin@marwa.test', 'ExampleAdminPassword123!'));
+
+        $response = $app->make(HttpKernel::class)->handle(
+            new ServerRequest(uri: '/admin/actor-contract', method: 'GET')
+        );
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame(
+            'Administrator|admin@marwa.test|admin|admin',
+            trim((string) $response->getBody())
+        );
     }
 
     public function testActivityModuleRouteLoadsAtTheAdminPath(): void

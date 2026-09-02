@@ -25,12 +25,13 @@ return [
         'database/migrations/2026_08_08_000002_convert_2fa_enabled_to_mode.php',
     ],
     'menu' => [
-        'section' => 'Administration',
+        'name' => 'admin.settings',
         'label' => 'Settings',
-        'route' => '/admin/settings',
+        'url' => '/admin/settings',
+        'parent' => 'admin.administration',
         'order' => 70,
         'icon' => 'settings',
-        'permissions' => ['settings.view'],
-        'admin_only' => true,
+        'permission' => 'settings.view',
+        'roles' => ['admin'],
     ],
 ];

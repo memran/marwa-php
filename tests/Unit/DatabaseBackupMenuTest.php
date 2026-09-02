@@ -14,11 +14,13 @@ final class DatabaseBackupMenuTest extends TestCase
 
         self::assertIsArray($manifest);
         self::assertArrayHasKey('menu', $manifest);
-        self::assertSame('Administration', $manifest['menu']['section']);
+        self::assertSame('admin.database-backups', $manifest['menu']['name']);
         self::assertSame('Backup & Restore', $manifest['menu']['label']);
-        self::assertSame('/admin/database-backups', $manifest['menu']['route']);
+        self::assertSame('/admin/database-backups', $manifest['menu']['url']);
+        self::assertSame('admin.administration', $manifest['menu']['parent']);
         self::assertSame(40, $manifest['menu']['order']);
         self::assertSame('database-zap', $manifest['menu']['icon']);
-        self::assertSame(['database_backup.view'], $manifest['menu']['permissions']);
+        self::assertSame('database_backup.view', $manifest['menu']['permission']);
+        self::assertSame(['admin'], $manifest['menu']['roles']);
     }
 }

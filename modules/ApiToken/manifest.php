@@ -28,12 +28,13 @@ return [
         'database/migrations/2026_04_23_000001_create_api_tokens_table.php',
     ],
     'menu' => [
-        'section' => 'Administration',
+        'name' => 'admin.api-tokens',
         'label' => 'API Keys',
-        'route' => '/admin/api-tokens',
+        'url' => '/admin/api-tokens',
+        'parent' => 'admin.administration',
         'order' => 80,
         'icon' => 'key',
-        'permissions' => ['api_token.view'],
-        'admin_only' => true,
+        'permission' => 'api_token.view',
+        'roles' => ['admin'],
     ],
 ];

@@ -21,13 +21,14 @@ return [
         'queue.retry' => 'Retry Queue Jobs',
     ],
     'menu' => [
-        'section' => 'Administration',
+        'name' => 'admin.queue',
         'label' => 'Queue',
-        'route' => '/admin/queue',
+        'url' => '/admin/queue',
+        'parent' => 'admin.administration',
         'order' => 60,
         'icon' => 'inbox',
-        'permissions' => ['queue.view'],
-        'admin_only' => true,
+        'permission' => 'queue.view',
+        'roles' => ['admin'],
     ],
     'routes' => [
         'http' => 'routes/http.php',

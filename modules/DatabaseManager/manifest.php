@@ -27,12 +27,13 @@ return [
         'database/migrations/2026_04_15_000001_insert_database_manager_permissions.php',
     ],
     'menu' => [
-        'section' => 'Administration',
+        'name' => 'admin.database',
         'label' => 'Database',
-        'route' => '/admin/database',
+        'url' => '/admin/database',
+        'parent' => 'admin.administration',
         'order' => 50,
         'icon' => 'database',
-        'permissions' => ['database.view'],
-        'admin_only' => true,
+        'permission' => 'database.view',
+        'roles' => ['admin'],
     ],
 ];

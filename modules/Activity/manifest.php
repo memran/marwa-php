@@ -32,12 +32,13 @@ return [
         'database/migrations/2026_04_11_000002_insert_activity_permissions.php',
     ],
     'menu' => [
-        'section' => 'Identity & Access',
+        'name' => 'admin.activity',
         'label' => 'Activity',
-        'route' => '/admin/activity',
+        'url' => '/admin/activity',
+        'parent' => 'admin.identity-access',
         'order' => 40,
         'icon' => 'activity',
-        'permissions' => ['activity.view'],
-        'admin_only' => true,
+        'permission' => 'activity.view',
+        'roles' => ['admin'],
     ],
 ];

@@ -32,7 +32,7 @@ final class DashboardController extends Controller
         $userId = $this->getUserId();
         $widgets = array_map(
             fn (array $widget): array => $this->hydrateWidget($widget),
-            $this->getUserWidgets($userId)
+            $this->filterWidgetsByPermission($this->getUserWidgets($userId))
         );
 
         return $this->view('@dashboard/index', [
@@ -244,7 +244,7 @@ final class DashboardController extends Controller
             }
 
             $widgetId = trim((string) ($widget['widget_id'] ?? ''));
-            if ($widgetId === '' || $this->widgetRegistry->get($widgetId) === null) {
+            if ($widgetId === '' || !$this->widgetIsAllowed($widgetId)) {
                 continue;
             }
 
@@ -261,5 +261,30 @@ final class DashboardController extends Controller
         }
 
         return $normalized;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $widgets
+     * @return list<array<string, mixed>>
+     */
+    private function filterWidgetsByPermission(array $widgets): array
+    {
+        return array_values(array_filter(
+            $widgets,
+            fn (array $widget): bool => $this->widgetIsAllowed((string) ($widget['widget_id'] ?? ''))
+        ));
+    }
+
+    private function widgetIsAllowed(string $widgetId): bool
+    {
+        $widget = $this->widgetRegistry->get($widgetId);
+
+        if ($widget === null) {
+            return false;
+        }
+
+        $permission = $widget['permission'] ?? null;
+
+        return !is_string($permission) || $this->gate->allows($permission);
     }
 }

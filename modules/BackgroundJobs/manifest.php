@@ -21,13 +21,14 @@ return [
         'background_jobs.run' => 'Run Background Jobs',
     ],
     'menu' => [
-        'section' => 'Administration',
+        'name' => 'admin.background-jobs',
         'label' => 'Background Jobs',
-        'route' => '/admin/background-jobs',
+        'url' => '/admin/background-jobs',
+        'parent' => 'admin.administration',
         'order' => 30,
         'icon' => 'clock-3',
-        'permissions' => ['background_jobs.view'],
-        'admin_only' => true,
+        'permission' => 'background_jobs.view',
+        'roles' => ['admin'],
     ],
     'routes' => [
         'http' => 'routes/http.php',

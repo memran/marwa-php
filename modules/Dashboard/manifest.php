@@ -25,10 +25,12 @@ return [
         'database/migrations/2026_04_15_000002_insert_dashboard_permissions.php',
     ],
     'menu' => [
-        'section' => 'Overview',
+        'name' => 'admin.dashboard',
         'label' => 'Dashboard',
-        'route' => '/admin/dashboard',
+        'url' => '/admin/dashboard',
+        'parent' => 'admin.overview',
+        'order' => 10,
         'icon' => 'layout-dashboard',
-        'permissions' => ['dashboard.view'],
+        'permission' => 'dashboard.view',
     ],
 ];

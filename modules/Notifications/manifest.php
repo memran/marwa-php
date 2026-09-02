@@ -25,11 +25,12 @@ return [
         'database/migrations/2026_04_14_000003_insert_notifications_permissions.php',
     ],
     'menu' => [
-        'section' => 'Notifications',
+        'name' => 'admin.notifications',
         'label' => 'Notifications',
-        'route' => '/admin/notifications',
+        'url' => '/admin/notifications',
+        'parent' => 'admin.system-logs',
         'icon' => 'bell',
         'order' => 10,
-        'permissions' => ['notifications.view'],
+        'permission' => 'notifications.view',
     ],
 ];

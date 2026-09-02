@@ -23,13 +23,14 @@ return [
         'database_backup.restore' => 'Restore Database Backups',
     ],
     'menu' => [
-        'section' => 'Administration',
+        'name' => 'admin.database-backups',
         'label' => 'Backup & Restore',
-        'route' => '/admin/database-backups',
+        'url' => '/admin/database-backups',
+        'parent' => 'admin.administration',
         'order' => 40,
         'icon' => 'database-zap',
-        'permissions' => ['database_backup.view'],
-        'admin_only' => true,
+        'permission' => 'database_backup.view',
+        'roles' => ['admin'],
     ],
     'routes' => [
         'http' => 'routes/http.php',

@@ -87,6 +87,39 @@ Supported task types are:
 - `queue` for framework queue jobs
 - `call` for app callables or handler classes
 
+### Admin Menu Items
+
+Declare admin navigation in the module manifest using the framework `MenuRegistry` fields. The starter registers these entries automatically after module discovery, so module service providers and themes do not need menu-specific code.
+
+```php
+'menu' => [
+    'name' => 'admin.reports',
+    'label' => 'Reports',
+    'url' => '/admin/reports',
+    'parent' => 'admin.administration',
+    'order' => 50,
+    'icon' => 'chart-no-axes-column',
+    'permission' => 'reports.view',
+    'roles' => ['admin'],
+],
+```
+
+Use a list of entries when one module contributes multiple pages. Menu names must be globally unique and stable. Available admin parents are:
+
+- `admin.overview`
+- `admin.identity-access`
+- `admin.administration`
+- `admin.system-logs`
+
+The `permission` and `roles` fields control presentation only; routes must still enforce their middleware and authorization checks. Role checks use the database-loaded role hierarchy, so roles above `admin` can satisfy an `admin` requirement.
+
+Do not use the legacy `section`, `route`, `permissions`, or `admin_only` keys. Invalid declarations fail during application boot instead of being silently omitted. In production, rebuild module metadata after adding a new module or changing a cached manifest:
+
+```bash
+php marwa module:clear
+php marwa module:cache
+```
+
 ## Service Provider Conventions
 
 Module service providers should stay minimal.
